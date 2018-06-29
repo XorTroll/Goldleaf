@@ -1,6 +1,6 @@
-#include <switch.h>
-
 #include <iostream>
+#include <switch.h>
+#include "ncm.h"
 #include "console_select_panel.hpp"
 #include "menu.hpp"
 #include "panel_changer.hpp"
@@ -8,12 +8,20 @@
 Result servicesInit()
 {
     Result rc = 0;
+
+    if (R_FAILED(rc = ncmInitialize()))
+        return rc;
+
+    if (R_FAILED(rc = nsInitialize()))
+        return rc;
+
     return rc;
 }
 
 void servicesExit(void)
 {
-
+    ncmExit();
+    nsExit();
 }
 
 int main(int argc, char **argv)

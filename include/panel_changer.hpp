@@ -12,6 +12,6 @@ namespace menu
 
     namespace tinfo_menu
     {
-        
+        void storageSelected(menu::Menu *menu, FsStorageId storageId);
     }
 }
