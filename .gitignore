@@ -1,0 +1,10 @@
+*.pfs0
+*.nso
+*.nro
+*.nacp
+*.elf
+*.code-workspace
+build/
+save_files/
+.vscode/*
+notes.txt
