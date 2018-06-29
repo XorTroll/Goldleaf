@@ -28,11 +28,11 @@ int main(int argc, char **argv)
     menu::Menu menu(console);
 
     auto mainPanel = std::make_shared<menu::ConsolePanel>(console, "Tinfoil 0.0.1");
-    auto tinfoSection = mainPanel->addSection("Title Info");
-    tinfoSection->addEntry("Display Install Info", std::bind(menu::install_info::displaySelectInstallLocation, std::placeholders::_1));
-    menu.pushPanel(mainPanel);
+    auto mainSection = mainPanel->addSection("Main Menu");
+    mainSection->addEntry("Title Info", std::bind(menu::main_menu::titleInfoSelected, &menu));
+    mainSection->addEntry("Exit", std::bind(menu::main_menu::exitSelected, &menu));
 
-    std::cout << "Press B to exit..." << std::endl;
+    menu.pushPanel(mainPanel);
 
     // Check if exit requested in menu, use public bool
     while (appletMainLoop() && !menu.m_exitRequested)
@@ -40,6 +40,9 @@ int main(int argc, char **argv)
         hidScanInput();
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
     
+        if (kDown & KEY_PLUS)
+            break;
+
         if (kDown != 0)
             menu.processInput(kDown);
 

@@ -5,15 +5,25 @@
 
 namespace menu
 {
-    namespace install_info
+    namespace main_menu
     {
-        void displaySelectInstallLocation(menu::Menu *menu)
+        void titleInfoSelected(menu::Menu *menu)
         {
-            auto panel = std::make_shared<menu::ConsolePanel>(menu->m_console, "Display Install Info");
+            auto panel = std::make_shared<menu::ConsolePanel>(menu->m_console, "Title Info");
             auto section = panel->addSection("Install Location");
             section->addEntry("NAND", nullptr);
             section->addEntry("SD Card", nullptr);
             menu->pushPanel(panel);
         }
+
+        void exitSelected(menu::Menu *menu)
+        {
+            menu->m_exitRequested = true;
+        }
+    }
+
+    namespace tinfo_menu
+    {
+
     }
 }

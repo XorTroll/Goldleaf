@@ -4,8 +4,14 @@
 
 namespace menu
 {
-    namespace install_info
+    namespace main_menu
     {
-        void displaySelectInstallLocation(menu::Menu *menu);
+        void titleInfoSelected(menu::Menu *menu);
+        void exitSelected(menu::Menu *menu);
+    }
+
+    namespace tinfo_menu
+    {
+        
     }
 }

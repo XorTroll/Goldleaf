@@ -7,7 +7,7 @@ namespace menu
     //
     // SectionEntry
     //
-    SectionEntry::SectionEntry(std::string name, std::function<void(Menu *)> onSelected) :
+    SectionEntry::SectionEntry(std::string name, std::function<void()> onSelected) :
         name(name), onSelected(onSelected)
     {
 
@@ -21,7 +21,7 @@ namespace menu
     {
     }
 
-    void Section::addEntry(std::string name, std::function<void(Menu *)> onSelected)
+    void Section::addEntry(std::string name, std::function<void()> onSelected)
     {
         this->entries.push_back(std::make_shared<SectionEntry>(name, onSelected));
     }
@@ -75,7 +75,7 @@ namespace menu
         {
             auto section = this->m_sections[this->getCursorSectionIndex(this->m_cursorPosition)];
             auto sectionEntry = section->entries[this->getCursorSectionEntryIndex(this->m_cursorPosition)];
-            sectionEntry->onSelected(menu);
+            sectionEntry->onSelected();
         }
         else if (keysDown & KEY_B)
         {

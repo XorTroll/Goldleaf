@@ -13,9 +13,9 @@ namespace menu
     struct SectionEntry
     {
         std::string name;
-        std::function<void(Menu *)> onSelected;
+        std::function<void()> onSelected;
 
-        SectionEntry(std::string name, std::function<void(Menu *)> onSelected);
+        SectionEntry(std::string name, std::function<void()> onSelected);
     };
 
     struct Section
@@ -25,7 +25,7 @@ namespace menu
 
         Section(std::string name);
 
-        void addEntry(std::string name, std::function<void(Menu *)> onSelected);
+        void addEntry(std::string name, std::function<void()> onSelected);
     };
 
     class ConsolePanel : public Panel
