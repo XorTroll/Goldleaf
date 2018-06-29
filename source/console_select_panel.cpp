@@ -1,4 +1,4 @@
-#include "console_panel.hpp"
+#include "console_select_panel.hpp"
 
 #include <iostream>
 
@@ -27,17 +27,17 @@ namespace menu
     }
 
     //
-    // ConsolePanel
+    // ConsoleSelectPanel
     //
 
-    ConsolePanel::ConsolePanel(PrintConsole *console, std::string title) :
+    ConsoleSelectPanel::ConsoleSelectPanel(PrintConsole *console, std::string title) :
         m_title(title), m_console(console), m_cursorPosition(0)
     {
         
     }
 
     // When the panel first becomes active we want a fresh start
-    void ConsolePanel::onBecomeActive()
+    void ConsoleSelectPanel::onBecomeActive()
     {
         consoleClear();
         size_t overallEntryIndex = 0;
@@ -61,7 +61,7 @@ namespace menu
         }
     }
 
-    void ConsolePanel::processInput(Menu *menu, u64 keysDown)
+    void ConsoleSelectPanel::processInput(Menu *menu, u64 keysDown)
     {
         if (keysDown & KEY_UP || keysDown & KEY_DOWN)
         {
@@ -83,16 +83,16 @@ namespace menu
         }
     }
 
-    void ConsolePanel::updateDisplay() {}
+    void ConsoleSelectPanel::updateDisplay() {}
 
-    std::shared_ptr<Section> ConsolePanel::addSection(std::string name)
+    std::shared_ptr<Section> ConsoleSelectPanel::addSection(std::string name)
     {
         auto section = std::make_shared<Section>(name);
         this->m_sections.push_back(section);
         return section;
     }
 
-    void ConsolePanel::moveCursor(int offset)
+    void ConsoleSelectPanel::moveCursor(int offset)
     {
         size_t totalEntries = getTotalSectionEntries();
         unsigned int prevCursorPos = this->m_cursorPosition;
@@ -102,12 +102,12 @@ namespace menu
             this->onChangeCursorPosition(prevCursorPos);
     }
 
-    unsigned int ConsolePanel::getCursorPosition()
+    unsigned int ConsoleSelectPanel::getCursorPosition()
     {
         return this->m_cursorPosition;
     }
 
-    size_t ConsolePanel::getCursorSectionIndex(unsigned int cursorPosition)
+    size_t ConsoleSelectPanel::getCursorSectionIndex(unsigned int cursorPosition)
     {
         size_t overallEntryIndex = 0;
 
@@ -127,7 +127,7 @@ namespace menu
         return 0;
     }
 
-    size_t ConsolePanel::getCursorSectionEntryIndex(unsigned int cursorPosition)
+    size_t ConsoleSelectPanel::getCursorSectionEntryIndex(unsigned int cursorPosition)
     {
         size_t overallEntryIndex = 0;
 
@@ -147,7 +147,7 @@ namespace menu
         return 0;
     }
     
-    unsigned int ConsolePanel::getCursorRowInConsole(unsigned int cursorPosition)
+    unsigned int ConsoleSelectPanel::getCursorRowInConsole(unsigned int cursorPosition)
     {
         size_t sectionIndex = this->getCursorSectionIndex(cursorPosition);
         size_t sectionEntryIndex = this->getCursorSectionEntryIndex(cursorPosition);
@@ -156,7 +156,7 @@ namespace menu
         return sectionStartEntryOverallIndex + sectionEntryIndex + (sectionIndex + 1) * 3;
     }
 
-    void ConsolePanel::onChangeCursorPosition(unsigned int prevPos)
+    void ConsoleSelectPanel::onChangeCursorPosition(unsigned int prevPos)
     {
         // Put > beside the currently selected entry
         size_t currentCursorRow = this->getCursorRowInConsole(this->m_cursorPosition);
@@ -171,7 +171,7 @@ namespace menu
         std::cout << "  ";
     }
 
-    size_t ConsolePanel::getTotalSectionEntries()
+    size_t ConsoleSelectPanel::getTotalSectionEntries()
     {
         size_t ret = 0;
 
@@ -183,7 +183,7 @@ namespace menu
         return ret;
     }
 
-    size_t ConsolePanel::getSectionStartEntryOverallIndex(size_t sectionEntryIndex)
+    size_t ConsoleSelectPanel::getSectionStartEntryOverallIndex(size_t sectionEntryIndex)
     {
         size_t overallEntryIndex = 0;
 

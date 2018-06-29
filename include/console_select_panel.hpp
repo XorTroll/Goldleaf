@@ -28,13 +28,13 @@ namespace menu
         void addEntry(std::string name, std::function<void()> onSelected);
     };
 
-    class ConsolePanel : public Panel
+    class ConsoleSelectPanel : public Panel
     {
         public:
             const std::string m_title;
             std::vector<std::shared_ptr<Section>> m_sections;
 
-            ConsolePanel(PrintConsole *console, std::string title);
+            ConsoleSelectPanel(PrintConsole *console, std::string title);
 
             virtual void onBecomeActive() override;
             virtual void processInput(Menu *menu, u64 keysDown) override;

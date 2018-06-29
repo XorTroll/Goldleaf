@@ -1,7 +1,7 @@
 #include "panel_changer.hpp"
 
 #include <iostream>
-#include "console_panel.hpp"
+#include "console_select_panel.hpp"
 
 namespace menu
 {
@@ -9,7 +9,7 @@ namespace menu
     {
         void titleInfoSelected(menu::Menu *menu)
         {
-            auto panel = std::make_shared<menu::ConsolePanel>(menu->m_console, "Title Info");
+            auto panel = std::make_shared<menu::ConsoleSelectPanel>(menu->m_console, "Title Info");
             auto section = panel->addSection("Install Location");
             section->addEntry("NAND", nullptr);
             section->addEntry("SD Card", nullptr);

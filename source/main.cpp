@@ -1,7 +1,7 @@
 #include <switch.h>
 
 #include <iostream>
-#include "console_panel.hpp"
+#include "console_select_panel.hpp"
 #include "menu.hpp"
 #include "panel_changer.hpp"
 
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
     menu::Menu menu(console);
 
-    auto mainPanel = std::make_shared<menu::ConsolePanel>(console, "Tinfoil 0.0.1");
+    auto mainPanel = std::make_shared<menu::ConsoleSelectPanel>(console, "Tinfoil 0.0.1");
     auto mainSection = mainPanel->addSection("Main Menu");
     mainSection->addEntry("Title Info", std::bind(menu::main_menu::titleInfoSelected, &menu));
     mainSection->addEntry("Exit", std::bind(menu::main_menu::exitSelected, &menu));
