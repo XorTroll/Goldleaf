@@ -31,8 +31,9 @@ std::string getContentRecordTypeName(u8 type)
     return "Unknown";
 }
 
-Title::Title(NCMMetaRecord metaRecord, FsStorageId storageId) :
-    m_metaRecord(metaRecord), m_storageId(storageId), m_name(""), m_applicationControlData(nullptr)
+Title::Title(NCMMetaRecord baseMetaRecord, NCMMetaRecord updateMetaRecord, FsStorageId storageId) :
+    m_baseMetaRecord(baseMetaRecord), m_updateMetaRecord(updateMetaRecord), m_storageId(storageId), 
+    m_name(""), m_applicationControlData(nullptr)
 {
 
 }
@@ -78,7 +79,7 @@ std::shared_ptr<NsApplicationControlData> Title::getApplicationControlData()
 
     this->m_applicationControlData = std::make_shared<NsApplicationControlData>();
 
-    if (R_FAILED(rc = nsGetApplicationControlData(0x1, this->m_metaRecord.titleID, this->m_applicationControlData.get(), sizeof(NsApplicationControlData), &sizeRead)))
+    if (R_FAILED(rc = nsGetApplicationControlData(0x1, this->m_baseMetaRecord.titleID, this->m_applicationControlData.get(), sizeof(NsApplicationControlData), &sizeRead)))
     {
         error::log(error::LogLevel::ERROR, "Title::getApplicationControlData", "Failed to get application control data", rc);
         this->m_applicationControlData = nullptr;

@@ -5,20 +5,24 @@
 #include "menu.hpp"
 #include "panel_changer.hpp"
 
-Result servicesInit()
+extern "C"
 {
-    Result rc = 0;
-
-    if (R_FAILED(rc = ncmInitialize()))
-        return rc;
-
-    if (R_FAILED(rc = nsInitialize()))
-        return rc;
-
-    return rc;
+    void userAppInit(void);
+    void userAppExit(void);
 }
 
-void servicesExit(void)
+void userAppInit(void)
+{
+    Result rc;
+
+    if (R_FAILED(rc = ncmInitialize()))
+        fatalSimple(0xCAFE << 4 | 4);
+
+    if (R_FAILED(rc = nsInitialize()))
+        fatalSimple(0xCAFE << 4 | 5);
+}
+
+void userAppExit(void)
 {
     ncmExit();
     nsExit();
@@ -30,9 +34,6 @@ int main(int argc, char **argv)
     gfxInitDefault();
     PrintConsole *console = consoleInit(NULL);
 
-    if (R_FAILED(rc = servicesInit()))
-        return rc;
-
     menu::Menu menu(console);
     menu::g_menu = &menu;
 
@@ -43,7 +44,6 @@ int main(int argc, char **argv)
 
     menu.pushPanel(mainPanel);
 
-    // Check if exit requested in menu, use public bool
     while (appletMainLoop() && !menu.m_exitRequested)
     {
         hidScanInput();
@@ -60,7 +60,6 @@ int main(int argc, char **argv)
         gfxWaitForVsync();
     }
 
-    servicesExit();
     gfxExit();
     return 0;
 }

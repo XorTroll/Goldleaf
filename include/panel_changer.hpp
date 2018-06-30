@@ -16,6 +16,6 @@ namespace menu
     {
         void storageSelected(FsStorageId storageId);
         void titleSelected(std::shared_ptr<Title> title);
-        void listContentRecordsSelected(std::shared_ptr<Title> title);
+        void listContentRecordsSelected(std::shared_ptr<Title> title, bool isUpdate);
     }
 }

@@ -10,10 +10,11 @@ std::string getContentRecordTypeName(u8 type);
 class Title
 {
     public:
-        const NCMMetaRecord m_metaRecord;
+        const NCMMetaRecord m_baseMetaRecord;
+        const NCMMetaRecord m_updateMetaRecord;
         const FsStorageId m_storageId;
 
-        Title(NCMMetaRecord metaRecord, FsStorageId storageId);
+        Title(NCMMetaRecord baseMetaRecord, NCMMetaRecord updateMetaRecord, FsStorageId storageId);
 
         std::string getName();
         std::shared_ptr<NsApplicationControlData> getApplicationControlData();

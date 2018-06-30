@@ -1,6 +1,7 @@
 #include "panel_changer.hpp"
 
 #include <iostream>
+#include <map>
 #include <sstream>
 #include "console_panel.hpp"
 #include "console_select_panel.hpp"
@@ -70,19 +71,35 @@ namespace menu
                 return;
             }
 
+            std::map<u64, NCMMetaRecord> baseMetaRecords;
+            std::map<u64, NCMMetaRecord> updateMetaRecords;
+
             for (u32 i = 0; i < numEntriesTotal; i++)
             {
                 NCMApplicationContentMetaKey applicationContentMetaKey = applicationContentMetaKeys.get()[i];
 
-                // We only want base titles, not updates
-                if (applicationContentMetaKey.metaRecord.type == 0x80)
+                switch (applicationContentMetaKey.metaRecord.type)
                 {
-                    auto title = std::make_shared<Title>(applicationContentMetaKey.metaRecord, storageId);
-                    
-                    std::stringstream sectionName;
-                    sectionName << title->getName() << " (" << utils::toHexString(reinterpret_cast<u8 *>(&applicationContentMetaKey.baseTitleID), sizeof(u64)) << ")";
-                    section->addEntry(sectionName.str(), std::bind(menu::tinfo_menu::titleSelected, title));
+                    // Base games
+                    case 0x80:
+                        baseMetaRecords.insert(std::make_pair(applicationContentMetaKey.baseTitleID, applicationContentMetaKey.metaRecord));
+                        break;
+
+                    // Updates
+                    case 0x81:
+                        updateMetaRecords.insert(std::make_pair(applicationContentMetaKey.baseTitleID, applicationContentMetaKey.metaRecord));
+                        break;
                 }
+            }
+
+            for (std::pair<u64, NCMMetaRecord> baseElement : baseMetaRecords)
+            {
+                NCMMetaRecord updateMetaRecord = updateMetaRecords[baseElement.first];
+                auto title = std::make_shared<Title>(baseElement.second, updateMetaRecord, storageId);
+                
+                std::stringstream sectionName;
+                sectionName << title->getName() << " (" << utils::toHexString(reinterpret_cast<u8 *>(&baseElement.first), sizeof(u64)) << ")";
+                section->addEntry(sectionName.str(), std::bind(menu::tinfo_menu::titleSelected, title));
             }
 
             menu::g_menu->pushPanel(panel);
@@ -96,24 +113,40 @@ namespace menu
             sectionNameSS << "Title Options - " << title->getName();
 
             auto section = panel->addSection(sectionNameSS.str());
-            section->addEntry("List Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title));
+            section->addEntry("List Base Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, false));
+            section->addEntry("List Update Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, true));
             menu::g_menu->pushPanel(panel);
         }
 
-        void listContentRecordsSelected(std::shared_ptr<Title> title)
+        void listContentRecordsSelected(std::shared_ptr<Title> title, bool isUpdate)
         {
             Result rc = 0;
             auto panel = std::make_shared<menu::ConsolePanel>();
 
             // 32 should be plenty, however in the future it may be better to dynamically create this
+            const NCMMetaRecord *metaRecord;
             std::array<NCMContentRecord, 32> contentRecords;
             size_t sizeRead;
             size_t entriesRead;
 
-            if (R_FAILED(rc = ncmContentMetaDatabaseGet(&g_contentMetaDatabase, &title->m_metaRecord, contentRecords.size() * sizeof(NCMContentRecord), contentRecords.data(), &sizeRead)))
+            if (isUpdate)
+                metaRecord = &title->m_updateMetaRecord;
+            else
+                metaRecord = &title->m_baseMetaRecord;
+
+            if (R_FAILED(rc = ncmContentMetaDatabaseGet(&g_contentMetaDatabase, metaRecord, contentRecords.size() * sizeof(NCMContentRecord), contentRecords.data(), &sizeRead)))
             {
-                error::critical("menu::tinfo_menu::listContentRecordsSelected", "Failed to get content records", rc);
-                return;
+                if (isUpdate && rc == 0xe05)
+                {
+                    panel->addLine("No updates found.");
+                    menu::g_menu->pushPanel(panel);
+                    return;
+                }
+                else
+                {
+                    error::critical("menu::tinfo_menu::listContentRecordsSelected", "Failed to get content records", rc);
+                    return;
+                }
             }
 
             entriesRead = sizeRead / sizeof(NCMContentRecord);
