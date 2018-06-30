@@ -120,8 +120,56 @@ namespace menu
             sectionNameSS << "Title Options - " << title->getName();
 
             auto section = panel->addSection(sectionNameSS.str());
+            section->addEntry("Display Meta Records", std::bind(menu::tinfo_menu::displayMetaRecordsSelected, title));
             section->addEntry("List Base Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, false));
             //section->addEntry("List Update Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, true));
+            menu::g_menu->pushPanel(panel);
+        }
+
+        void displayMetaRecordsSelected(std::shared_ptr<Title> title)
+        {
+            auto panel = std::make_shared<menu::ConsolePanel>();
+
+            std::stringstream ss;
+            ss << title->getName() << " Meta Records: ";
+            panel->addLine(ss.str());
+            panel->addLine("");
+            ss.str("");
+
+            panel->addLine("Base Game: ");
+            panel->addLine("");
+            ss << " Title Id: " << utils::toHexString(reinterpret_cast<u8 *>(&title->m_baseMetaRecord.titleID), sizeof(u64));
+            panel->addLine(ss.str());
+            ss.str("");
+            ss << "  Version: " << utils::toHexString(reinterpret_cast<u8 *>(&title->m_baseMetaRecord.version), sizeof(u32));
+            panel->addLine(ss.str());
+            ss.str("");
+            ss << "     Type: " << getMetaRecordTypeName(title->m_baseMetaRecord.type) << " (" << (int)title->m_baseMetaRecord.type << ")";
+            panel->addLine(ss.str());
+            ss.str("");
+            ss << "    Flags: " << (int)title->m_baseMetaRecord.flags;
+            panel->addLine(ss.str());
+            ss.str("");
+            panel->addLine("");
+
+            if (title->m_updateMetaRecord.titleID != 0)
+            {
+                panel->addLine("Update: ");
+                panel->addLine("");
+                ss << " Title Id: " << utils::toHexString(reinterpret_cast<u8 *>(&title->m_updateMetaRecord.titleID), sizeof(u64));
+                panel->addLine(ss.str());
+                ss.str("");
+                ss << "  Version: " << utils::toHexString(reinterpret_cast<u8 *>(&title->m_updateMetaRecord.version), sizeof(u32));
+                panel->addLine(ss.str());
+                ss.str("");
+                ss << "     Type: " << getMetaRecordTypeName(title->m_updateMetaRecord.type) << " (" << (int)title->m_updateMetaRecord.type << ")";
+                panel->addLine(ss.str());
+                ss.str("");
+                ss << "    Flags: " << (int)title->m_updateMetaRecord.flags;
+                panel->addLine(ss.str());
+                ss.str("");
+            }
+
             menu::g_menu->pushPanel(panel);
         }
 

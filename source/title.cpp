@@ -2,6 +2,41 @@
 
 #include "error.hpp"
 
+std::string getMetaRecordTypeName(u8 type)
+{
+    switch (type)
+    {
+        case 0x1:
+            return "System Program";
+
+        case 0x2:
+            return "System Data Archive";
+
+        case 0x3:
+            return "System Update";
+
+        case 0x4:
+            return "Firmware Package A";
+
+        case 0x5:
+            return "Firmware Package B";
+
+        case 0x80:
+            return "Application";
+
+        case 0x81:
+            return "Update";
+
+        case 0x82:
+            return "Addon";
+
+        case 0x83:
+            return "Delta";
+    }
+
+    return "Unknown";
+}
+
 std::string getContentRecordTypeName(u8 type)
 {
     switch (type)
