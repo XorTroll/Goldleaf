@@ -3,14 +3,17 @@
 #include <string>
 #include <memory>
 #include <switch.h>
+#include "ncm.h"
+
+std::string getContentRecordTypeName(u8 type);
 
 class Title
 {
     public:
-        const u64 m_titleId;
+        const NCMMetaRecord m_metaRecord;
         const FsStorageId m_storageId;
 
-        Title(u64 titleId, FsStorageId storageId);
+        Title(NCMMetaRecord metaRecord, FsStorageId storageId);
 
         std::string getName();
         std::shared_ptr<NsApplicationControlData> getApplicationControlData();

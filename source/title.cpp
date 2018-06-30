@@ -2,8 +2,37 @@
 
 #include "error.hpp"
 
-Title::Title(u64 titleId, FsStorageId storageId) :
-    m_titleId(titleId), m_storageId(storageId), m_name(""), m_applicationControlData(nullptr)
+std::string getContentRecordTypeName(u8 type)
+{
+    switch (type)
+    {
+        case 0x0:
+            return "Meta";
+
+        case 0x1:
+            return "Program";
+
+        case 0x2:
+            return "Data";
+
+        case 0x3:
+            return "Control";
+
+        case 0x4:
+            return "Offline Manual HTML";
+
+        case 0x5:
+            return "Legal HTML";
+
+        case 0x6:
+            return "Game Update RomFS Patches";
+    }
+
+    return "Unknown";
+}
+
+Title::Title(NCMMetaRecord metaRecord, FsStorageId storageId) :
+    m_metaRecord(metaRecord), m_storageId(storageId), m_name(""), m_applicationControlData(nullptr)
 {
 
 }
@@ -49,7 +78,7 @@ std::shared_ptr<NsApplicationControlData> Title::getApplicationControlData()
 
     this->m_applicationControlData = std::make_shared<NsApplicationControlData>();
 
-    if (R_FAILED(rc = nsGetApplicationControlData(0x1, this->m_titleId, this->m_applicationControlData.get(), sizeof(NsApplicationControlData), &sizeRead)))
+    if (R_FAILED(rc = nsGetApplicationControlData(0x1, this->m_metaRecord.titleID, this->m_applicationControlData.get(), sizeof(NsApplicationControlData), &sizeRead)))
     {
         error::log(error::LogLevel::ERROR, "Title::getApplicationControlData", "Failed to get application control data", rc);
         this->m_applicationControlData = nullptr;
