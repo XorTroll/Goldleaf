@@ -1,5 +1,6 @@
 #include <iostream>
 #include <switch.h>
+#include "es.h"
 #include "ncm.h"
 #include "console_select_panel.hpp"
 #include "menu.hpp"
@@ -20,12 +21,16 @@ void userAppInit(void)
 
     if (R_FAILED(rc = nsInitialize()))
         fatalSimple(0xCAFE << 4 | 5);
+
+    if (R_FAILED(rc = esInitialize()))
+        fatalSimple(0xCAFE << 4 | 6);
 }
 
 void userAppExit(void)
 {
     ncmExit();
     nsExit();
+    esExit();
 }
 
 int main(int argc, char **argv)

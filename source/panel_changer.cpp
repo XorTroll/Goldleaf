@@ -5,6 +5,7 @@
 #include <sstream>
 #include "console_panel.hpp"
 #include "console_select_panel.hpp"
+#include "es.h"
 #include "ncm.h"
 #include "error.hpp"
 #include "menu.hpp"
@@ -120,9 +121,34 @@ namespace menu
             sectionNameSS << "Title Options - " << title->getName();
 
             auto section = panel->addSection(sectionNameSS.str());
+            section->addEntry("Display Title Key", std::bind(menu::tinfo_menu::displayTitleKey, title));
             section->addEntry("Display Meta Records", std::bind(menu::tinfo_menu::displayMetaRecordsSelected, title));
             section->addEntry("List Base Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, false));
             //section->addEntry("List Update Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, true));
+            menu::g_menu->pushPanel(panel);
+        }
+
+        void displayTitleKey(std::shared_ptr<Title> title)
+        {
+            Result rc = 0;
+            auto panel = std::make_shared<menu::ConsolePanel>();
+
+            std::stringstream ss;
+            ss << title->getName() << " Title Key: ";
+            panel->addLine(ss.str());
+            panel->addLine("");
+            ss.str("");
+
+            u8 titleKey[0x10];
+
+            if (R_FAILED(rc = esGetTitleKey(title->m_baseMetaRecord.titleID, titleKey, 0x10)))
+            {
+                error::critical("menu::tinfo_menu::displayTitleKey", "Failed to get title key", rc);
+                return;
+            }
+
+            ss << utils::toHexString(titleKey, 0x10);
+            panel->addLine(ss.str());
             menu::g_menu->pushPanel(panel);
         }
 
