@@ -1,17 +1,17 @@
 #pragma once
 
-#include "menu.hpp"
+#include <switch.h>
 
 namespace menu
 {
     namespace main_menu
     {
-        void titleInfoSelected(menu::Menu *menu);
-        void exitSelected(menu::Menu *menu);
+        void titleInfoSelected();
+        void exitSelected();
     }
 
     namespace tinfo_menu
     {
-        void storageSelected(menu::Menu *menu, FsStorageId storageId);
+        void storageSelected(FsStorageId storageId);
     }
 }

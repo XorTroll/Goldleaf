@@ -34,11 +34,12 @@ int main(int argc, char **argv)
         return rc;
 
     menu::Menu menu(console);
+    menu::g_menu = &menu;
 
     auto mainPanel = std::make_shared<menu::ConsoleSelectPanel>(console, "Tinfoil 0.0.1");
     auto mainSection = mainPanel->addSection("Main Menu");
-    mainSection->addEntry("Title Info", std::bind(menu::main_menu::titleInfoSelected, &menu));
-    mainSection->addEntry("Exit", std::bind(menu::main_menu::exitSelected, &menu));
+    mainSection->addEntry("Title Info", std::bind(menu::main_menu::titleInfoSelected));
+    mainSection->addEntry("Exit", std::bind(menu::main_menu::exitSelected));
 
     menu.pushPanel(mainPanel);
 

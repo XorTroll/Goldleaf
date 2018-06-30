@@ -1,5 +1,7 @@
 #include "title.hpp"
 
+#include "error.hpp"
+
 Title::Title(u64 titleId, FsStorageId storageId) :
     m_titleId(titleId), m_storageId(storageId), m_name(""), m_applicationControlData(nullptr)
 {
@@ -12,23 +14,29 @@ std::string Title::getName()
         return this->m_name;
 
     auto appControlData = this->getApplicationControlData();
+
+    if (appControlData == nullptr)
+    {
+        error::log(error::LogLevel::ERROR, "Title::getName", "NsApplicationControlData is null", -1);
+        return "Unknown";
+    }
+
     NacpLanguageEntry *languageEntry;
     Result rc = 0;
 
     if (R_FAILED(rc = nacpGetLanguageEntry(&appControlData->nacp, &languageEntry)))
     {
-        printf("Title::getName: Failed to get language entry. Error code: 0x%08x\n", rc);
-        return "";
+        error::log(error::LogLevel::ERROR, "Title::getName", "Failed to get language entry", rc);
+        return "Unknown";
     }
 
     if (languageEntry == NULL)
     {
-        printf("Title::getName: language entry cannot be null\n");
-        return "";
+        error::log(error::LogLevel::ERROR, "Title::getName", "Language entry is null", -1);
+        return "Unknown";
     }
 
-    this->m_name = languageEntry->name;
-    return this->m_name;
+    return this->m_name = languageEntry->name;
 }
 
 std::shared_ptr<NsApplicationControlData> Title::getApplicationControlData()
@@ -43,14 +51,12 @@ std::shared_ptr<NsApplicationControlData> Title::getApplicationControlData()
 
     if (R_FAILED(rc = nsGetApplicationControlData(0x1, this->m_titleId, this->m_applicationControlData.get(), sizeof(NsApplicationControlData), &sizeRead)))
     {
-        printf("Title::getApplicationControlData: Failed to get application control data. Error code: 0x%08x\n", rc);
-        // TODO: Error properly
+        error::log(error::LogLevel::ERROR, "Title::getApplicationControlData", "Failed to get application control data", rc);
         this->m_applicationControlData = nullptr;
     }
     else if (sizeRead < sizeof(this->m_applicationControlData->nacp))
     {
-        printf("Incorrect size for nsacp\n");
-        // TODO: Error properly
+        error::log(error::LogLevel::ERROR, "Title::getApplicationControlData", "Incorrect size for nsacp", -1);
         this->m_applicationControlData = nullptr;
     }
 

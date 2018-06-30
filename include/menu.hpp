@@ -30,4 +30,6 @@ namespace menu
 
             std::shared_ptr<Panel> currentPanel();
     };
+
+    extern Menu *g_menu;
 };

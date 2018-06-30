@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <switch.h>
-#include "menu.hpp"
 #include "panel.hpp"
 
 namespace menu
@@ -37,7 +36,7 @@ namespace menu
             ConsoleSelectPanel(PrintConsole *console, std::string title);
 
             virtual void onBecomeActive() override;
-            virtual void processInput(Menu *menu, u64 keysDown) override;
+            virtual void processInput(u64 keysDown) override;
             virtual void updateDisplay() override;
 
             std::shared_ptr<Section> addSection(std::string name);

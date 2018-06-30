@@ -4,6 +4,8 @@
 #include <sstream>
 #include "console_select_panel.hpp"
 #include "ncm.h"
+#include "error.hpp"
+#include "menu.hpp"
 #include "title.hpp"
 #include "utils.hpp"
 
@@ -11,33 +13,33 @@ namespace menu
 {
     namespace main_menu
     {
-        void titleInfoSelected(menu::Menu *menu)
+        void titleInfoSelected()
         {
-            auto panel = std::make_shared<menu::ConsoleSelectPanel>(menu->m_console, "Title Info");
+            auto panel = std::make_shared<menu::ConsoleSelectPanel>(menu::g_menu->m_console, "Title Info");
             auto section = panel->addSection("Install Location");
-            section->addEntry("NAND", nullptr);
-            section->addEntry("SD Card", std::bind(tinfo_menu::storageSelected, menu, FsStorageId_SdCard));
-            menu->pushPanel(panel);
+            section->addEntry("NAND", std::bind(menu::tinfo_menu::storageSelected, FsStorageId_NandUser));
+            section->addEntry("SD Card", std::bind(menu::tinfo_menu::storageSelected, FsStorageId_SdCard));
+            menu::g_menu->pushPanel(panel);
         }
 
-        void exitSelected(menu::Menu *menu)
+        void exitSelected()
         {
-            menu->m_exitRequested = true;
+            menu::g_menu->m_exitRequested = true;
         }
     }
 
     namespace tinfo_menu
     {
-        void storageSelected(menu::Menu *menu, FsStorageId storageId)
+        void storageSelected(FsStorageId storageId)
         {
             Result rc = 0;
             NCMContentMetaDatabase contentMetaDatabase;
-            auto panel = std::make_shared<menu::ConsoleSelectPanel>(menu->m_console, "Title Info");
+            auto panel = std::make_shared<menu::ConsoleSelectPanel>(menu::g_menu->m_console, "Title Info");
             auto section = panel->addSection("Title Selection");
 
             if (R_FAILED(rc = ncmOpenContentMetaDatabase(storageId, &contentMetaDatabase)))
             {
-                printf("storageSelected: Failed to open content meta database. Error code: 0x%08x\n", rc);
+                error::critical("menu::tinfo_menu::storageSelected", " Failed to open content meta database", rc);
                 return;
             }
 
@@ -45,7 +47,7 @@ namespace menu
 
             if (R_FAILED(rc = ncmContentMetaDatabaseListApplication(&contentMetaDatabase, 0, NULL, 0, &numEntriesTotal, NULL)))
             {
-                printf("storageSelected: Failed to get number of application meta entries. Error code: 0x%08x\n", rc);
+                error::critical("menu::tinfo_menu::storageSelected", "Failed to get number of application meta entries", rc);
                 return;
             }
             
@@ -54,13 +56,15 @@ namespace menu
 
             if (R_FAILED(rc = ncmContentMetaDatabaseListApplication(&contentMetaDatabase, 0, applicationContentMetaKeys.get(), sizeof(NCMApplicationContentMetaKey) * numEntriesTotal, NULL, &numEntriesWritten)))
             {
-                printf("storageSelected: Failed to list application meta entries. Error code: 0x%08x\n", rc);
+                error::critical("menu::tinfo_menu::storageSelected", "Failed to list application meta entries", rc);
                 return;
             }
 
             if (numEntriesWritten != numEntriesTotal)
             {
-                printf("Number of entries written %u doesn't match total %u\n", numEntriesWritten, numEntriesTotal);
+                std::stringstream ss;
+                ss << "Number of entries written " << numEntriesWritten << " doesn't match total " << numEntriesTotal;
+                error::critical("menu::tinfo_menu::storageSelected", ss.str(), -1);
                 return;
             }
 
@@ -79,7 +83,7 @@ namespace menu
                 }
             }
 
-            menu->pushPanel(panel);
+            menu::g_menu->pushPanel(panel);
         }
     }
 }

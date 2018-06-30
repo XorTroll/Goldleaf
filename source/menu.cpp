@@ -5,6 +5,8 @@
 
 namespace menu
 {
+    Menu *g_menu;
+
     Menu::Menu(PrintConsole *console) :
         m_console(console), m_exitRequested(false)
     {
@@ -13,7 +15,7 @@ namespace menu
 
     void Menu::processInput(u64 keysDown)
     {
-        this->currentPanel()->processInput(this, keysDown);
+        this->currentPanel()->processInput(keysDown);
     }
 
     void Menu::updateDisplay()

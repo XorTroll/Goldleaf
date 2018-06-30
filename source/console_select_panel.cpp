@@ -1,6 +1,7 @@
 #include "console_select_panel.hpp"
 
 #include <iostream>
+#include "menu.hpp"
 
 namespace menu
 {
@@ -61,7 +62,7 @@ namespace menu
         }
     }
 
-    void ConsoleSelectPanel::processInput(Menu *menu, u64 keysDown)
+    void ConsoleSelectPanel::processInput(u64 keysDown)
     {
         if (keysDown & KEY_UP || keysDown & KEY_DOWN)
         {
@@ -79,7 +80,7 @@ namespace menu
         }
         else if (keysDown & KEY_B)
         {
-            menu->back();
+            menu::g_menu->back();
         }
     }
 
