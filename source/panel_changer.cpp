@@ -121,7 +121,7 @@ namespace menu
 
             auto section = panel->addSection(sectionNameSS.str());
             section->addEntry("List Base Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, false));
-            section->addEntry("List Update Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, true));
+            //section->addEntry("List Update Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, true));
             menu::g_menu->pushPanel(panel);
         }
 
@@ -130,7 +130,7 @@ namespace menu
             Result rc = 0;
             auto panel = std::make_shared<menu::ConsolePanel>();
 
-            // TODO: It appears update content records are encrypted after a certain point (?)
+            // TODO: It appears update content records use a different format from base game content records (?)
             const NCMMetaRecord *metaRecord;
             std::array<NCMContentRecord, 256> contentRecords;
             size_t sizeRead;
@@ -169,32 +169,28 @@ namespace menu
                 auto contentRecord = contentRecords[i];
                 char contentStoragePath[FS_MAX_PATH];
 
-                // For now we ignore the "garbage" content records
-                if (*reinterpret_cast<u64 *>(&contentRecord.ncaID) != 0 && contentRecord.type <= 6)
+                ss << "NcaId: " << utils::toHexString(reinterpret_cast<u8 *>(&contentRecord.ncaID), sizeof(contentRecord.ncaID));
+                panel->addLine(ss.str());
+                ss.str("");
+                ss << " Size: " << (*(reinterpret_cast<u64 *>(contentRecord.size)) & 0xFFFFFFFFFFFF);
+                panel->addLine(ss.str());
+                ss.str("");
+                ss << " Type: " << getContentRecordTypeName(contentRecord.type) << " (" << static_cast<int>(contentRecord.type) << ")";
+                panel->addLine(ss.str());
+                ss.str("");
+
+                if (R_SUCCEEDED(ncmContentStorageGetPath(&g_contentStorage, &contentRecord.ncaID, contentStoragePath)))
                 {
-                    ss << "NcaId: " << utils::toHexString(reinterpret_cast<u8 *>(&contentRecord.ncaID), sizeof(contentRecord.ncaID));
+                    ss << " Path: " << std::string(contentStoragePath);
                     panel->addLine(ss.str());
                     ss.str("");
-                    ss << " Size: " << (*(reinterpret_cast<u64 *>(contentRecord.size)) & 0xFFFFFFFFFFFF);
-                    panel->addLine(ss.str());
-                    ss.str("");
-                    ss << " Type: " << getContentRecordTypeName(contentRecord.type) << " (" << static_cast<int>(contentRecord.type) << ")";
-                    panel->addLine(ss.str());
-                    ss.str("");
-
-                    if (R_SUCCEEDED(ncmContentStorageGetPath(&g_contentStorage, &contentRecord.ncaID, contentStoragePath)))
-                    {
-                        ss << " Path: " << std::string(contentStoragePath);
-                        panel->addLine(ss.str());
-                        ss.str("");
-                    }
-
-                    panel->addLine("");
                 }
+
+                panel->addLine("");
             }
 
             ss.str("");
-            ss << "Total content records read (including those not displayed): " << entriesRead;
+            ss << "Total content records read: " << entriesRead;
             panel->addLine(ss.str());
 
             menu::g_menu->pushPanel(panel);
