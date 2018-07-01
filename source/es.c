@@ -19,7 +19,7 @@ void esExit() {
     }
 }
 
-Result esGetTitleKey(u64 titleId, u8 *outBuf, size_t bufSize) {
+Result esGetTitleKey(const RightsId *rightsId, u8 *outBuf, size_t bufSize) {
     IpcCommand c;
     ipcInitialize(&c);
     ipcAddRecvBuffer(&c, outBuf, bufSize, BufferType_Normal);
@@ -27,14 +27,15 @@ Result esGetTitleKey(u64 titleId, u8 *outBuf, size_t bufSize) {
     struct {
         u64 magic;
         u64 cmd_id;
-        u64 unk1;
-        u64 unk2;
-        u32 unk3;
+        RightsId rights_id;
+        u32 key_generation;
     } *raw;
     
     raw = ipcPrepareHeader(&c, sizeof(*raw));
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 8;
+    raw->key_generation = 0;
+    memcpy(&raw->rights_id, rightsId, sizeof(RightsId));
     //raw->title_id = titleId;
     
     Result rc = serviceIpcDispatch(&g_esSrv);

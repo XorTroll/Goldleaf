@@ -5,6 +5,7 @@
  */
 #pragma once
 #include <switch.h>
+#include "es.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,6 +61,7 @@ Result ncmContentStorageGetPath(NCMContentStorage* cs, const NCMNCAID* ncaId, ch
 Result ncmContentStorageGetSize(NCMContentStorage* cs, const NCMNCAID* ncaId, u64* out);
 Result ncmContentStorageReadContentIdFile(NCMContentStorage* cs, const NCMNCAID* ncaId, u64 offset, char* outBuf, size_t bufSize);
 Result ncmContentStorageHas(NCMContentStorage* cs, const NCMNCAID *ncaId, bool *out);
+Result ncmContentStorageGetRightsIdFromContentId(NCMContentStorage* cs, const NCMNCAID *ncaId, RightsId *rightsIdOut, u64 *unkOut);
 
 Result ncmOpenContentMetaDatabase(FsStorageId storage, NCMContentMetaDatabase* out);
 Result ncmContentMetaDatabaseSet(NCMContentMetaDatabase* db, const NCMMetaRecord *record, u64 content_record_size, NCMContentRecord *content_records_in);

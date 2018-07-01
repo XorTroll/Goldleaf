@@ -203,6 +203,45 @@ Result ncmContentStorageHas(NCMContentStorage* cs, const NCMNCAID *ncaId, bool *
     
     return rc;
 }
+
+Result ncmContentStorageGetRightsIdFromContentId(NCMContentStorage* cs, const NCMNCAID *ncaId, RightsId *rightsIdOut, u64 *unkOut) {
+    IpcCommand c;
+    ipcInitialize(&c);
+    
+    struct {
+        u64 magic;
+        u64 cmd_id;
+        NCMNCAID ncaId;
+    } *raw;
+    
+    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 20;
+    memcpy(&raw->ncaId, ncaId, sizeof(NCMNCAID));
+    
+    Result rc = serviceIpcDispatch(&cs->s);
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        ipcParse(&r);
+
+        struct {
+            u64 magic;
+            u64 result;
+            RightsId rights_id;
+            u32 unk;
+        } *resp = r.Raw;
+
+        rc = resp->result;
+
+        if (R_SUCCEEDED(rc)) {
+            memcpy(rightsIdOut, &resp->rights_id, sizeof(RightsId));
+            if (unkOut) *unkOut = resp->unk;
+        }
+    }
+    
+    return rc;
+}
  
 Result ncmOpenContentMetaDatabase(FsStorageId storage, NCMContentMetaDatabase* out) {
     IpcCommand c;

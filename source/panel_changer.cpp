@@ -121,7 +121,7 @@ namespace menu
             sectionNameSS << "Title Options - " << title->getName();
 
             auto section = panel->addSection(sectionNameSS.str());
-            section->addEntry("Display Title Key", std::bind(menu::tinfo_menu::displayTitleKey, title));
+            //section->addEntry("Display Title Key", std::bind(menu::tinfo_menu::displayTitleKey, title));
             section->addEntry("Display Meta Records", std::bind(menu::tinfo_menu::displayMetaRecordsSelected, title));
             section->addEntry("List Base Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, false));
             //section->addEntry("List Update Content Records", std::bind(menu::tinfo_menu::listContentRecordsSelected, title, true));
@@ -130,7 +130,7 @@ namespace menu
 
         void displayTitleKey(std::shared_ptr<Title> title)
         {
-            Result rc = 0;
+            /*Result rc = 0;
             auto panel = std::make_shared<menu::ConsolePanel>();
 
             std::stringstream ss;
@@ -149,7 +149,7 @@ namespace menu
 
             ss << utils::toHexString(titleKey, 0x10);
             panel->addLine(ss.str());
-            menu::g_menu->pushPanel(panel);
+            menu::g_menu->pushPanel(panel);*/
         }
 
         void displayMetaRecordsSelected(std::shared_ptr<Title> title)
