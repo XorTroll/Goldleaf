@@ -8,3 +8,4 @@ build/
 save_files/
 .vscode/*
 notes.txt
+samples/*
