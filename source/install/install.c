@@ -67,10 +67,15 @@ static Result installNca(InstallContext *context, const NcmNcaId *ncaId, FsStora
         return -1;
     }
             
+    float progress;
+            
     while (fileOff < file.size) 
     {   
         // Clear the buffer before we read anything, just to be sure    
-        memset(readBuffer, 0, 0x400000);
+        progress = (float)fileOff / (float)file.size;
+
+        if (fileOff % (0x400000 * 3) == 0)
+            printf("> Progress: %lu/%lu MB (%d%s)\r", (fileOff / 1000000), (file.size / 1000000), (int)(progress * 100.0), "%");
 
         if (fileOff + readSize >= file.size) readSize = file.size - fileOff;
 
@@ -90,7 +95,9 @@ static Result installNca(InstallContext *context, const NcmNcaId *ncaId, FsStora
 
         fileOff += readSize;
     }
-    
+
+    // Clean up the line for whatever comes next
+    printf("                                                           \r");
     free(readBuffer);
 
     printf("Registering placeholder...\n");

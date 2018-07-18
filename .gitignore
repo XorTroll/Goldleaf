@@ -9,3 +9,4 @@ save_files/
 .vscode/*
 notes.txt
 samples/*
+tools/nsp.py

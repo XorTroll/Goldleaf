@@ -11,7 +11,7 @@ Result openExtractedInstallFile(InstallFile *out, InstallContext *context, char 
 
     if (R_FAILED(rc = fsMountSdcard(&out->fsFileSystem)))
     {
-        printf("openExtractedInstallFile: Failed to mount sd card. Error code: 0x%08x\n", rc);
+        //printf("openExtractedInstallFile: Failed to mount sd card. Error code: 0x%08x\n", rc);
         return rc;
     }
 
@@ -19,7 +19,7 @@ Result openExtractedInstallFile(InstallFile *out, InstallContext *context, char 
 
     if (R_FAILED(rc = fsFsOpenFile(&out->fsFileSystem, installPath, FS_OPEN_READ, &out->fsFile)))
     {
-        printf("openExtractedInstallFile: Failed to open file. Error code: 0x%08x\n", rc);
+        //printf("openExtractedInstallFile: Failed to open file. Error code: 0x%08x\n", rc);
         fsFsClose(&out->fsFileSystem);
         return rc;
     }
@@ -28,7 +28,7 @@ Result openExtractedInstallFile(InstallFile *out, InstallContext *context, char 
 
     if (R_FAILED(rc = fsFileGetSize(&out->fsFile, &out->size)))
     {
-        printf("openExtractedInstallFile: Failed to get file size. Error code: 0x%08x\n", rc);
+        //printf("openExtractedInstallFile: Failed to get file size. Error code: 0x%08x\n", rc);
         fsFileClose(&out->fsFile);
         fsFsClose(&out->fsFileSystem);
         return rc;
