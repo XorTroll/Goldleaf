@@ -235,6 +235,7 @@ Result installTitle(InstallContext *context)
 
     size_t xmlBufSize = xmlFile.size + 1;
     char *xmlBuf = calloc(1, xmlBufSize);
+    size_t xmlBufOffset = 0;
 
     if (R_FAILED(rc = readInstallFile(context, &xmlFile, 0x0, xmlBuf, xmlFile.size)))
     {
@@ -245,10 +246,14 @@ Result installTitle(InstallContext *context)
     NcmContentRecord *contentRecords;
     size_t numContentRecords;
 
-    // Skip the <?xml version="1.0" encoding="ISO-8859-1"?> section, as the parser does not support it
-    size_t xmlBufOffset = strchr(xmlBuf + 1, '<') - xmlBuf;
+    printf("Skipping xml version header\n");
 
-    if (strncmp(xmlBuf + xmlBufOffset, "<ContentMeta>", strlen("<ContentMeta>")))
+    while (strncmp(xmlBuf + xmlBufOffset, "<ContentMeta>", strlen("<ContentMeta>")) != 0 && xmlBufOffset < xmlBufSize)
+    {
+        xmlBufOffset++;
+    }
+
+    if (xmlBufOffset == xmlBufSize)
     {
         printf("installTitle: Invalid XML file.");
         rc = -1;
