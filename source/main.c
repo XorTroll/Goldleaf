@@ -12,6 +12,7 @@
 #include "ipc/ns_ext.h"
 #include "ui/ui.h"
 #include "ui/ui_install.h"
+#include "ui/ui_ticket.h"
 
 #include "debug.h"
 #include "tinfs.h"
@@ -37,11 +38,14 @@ void userAppInit(void)
     if (R_FAILED(ncmInitialize()))
         fatalSimple(0xBEE2);
 
-    if (R_FAILED(nsextInitialize()))
+    if (R_FAILED(nsInitialize()))
         fatalSimple(0xBEE3);
 
-    if (R_FAILED(esInitialize()))
+    if (R_FAILED(nsextInitialize()))
         fatalSimple(0xBEE4);
+
+    if (R_FAILED(esInitialize()))
+        fatalSimple(0xBEE5);
 
     // This may fail, but this doesn't matter for end users
     socketInitializeDefault();
@@ -54,6 +58,7 @@ void userAppExit(void)
     socketExit();
     ncmextExit();
     ncmExit();
+    nsExit();
     nsextExit();
     esExit();
 }
@@ -105,8 +110,9 @@ int main(int argc, char **argv)
             },
             (ViewEntry)
             {
-                .type = ViewEntryType_SelectInactive,
-                .text = "Title Key Management",
+                .type = ViewEntryType_Select,
+                .text = "Ticket Management",
+                .onSelected = showTicketManagementOptionsView
             },
             (ViewEntry)
             {

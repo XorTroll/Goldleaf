@@ -9,4 +9,4 @@ extern FILE *nxlinkout;
 int nxLinkInitialize(void);
 void nxLinkExit(void);
 
-void printBytes(u8 *bytes, size_t size);
+void printBytes(FILE* out, u8 *bytes, size_t size, bool includeHeader);
