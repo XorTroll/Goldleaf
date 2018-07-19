@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
 #include <switch.h>
 #include <switch/services/ncm.h>
 
@@ -10,7 +13,7 @@
 #include "ui/ui.h"
 #include "ui/ui_install.h"
 
-
+#include "debug.h"
 #include "tinfs.h"
 
 
@@ -39,10 +42,16 @@ void userAppInit(void)
 
     if (R_FAILED(esInitialize()))
         fatalSimple(0xBEE4);
+
+    // This may fail, but this doesn't matter for end users
+    socketInitializeDefault();
+    nxLinkInitialize();
 }
 
 void userAppExit(void)
 {
+    nxLinkExit();
+    socketExit();
     ncmextExit();
     ncmExit();
     nsextExit();
