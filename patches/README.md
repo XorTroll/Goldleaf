@@ -9,6 +9,8 @@ NOTE: Not all patches are available at this time.
 
 Finally, you need to place the file on your Switch SD card, and add it to the hekate_ipl.ini file along with all of the other kip1s.
 
+DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions, or anything else these patches may cause. Proceed with caution!
+
 NCA Fixed Key Sig Patches
 =========================
 
