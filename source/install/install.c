@@ -268,6 +268,17 @@ Result installTitle(InstallContext *context)
         goto CLEANUP;
     }
 
+    ContentStorageRecord storageRecord;
+    storageRecord.metaRecord = metaRecord;
+    storageRecord.storageId = FsStorageId_SdCard;
+
+    printf("Pushing application record...\n");
+    if (R_FAILED(rc = nsPushApplicationRecord(metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord))))
+    {
+        printf("Failed to push application record. Error code: 0x%08x\n", rc);
+        return rc;
+    }
+
     printf("Creating and registering NCA placeholders...\n");
 
     for (int i = 1; i < numContentRecords; i++)
@@ -295,25 +306,6 @@ Result installTitle(InstallContext *context)
     {
         printf("installTitle: Failed to write content records! Error code: 0x%08x\n", rc);
         goto CLEANUP;
-    }
-
-    printf("Pushing application record...\n");
-
-    ContentStorageRecord storageRecord;
-    storageRecord.metaRecord = metaRecord;
-    storageRecord.storageId = FsStorageId_SdCard;
-
-    // If there is any existing application record for this title, delete it
-    if (R_FAILED(rc = nsDeleteApplicationRecord(metaRecord.titleId)) && rc != 0x410)
-    {
-        printf("Failed to delete application record. Error code: 0x%08x\n", rc);
-        return rc;
-    }
-
-    if (R_FAILED(rc = nsPushApplicationRecord(metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord))))
-    {
-        printf("Failed to push application record. Error code: 0x%08x\n", rc);
-        return rc;
     }
 
     printf("Done!\n");
