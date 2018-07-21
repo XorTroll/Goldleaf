@@ -11,11 +11,11 @@ Run the following command, replacing ``FIRMWARE_FOLDER`` with the path to your o
 ChoiDujour.exe --keyset=path/to/keys.txt --fspatches=nocmac,nosigchk FIRMWARE_FOLDER
 ```
 
-Grab the file with the name ``FS510-exfat_nocmac_nosigchk.kip1`` from the ``microSD`` folder inside ChoiDujour's output folder (should be named something like ``NX-FIRMWARE_VERSION[_exfat]``)
+Grab the file with the name ``FS<FIRMWARE_VERSION>-exfat_nocmac_nosigchk.kip1`` from the ``microSD`` folder inside ChoiDujour's output folder (should be named something like ``NX-<FIRMWARE_VERSION>[_exfat]``)
 
 Place the newly generated file onto the root of your microSD, and add the following line to your hekate_ipl.ini launch configuration:
 ```
-kip1=FS510-exfat_nocmac_nosigchk.kip1
+kip1=FS<FIRMWARE_VERSION>-exfat_nocmac_nosigchk.kip1
 ```
 Patch Source
 ============
