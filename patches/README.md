@@ -2,36 +2,41 @@ Installation
 ============
 
 You will need: 
- - **kip1decomp** from https://files.sshnuke.net/kip1decomp.exe. Alternatively compile yourself from https://github.com/rajkosto/memloader (x86 only)
- * **xdelta3** which is included with https://sourceforge.net/projects/xdelta3-gui/ (and possibly other places too)
+ - **ChoiDujour 1.1.0+** from https://switchtools.sshnuke.net/
+ - A dump of your own SYSTEM:/Contents/registered folder. This can be obtained using HacDiskMount with a NAND dump, or from your actual console by also using memloader.
 
-Use hactool to get your own FS.kip1 from the INI1 file located in package2. It is important this matches your console, it may or may not use the ExFat variant of FS.kip1.
+Run the following command, replacing ``FIRMWARE_FOLDER`` with the path to your own firmware folder. If you are *not* using ExFAT, you will also need to add ``--noexfat``
 
-Download the appropriate patch file from this folder, applicable to your firmware version and whether you are using the ExFAT FS.kip1.
-
-Next run the following commands, replacing FS_PATCH_FILENAME.vcdiff with the actual filename for your version
-
-   ```
-   kip1decomp d FS.kip1 FS.decomp.kip1
-   xdelta3 -d -f -s FS.decomp.kip1 FS_PATCH_FILENAME.vcdiff FS.patched.kip1 <- Errors here means the patch doesn't match your FS.kip1
-   kip1decomp c FS.patched.kip1 FS.kip1
-   ```
-
-Place the new FS.kip1 onto the root of your microSD, as well as adding the following line to your hekate_ipl.ini launch configuration:
 ```
-kip1=FS.kip1
+ChoiDujour.exe --fspatches=nocmac,nosigchk FIRMWARE_FOLDER
 ```
 
-**DISCLAIMER:**
+Grab the file with the name ``FS510-exfat_nocmac_nosigchk.kip1`` from the ``microSD`` folder inside ChoiDujour's output folder (should be named something like ``NX-FIRMWARE_VERSION[_exfat]``)
+
+Place the newly generated file onto the root of your microSD, and add the following line to your hekate_ipl.ini launch configuration:
+```
+kip1=FS510-exfat_nocmac_nosigchk.kip1
+```
+Patch Source
+============
+
+The source for all FS patches can be found at https://switchtools.sshnuke.net/firmware/fs_patches.json
+
+Credits
+=======
+* **rajkosto** - For creating patches for all firmware versions and integrating them into Choi Dujour.
+* **thomasnet** - For assisting with finding the original patch, and helping with other development.
+
+Disclaimer
+==========
 
 I take zero responsibility for any bans, damage, nuclear explosions, or anything else these patches may cause. Proceed with caution!
 
-NCA Fixed Key Sig Patches
-=========================
+Legacy 5.1.0 ExFAT Patches
+==================
 
-## 5.1.0 Patches
+### NCA Fixed Key Sig Patches
 
-### ExFAT Variant
 | Name | Value |
 | - | - |
 | Offset | 7D860 |
@@ -40,12 +45,8 @@ NCA Fixed Key Sig Patches
 | New Value | 1F 20 03 D5 |
 | New Instruction | NOP |
 
-Disable Program Verification
-============================
+### Disable Program Verification
 
-## 5.1.0 Patches
-
-### ExFAT Variant
 | Name | Value |
 | - | - |
 | Offset | 32820 |
@@ -56,7 +57,3 @@ Disable Program Verification
 | New Instructions | NOP 
 | | MOV W0, WZR |
 
-Credits
-=======
-* **thomasnet** - For assisting with finding the original patch, and helping with other development.
-* **rajkosto** - For letting me reuse his patching guide
