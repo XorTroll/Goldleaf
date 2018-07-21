@@ -8,7 +8,7 @@ You will need:
 Run the following command, replacing ``FIRMWARE_FOLDER`` with the path to your own firmware folder. If you are *not* using ExFAT, you will also need to add ``--noexfat``
 
 ```
-ChoiDujour.exe --fspatches=nocmac,nosigchk FIRMWARE_FOLDER
+ChoiDujour.exe --keyset=path/to/keys.txt --fspatches=nocmac,nosigchk FIRMWARE_FOLDER
 ```
 
 Grab the file with the name ``FS510-exfat_nocmac_nosigchk.kip1`` from the ``microSD`` folder inside ChoiDujour's output folder (should be named something like ``NX-FIRMWARE_VERSION[_exfat]``)
