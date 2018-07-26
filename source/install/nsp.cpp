@@ -72,9 +72,9 @@ namespace tin::install::nsp
     {
         for (auto &enclosedFile : m_enclosedFiles)
         {
-            auto extension = enclosedFile.m_name.substr(enclosedFile.m_name.find(".") + 1); 
+            auto foundExtension = enclosedFile.m_name.substr(enclosedFile.m_name.find(".") + 1); 
 
-            if (extension == extension)
+            if (foundExtension == extension)
                 return enclosedFile.m_name;
         }
 
