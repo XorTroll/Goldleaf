@@ -32,7 +32,7 @@ namespace tin::install
             const std::unique_ptr<IGameContainer> m_gameContainer;
             const FsStorageId m_destStorageId;
 
-            Result InstallNCA(const NcmNcaId &ncaId);
+            Result InstallNCA(const NcmNcaId& ncaId);
             Result WriteRecords(const NcmMetaRecord *metaRecord, NcmContentRecord* records, size_t numRecords);
             Result InstallTicketCert();
     };

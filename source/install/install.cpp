@@ -71,8 +71,6 @@ namespace tin::install
     */
     Result InstallTask::Install()
     {
-        Result rc;
-
         printf("Reading cnmt.xml...\n");
         auto cnmtXMLName = m_gameContainer->GetFileNameFromExtension("cnmt.xml");
         size_t xmlSize;
@@ -121,13 +119,20 @@ namespace tin::install
         printf("Installing ticket and cert...\n");
         PROPAGATE_RESULT_STDOUT(this->InstallTicketCert(), "Failed to install ticket and cert");
         printf("Done!\n");
-        return rc;
+        free(contentRecords);
+        return 0;
     }
 
     Result InstallTask::InstallNCA(const NcmNcaId &ncaId)
     {
         Result rc = 0;
-        std::string ncaName = __bswap64(*(u64 *)ncaId.c) + "" + __bswap64(*(u64 *)(ncaId.c + 0x8));
+
+        // TODO: It appears freezing occurs if this isn't done using snprintf?
+        char ncaIdStr[FS_MAX_PATH] = {0};
+        u64 ncaIdLower = __bswap64(*(u64 *)ncaId.c);
+        u64 ncaIdUpper = __bswap64(*(u64 *)(ncaId.c + 0x8));
+        snprintf(ncaIdStr, FS_MAX_PATH, "%lx%lx", ncaIdLower, ncaIdUpper);
+        std::string ncaName = ncaIdStr;
 
         if (m_gameContainer->HasFile(ncaName + ".nca"))
             ncaName += ".nca";
