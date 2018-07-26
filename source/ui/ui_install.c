@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "install/install.h"
+#include "install/install.hpp"
 #include "ui/ui.h"
 
 void showTitleManagementOptionsView(void)

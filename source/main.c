@@ -6,10 +6,9 @@
 #include <switch.h>
 #include <switch/services/ncm.h>
 
-#include "install/install.h"
-#include "ipc/es.h"
-#include "ipc/ncm_ext.h"
-#include "ipc/ns_ext.h"
+#include "nx/ipc/es.h"
+#include "nx/ipc/ncm_ext.h"
+#include "nx/ipc/ns_ext.h"
 #include "ui/ui.h"
 #include "ui/ui_install.h"
 #include "ui/ui_ticket.h"

@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "debug.h"
-#include "ipc/es.h"
+#include "nx/ipc/es.h"
 #include "ui/ui.h"
 #include "ui/ui_utils.h"
 

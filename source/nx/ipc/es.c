@@ -1,4 +1,4 @@
-#include "ipc/es.h"
+#include "nx/ipc/es.h"
 
 #include <string.h>
 

@@ -24,7 +24,7 @@ typedef struct
     FsFile fsFile;
 } InstallFile;
 
-Result openInstallFile(InstallFile *out, InstallContext *context, char *name);
-Result openInstallFileWithExt(InstallFile *out, InstallContext *context, char *ext);
+Result openInstallFile(InstallFile *out, InstallContext *context, const char *name);
+Result openInstallFileWithExt(InstallFile *out, InstallContext *context, const char *ext);
 Result readInstallFile(InstallContext *context, InstallFile *file, size_t off, void *buff, size_t len);
 void closeInstallFile(InstallContext *context, InstallFile *file);
