@@ -227,7 +227,7 @@ Result parseXML(NcmMetaRecord *metaRecordOut, NcmContentRecord **contentRecordsO
 
     NcmContentRecord *contentRecords = calloc(numContentEntries, sizeof(NcmContentRecord));
 
-    *(u64 *)(contentRecords) = 0x1000000000040010; // Magic
+    *(u64 *)(contentRecords) = 0x0000000000040010; // Header
     *(u64 *)(((u8 *)contentRecords) + 8) = patchId;
     *(u32 *)(((u8 *)contentRecords) + 16) = requiredSystemVersion;
 

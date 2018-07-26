@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "install/install.h"
+#include "install/install.hpp"
 #include "ui/ui.h"
 
 void showTitleManagementOptionsView(void)
@@ -78,9 +78,9 @@ void showExtractedInstallOptions(void)
     }
 
     size_t numEntriesRead;
-    FsDirectoryEntry *dirEntries = calloc(42, sizeof(FsDirectoryEntry)); // 41 = Max num entries (44) -3 for the heading, the space under it and the back option
+    FsDirectoryEntry *dirEntries = calloc(41, sizeof(FsDirectoryEntry)); // 41 = Max num entries (44) -3 for the heading, the space under it and the back option
 
-    if (R_FAILED(rc = fsDirRead(&dir, 0, &numEntriesRead, 42, dirEntries)))
+    if (R_FAILED(rc = fsDirRead(&dir, 0, &numEntriesRead, 41, dirEntries)))
     {
         printf("showExtractedInstallOptions: Failed to read extracted dir. Error code: 0x%08x\n", rc);
         goto CLEANUP;
@@ -167,9 +167,9 @@ void showNspInstallOptions(void)
     }
 
     size_t numEntriesRead;
-    FsDirectoryEntry *dirEntries = calloc(42, sizeof(FsDirectoryEntry)); // 41 = Max num entries (44) -3 for the heading, the space under it and the back option
+    FsDirectoryEntry *dirEntries = calloc(41, sizeof(FsDirectoryEntry)); // 41 = Max num entries (44) -3 for the heading, the space under it and the back option
 
-    if (R_FAILED(rc = fsDirRead(&dir, 0, &numEntriesRead, 42, dirEntries)))
+    if (R_FAILED(rc = fsDirRead(&dir, 0, &numEntriesRead, 41, dirEntries)))
     {
         printf("showNspInstallOptions: Failed to read extracted dir. Error code: 0x%08x\n", rc);
         goto CLEANUP;

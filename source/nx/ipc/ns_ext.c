@@ -1,4 +1,4 @@
-#include "ipc/ns_ext.h"
+#include "nx/ipc/ns_ext.h"
 
 #include <stdio.h>
 #include <string.h>

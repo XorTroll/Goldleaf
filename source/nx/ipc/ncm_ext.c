@@ -1,4 +1,4 @@
-#include "ipc/ncm_ext.h"
+#include "nx/ipc/ncm_ext.h"
 
 #include <string.h>
 #include <switch/arm/atomics.h>
