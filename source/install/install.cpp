@@ -3,6 +3,7 @@
 #include <string>
 
 #include "install/nsp.hpp"
+#include "install/nsp_extracted.hpp"
 #include "nx/ncm.hpp"
 #include "error.hpp"
 
@@ -50,14 +51,14 @@ namespace tin::install
     Summary of the installation process:
 
     - Parse the first xml file we find within the previously selected directory.
-    If we can't find one, then bail out.
+      If we can't find one, then bail out.
 
     - Create a meta record based on the contents of the xml file.
 
     - Attempt to uninstall any existing title using the meta record
 
     - Create content records. The first content record should be the special "master record", which doesn't contain
-    an NcaId, but instead magic, the update title id, the required system version, and the meta record type.
+      an NcaId, but instead magic, the update title id, the required system version, and the meta record type.
 
     - Read NCA data from the SD card directory from earlier, based on the NcaIds in the content records.
 
@@ -253,6 +254,17 @@ Result installTitle(InstallContext *context)
     {
         std::unique_ptr<tin::install::IGameContainer> container = std::make_unique<tin::install::nsp::NSPContainer>();
         PROPAGATE_RESULT(container->OpenContainer(context->path), "Failed to open NSP Container");
+        tin::install::InstallTask task(container, FsStorageId_SdCard);
+
+        PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
+        PROPAGATE_RESULT(task.Install(), "Failed to install title");
+
+        return 0;
+    }
+    else if (context->sourceType == InstallSourceType_Extracted)
+    {
+        std::unique_ptr<tin::install::IGameContainer> container = std::make_unique<tin::install::nsp::ExtractedNSPContainer>();
+        PROPAGATE_RESULT(container->OpenContainer(context->path), "Failed to open Extracted NSP Container");
         tin::install::InstallTask task(container, FsStorageId_SdCard);
 
         PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
