@@ -228,14 +228,16 @@ Result installTitle(InstallContext *context)
 {
     if (context->sourceType == InstallSourceType_Nsp)
     {
-        /*tin::install::nsp::NSPContainer container;
-        PROPAGATE_RESULT(container.OpenContainer(context->path), "Failed to open NSP Container");
-        tin::install::InstallTask task(container, FsStorageId_SdCard);
+        std::string fullPath = "@Sdcard:/" + std::string(context->path);
+        nx::fs::IFileSystem fileSystem;
+        PROPAGATE_RESULT(fileSystem.OpenFileSystemWithId(fullPath, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
+        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/");
+        tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
 
         PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
-        PROPAGATE_RESULT(task.Install(), "Failed to install title");*/
+        PROPAGATE_RESULT(task.Install(), "Failed to install title");
 
-        return 0xDEAD;
+        return 0;
     }
     else if (context->sourceType == InstallSourceType_Extracted)
     {
