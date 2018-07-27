@@ -4,8 +4,8 @@
 
 #include <memory>
 #include <switch.h>
-#include "install/game_container.hpp"
 #include "nx/ipc/tin_ipc.h"
+#include "install/simple_filesystem.hpp"
 
 extern "C" {
 #endif
@@ -19,18 +19,28 @@ Result installTitle(InstallContext *context);
 
 namespace tin::install
 {
-    class InstallTask final
+    class IInstallTask
+    {
+        protected:
+            const FsStorageId m_destStorageId;
+        
+            IInstallTask(FsStorageId destStorageId);
+
+        public:
+            virtual Result PrepareForInstall() = 0;
+            virtual Result Install() = 0;
+    };
+
+    class NSPInstallTask : public IInstallTask
     {
         public:
-            InstallTask(IGameContainer& gameContainer, FsStorageId destStorageId);
+            NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId);
 
-            // Prepare records and perform verification, ready for installation
-            Result PrepareForInstall();
-            Result Install();
+            Result PrepareForInstall() override;
+            Result Install() override;
 
         private:
-            IGameContainer* const m_gameContainer;
-            const FsStorageId m_destStorageId;
+            tin::install::nsp::SimpleFileSystem* const m_simpleFileSystem;
 
             Result InstallNCA(const NcmNcaId& ncaId);
             Result WriteRecords(const NcmMetaRecord *metaRecord, NcmContentRecord* records, size_t numRecords);

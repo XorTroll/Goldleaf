@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "install/nsp.hpp"
-#include "install/nsp_extracted.hpp"
+#include "install/simple_filesystem.hpp"
+#include "nx/fs.hpp"
 #include "nx/ncm.hpp"
 #include "error.hpp"
 
@@ -31,29 +31,36 @@ extern "C" {
 
 namespace tin::install
 {
-    std::function<bool (std::string)> IS_CNMT_FUNC = [](std::string name)
+    std::function<bool (FsDirectoryEntry&)> IS_CNMT_FUNC = [](FsDirectoryEntry& dirEntry)
     {
+        auto name = std::string(dirEntry.name);
         return name.substr(name.find(".") + 1) == "cnmt.xml";
     };
 
-    std::function<bool (std::string)> IS_TIK_FUNC = [](std::string name)
+    std::function<bool (FsDirectoryEntry&)> IS_TIK_FUNC = [](FsDirectoryEntry& dirEntry)
     {
+        auto name = std::string(dirEntry.name);
         return name.substr(name.find(".") + 1) == "tik";
     };
 
-    std::function<bool (std::string)> IS_CERT_FUNC = [](std::string name)
+    std::function<bool (FsDirectoryEntry&)> IS_CERT_FUNC = [](FsDirectoryEntry& dirEntry)
     {
+        auto name = std::string(dirEntry.name);
         return name.substr(name.find(".") + 1) == "cert";
     };
 
-    InstallTask::InstallTask(IGameContainer& gameContainer, FsStorageId destStorageId) :
-        m_gameContainer(&gameContainer), m_destStorageId(destStorageId)
+    IInstallTask::IInstallTask(FsStorageId destStorageId) :
+        m_destStorageId(destStorageId)
+    {}
+
+    NSPInstallTask::NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId) :
+        IInstallTask(destStorageId), m_simpleFileSystem(&simpleFileSystem)
     {
 
     }
 
     // Validate and obtain all data needed for install
-    Result InstallTask::PrepareForInstall()
+    Result NSPInstallTask::PrepareForInstall()
     {
         // Check NCA files are present
         // Check tik/cert is present
@@ -85,15 +92,15 @@ namespace tin::install
 
     - Profit!
     */
-    Result InstallTask::Install()
+    Result NSPInstallTask::Install()
     {
         printf("Reading cnmt.xml...\n");
-        auto cnmtXMLName = m_gameContainer->FindFile(IS_CNMT_FUNC);
+        auto cnmtXMLName = m_simpleFileSystem->FindFilePath("", IS_CNMT_FUNC);
         size_t xmlSize;
         
-        PROPAGATE_RESULT_STDOUT(m_gameContainer->GetFileSize(cnmtXMLName, &xmlSize), "Failed to get cnmt xml size");
+        PROPAGATE_RESULT_STDOUT(m_simpleFileSystem->GetFileSize(cnmtXMLName, &xmlSize), "Failed to get cnmt xml size");
         auto xmlBuf = std::make_unique<u8[]>(xmlSize);
-        PROPAGATE_RESULT_STDOUT(m_gameContainer->ReadFile(cnmtXMLName, xmlBuf.get(), xmlSize, 0x0), "Failed to read cnmt xml");
+        PROPAGATE_RESULT_STDOUT(m_simpleFileSystem->ReadFile(cnmtXMLName, xmlBuf.get(), xmlSize, 0x0), "Failed to read cnmt xml");
 
         NcmMetaRecord metaRecord;
         NcmContentRecord *contentRecords;
@@ -139,7 +146,7 @@ namespace tin::install
         return 0;
     }
 
-    Result InstallTask::InstallNCA(const NcmNcaId &ncaId)
+    Result NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
     {
         Result rc = 0;
 
@@ -150,9 +157,9 @@ namespace tin::install
         snprintf(ncaIdStr, FS_MAX_PATH, "%lx%lx", ncaIdLower, ncaIdUpper);
         std::string ncaName = ncaIdStr;
 
-        if (m_gameContainer->HasFile(ncaName + ".nca"))
+        if (m_simpleFileSystem->HasFile(ncaName + ".nca"))
             ncaName += ".nca";
-        else if (m_gameContainer->HasFile(ncaName + ".cnmt.nca"))
+        else if (m_simpleFileSystem->HasFile(ncaName + ".cnmt.nca"))
             ncaName += ".cnmt.nca";
         else
         {
@@ -164,7 +171,7 @@ namespace tin::install
         PROPAGATE_RESULT(contentStorage.Open(m_destStorageId), "Failed to open content storage");
 
         size_t fileSize;
-        PROPAGATE_RESULT(m_gameContainer->GetFileSize(ncaName, &fileSize), "Failed to get file size");
+        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
         u64 fileOff = 0;
         size_t readSize = 0x400000; // 4MB buff
         auto readBuffer = std::make_unique<u8[]>(readSize);
@@ -189,7 +196,7 @@ namespace tin::install
 
             if (fileOff + readSize >= fileSize) readSize = fileSize - fileOff;
 
-            PROPAGATE_RESULT(m_gameContainer->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
+            PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
             PROPAGATE_RESULT(contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize), "Failed to write a placeholder file");
             fileOff += readSize;
         }
@@ -208,7 +215,7 @@ namespace tin::install
     }
 
     // TODO: Implement RAII on NcmContentMetaDatabase
-    Result InstallTask::WriteRecords(const NcmMetaRecord *metaRecord, NcmContentRecord* records, size_t numRecords)
+    Result NSPInstallTask::WriteRecords(const NcmMetaRecord *metaRecord, NcmContentRecord* records, size_t numRecords)
     {
         Result rc;
         NcmContentMetaDatabase contentMetaDatabase;
@@ -238,28 +245,25 @@ namespace tin::install
         return rc;
     }
 
-    Result InstallTask::InstallTicketCert()
+    Result NSPInstallTask::InstallTicketCert()
     {
-        Result rc = 0;
-
         // Read the tik file and put it into a buffer
-        auto tikName = m_gameContainer->FindFile(IS_TIK_FUNC);
+        auto tikName = m_simpleFileSystem->FindFilePath("", IS_TIK_FUNC);
         size_t tikSize = 0;
-        PROPAGATE_RESULT(m_gameContainer->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
+        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
         auto tikBuf = std::make_unique<u8[]>(tikSize);
-        PROPAGATE_RESULT(m_gameContainer->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
+        PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
 
         // Read the cert file and put it into a buffer
-        auto certName = m_gameContainer->FindFile(IS_CERT_FUNC);
+        auto certName = m_simpleFileSystem->FindFilePath("", IS_CERT_FUNC);
         size_t certSize = 0;
-        PROPAGATE_RESULT(m_gameContainer->GetFileSize(certName, &certSize), "Failed to get cert file size");
+        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(certName, &certSize), "Failed to get cert file size");
         auto certBuf = std::make_unique<u8[]>(certSize);
-        PROPAGATE_RESULT(m_gameContainer->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
+        PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
 
         // Finally, let's actually import the ticket
         PROPAGATE_RESULT(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
-
-        return rc;
+        return 0;
     }
 }
 
@@ -267,20 +271,21 @@ Result installTitle(InstallContext *context)
 {
     if (context->sourceType == InstallSourceType_Nsp)
     {
-        tin::install::nsp::NSPContainer container;
+        /*tin::install::nsp::NSPContainer container;
         PROPAGATE_RESULT(container.OpenContainer(context->path), "Failed to open NSP Container");
         tin::install::InstallTask task(container, FsStorageId_SdCard);
 
         PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
-        PROPAGATE_RESULT(task.Install(), "Failed to install title");
+        PROPAGATE_RESULT(task.Install(), "Failed to install title");*/
 
-        return 0;
+        return 0xDEAD;
     }
     else if (context->sourceType == InstallSourceType_Extracted)
     {
-        tin::install::nsp::ExtractedNSPContainer container;
-        PROPAGATE_RESULT(container.OpenContainer(context->path), "Failed to open Extracted NSP Container");
-        tin::install::InstallTask task(container, FsStorageId_SdCard);
+        nx::fs::IFileSystem fileSystem;
+        PROPAGATE_RESULT(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
+        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, context->path);
+        tin::install::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
 
         PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
         PROPAGATE_RESULT(task.Install(), "Failed to install title");

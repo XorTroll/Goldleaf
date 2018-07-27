@@ -1,4 +1,4 @@
-#include "install/nsp_extracted.hpp"
+#include "install/simple_filesystem.hpp"
 
 #include <memory>
 #include "nx/fs.hpp"
@@ -6,32 +6,20 @@
 
 namespace tin::install::nsp
 {
-    ExtractedNSPContainer::ExtractedNSPContainer() {}
+    SimpleFileSystem::SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath) :
+        m_fileSystem(&fileSystem) , m_rootPath(rootPath)
+    {}
 
-    ExtractedNSPContainer::~ExtractedNSPContainer()
-    {
-        this->CloseContainer();
-    }
-
-    Result ExtractedNSPContainer::OpenContainer(std::string path)
-    {
-        m_fileSystem.OpenSdFileSystem();
-        m_baseDirPath = path;
-        return 0;
-    }
-
-    void ExtractedNSPContainer::CloseContainer()
-    {
-    }
+    SimpleFileSystem::~SimpleFileSystem() {}
     
-    Result ExtractedNSPContainer::ReadFile(std::string name, u8* buff, size_t size, size_t offset)
+    Result SimpleFileSystem::ReadFile(std::string path, u8* buff, size_t size, size_t offset)
     {
         nx::fs::IFile file;
-        PROPAGATE_RESULT(m_fileSystem.OpenFile(m_baseDirPath + name, file), "Failed to open file");
+        PROPAGATE_RESULT(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
 
         size_t actualReadSize = 0;
 
-        PROPAGATE_RESULT(file.Read(offset, buff, size, &actualReadSize), "Failed to read extracted file");
+        PROPAGATE_RESULT(file.Read(offset, buff, size, &actualReadSize), "Failed to read file");
 
         if (actualReadSize != size)
         {
@@ -42,28 +30,28 @@ namespace tin::install::nsp
         return 0;
     }
 
-    Result ExtractedNSPContainer::GetFileSize(std::string name, size_t* sizeOut)
+    Result SimpleFileSystem::GetFileSize(std::string path, size_t* sizeOut)
     {
         nx::fs::IFile file;
-        PROPAGATE_RESULT(m_fileSystem.OpenFile(m_baseDirPath + name, file), "Failed to open file");
+        PROPAGATE_RESULT(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
         PROPAGATE_RESULT(file.GetSize(sizeOut), "Failed to get file size");
         return 0;
     }
 
-    bool ExtractedNSPContainer::HasFile(std::string name)
+    bool SimpleFileSystem::HasFile(std::string path)
     {
         nx::fs::IFile file;
-        if (R_FAILED(m_fileSystem.OpenFile(m_baseDirPath + name, file)))
+        if (R_FAILED(m_fileSystem->OpenFile(m_rootPath + path, file)))
             return false;
         return true;
     }
 
-    std::string ExtractedNSPContainer::FindFile(std::function<bool (std::string)>& comparator)
+    std::string SimpleFileSystem::FindFilePath(std::string path, std::function<bool (FsDirectoryEntry&)>& comparator)
     {
         Result rc = 0;
         nx::fs::IDirectory dir;
 
-        if (R_FAILED(rc = m_fileSystem.OpenDirectory(m_baseDirPath, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY, dir)))
+        if (R_FAILED(rc = m_fileSystem->OpenDirectory(m_rootPath + path, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY, dir)))
         {
             fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to open dir", rc);
             return "";
@@ -77,7 +65,7 @@ namespace tin::install::nsp
             // NOTE: Directories are unsupported, however there shouldn't be any in NSPs/Extracted NSPS anyway
             if (dirEntry.type == ENTRYTYPE_FILE)
             {
-                if (comparator(dirEntry.name))
+                if (comparator(dirEntry))
                     return dirEntry.name;
             }
         }
