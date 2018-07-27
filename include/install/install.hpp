@@ -22,14 +22,14 @@ namespace tin::install
     class InstallTask final
     {
         public:
-            InstallTask(std::unique_ptr<IGameContainer>& gameContainer, FsStorageId destStorageId);
+            InstallTask(IGameContainer& gameContainer, FsStorageId destStorageId);
 
             // Prepare records and perform verification, ready for installation
             Result PrepareForInstall();
             Result Install();
 
         private:
-            const std::unique_ptr<IGameContainer> m_gameContainer;
+            IGameContainer* const m_gameContainer;
             const FsStorageId m_destStorageId;
 
             Result InstallNCA(const NcmNcaId& ncaId);

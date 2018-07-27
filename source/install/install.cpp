@@ -36,18 +36,18 @@ namespace tin::install
         return name.substr(name.find(".") + 1) == "cnmt.xml";
     };
 
-    std::function<bool (std::string)>  IS_TIK_FUNC = [](std::string name)
+    std::function<bool (std::string)> IS_TIK_FUNC = [](std::string name)
     {
         return name.substr(name.find(".") + 1) == "tik";
     };
 
-    std::function<bool (std::string)>  IS_CERT_FUNC = [](std::string name)
+    std::function<bool (std::string)> IS_CERT_FUNC = [](std::string name)
     {
         return name.substr(name.find(".") + 1) == "cert";
     };
 
-    InstallTask::InstallTask(std::unique_ptr<IGameContainer>& gameContainer, FsStorageId destStorageId) :
-        m_gameContainer(std::move(gameContainer)), m_destStorageId(destStorageId)
+    InstallTask::InstallTask(IGameContainer& gameContainer, FsStorageId destStorageId) :
+        m_gameContainer(&gameContainer), m_destStorageId(destStorageId)
     {
 
     }
@@ -267,8 +267,8 @@ Result installTitle(InstallContext *context)
 {
     if (context->sourceType == InstallSourceType_Nsp)
     {
-        std::unique_ptr<tin::install::IGameContainer> container = std::make_unique<tin::install::nsp::NSPContainer>();
-        PROPAGATE_RESULT(container->OpenContainer(context->path), "Failed to open NSP Container");
+        tin::install::nsp::NSPContainer container;
+        PROPAGATE_RESULT(container.OpenContainer(context->path), "Failed to open NSP Container");
         tin::install::InstallTask task(container, FsStorageId_SdCard);
 
         PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
@@ -278,8 +278,8 @@ Result installTitle(InstallContext *context)
     }
     else if (context->sourceType == InstallSourceType_Extracted)
     {
-        std::unique_ptr<tin::install::IGameContainer> container = std::make_unique<tin::install::nsp::ExtractedNSPContainer>();
-        PROPAGATE_RESULT(container->OpenContainer(context->path), "Failed to open Extracted NSP Container");
+        tin::install::nsp::ExtractedNSPContainer container;
+        PROPAGATE_RESULT(container.OpenContainer(context->path), "Failed to open Extracted NSP Container");
         tin::install::InstallTask task(container, FsStorageId_SdCard);
 
         PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
