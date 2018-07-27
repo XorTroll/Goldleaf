@@ -4,6 +4,34 @@
 #include <stdlib.h>
 #include <switch.h>
 
+/*
+Redesign ideas:
+
+NOTE:
+
+Each scene:
+- Should possess its own result
+- Should have a pointer to the previous scene (if there is one)
+- There should be a "GetPriorResults" function that creates a vector of all results prior to the current scene
+
+A scene source:
+- Has a "full" size
+- Is implemented as a stack, where elements are popped and put into the scene manager instead
+
+The scene manager should:
+    - Default to the main menu scene
+    - Delegate input to the current scene
+    - Wait until the current scene has a result, then act accordingly. Results may be:
+        - Progress to the next scene, storing result
+        - Return to previous scene
+        - Error
+        - Return to main menu
+    - Should have a reset state method (for returning to main menu)
+    - May have a SceneSource to provide a predefined set of scenes
+    - Should have a scene stack. Elements should first be returned to the scene source (if present). Once the scene source is full,
+      it should be deleted when trying to add a new element.
+*/
+
 PrintConsole *g_console;
 View *g_currentView;
 
