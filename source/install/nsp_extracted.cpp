@@ -14,7 +14,7 @@ namespace tin::install::nsp
 
     Result ExtractedDirSession::OpenDir(FsFileSystem& fileSystem, std::string path)
     {
-        PROPAGATE_RESULT(fsFsOpenDirectory(&fileSystem, path.c_str(), FS_DIROPEN_FILE, &m_dir), "Failed to open directory");
+        PROPAGATE_RESULT(fsFsOpenDirectory(&fileSystem, path.c_str(), FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY, &m_dir), "Failed to open directory");
         return 0;
     }
 
@@ -71,7 +71,7 @@ namespace tin::install::nsp
         return true;
     }
 
-    std::string ExtractedNSPContainer::GetFileNameFromExtension(std::string extension)
+    std::string ExtractedNSPContainer::FindFile(std::function<bool (std::string)>& comparator)
     {
         Result rc = 0;
         ExtractedDirSession dirSession;
@@ -83,28 +83,19 @@ namespace tin::install::nsp
         }
 
         size_t numEntriesRead;
-        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(256);
+        FsDirectoryEntry dirEntry;
 
-        if (R_FAILED(rc = fsDirRead(&dirSession.m_dir, 0, &numEntriesRead, 256, dirEntries.get())))
+        while (R_SUCCEEDED(rc = fsDirRead(&dirSession.m_dir, 0, &numEntriesRead, 1, &dirEntry)) && numEntriesRead == 1)
         {
-            fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to read dir", rc);
-            return "";
+            // NOTE: Directories are unsupported, however there shouldn't be any in NSPs/Extracted NSPS anyway
+            if (dirEntry.type == ENTRYTYPE_FILE)
+            {
+                if (comparator(dirEntry.name))
+                    return dirEntry.name;
+            }
         }
 
-        for (unsigned int i = 0; i < numEntriesRead; i++)
-        {
-            FsDirectoryEntry dirEntry = dirEntries[i];
-            std::string dirEntryName = dirEntry.name;
-
-            if (dirEntry.type != ENTRYTYPE_FILE)
-                continue;
-
-            auto foundExtension = dirEntryName.substr(dirEntryName.find(".") + 1); 
-
-            if (foundExtension == extension)
-                return dirEntryName;
-        }
-
+        fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to find file", rc);
         return "";
     }
 }

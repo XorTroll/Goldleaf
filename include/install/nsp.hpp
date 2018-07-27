@@ -35,7 +35,7 @@ namespace tin::install::nsp
             Result GetFileSize(std::string name, size_t* sizeOut) override;
 
             bool HasFile(std::string name) override;
-            std::string GetFileNameFromExtension(std::string extension) override;
+            std::string FindFile(std::function<bool (std::string)>& comparator) override;
 
         private:
             Result ReadNSPHeader();

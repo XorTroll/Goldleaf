@@ -31,6 +31,21 @@ extern "C" {
 
 namespace tin::install
 {
+    std::function<bool (std::string)> IS_CNMT_FUNC = [](std::string name)
+    {
+        return name.substr(name.find(".") + 1) == "cnmt.xml";
+    };
+
+    std::function<bool (std::string)>  IS_TIK_FUNC = [](std::string name)
+    {
+        return name.substr(name.find(".") + 1) == "tik";
+    };
+
+    std::function<bool (std::string)>  IS_CERT_FUNC = [](std::string name)
+    {
+        return name.substr(name.find(".") + 1) == "cert";
+    };
+
     InstallTask::InstallTask(std::unique_ptr<IGameContainer>& gameContainer, FsStorageId destStorageId) :
         m_gameContainer(std::move(gameContainer)), m_destStorageId(destStorageId)
     {
@@ -73,7 +88,7 @@ namespace tin::install
     Result InstallTask::Install()
     {
         printf("Reading cnmt.xml...\n");
-        auto cnmtXMLName = m_gameContainer->GetFileNameFromExtension("cnmt.xml");
+        auto cnmtXMLName = m_gameContainer->FindFile(IS_CNMT_FUNC);
         size_t xmlSize;
         
         PROPAGATE_RESULT_STDOUT(m_gameContainer->GetFileSize(cnmtXMLName, &xmlSize), "Failed to get cnmt xml size");
@@ -228,14 +243,14 @@ namespace tin::install
         Result rc = 0;
 
         // Read the tik file and put it into a buffer
-        auto tikName = m_gameContainer->GetFileNameFromExtension("tik");
+        auto tikName = m_gameContainer->FindFile(IS_TIK_FUNC);
         size_t tikSize = 0;
         PROPAGATE_RESULT(m_gameContainer->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
         auto tikBuf = std::make_unique<u8[]>(tikSize);
         PROPAGATE_RESULT(m_gameContainer->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
 
         // Read the cert file and put it into a buffer
-        auto certName = m_gameContainer->GetFileNameFromExtension("cert");
+        auto certName = m_gameContainer->FindFile(IS_CERT_FUNC);
         size_t certSize = 0;
         PROPAGATE_RESULT(m_gameContainer->GetFileSize(certName, &certSize), "Failed to get cert file size");
         auto certBuf = std::make_unique<u8[]>(certSize);

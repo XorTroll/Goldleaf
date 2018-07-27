@@ -68,13 +68,11 @@ namespace tin::install::nsp
         return true;
     }
 
-    std::string NSPContainer::GetFileNameFromExtension(std::string extension)
+    std::string NSPContainer::FindFile(std::function<bool (std::string)>& comparator)
     {
         for (auto &enclosedFile : m_enclosedFiles)
         {
-            auto foundExtension = enclosedFile.m_name.substr(enclosedFile.m_name.find(".") + 1); 
-
-            if (foundExtension == extension)
+            if (comparator(enclosedFile.m_name))
                 return enclosedFile.m_name;
         }
 

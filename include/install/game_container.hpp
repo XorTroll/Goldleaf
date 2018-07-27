@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <switch.h>
 
@@ -15,6 +16,6 @@ namespace tin::install
             virtual Result GetFileSize(std::string name, size_t* sizeOut) = 0;
 
             virtual bool HasFile(std::string name) = 0;
-            virtual std::string GetFileNameFromExtension(std::string extension) = 0;
+            virtual std::string FindFile(std::function<bool (std::string)>& comparator);
     };
 }
