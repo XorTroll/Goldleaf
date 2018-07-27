@@ -69,13 +69,13 @@ namespace nx::fs
 
     Result IFileSystem::OpenFile(std::string path, IFile& file)
     {
-        PROPAGATE_RESULT(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file.m_file), "Failed to open file");
+        PROPAGATE_RESULT(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file.m_file), ("Failed to open file " + path).c_str());
         return 0;
     }
 
     Result IFileSystem::OpenDirectory(std::string path, int flags, IDirectory& dir)
     {
-        PROPAGATE_RESULT(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir.m_dir), "Failed to open directory");
+        PROPAGATE_RESULT(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir.m_dir), ("Failed to open directory " + path).c_str());
         return 0;
     }
 }
