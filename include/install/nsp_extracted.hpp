@@ -4,17 +4,6 @@
 
 namespace tin::install::nsp
 {
-    class ExtractedFileSession
-    {
-        public:
-            FsFile m_file;
-    
-            ExtractedFileSession();
-            ~ExtractedFileSession();
-
-            Result OpenFile(FsFileSystem& fileSystem, std::string path);
-    };
-
     class ExtractedDirSession
     {
         public:

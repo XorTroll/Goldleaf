@@ -1,22 +1,11 @@
 #include "install/nsp_extracted.hpp"
 
 #include <memory>
+#include "nx/fs.hpp"
 #include "error.hpp"
 
 namespace tin::install::nsp
 {
-    ExtractedFileSession::ExtractedFileSession() {}
-    ExtractedFileSession::~ExtractedFileSession()
-    {
-        fsFileClose(&m_file);
-    }
-
-    Result ExtractedFileSession::OpenFile(FsFileSystem& fileSystem, std::string path)
-    {
-        PROPAGATE_RESULT(fsFsOpenFile(&fileSystem, path.c_str(), FS_OPEN_READ, &m_file), "Failed to open file");
-        return 0;
-    }
-
     ExtractedDirSession::ExtractedDirSession() {}
     ExtractedDirSession::~ExtractedDirSession()
     {
@@ -50,12 +39,12 @@ namespace tin::install::nsp
     
     Result ExtractedNSPContainer::ReadFile(std::string name, u8* buff, size_t size, size_t offset)
     {
-        ExtractedFileSession fileSession;
-        PROPAGATE_RESULT(fileSession.OpenFile(m_fileSystem, m_baseDirPath + name), "Failed to open file");
+        nx::fs::IFile file;
+        PROPAGATE_RESULT(file.OpenFile(m_fileSystem, m_baseDirPath + name), "Failed to open file");
 
         size_t actualReadSize = 0;
 
-        PROPAGATE_RESULT(fsFileRead(&fileSession.m_file, offset, buff, size, &actualReadSize), "Failed to read extracted file");
+        PROPAGATE_RESULT(file.Read(offset, buff, size, &actualReadSize), "Failed to read extracted file");
 
         if (actualReadSize != size)
         {
@@ -68,16 +57,16 @@ namespace tin::install::nsp
 
     Result ExtractedNSPContainer::GetFileSize(std::string name, size_t* sizeOut)
     {
-        ExtractedFileSession fileSession;
-        PROPAGATE_RESULT(fileSession.OpenFile(m_fileSystem, m_baseDirPath + name), "Failed to open file");
-        PROPAGATE_RESULT(fsFileGetSize(&fileSession.m_file, sizeOut), "Failed to get file size");
+        nx::fs::IFile file;
+        PROPAGATE_RESULT(file.OpenFile(m_fileSystem, m_baseDirPath + name), "Failed to open file");
+        PROPAGATE_RESULT(file.GetSize(sizeOut), "Failed to get file size");
         return 0;
     }
 
     bool ExtractedNSPContainer::HasFile(std::string name)
     {
-        ExtractedFileSession fileSession;
-        if (R_FAILED(fileSession.OpenFile(m_fileSystem, m_baseDirPath + name)))
+        nx::fs::IFile file;
+        if (R_FAILED(file.OpenFile(m_fileSystem, m_baseDirPath + name)))
             return false;
         return true;
     }
