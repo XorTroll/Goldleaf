@@ -46,7 +46,7 @@ namespace tin::install::nsp
         return true;
     }
 
-    std::string SimpleFileSystem::FindFilePath(std::string path, std::function<bool (FsDirectoryEntry&)>& comparator)
+    std::string SimpleFileSystem::GetFileNameFromExtension(std::string path, std::string extension)
     {
         Result rc = 0;
         nx::fs::IDirectory dir;
@@ -58,19 +58,28 @@ namespace tin::install::nsp
         }
 
         size_t numEntriesRead;
-        FsDirectoryEntry dirEntry;
+        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(256);
 
-        while (R_SUCCEEDED(rc = dir.Read(0, &dirEntry, 1, &numEntriesRead)) && numEntriesRead == 1)
+        if (R_FAILED(rc = dir.Read(0, dirEntries.get(), 256, &numEntriesRead)))
         {
-            // NOTE: Directories are unsupported, however there shouldn't be any in NSPs/Extracted NSPS anyway
-            if (dirEntry.type == ENTRYTYPE_FILE)
-            {
-                if (comparator(dirEntry))
-                    return dirEntry.name;
-            }
+            fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to read dir", rc);
+            return "";
         }
 
-        fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to find file", rc);
+        for (unsigned int i = 0; i < numEntriesRead; i++)
+        {
+            FsDirectoryEntry dirEntry = dirEntries[i];
+            std::string dirEntryName = dirEntry.name;
+
+            if (dirEntry.type != ENTRYTYPE_FILE)
+                continue;
+
+            auto foundExtension = dirEntryName.substr(dirEntryName.find(".") + 1); 
+
+            if (foundExtension == extension)
+                return dirEntryName;
+        }
+
         return "";
     }
 }

@@ -20,6 +20,6 @@ namespace tin::install::nsp
             Result GetFileSize(std::string path, size_t* sizeOut);
 
             bool HasFile(std::string path);
-            std::string FindFilePath(std::string path, std::function<bool (FsDirectoryEntry&)>& comparator);
+            std::string GetFileNameFromExtension(std::string path, std::string extension);
     };
 }
