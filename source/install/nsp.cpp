@@ -20,7 +20,6 @@ namespace tin::install::nsp
 
     Result NSPContainer::OpenContainer(std::string path)
     {
-        PROPAGATE_RESULT(fsMountSdcard(&m_fileSystem), "Failed to mount sd card");
         PROPAGATE_RESULT(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &m_fsFile), "Failed to open file");
         PROPAGATE_RESULT(this->ReadNSPHeader(), "Failed to read NSP header");
 

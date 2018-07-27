@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-Result fsOpenFileSystemWithId(char* path, u64 fileSystemType, u64 titleId, FsFileSystem* out) 
+Result fsOpenFileSystemWithId(const char* path, u64 fileSystemType, u64 titleId, FsFileSystem* out) 
 {
 	IpcCommand c;
 	char send_path[FS_MAX_PATH+1] = {0};

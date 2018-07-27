@@ -12,4 +12,4 @@ typedef enum
     FsFileSystemType_ApplicationPackage = 7,
 } FsFileSystemType;
 
-Result fsOpenFileSystemWithId(char* path, u64 fileSystemType, u64 titleId, FsFileSystem* out);
+Result fsOpenFileSystemWithId(const char* path, u64 fileSystemType, u64 titleId, FsFileSystem* out);
