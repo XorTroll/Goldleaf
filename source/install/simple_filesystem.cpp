@@ -6,8 +6,8 @@
 
 namespace tin::install::nsp
 {
-    SimpleFileSystem::SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath) :
-        m_fileSystem(&fileSystem) , m_rootPath(rootPath)
+    SimpleFileSystem::SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath, std::string absoluteRootPath) :
+        m_fileSystem(&fileSystem) , m_rootPath(rootPath), m_absoluteRootPath(absoluteRootPath)
     {}
 
     SimpleFileSystem::~SimpleFileSystem() {}
@@ -71,13 +71,22 @@ namespace tin::install::nsp
             FsDirectoryEntry dirEntry = dirEntries[i];
             std::string dirEntryName = dirEntry.name;
 
-            if (dirEntry.type != ENTRYTYPE_FILE)
+            if (dirEntry.type == ENTRYTYPE_DIR)
+            {
+                auto subdirPath = path + dirEntryName + "/";
+                auto subdirFound = this->GetFileNameFromExtension(subdirPath, extension);
+
+                if (subdirFound != "")
+                    return subdirFound;
                 continue;
+            }
+            else if (dirEntry.type == ENTRYTYPE_FILE)
+            {
+                auto foundExtension = dirEntryName.substr(dirEntryName.find(".") + 1); 
 
-            auto foundExtension = dirEntryName.substr(dirEntryName.find(".") + 1); 
-
-            if (foundExtension == extension)
-                return dirEntryName;
+                if (foundExtension == extension)
+                    return dirEntryName;
+            }
         }
 
         return "";

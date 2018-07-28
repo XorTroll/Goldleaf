@@ -12,8 +12,9 @@ namespace tin::install::nsp
 
         public:
             const std::string m_rootPath;
+            const std::string m_absoluteRootPath;
 
-            SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath);
+            SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath, std::string absoluteRootPath);
             ~SimpleFileSystem();
 
             Result ReadFile(std::string path, u8* buff, size_t size, size_t offset);
