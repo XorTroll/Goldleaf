@@ -17,9 +17,7 @@ namespace tin::install::nsp
             SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath, std::string absoluteRootPath);
             ~SimpleFileSystem();
 
-            Result ReadFile(std::string path, u8* buff, size_t size, size_t offset);
-            Result GetFileSize(std::string path, size_t* sizeOut);
-
+            nx::fs::IFile OpenFile(std::string path);
             bool HasFile(std::string path);
             std::string GetFileNameFromExtension(std::string path, std::string extension);
     };

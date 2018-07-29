@@ -7,23 +7,33 @@ namespace nx::fs
 {
     // IFile
 
-    IFile::IFile() {}
+    IFile::IFile(FsFile& file)
+    {
+        m_file = file;
+    }
 
     IFile::~IFile()
     {
         fsFileClose(&m_file);
     }
 
-    Result IFile::Read(u64 offset, void* buf, size_t size, size_t* sizeReadOut)
+    void IFile::Read(u64 offset, void* buf, size_t size)
     {
-        ASSERT_OK(fsFileRead(&m_file, offset, buf, size, sizeReadOut), "Failed to read file");
-        return 0;
+        u64 sizeRead;
+        ASSERT_OK(fsFileRead(&m_file, offset, buf, size, &sizeRead), "Failed to read file");
+        
+        if (sizeRead != size)
+        {
+            std::string msg = "Size read " + std::string("" + sizeRead) + " doesn't match expected size " + std::string("" + size);
+            throw std::runtime_error(msg.c_str());
+        }
     }
 
-    Result IFile::GetSize(u64* sizeOut)
+    u64 IFile::GetSize()
     {
-        ASSERT_OK(fsFileGetSize(&m_file, sizeOut), "Failed to get file size");
-        return 0;
+        u64 sizeOut;
+        ASSERT_OK(fsFileGetSize(&m_file, &sizeOut), "Failed to get file size");
+        return sizeOut;
     }
 
     // End IFile
@@ -67,10 +77,11 @@ namespace nx::fs
         fsFsClose(&m_fileSystem);
     }
 
-    Result IFileSystem::OpenFile(std::string path, IFile& file)
+    IFile IFileSystem::OpenFile(std::string path)
     {
-        ASSERT_OK(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file.m_file), ("Failed to open file " + path).c_str());
-        return 0;
+        FsFile file;
+        ASSERT_OK(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file), ("Failed to open file " + path).c_str());
+        return IFile(file);
     }
 
     Result IFileSystem::OpenDirectory(std::string path, int flags, IDirectory& dir)

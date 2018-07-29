@@ -32,10 +32,10 @@ namespace tin::install::nsp
         
         // Find and read the cnmt file
         auto cnmtName = cnmtNCASimpleFileSystem.GetFileNameFromExtension("", "cnmt");
-        size_t cnmtSize;
-        ASSERT_OK(cnmtNCASimpleFileSystem.GetFileSize(cnmtName, &cnmtSize), "Failed to get cnmt size");
+        auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
+        u64 cnmtSize = cnmtFile.GetSize();
         auto cnmtBuf = std::make_unique<u8[]>(cnmtSize);
-        ASSERT_OK(cnmtNCASimpleFileSystem.ReadFile(cnmtName, cnmtBuf.get(), cnmtSize, 0x0), "Failed to read cnmt");
+        cnmtFile.Read(0x0, cnmtBuf.get(), cnmtSize);
 
         // Parse data and create install content meta
         ASSERT_OK(m_contentMeta.ParseData(cnmtBuf.get(), cnmtSize), "Failed to parse data");
@@ -58,31 +58,11 @@ namespace tin::install::nsp
         // Check tik/cert is present
     }
 
-    /*
-    Summary of the installation process:
-
-    - Parse the first xml file we find within the previously selected directory.
-      If we can't find one, then bail out.
-
-    - Create a meta record based on the contents of the xml file.
-
-    - Attempt to uninstall any existing title using the meta record
-
-    - Create content records. The first content record should be the special "master record", which doesn't contain
-      an NcaId, but instead magic, the update title id, the required system version, and the meta record type.
-
-    - Read NCA data from the SD card directory from earlier, based on the NcaIds in the content records.
-
-    - Write the placeholders to registered. Remove the placeholders.
-
-    - Import the ticket and cert data using es, also from the SD card
-
-    - Push an ApplicationRecord.
-
-    - Profit!
-    */
     void NSPInstallTask::Install()
     {
+        printf("Installing ticket and cert...\n");
+        this->InstallTicketCert();
+
         ContentStorageRecord storageRecord;
         storageRecord.metaRecord = m_metaRecord;
         storageRecord.storageId = FsStorageId_SdCard;
@@ -95,20 +75,19 @@ namespace tin::install::nsp
 
         printf("Pushing application record...\n");
         ASSERT_OK(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
-        
+
+        printf("Installing CNNT NCA...\n");
+        this->InstallNCA(m_cnmtContentRecord.ncaId);
+
         printf("Installing NCAs...\n");
         for (auto& record : m_contentMeta.m_contentRecords)
         {
             this->InstallNCA(record.ncaId);
         }
 
-        printf("Installing CNNT NCA...\n");
-        this->InstallNCA(m_cnmtContentRecord.ncaId);
-
         printf("Writing content records...\n");
         this->WriteRecords();
-        printf("Installing ticket and cert...\n");
-        this->InstallTicketCert();
+
         printf("Done!\n");
     }
 
@@ -142,8 +121,8 @@ namespace tin::install::nsp
         }
         catch (...) {}
 
-        size_t fileSize;
-        ASSERT_OK(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
+        auto ncaFile = m_simpleFileSystem->OpenFile(ncaName);
+        size_t ncaSize = ncaFile.GetSize();
         u64 fileOff = 0;
         size_t readSize = 0x400000; // 4MB buff
         auto readBuffer = std::make_unique<u8[]>(readSize);
@@ -151,22 +130,22 @@ namespace tin::install::nsp
         if (readBuffer == NULL) 
             throw std::runtime_error(("Failed to allocate read buffer for " + ncaName).c_str());
 
-        fprintf(nxlinkout, "Size: 0x%lx\n", fileSize);
-        contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize);
+        fprintf(nxlinkout, "Size: 0x%lx\n", ncaSize);
+        contentStorage.CreatePlaceholder(ncaId, ncaId, ncaSize);
                 
         float progress;
                 
-        while (fileOff < fileSize) 
+        while (fileOff < ncaSize) 
         {   
             // Clear the buffer before we read anything, just to be sure    
-            progress = (float)fileOff / (float)fileSize;
+            progress = (float)fileOff / (float)ncaSize;
 
             if (fileOff % (0x400000 * 3) == 0)
-                printf("> Progress: %lu/%lu MB (%d%s)\r", (fileOff / 1000000), (fileSize / 1000000), (int)(progress * 100.0), "%");
+                printf("> Progress: %lu/%lu MB (%d%s)\r", (fileOff / 1000000), (ncaSize / 1000000), (int)(progress * 100.0), "%");
 
-            if (fileOff + readSize >= fileSize) readSize = fileSize - fileOff;
+            if (fileOff + readSize >= ncaSize) readSize = ncaSize - fileOff;
 
-            ASSERT_OK(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
+            ncaFile.Read(fileOff, readBuffer.get(), readSize);
             contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize);
             fileOff += readSize;
         }
@@ -181,7 +160,7 @@ namespace tin::install::nsp
         }
         catch (...)
         {
-            printf("Failed to register nca. It may already exist.");
+            printf(("Failed to register " + ncaName + ". It may already exist.\n").c_str());
         }
 
         try
@@ -214,17 +193,21 @@ namespace tin::install::nsp
     {
         // Read the tik file and put it into a buffer
         auto tikName = m_simpleFileSystem->GetFileNameFromExtension("", "tik");
-        size_t tikSize = 0;
-        ASSERT_OK(m_simpleFileSystem->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
+        printf("> Getting tik size\n");
+        auto tikFile = m_simpleFileSystem->OpenFile(tikName);
+        u64 tikSize = tikFile.GetSize();
         auto tikBuf = std::make_unique<u8[]>(tikSize);
-        ASSERT_OK(m_simpleFileSystem->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
+        printf("> Reading tik\n");
+        tikFile.Read(0x0, tikBuf.get(), tikSize);
 
         // Read the cert file and put it into a buffer
         auto certName = m_simpleFileSystem->GetFileNameFromExtension("", "cert");
-        size_t certSize = 0;
-        ASSERT_OK(m_simpleFileSystem->GetFileSize(certName, &certSize), "Failed to get cert file size");
+        printf("> Getting cert size\n");
+        auto certFile = m_simpleFileSystem->OpenFile(certName);
+        u64 certSize = certFile.GetSize();
         auto certBuf = std::make_unique<u8[]>(certSize);
-        ASSERT_OK(m_simpleFileSystem->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
+        printf("> Reading cert\n");
+        certFile.Read(0x0, certBuf.get(), certSize);
 
         // Finally, let's actually import the ticket
         ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");

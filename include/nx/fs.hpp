@@ -15,12 +15,17 @@ namespace nx::fs
         private:
             FsFile m_file;
 
+            IFile(FsFile& file);
+
         public:
-            IFile();
+            // Don't allow copying, or garbage may be closed by the destructor
+            IFile& operator=(const IFile&) = delete;
+            IFile(const IFile&) = delete;   
+
             ~IFile();
 
-            Result Read(u64 offset, void* buf, size_t size, size_t* sizeReadOut);
-            Result GetSize(u64* sizeOut);
+            void Read(u64 offset, void* buf, size_t size);
+            u64 GetSize();
     };
 
     class IDirectory
@@ -31,6 +36,10 @@ namespace nx::fs
             FsDir m_dir;
 
         public:
+            // Don't allow copying, or garbage may be closed by the destructor
+            IDirectory& operator=(const IDirectory&) = delete;
+            IDirectory(const IDirectory&) = delete;   
+
             IDirectory();
             ~IDirectory();
 
@@ -43,6 +52,10 @@ namespace nx::fs
             FsFileSystem m_fileSystem;
 
         public:
+            // Don't allow copying, or garbage may be closed by the destructor
+            IFileSystem& operator=(const IFileSystem&) = delete;
+            IFileSystem(const IFileSystem&) = delete;   
+
             IFileSystem();
             ~IFileSystem();
 
@@ -50,7 +63,7 @@ namespace nx::fs
             Result OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId);
             void CloseFileSystem();
              
-            Result OpenFile(std::string path, IFile& file);
+            IFile OpenFile(std::string path);
             Result OpenDirectory(std::string path, int flags, IDirectory& dir);
     };
 }

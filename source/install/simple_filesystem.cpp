@@ -12,40 +12,18 @@ namespace tin::install::nsp
     {}
 
     SimpleFileSystem::~SimpleFileSystem() {}
-    
-    Result SimpleFileSystem::ReadFile(std::string path, u8* buff, size_t size, size_t offset)
+
+    nx::fs::IFile SimpleFileSystem::OpenFile(std::string path)
     {
-        nx::fs::IFile file;
-        ASSERT_OK(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
-
-        size_t actualReadSize = 0;
-
-        ASSERT_OK(file.Read(offset, buff, size, &actualReadSize), "Failed to read file");
-
-        if (actualReadSize != size)
-        {
-            printf("readExtractedInstallFile: Size read 0x%lx doesn't match expected size 0x%lx", actualReadSize, size);
-            return -1;
-        }
-
-        return 0;
-    }
-
-    Result SimpleFileSystem::GetFileSize(std::string path, size_t* sizeOut)
-    {
-        nx::fs::IFile file;
-        ASSERT_OK(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
-        ASSERT_OK(file.GetSize(sizeOut), "Failed to get file size");
-        return 0;
+        return m_fileSystem->OpenFile(m_rootPath + path);
     }
 
     bool SimpleFileSystem::HasFile(std::string path)
     {
-        nx::fs::IFile file;
         try
         {
             fprintf(nxlinkout, ("Attempting to find file at " + m_rootPath + path + "\n").c_str());
-            m_fileSystem->OpenFile(m_rootPath + path, file);
+            m_fileSystem->OpenFile(m_rootPath + path);
             return true;
         }
         catch (std::exception& e) {}
