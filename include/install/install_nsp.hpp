@@ -23,6 +23,7 @@ namespace tin::install::nsp
 
             void PrepareForInstall() override;
             void Install() override;
+            void DebugPrintInstallData();
 
         private:
             void InstallNCA(const NcmNcaId& ncaId);

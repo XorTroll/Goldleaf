@@ -68,7 +68,7 @@ namespace tin::install
         if (m_contentMetaHeader.type == ContentMetaType::PATCH)
         {
             PatchMetaExtendedHeader* patchMetaExtendedHeader = (PatchMetaExtendedHeader*)extendedHeaderBytes;
-            installContentMetaBytesOut.resize(installContentMetaBytesOut.size() + patchMetaExtendedHeader->extendedDataSize - installContentMetaHeader.extendedHeaderSize, 0);
+            installContentMetaBytesOut.resize(installContentMetaBytesOut.size() + patchMetaExtendedHeader->extendedDataSize, 0);
         }
 
         return 0;

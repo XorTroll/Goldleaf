@@ -71,45 +71,9 @@ namespace tin::install::nsp
         // To do this, we copy over the existing content meta to the new content meta key
         if (storageRecord.metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
         {
-            storageRecord.metaRecord.titleId &= ~0x800;
-            storageRecord.metaRecord.type = 0x80;
-
-            u64 baseTitleId = storageRecord.metaRecord.titleId;
             NcmContentMetaDatabase contentMetaDatabase;
-
-            try
-            {
-                NcmMetaRecord latestMetaRecord;
-
-                ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
-                ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, baseTitleId, &latestMetaRecord), "Failed to get latest content meta key");
-
-                // Get the size of the existing content records and populate the buffer with them
-                u64 contentRecordSize;
-                ASSERT_OK(ncmContentMetaDatabaseGetSize(&contentMetaDatabase, &latestMetaRecord, &contentRecordSize), "Failed to get content record size");
-                
-                if (contentRecordSize == 0)
-                {
-                    throw std::runtime_error("Existing content record size is zero!");
-                }
-
-                auto contentRecordBuf = std::make_unique<u8[]>(contentRecordSize);
-                u64 contentRecordSizeRead = 0;
-                ASSERT_OK(ncmContentMetaDatabaseGet(&contentMetaDatabase, &latestMetaRecord, contentRecordSize, (NcmContentMetaRecordsHeader*)contentRecordBuf.get(), &contentRecordSizeRead), "Failed to get content record size");
-
-                if (contentRecordSize != contentRecordSizeRead)
-                {
-                    throw std::runtime_error("Mismatch between content record size and content record size read");
-                }
-
-                ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &storageRecord.metaRecord, contentRecordSize, (NcmContentMetaRecordsHeader*)contentRecordBuf.get()), "Failed to set content records");
-                ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
-            }
-            catch (std::runtime_error& e)
-            {
-                serviceClose(&contentMetaDatabase.s);
-                throw e;
-            }
+            ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
+            ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, m_metaRecord.titleId ^ 0x800, &storageRecord.metaRecord), "Failed to get latest application content meta key");
         }
 
         printf("Pushing application record...\n");
@@ -136,6 +100,8 @@ namespace tin::install::nsp
         {
             printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
         }
+
+        ASSERT_OK(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
 
         printf("Done!\n");
     }
@@ -227,11 +193,7 @@ namespace tin::install::nsp
         try
         {
             ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
-            fprintf(nxlinkout, "Content meta key: \n");
-            printBytes(nxlinkout, (u8*)&m_metaRecord, sizeof(NcmMetaRecord), true);
             ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentMetaRecordsHeader*)m_installContentMetaData.data()), "Failed to set content records");
-            fprintf(nxlinkout, "Content meta: \n");
-            printBytes(nxlinkout, m_installContentMetaData.data(), m_installContentMetaData.size(), true);
             ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
         }
         catch (std::runtime_error& e)
@@ -239,6 +201,9 @@ namespace tin::install::nsp
             serviceClose(&contentMetaDatabase.s);
             throw e;
         }
+
+        fprintf(nxlinkout, "Post Install Records: \n");
+        this->DebugPrintInstallData();
     }
 
     void NSPInstallTask::InstallTicketCert()
@@ -264,6 +229,91 @@ namespace tin::install::nsp
         // Finally, let's actually import the ticket
         ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
     }
+
+    void NSPInstallTask::DebugPrintInstallData()
+    {
+        NcmContentMetaDatabase contentMetaDatabase;
+        u64 baseTitleId;
+        u64 updateTitleId;
+        bool hasUpdate = true;
+
+        if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
+        {
+            baseTitleId = m_metaRecord.titleId;
+            updateTitleId = baseTitleId ^ 0x800;
+        }
+        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
+        {
+            updateTitleId = m_metaRecord.titleId;
+            baseTitleId = updateTitleId ^ 0x800;
+        }
+        else
+            return;
+
+        try
+        {
+            NcmMetaRecord latestApplicationContentMetaKey;
+            NcmMetaRecord latestPatchContentMetaKey;
+
+            ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
+            ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, baseTitleId, &latestApplicationContentMetaKey), "Failed to get latest application content meta key");
+            
+            try
+            {
+                ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, updateTitleId, &latestPatchContentMetaKey), "Failed to get latest patch content meta key");
+            }
+            catch (std::exception& e)
+            {
+                hasUpdate = false;
+            }
+
+            u64 appContentRecordSize;
+            u64 appContentRecordSizeRead;
+            ASSERT_OK(ncmContentMetaDatabaseGetSize(&contentMetaDatabase, &latestApplicationContentMetaKey, &appContentRecordSize), "Failed to get application content record size");
+            
+            auto appContentRecordBuf = std::make_unique<u8[]>(appContentRecordSize);
+            ASSERT_OK(ncmContentMetaDatabaseGet(&contentMetaDatabase, &latestApplicationContentMetaKey, appContentRecordSize, (NcmContentMetaRecordsHeader*)appContentRecordBuf.get(), &appContentRecordSizeRead), "Failed to get app content record size");
+
+            if (appContentRecordSize != appContentRecordSizeRead)
+            {
+                throw std::runtime_error("Mismatch between app content record size and content record size read");
+            }
+
+            fprintf(nxlinkout, "Application content meta key: \n");
+            printBytes(nxlinkout, (u8*)&latestApplicationContentMetaKey, sizeof(NcmMetaRecord), true);
+            fprintf(nxlinkout, "Application content meta: \n");
+            printBytes(nxlinkout, appContentRecordBuf.get(), appContentRecordSize, true);
+
+            if (hasUpdate)
+            {
+                u64 patchContentRecordsSize;
+                u64 patchContentRecordSizeRead;
+                ASSERT_OK(ncmContentMetaDatabaseGetSize(&contentMetaDatabase, &latestPatchContentMetaKey, &patchContentRecordsSize), "Failed to get patch content record size");
+            
+                auto patchContentRecordBuf = std::make_unique<u8[]>(patchContentRecordsSize);
+                ASSERT_OK(ncmContentMetaDatabaseGet(&contentMetaDatabase, &latestPatchContentMetaKey, patchContentRecordsSize, (NcmContentMetaRecordsHeader*)patchContentRecordBuf.get(), &patchContentRecordSizeRead), "Failed to get patch content record size");
+            
+                if (patchContentRecordsSize != patchContentRecordSizeRead)
+                {
+                    throw std::runtime_error("Mismatch between app content record size and content record size read");
+                }
+
+                fprintf(nxlinkout, "Patch content meta key: \n");
+                printBytes(nxlinkout, (u8*)&latestPatchContentMetaKey, sizeof(NcmMetaRecord), true);
+                fprintf(nxlinkout, "Patch content meta: \n");
+                printBytes(nxlinkout, patchContentRecordBuf.get(), patchContentRecordsSize, true);
+            }
+            else
+            {
+                fprintf(nxlinkout, "No update records found, or an error occurred.\n");
+            }
+        }
+        catch (std::runtime_error& e)
+        {
+            serviceClose(&contentMetaDatabase.s);
+            fprintf(nxlinkout, "Failed to log install data. Error: %s", e.what());
+        }
+    }
 }
 
 Result installTitle(InstallContext *context)
@@ -279,6 +329,8 @@ Result installTitle(InstallContext *context)
             tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
 
             task.PrepareForInstall();
+            fprintf(nxlinkout, "Pre Install Records: \n");
+            task.DebugPrintInstallData();
             task.Install();
 
             return 0;
