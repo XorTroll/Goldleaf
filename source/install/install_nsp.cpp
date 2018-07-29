@@ -1,10 +1,11 @@
 #include "install/install_nsp.hpp"
 
-#include <machine/endian.h>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <memory>
 #include <string>
+#include <machine/endian.h>
 #include "nx/ncm.hpp"
 #include "debug.h"
 #include "error.hpp"
@@ -183,10 +184,9 @@ namespace tin::install::nsp
         {
             printf("Failed to register nca. Error code: 0x%08x\n", rc);
         }
-        rc = 0;
 
         contentStorage.DeletePlaceholder(ncaId);
-        return rc;
+        return 0;
     }
 
     // TODO: Implement RAII on NcmContentMetaDatabase
@@ -203,7 +203,7 @@ namespace tin::install::nsp
 
         printBytes(nxlinkout, (u8*)&m_metaRecord, sizeof(NcmMetaRecord), true);
 
-        if (R_FAILED(rc = ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentRecord*)m_installContentMetaData.data())))
+        if (R_FAILED(rc = ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentMetaRecordsHeader*)m_installContentMetaData.data())))
         {
             printf("Failed to set content records. Error code: 0x%08x\n", rc);
             serviceClose(&contentMetaDatabase.s);

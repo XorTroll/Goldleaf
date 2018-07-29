@@ -135,41 +135,6 @@ Result ncmWritePlaceHolder(NcmContentStorage* cs, const NcmNcaId* placeholderId,
     return rc;
 }
 
-Result ncmContentStorageRegister(NcmContentStorage* cs, const NcmNcaId* placeholderId, const NcmNcaId* registeredId)
-{
-    IpcCommand c;
-    ipcInitialize(&c);
-    
-    struct {
-        u64 magic;
-        u64 cmd_id;
-        NcmNcaId placeholder_id;
-        NcmNcaId registered_id;
-    } *raw;
-    
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
-    raw->magic = SFCI_MAGIC;
-    raw->cmd_id = 5;
-    memcpy(&raw->placeholder_id, placeholderId, sizeof(NcmNcaId));
-    memcpy(&raw->registered_id, registeredId, sizeof(NcmNcaId));
-    
-    Result rc = serviceIpcDispatch(&cs->s);
-
-    if (R_SUCCEEDED(rc)) {
-        IpcParsedCommand r;
-        ipcParse(&r);
-
-        struct {
-            u64 magic;
-            u64 result;
-        } *resp = r.Raw;
-
-        rc = resp->result;
-    }
-    
-    return rc;
-}
-
 Result ncmDelete(NcmContentStorage* cs, const NcmNcaId* registeredId)
 {
     IpcCommand c;

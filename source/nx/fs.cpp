@@ -58,7 +58,7 @@ namespace nx::fs
 
     Result IFileSystem::OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId)
     {
-        PROPAGATE_RESULT(fsOpenFileSystemWithId(path.c_str(), fileSystemType, titleId, &m_fileSystem), "Failed to open file system with id");
+        PROPAGATE_RESULT(fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str()), "Failed to open file system with id");
         return 0;  
     }
 
