@@ -60,17 +60,53 @@ namespace tin::install::nsp
 
     void NSPInstallTask::Install()
     {
-        printf("Installing ticket and cert...\n");
-        this->InstallTicketCert();
-
         ContentStorageRecord storageRecord;
         storageRecord.metaRecord = m_metaRecord;
         storageRecord.storageId = FsStorageId_SdCard;
 
-        if (storageRecord.metaRecord.type == 0x81)
+        // For patches we need to update the applcation record to the newest version
+        // To do this, we copy over the existing content meta to the new content meta key
+        if (storageRecord.metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
         {
             storageRecord.metaRecord.titleId &= ~0x800;
             storageRecord.metaRecord.type = 0x80;
+
+            u64 baseTitleId = storageRecord.metaRecord.titleId;
+            NcmContentMetaDatabase contentMetaDatabase;
+
+            try
+            {
+                NcmMetaRecord latestMetaRecord;
+
+                ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
+                ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, baseTitleId, &latestMetaRecord), "Failed to get latest content meta key");
+
+                // Get the size of the existing content records and populate the buffer with them
+                u64 contentRecordSize;
+                ASSERT_OK(ncmContentMetaDatabaseGetSize(&contentMetaDatabase, &latestMetaRecord, &contentRecordSize), "Failed to get content record size");
+                
+                if (contentRecordSize == 0)
+                {
+                    throw std::runtime_error("Existing content record size is zero!");
+                }
+
+                auto contentRecordBuf = std::make_unique<u8[]>(contentRecordSize);
+                u64 contentRecordSizeRead = 0;
+                ASSERT_OK(ncmContentMetaDatabaseGet(&contentMetaDatabase, &latestMetaRecord, contentRecordSize, (NcmContentMetaRecordsHeader*)contentRecordBuf.get(), &contentRecordSizeRead), "Failed to get content record size");
+
+                if (contentRecordSize != contentRecordSizeRead)
+                {
+                    throw std::runtime_error("Mismatch between content record size and content record size read");
+                }
+
+                ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &storageRecord.metaRecord, contentRecordSize, (NcmContentMetaRecordsHeader*)contentRecordBuf.get()), "Failed to set content records");
+                ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
+            }
+            catch (std::runtime_error& e)
+            {
+                serviceClose(&contentMetaDatabase.s);
+                throw e;
+            }
         }
 
         printf("Pushing application record...\n");
@@ -87,6 +123,16 @@ namespace tin::install::nsp
 
         printf("Writing content records...\n");
         this->WriteRecords();
+
+        printf("Installing ticket and cert...\n");
+        try
+        {
+            this->InstallTicketCert();
+        }
+        catch (std::runtime_error& e)
+        {
+            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
+        }
 
         printf("Done!\n");
     }
@@ -182,7 +228,7 @@ namespace tin::install::nsp
             ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentMetaRecordsHeader*)m_installContentMetaData.data()), "Failed to set content records");
             ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
         }
-        catch (std::exception& e)
+        catch (std::runtime_error& e)
         {
             serviceClose(&contentMetaDatabase.s);
             throw e;
