@@ -1,9 +1,11 @@
 #include "install/install_nsp.hpp"
 
+#include <cstdlib>
 #include <cstring>
+#include <stdexcept>
 #include <memory>
 #include <string>
-#include "install/nsp_xml.h"
+#include <machine/endian.h>
 #include "nx/ncm.hpp"
 #include "debug.h"
 #include "error.hpp"
@@ -17,13 +19,43 @@ namespace tin::install::nsp
     }
 
     // Validate and obtain all data needed for install
-    Result NSPInstallTask::PrepareForInstall()
+    void NSPInstallTask::PrepareForInstall()
     {
+        // Create the path of the cnmt NCA
+        auto cnmtNCAName = m_simpleFileSystem->GetFileNameFromExtension("", "cnmt.nca");
+        auto cnmtNCAFullPath = m_simpleFileSystem->m_absoluteRootPath + cnmtNCAName;
+
+        // Create the cnmt filesystem
+        nx::fs::IFileSystem cnmtNCAFileSystem;
+        ASSERT_OK(cnmtNCAFileSystem.OpenFileSystemWithId(cnmtNCAFullPath, FsFileSystemType_ContentMeta, 0), ("Failed to open content meta file system " + cnmtNCAFullPath).c_str());
+        tin::install::nsp::SimpleFileSystem cnmtNCASimpleFileSystem(cnmtNCAFileSystem, "/", cnmtNCAFullPath + "/");
+        
+        // Find and read the cnmt file
+        auto cnmtName = cnmtNCASimpleFileSystem.GetFileNameFromExtension("", "cnmt");
+        size_t cnmtSize;
+        ASSERT_OK(cnmtNCASimpleFileSystem.GetFileSize(cnmtName, &cnmtSize), "Failed to get cnmt size");
+        auto cnmtBuf = std::make_unique<u8[]>(cnmtSize);
+        ASSERT_OK(cnmtNCASimpleFileSystem.ReadFile(cnmtName, cnmtBuf.get(), cnmtSize, 0x0), "Failed to read cnmt");
+
+        // Parse data and create install content meta
+        ASSERT_OK(m_contentMeta.ParseData(cnmtBuf.get(), cnmtSize), "Failed to parse data");
+        
+        // Prepare cnmt ncaid
+        char lowerU64[17] = {0};
+        char upperU64[17] = {0};
+        memcpy(lowerU64, cnmtNCAName.c_str(), 16);
+        memcpy(upperU64, cnmtNCAName.c_str() + 16, 16);
+
+        // Prepare cnmt content record
+        *(u64 *)m_cnmtContentRecord.ncaId.c = __bswap64(strtoul(lowerU64, NULL, 16));
+        *(u64 *)(m_cnmtContentRecord.ncaId.c + 8) = __bswap64(strtoul(upperU64, NULL, 16));
+        *(u64*)m_cnmtContentRecord.size = cnmtSize & 0xFFFFFFFFFFFF;
+        m_cnmtContentRecord.type = NcmContentType_CNMT;
+
+        ASSERT_OK(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
+
         // Check NCA files are present
         // Check tik/cert is present
-        // Create records
-
-        return 0;
     }
 
     /*
@@ -49,64 +81,39 @@ namespace tin::install::nsp
 
     - Profit!
     */
-    Result NSPInstallTask::Install()
+    void NSPInstallTask::Install()
     {
-        printf("Reading cnmt.xml...\n");
-        auto cnmtXMLName = m_simpleFileSystem->GetFileNameFromExtension("", "cnmt.xml");
-        size_t xmlSize;
-        
-        PROPAGATE_RESULT_STDOUT(m_simpleFileSystem->GetFileSize(cnmtXMLName, &xmlSize), "Failed to get cnmt xml size");
-        auto xmlBuf = std::make_unique<u8[]>(xmlSize);
-        PROPAGATE_RESULT_STDOUT(m_simpleFileSystem->ReadFile(cnmtXMLName, xmlBuf.get(), xmlSize, 0x0), "Failed to read cnmt xml");
-
-        NcmMetaRecord metaRecord;
-        NcmContentRecord *contentRecords;
-        size_t numContentRecords;
-
-        printf("Skipping xml version header\n");
-        size_t xmlBufOffset = 0;
-
-        while (strncmp((const char *)xmlBuf.get() + xmlBufOffset, "<ContentMeta>", strlen("<ContentMeta>")) != 0 && xmlBufOffset < xmlSize)
-        {
-            xmlBufOffset++;
-        }
-
-        if (xmlBufOffset == xmlSize)
-        {
-            printf("installTitle: Invalid XML file.");
-            return -1;
-        }
-
-        printf("Parsing cnmt.xml...\n");
-        PROPAGATE_RESULT_STDOUT(parseXML(&metaRecord, &contentRecords, &numContentRecords, (u8 *)(xmlBuf.get() + xmlBufOffset), xmlSize - xmlBufOffset), "Failed to parse XML");
-
         ContentStorageRecord storageRecord;
-        storageRecord.metaRecord = metaRecord;
+        storageRecord.metaRecord = m_metaRecord;
         storageRecord.storageId = FsStorageId_SdCard;
 
-        printf("Pushing application record...\n");
-        PROPAGATE_RESULT_STDOUT(nsPushApplicationRecord(metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
-        printf("Creating and registering NCA placeholders...\n");
-
-        for (size_t i = 1; i < numContentRecords; i++)
+        if (storageRecord.metaRecord.type == 0x81)
         {
-            NcmContentRecord contentRecord = contentRecords[i];
-            PROPAGATE_RESULT_STDOUT(this->InstallNCA(contentRecord.ncaId), "Failed to install NCA");
+            storageRecord.metaRecord.titleId &= ~0x800;
+            storageRecord.metaRecord.type = 0x80;
         }
 
+        printf("Pushing application record...\n");
+        ASSERT_OK(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
+        
+        printf("Installing NCAs...\n");
+        for (auto& record : m_contentMeta.m_contentRecords)
+        {
+            this->InstallNCA(record.ncaId);
+        }
+
+        printf("Installing CNNT NCA...\n");
+        this->InstallNCA(m_cnmtContentRecord.ncaId);
+
         printf("Writing content records...\n");
-        PROPAGATE_RESULT_STDOUT(this->WriteRecords(&metaRecord, contentRecords, numContentRecords), "Failed to write content records");
+        this->WriteRecords();
         printf("Installing ticket and cert...\n");
-        PROPAGATE_RESULT_STDOUT(this->InstallTicketCert(), "Failed to install ticket and cert");
+        this->InstallTicketCert();
         printf("Done!\n");
-        free(contentRecords);
-        return 0;
     }
 
-    Result NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
+    void NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
     {
-        Result rc = 0;
-
         // TODO: It appears freezing occurs if this isn't done using snprintf?
         char ncaIdStr[FS_MAX_PATH] = {0};
         u64 ncaIdLower = __bswap64(*(u64 *)ncaId.c);
@@ -120,26 +127,32 @@ namespace tin::install::nsp
             ncaName += ".cnmt.nca";
         else
         {
-            fprintf(nxlinkout, "Failed to find NCA file!\n");
-            return -1;
+            throw std::runtime_error(("Failed to find NCA file " + ncaName + ".nca/.cnmt.nca").c_str());
         }
 
-        nx::ncm::ContentStorage contentStorage;
-        PROPAGATE_RESULT(contentStorage.Open(m_destStorageId), "Failed to open content storage");
+        fprintf(nxlinkout, "NcaId: %s\n", ncaName.c_str());
+        fprintf(nxlinkout, "Dest storage Id: %u\n", m_destStorageId);
+
+        nx::ncm::ContentStorage contentStorage(FsStorageId_SdCard);
+
+        // Attempt to delete any leftover placeholders
+        try
+        {
+            contentStorage.DeletePlaceholder(ncaId);
+        }
+        catch (...) {}
 
         size_t fileSize;
-        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
+        ASSERT_OK(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
         u64 fileOff = 0;
         size_t readSize = 0x400000; // 4MB buff
         auto readBuffer = std::make_unique<u8[]>(readSize);
 
-        PROPAGATE_RESULT(contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize), "Failed to create a placeholder file");
-
         if (readBuffer == NULL) 
-        {
-            printf("Failed to allocate read buffer!\n");
-            return -1;
-        }
+            throw std::runtime_error(("Failed to allocate read buffer for " + ncaName).c_str());
+
+        fprintf(nxlinkout, "Size: 0x%lx\n", fileSize);
+        contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize);
                 
         float progress;
                 
@@ -153,8 +166,8 @@ namespace tin::install::nsp
 
             if (fileOff + readSize >= fileSize) readSize = fileSize - fileOff;
 
-            PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
-            PROPAGATE_RESULT(contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize), "Failed to write a placeholder file");
+            ASSERT_OK(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
+            contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize);
             fileOff += readSize;
         }
 
@@ -162,94 +175,97 @@ namespace tin::install::nsp
         printf("                                                           \r");
         printf("Registering placeholder...\n");
         
-        if (R_FAILED(rc = contentStorage.Register(ncaId, ncaId)) && rc != 0x805)
+        try
         {
-            printf("Failed to register nca. Error code: 0x%08x\n", rc);
+            contentStorage.Register(ncaId, ncaId);
+        }
+        catch (...)
+        {
+            printf("Failed to register nca. It may already exist.");
         }
 
-        contentStorage.DeletePlaceholder(ncaId);
-        return rc;
+        try
+        {
+            contentStorage.DeletePlaceholder(ncaId);
+        }
+        catch (...) {}
     }
 
     // TODO: Implement RAII on NcmContentMetaDatabase
-    Result NSPInstallTask::WriteRecords(const NcmMetaRecord *metaRecord, NcmContentRecord* records, size_t numRecords)
+    void NSPInstallTask::WriteRecords()
     {
-        Result rc;
         NcmContentMetaDatabase contentMetaDatabase;
 
-        if (R_FAILED(rc = ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase)))
+        try
         {
-            printf("Failed to open content meta database. Error code: 0x%08x\n", rc);
-            return rc;
+            ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
+            printBytes(nxlinkout, (u8*)&m_metaRecord, sizeof(NcmMetaRecord), true);
+            ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentMetaRecordsHeader*)m_installContentMetaData.data()), "Failed to set content records");
+            ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
         }
-
-        if (R_FAILED(rc = ncmContentMetaDatabaseSet(&contentMetaDatabase, metaRecord, sizeof(NcmContentRecord) * numRecords, records)))
+        catch (std::exception& e)
         {
-            printf("Failed to set content records. Error code: 0x%08x\n", rc);
             serviceClose(&contentMetaDatabase.s);
-            return rc;
+            throw e;
         }
-
-        if (R_FAILED(rc = ncmContentMetaDatabaseCommit(&contentMetaDatabase)))
-        {
-            printf("Failed to commit content records. Error code: 0x%08x\n", rc);
-            serviceClose(&contentMetaDatabase.s);
-            return rc;
-        }
-
-        serviceClose(&contentMetaDatabase.s);
-
-        return rc;
     }
 
-    Result NSPInstallTask::InstallTicketCert()
+    void NSPInstallTask::InstallTicketCert()
     {
         // Read the tik file and put it into a buffer
         auto tikName = m_simpleFileSystem->GetFileNameFromExtension("", "tik");
         size_t tikSize = 0;
-        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
+        ASSERT_OK(m_simpleFileSystem->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
         auto tikBuf = std::make_unique<u8[]>(tikSize);
-        PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
+        ASSERT_OK(m_simpleFileSystem->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
 
         // Read the cert file and put it into a buffer
         auto certName = m_simpleFileSystem->GetFileNameFromExtension("", "cert");
         size_t certSize = 0;
-        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(certName, &certSize), "Failed to get cert file size");
+        ASSERT_OK(m_simpleFileSystem->GetFileSize(certName, &certSize), "Failed to get cert file size");
         auto certBuf = std::make_unique<u8[]>(certSize);
-        PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
+        ASSERT_OK(m_simpleFileSystem->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
 
         // Finally, let's actually import the ticket
-        PROPAGATE_RESULT(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
-        return 0;
+        ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
     }
 }
 
 Result installTitle(InstallContext *context)
 {
-    if (context->sourceType == InstallSourceType_Nsp)
+    try
     {
-        std::string fullPath = "@Sdcard:/" + std::string(context->path);
-        nx::fs::IFileSystem fileSystem;
-        PROPAGATE_RESULT(fileSystem.OpenFileSystemWithId(fullPath, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
-        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/");
-        tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
+        if (context->sourceType == InstallSourceType_Nsp)
+        {
+            std::string fullPath = "@Sdcard:/" + std::string(context->path);
+            nx::fs::IFileSystem fileSystem;
+            ASSERT_OK(fileSystem.OpenFileSystemWithId(fullPath, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
+            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", fullPath + "/");
+            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
 
-        PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
-        PROPAGATE_RESULT(task.Install(), "Failed to install title");
+            task.PrepareForInstall();
+            task.Install();
 
-        return 0;
+            return 0;
+        }
+        else if (context->sourceType == InstallSourceType_Extracted)
+        {
+            std::string fullPath = "@Sdcard:/" + std::string(context->path);
+            nx::fs::IFileSystem fileSystem;
+            ASSERT_OK(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
+            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, context->path, fullPath);
+            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
+
+            task.PrepareForInstall();
+            task.Install();
+
+            return 0;
+        }
     }
-    else if (context->sourceType == InstallSourceType_Extracted)
+    catch (std::exception& e)
     {
-        nx::fs::IFileSystem fileSystem;
-        PROPAGATE_RESULT(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
-        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, context->path);
-        tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
-
-        PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
-        PROPAGATE_RESULT(task.Install(), "Failed to install title");
-
-        return 0;
+        fprintf(nxlinkout, "%s", e.what());
+        fprintf(stdout, "%s", e.what());
     }
 
     return 0xDEAD;

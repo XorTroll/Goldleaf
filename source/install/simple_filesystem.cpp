@@ -1,13 +1,14 @@
 #include "install/simple_filesystem.hpp"
 
+#include <exception>
 #include <memory>
 #include "nx/fs.hpp"
 #include "error.hpp"
 
 namespace tin::install::nsp
 {
-    SimpleFileSystem::SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath) :
-        m_fileSystem(&fileSystem) , m_rootPath(rootPath)
+    SimpleFileSystem::SimpleFileSystem(nx::fs::IFileSystem& fileSystem, std::string rootPath, std::string absoluteRootPath) :
+        m_fileSystem(&fileSystem) , m_rootPath(rootPath), m_absoluteRootPath(absoluteRootPath)
     {}
 
     SimpleFileSystem::~SimpleFileSystem() {}
@@ -15,11 +16,11 @@ namespace tin::install::nsp
     Result SimpleFileSystem::ReadFile(std::string path, u8* buff, size_t size, size_t offset)
     {
         nx::fs::IFile file;
-        PROPAGATE_RESULT(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
+        ASSERT_OK(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
 
         size_t actualReadSize = 0;
 
-        PROPAGATE_RESULT(file.Read(offset, buff, size, &actualReadSize), "Failed to read file");
+        ASSERT_OK(file.Read(offset, buff, size, &actualReadSize), "Failed to read file");
 
         if (actualReadSize != size)
         {
@@ -33,17 +34,22 @@ namespace tin::install::nsp
     Result SimpleFileSystem::GetFileSize(std::string path, size_t* sizeOut)
     {
         nx::fs::IFile file;
-        PROPAGATE_RESULT(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
-        PROPAGATE_RESULT(file.GetSize(sizeOut), "Failed to get file size");
+        ASSERT_OK(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
+        ASSERT_OK(file.GetSize(sizeOut), "Failed to get file size");
         return 0;
     }
 
     bool SimpleFileSystem::HasFile(std::string path)
     {
         nx::fs::IFile file;
-        if (R_FAILED(m_fileSystem->OpenFile(m_rootPath + path, file)))
-            return false;
-        return true;
+        try
+        {
+            fprintf(nxlinkout, ("Attempting to find file at " + m_rootPath + path + "\n").c_str());
+            m_fileSystem->OpenFile(m_rootPath + path, file);
+            return true;
+        }
+        catch (std::exception& e) {}
+        return false;
     }
 
     std::string SimpleFileSystem::GetFileNameFromExtension(std::string path, std::string extension)
@@ -71,13 +77,22 @@ namespace tin::install::nsp
             FsDirectoryEntry dirEntry = dirEntries[i];
             std::string dirEntryName = dirEntry.name;
 
-            if (dirEntry.type != ENTRYTYPE_FILE)
+            if (dirEntry.type == ENTRYTYPE_DIR)
+            {
+                auto subdirPath = path + dirEntryName + "/";
+                auto subdirFound = this->GetFileNameFromExtension(subdirPath, extension);
+
+                if (subdirFound != "")
+                    return subdirFound;
                 continue;
+            }
+            else if (dirEntry.type == ENTRYTYPE_FILE)
+            {
+                auto foundExtension = dirEntryName.substr(dirEntryName.find(".") + 1); 
 
-            auto foundExtension = dirEntryName.substr(dirEntryName.find(".") + 1); 
-
-            if (foundExtension == extension)
-                return dirEntryName;
+                if (foundExtension == extension)
+                    return dirEntryName;
+            }
         }
 
         return "";

@@ -50,7 +50,7 @@ void printBytes(FILE* out, u8 *bytes, size_t size, bool includeHeader)
 
     if (includeHeader)
     {
-        fprintf(out, "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+        fprintf(out, "\n\n00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
         fprintf(out, "-----------------------------------------------\n");
     }
 
@@ -62,5 +62,5 @@ void printBytes(FILE* out, u8 *bytes, size_t size, bool includeHeader)
             fprintf(out, "\n");
     }
 
-    printf("\n");
+    printf("\n\n\n");
 }

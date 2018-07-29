@@ -16,13 +16,13 @@ namespace nx::fs
 
     Result IFile::Read(u64 offset, void* buf, size_t size, size_t* sizeReadOut)
     {
-        PROPAGATE_RESULT(fsFileRead(&m_file, offset, buf, size, sizeReadOut), "Failed to read file");
+        ASSERT_OK(fsFileRead(&m_file, offset, buf, size, sizeReadOut), "Failed to read file");
         return 0;
     }
 
     Result IFile::GetSize(u64* sizeOut)
     {
-        PROPAGATE_RESULT(fsFileGetSize(&m_file, sizeOut), "Failed to get file size");
+        ASSERT_OK(fsFileGetSize(&m_file, sizeOut), "Failed to get file size");
         return 0;
     }
 
@@ -37,7 +37,7 @@ namespace nx::fs
 
     Result IDirectory::Read(u64 inval, FsDirectoryEntry* buf, size_t maxEntries, size_t* entriesRead)
     {
-        PROPAGATE_RESULT(fsDirRead(&m_dir, inval, entriesRead, maxEntries, buf), "Failed to read directory");
+        ASSERT_OK(fsDirRead(&m_dir, inval, entriesRead, maxEntries, buf), "Failed to read directory");
         return 0;
     }
 
@@ -52,13 +52,13 @@ namespace nx::fs
 
     Result IFileSystem::OpenSdFileSystem()
     {
-        PROPAGATE_RESULT(fsMountSdcard(&m_fileSystem), "Failed to mount sd card");
+        ASSERT_OK(fsMountSdcard(&m_fileSystem), "Failed to mount sd card");
         return 0;
     }
 
     Result IFileSystem::OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId)
     {
-        PROPAGATE_RESULT(fsOpenFileSystemWithId(path.c_str(), fileSystemType, titleId, &m_fileSystem), "Failed to open file system with id");
+        ASSERT_OK(fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str()), "Failed to open file system with id");
         return 0;  
     }
 
@@ -69,13 +69,13 @@ namespace nx::fs
 
     Result IFileSystem::OpenFile(std::string path, IFile& file)
     {
-        PROPAGATE_RESULT(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file.m_file), ("Failed to open file " + path).c_str());
+        ASSERT_OK(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file.m_file), ("Failed to open file " + path).c_str());
         return 0;
     }
 
     Result IFileSystem::OpenDirectory(std::string path, int flags, IDirectory& dir)
     {
-        PROPAGATE_RESULT(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir.m_dir), ("Failed to open directory " + path).c_str());
+        ASSERT_OK(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir.m_dir), ("Failed to open directory " + path).c_str());
         return 0;
     }
 }

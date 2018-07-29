@@ -12,14 +12,13 @@ namespace nx::ncm
             NcmContentStorage m_contentStorage;
 
         public:
-            ContentStorage();
+            ContentStorage(FsStorageId storageId);
             ~ContentStorage();
 
-            Result Open(FsStorageId storageId);
-            Result CreatePlaceholder(const NcmNcaId &placeholderId, const NcmNcaId &registeredId, size_t size);
-            Result DeletePlaceholder(const NcmNcaId &placeholderId);
-            Result WritePlaceholder(const NcmNcaId &placeholderId, u64 offset, void *buffer, size_t bufSize);
-            Result Register(const NcmNcaId &placeholderId, const NcmNcaId &registeredId);
-            Result Delete(const NcmNcaId &registeredId);
+            void CreatePlaceholder(const NcmNcaId &placeholderId, const NcmNcaId &registeredId, size_t size);
+            void DeletePlaceholder(const NcmNcaId &placeholderId);
+            void WritePlaceholder(const NcmNcaId &placeholderId, u64 offset, void *buffer, size_t bufSize);
+            void Register(const NcmNcaId &placeholderId, const NcmNcaId &registeredId);
+            void Delete(const NcmNcaId &registeredId);
     };
 }

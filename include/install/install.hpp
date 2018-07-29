@@ -24,8 +24,8 @@ namespace tin::install
             IInstallTask(FsStorageId destStorageId);
 
         public:
-            virtual Result PrepareForInstall() = 0;
-            virtual Result Install() = 0;
+            virtual void PrepareForInstall() = 0;
+            virtual void Install() = 0;
     };
 }
 
