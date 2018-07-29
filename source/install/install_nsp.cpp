@@ -138,11 +138,14 @@ namespace tin::install::nsp
         fprintf(nxlinkout, "NcaId: %s\n", ncaName.c_str());
         fprintf(nxlinkout, "Dest storage Id: %u\n", m_destStorageId);
 
-        nx::ncm::ContentStorage contentStorage;
-        ASSERT_OK(contentStorage.Open(m_destStorageId), "Failed to open content storage");
+        nx::ncm::ContentStorage contentStorage(FsStorageId_SdCard);
 
         // Attempt to delete any leftover placeholders
-        contentStorage.DeletePlaceholder(ncaId);
+        try
+        {
+            contentStorage.DeletePlaceholder(ncaId);
+        }
+        catch (...) {}
 
         size_t fileSize;
         ASSERT_OK(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
@@ -157,7 +160,7 @@ namespace tin::install::nsp
         }
 
         fprintf(nxlinkout, "Size: 0x%lx\n", fileSize);
-        ASSERT_OK(contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize), "Failed to create a placeholder file");
+        contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize);
                 
         float progress;
                 
@@ -172,7 +175,7 @@ namespace tin::install::nsp
             if (fileOff + readSize >= fileSize) readSize = fileSize - fileOff;
 
             ASSERT_OK(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
-            ASSERT_OK(contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize), "Failed to write a placeholder file");
+            contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize);
             fileOff += readSize;
         }
 
@@ -180,12 +183,20 @@ namespace tin::install::nsp
         printf("                                                           \r");
         printf("Registering placeholder...\n");
         
-        if (R_FAILED(rc = contentStorage.Register(ncaId, ncaId)) && rc != 0x805)
+        try
         {
-            printf("Failed to register nca. Error code: 0x%08x\n", rc);
+            contentStorage.Register(ncaId, ncaId);
+        }
+        catch (...)
+        {
+            printf("Failed to register nca. It may already exist.");
         }
 
-        contentStorage.DeletePlaceholder(ncaId);
+        try
+        {
+            contentStorage.DeletePlaceholder(ncaId);
+        }
+        catch (...) {}
         return 0;
     }
 
