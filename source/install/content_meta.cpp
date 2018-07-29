@@ -44,7 +44,7 @@ namespace tin::install
         // Setup the content meta header
         InstallContentMetaHeader installContentMetaHeader;
         installContentMetaHeader.extendedHeaderSize = m_contentMetaHeader.extendedHeaderSize;
-        installContentMetaHeader.contentCount = m_contentMetaHeader.contentCount + 1; // Add one for the cnmt content record
+        installContentMetaHeader.contentCount = m_contentRecords.size() + 1; // Add one for the cnmt content record
         installContentMetaHeader.contentMetaCount = m_contentMetaHeader.contentMetaCount;
 
         auto installContentMetaHeaderBytes = reinterpret_cast<u8*>(&installContentMetaHeader);
@@ -59,7 +59,7 @@ namespace tin::install
         installContentMetaBytesOut.insert(installContentMetaBytesOut.end(), cnmtContentRecordBytes, cnmtContentRecordBytes + sizeof(ContentRecord));
 
         // Setup the content records
-        for (unsigned int i = 0; i < m_contentMetaHeader.contentCount; i++)
+        for (unsigned int i = 0; i < m_contentRecords.size(); i++)
         {
             auto contentRecordBytes = reinterpret_cast<u8*>(&m_contentRecords[i]);
             installContentMetaBytesOut.insert(installContentMetaBytesOut.end(), contentRecordBytes, contentRecordBytes + sizeof(ContentRecord));
@@ -68,7 +68,7 @@ namespace tin::install
         if (m_contentMetaHeader.type == ContentMetaType::PATCH)
         {
             PatchMetaExtendedHeader* patchMetaExtendedHeader = (PatchMetaExtendedHeader*)extendedHeaderBytes;
-            installContentMetaBytesOut.resize(installContentMetaBytesOut.size() + patchMetaExtendedHeader->extendedDataSize, 0);
+            installContentMetaBytesOut.resize(installContentMetaBytesOut.size() + patchMetaExtendedHeader->extendedDataSize - installContentMetaHeader.extendedHeaderSize, 0);
         }
 
         return 0;

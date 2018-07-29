@@ -23,6 +23,9 @@ namespace tin::install::nsp
     {
         // Create the path of the cnmt NCA
         auto cnmtNCAName = m_simpleFileSystem->GetFileNameFromExtension("", "cnmt.nca");
+        auto cnmtNCAFile = m_simpleFileSystem->OpenFile(cnmtNCAName);
+        u64 cnmtNCASize = cnmtNCAFile.GetSize();
+
         auto cnmtNCAFullPath = m_simpleFileSystem->m_absoluteRootPath + cnmtNCAName;
 
         // Create the cnmt filesystem
@@ -49,7 +52,7 @@ namespace tin::install::nsp
         // Prepare cnmt content record
         *(u64 *)m_cnmtContentRecord.ncaId.c = __bswap64(strtoul(lowerU64, NULL, 16));
         *(u64 *)(m_cnmtContentRecord.ncaId.c + 8) = __bswap64(strtoul(upperU64, NULL, 16));
-        *(u64*)m_cnmtContentRecord.size = cnmtSize & 0xFFFFFFFFFFFF;
+        *(u64*)m_cnmtContentRecord.size = cnmtNCASize & 0xFFFFFFFFFFFF;
         m_cnmtContentRecord.type = NcmContentType_CNMT;
 
         ASSERT_OK(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
@@ -224,8 +227,11 @@ namespace tin::install::nsp
         try
         {
             ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
+            fprintf(nxlinkout, "Content meta key: \n");
             printBytes(nxlinkout, (u8*)&m_metaRecord, sizeof(NcmMetaRecord), true);
             ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentMetaRecordsHeader*)m_installContentMetaData.data()), "Failed to set content records");
+            fprintf(nxlinkout, "Content meta: \n");
+            printBytes(nxlinkout, m_installContentMetaData.data(), m_installContentMetaData.size(), true);
             ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
         }
         catch (std::runtime_error& e)
