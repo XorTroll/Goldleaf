@@ -27,18 +27,18 @@ namespace tin::install::nsp
 
         // Create the cnmt filesystem
         nx::fs::IFileSystem cnmtNCAFileSystem;
-        PROPAGATE_RESULT_STDOUT(cnmtNCAFileSystem.OpenFileSystemWithId(cnmtNCAFullPath, FsFileSystemType_ContentMeta, 0), ("Failed to open content meta file system " + cnmtNCAFullPath).c_str());
+        ASSERT_OK(cnmtNCAFileSystem.OpenFileSystemWithId(cnmtNCAFullPath, FsFileSystemType_ContentMeta, 0), ("Failed to open content meta file system " + cnmtNCAFullPath).c_str());
         tin::install::nsp::SimpleFileSystem cnmtNCASimpleFileSystem(cnmtNCAFileSystem, "/", cnmtNCAFullPath + "/");
         
         // Find and read the cnmt file
         auto cnmtName = cnmtNCASimpleFileSystem.GetFileNameFromExtension("", "cnmt");
         size_t cnmtSize;
-        PROPAGATE_RESULT_STDOUT(cnmtNCASimpleFileSystem.GetFileSize(cnmtName, &cnmtSize), "Failed to get cnmt size");
+        ASSERT_OK(cnmtNCASimpleFileSystem.GetFileSize(cnmtName, &cnmtSize), "Failed to get cnmt size");
         auto cnmtBuf = std::make_unique<u8[]>(cnmtSize);
-        PROPAGATE_RESULT_STDOUT(cnmtNCASimpleFileSystem.ReadFile(cnmtName, cnmtBuf.get(), cnmtSize, 0x0), "Failed to read cnmt");
+        ASSERT_OK(cnmtNCASimpleFileSystem.ReadFile(cnmtName, cnmtBuf.get(), cnmtSize, 0x0), "Failed to read cnmt");
 
         // Parse data and create install content meta
-        PROPAGATE_RESULT_STDOUT(m_contentMeta.ParseData(cnmtBuf.get(), cnmtSize), "Failed to parse data");
+        ASSERT_OK(m_contentMeta.ParseData(cnmtBuf.get(), cnmtSize), "Failed to parse data");
         
         // Prepare cnmt ncaid
         char lowerU64[17] = {0};
@@ -52,7 +52,7 @@ namespace tin::install::nsp
         *(u64*)m_cnmtContentRecord.size = cnmtSize & 0xFFFFFFFFFFFF;
         m_cnmtContentRecord.type = NcmContentType_CNMT;
 
-        PROPAGATE_RESULT_STDOUT(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
+        ASSERT_OK(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
 
         // Check NCA files are present
         // Check tik/cert is present
@@ -96,20 +96,20 @@ namespace tin::install::nsp
         }
 
         printf("Pushing application record...\n");
-        PROPAGATE_RESULT_STDOUT(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
+        ASSERT_OK(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
         printf("Creating and registering NCA placeholders...\n");
 
         for (auto& record : m_contentMeta.m_contentRecords)
         {
-            PROPAGATE_RESULT_STDOUT(this->InstallNCA(record.ncaId), "Failed to install NCA");
+            ASSERT_OK(this->InstallNCA(record.ncaId), "Failed to install NCA");
         }
 
-        PROPAGATE_RESULT_STDOUT(this->InstallNCA(m_cnmtContentRecord.ncaId), "Failed to install cnmt NCA");
+        ASSERT_OK(this->InstallNCA(m_cnmtContentRecord.ncaId), "Failed to install cnmt NCA");
 
         printf("Writing content records...\n");
-        PROPAGATE_RESULT_STDOUT(this->WriteRecords(), "Failed to write content records");
+        ASSERT_OK(this->WriteRecords(), "Failed to write content records");
         printf("Installing ticket and cert...\n");
-        PROPAGATE_RESULT_STDOUT(this->InstallTicketCert(), "Failed to install ticket and cert");
+        ASSERT_OK(this->InstallTicketCert(), "Failed to install ticket and cert");
         printf("Done!\n");
         return 0;
     }
@@ -139,13 +139,13 @@ namespace tin::install::nsp
         fprintf(nxlinkout, "Dest storage Id: %u\n", m_destStorageId);
 
         nx::ncm::ContentStorage contentStorage;
-        PROPAGATE_RESULT(contentStorage.Open(m_destStorageId), "Failed to open content storage");
+        ASSERT_OK(contentStorage.Open(m_destStorageId), "Failed to open content storage");
 
         // Attempt to delete any leftover placeholders
         contentStorage.DeletePlaceholder(ncaId);
 
         size_t fileSize;
-        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
+        ASSERT_OK(m_simpleFileSystem->GetFileSize(ncaName, &fileSize), "Failed to get file size");
         u64 fileOff = 0;
         size_t readSize = 0x400000; // 4MB buff
         auto readBuffer = std::make_unique<u8[]>(readSize);
@@ -157,7 +157,7 @@ namespace tin::install::nsp
         }
 
         fprintf(nxlinkout, "Size: 0x%lx\n", fileSize);
-        PROPAGATE_RESULT(contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize), "Failed to create a placeholder file");
+        ASSERT_OK(contentStorage.CreatePlaceholder(ncaId, ncaId, fileSize), "Failed to create a placeholder file");
                 
         float progress;
                 
@@ -171,8 +171,8 @@ namespace tin::install::nsp
 
             if (fileOff + readSize >= fileSize) readSize = fileSize - fileOff;
 
-            PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
-            PROPAGATE_RESULT(contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize), "Failed to write a placeholder file");
+            ASSERT_OK(m_simpleFileSystem->ReadFile(ncaName, readBuffer.get(), readSize, fileOff), "Failed to read file into buffer!");
+            ASSERT_OK(contentStorage.WritePlaceholder(ncaId, fileOff, readBuffer.get(), readSize), "Failed to write a placeholder file");
             fileOff += readSize;
         }
 
@@ -227,50 +227,58 @@ namespace tin::install::nsp
         // Read the tik file and put it into a buffer
         auto tikName = m_simpleFileSystem->GetFileNameFromExtension("", "tik");
         size_t tikSize = 0;
-        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
+        ASSERT_OK(m_simpleFileSystem->GetFileSize(tikName, &tikSize), "Failed to get tik file size");
         auto tikBuf = std::make_unique<u8[]>(tikSize);
-        PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
+        ASSERT_OK(m_simpleFileSystem->ReadFile(tikName, tikBuf.get(), tikSize, 0x0), "Failed to read tik into buffer");
 
         // Read the cert file and put it into a buffer
         auto certName = m_simpleFileSystem->GetFileNameFromExtension("", "cert");
         size_t certSize = 0;
-        PROPAGATE_RESULT(m_simpleFileSystem->GetFileSize(certName, &certSize), "Failed to get cert file size");
+        ASSERT_OK(m_simpleFileSystem->GetFileSize(certName, &certSize), "Failed to get cert file size");
         auto certBuf = std::make_unique<u8[]>(certSize);
-        PROPAGATE_RESULT(m_simpleFileSystem->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
+        ASSERT_OK(m_simpleFileSystem->ReadFile(certName, certBuf.get(), certSize, 0x0), "Failed to read tik into buffer");
 
         // Finally, let's actually import the ticket
-        PROPAGATE_RESULT(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
+        ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
         return 0;
     }
 }
 
 Result installTitle(InstallContext *context)
 {
-    if (context->sourceType == InstallSourceType_Nsp)
+    try
     {
-        std::string fullPath = "@Sdcard:/" + std::string(context->path);
-        nx::fs::IFileSystem fileSystem;
-        PROPAGATE_RESULT(fileSystem.OpenFileSystemWithId(fullPath, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
-        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", fullPath + "/");
-        tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
+        if (context->sourceType == InstallSourceType_Nsp)
+        {
+            std::string fullPath = "@Sdcard:/" + std::string(context->path);
+            nx::fs::IFileSystem fileSystem;
+            ASSERT_OK(fileSystem.OpenFileSystemWithId(fullPath, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
+            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", fullPath + "/");
+            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
 
-        PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
-        PROPAGATE_RESULT(task.Install(), "Failed to install title");
+            ASSERT_OK(task.PrepareForInstall(), "Failed to prepare for install");
+            ASSERT_OK(task.Install(), "Failed to install title");
 
-        return 0;
+            return 0;
+        }
+        else if (context->sourceType == InstallSourceType_Extracted)
+        {
+            std::string fullPath = "@Sdcard:/" + std::string(context->path);
+            nx::fs::IFileSystem fileSystem;
+            ASSERT_OK(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
+            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, context->path, fullPath);
+            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
+
+            ASSERT_OK(task.PrepareForInstall(), "Failed to prepare for install");
+            ASSERT_OK(task.Install(), "Failed to install title");
+
+            return 0;
+        }
     }
-    else if (context->sourceType == InstallSourceType_Extracted)
+    catch (std::exception& e)
     {
-        std::string fullPath = "@Sdcard:/" + std::string(context->path);
-        nx::fs::IFileSystem fileSystem;
-        PROPAGATE_RESULT(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
-        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, context->path, fullPath);
-        tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
-
-        PROPAGATE_RESULT(task.PrepareForInstall(), "Failed to prepare for install");
-        PROPAGATE_RESULT(task.Install(), "Failed to install title");
-
-        return 0;
+        fprintf(nxlinkout, "%s", e.what());
+        fprintf(stdout, "%s", e.what());
     }
 
     return 0xDEAD;
