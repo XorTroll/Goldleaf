@@ -63,21 +63,49 @@ namespace tin::install::nsp
 
     void NSPInstallTask::Install()
     {
-        ContentStorageRecord storageRecord;
-        storageRecord.metaRecord = m_metaRecord;
-        storageRecord.storageId = FsStorageId_SdCard;
+        u64 baseTitleId = 0;
+        std::vector<ContentStorageRecord> storageRecords;
 
-        // For patches we need to update the applcation record to the newest version
-        // To do this, we copy over the existing content meta to the new content meta key
-        if (storageRecord.metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
+        if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
         {
+            baseTitleId = m_metaRecord.titleId;
+
+            ContentStorageRecord appStorageRecord;
+            appStorageRecord.metaRecord = m_metaRecord;
+            appStorageRecord.storageId = FsStorageId_SdCard;
+
+            storageRecords.push_back(appStorageRecord);
+        }
+        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
+        {
+            baseTitleId = m_metaRecord.titleId ^ 0x800;
+
             NcmContentMetaDatabase contentMetaDatabase;
+            ContentStorageRecord appStorageRecord;
+            appStorageRecord.storageId = FsStorageId_SdCard;
+            ContentStorageRecord patchStorageRecord;
+
             ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
-            ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, m_metaRecord.titleId ^ 0x800, &storageRecord.metaRecord), "Failed to get latest application content meta key");
+            ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, baseTitleId, &appStorageRecord.metaRecord), "Failed to get latest application content meta key");
+
+            patchStorageRecord.metaRecord = m_metaRecord;
+            patchStorageRecord.storageId = FsStorageId_SdCard;
+            printBytes(nxlinkout, (u8*)&patchStorageRecord, sizeof(ContentStorageRecord), true);
+
+            storageRecords.push_back(appStorageRecord);
+            storageRecords.push_back(patchStorageRecord);
         }
 
         printf("Pushing application record...\n");
-        ASSERT_OK(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
+
+        // NOTE: HOS doesn't seem to do this, pushApplicationRecord typically *appends* content meta records, not sets?
+        try
+        {
+            nsDeleteApplicationRecord(baseTitleId);
+        }
+        catch (...) {}
+
+        ASSERT_OK(nsPushApplicationRecord(baseTitleId, 0x3, storageRecords.data(), storageRecords.size() * sizeof(ContentStorageRecord)), "Failed to push application record");
 
         printf("Installing CNNT NCA...\n");
         this->InstallNCA(m_cnmtContentRecord.ncaId);
@@ -100,8 +128,6 @@ namespace tin::install::nsp
         {
             printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
         }
-
-        ASSERT_OK(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
 
         printf("Done!\n");
     }
@@ -307,6 +333,13 @@ namespace tin::install::nsp
             {
                 fprintf(nxlinkout, "No update records found, or an error occurred.\n");
             }
+
+            auto appRecordBuf = std::make_unique<u8[]>(0x100);
+            u32 numEntriesRead;
+            ASSERT_OK(nsListApplicationRecordContentMeta(0, baseTitleId, appRecordBuf.get(), 0x100, &numEntriesRead), "Failed to list application record content meta");
+
+            fprintf(nxlinkout, "Application record content meta: \n");
+            printBytes(nxlinkout, appRecordBuf.get(), 0x100, true);
         }
         catch (std::runtime_error& e)
         {
