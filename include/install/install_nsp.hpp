@@ -15,6 +15,7 @@ namespace tin::install::nsp
             tin::install::ContentMeta m_contentMeta;
 
             NcmMetaRecord m_metaRecord;
+            NcmContentRecord m_cnmtContentRecord;
             std::vector<u8> m_installContentMetaData;
 
         public:

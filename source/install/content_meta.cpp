@@ -65,6 +65,12 @@ namespace tin::install
             installContentMetaBytesOut.insert(installContentMetaBytesOut.end(), contentRecordBytes, contentRecordBytes + sizeof(ContentRecord));
         }
 
+        if (m_contentMetaHeader.type == ContentMetaType::PATCH)
+        {
+            PatchMetaExtendedHeader* patchMetaExtendedHeader = (PatchMetaExtendedHeader*)extendedHeaderBytes;
+            installContentMetaBytesOut.resize(installContentMetaBytesOut.size() + patchMetaExtendedHeader->extendedDataSize, 0);
+        }
+
         return 0;
     }
 }

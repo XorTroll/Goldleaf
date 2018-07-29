@@ -46,13 +46,12 @@ namespace tin::install::nsp
         memcpy(upperU64, cnmtNCAName.c_str() + 16, 16);
 
         // Prepare cnmt content record
-        NcmContentRecord cnmtContentRecord;
-        *(u64 *)cnmtContentRecord.ncaId.c = __bswap64(strtoul(lowerU64, NULL, 16));
-        *(u64 *)(cnmtContentRecord.ncaId.c + 8) = __bswap64(strtoul(upperU64, NULL, 16));
-        *(u64*)cnmtContentRecord.size = cnmtSize & 0xFFFFFFFFFFFF;
-        cnmtContentRecord.type = NcmContentType_CNMT;
+        *(u64 *)m_cnmtContentRecord.ncaId.c = __bswap64(strtoul(lowerU64, NULL, 16));
+        *(u64 *)(m_cnmtContentRecord.ncaId.c + 8) = __bswap64(strtoul(upperU64, NULL, 16));
+        *(u64*)m_cnmtContentRecord.size = cnmtSize & 0xFFFFFFFFFFFF;
+        m_cnmtContentRecord.type = NcmContentType_CNMT;
 
-        PROPAGATE_RESULT_STDOUT(m_contentMeta.GetInstallContentMeta(&m_metaRecord, cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
+        PROPAGATE_RESULT_STDOUT(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
 
         // Check NCA files are present
         // Check tik/cert is present
@@ -89,14 +88,22 @@ namespace tin::install::nsp
         storageRecord.metaRecord = m_metaRecord;
         storageRecord.storageId = FsStorageId_SdCard;
 
+        if (storageRecord.metaRecord.type == 0x81)
+        {
+            storageRecord.metaRecord.titleId &= ~0x800;
+            storageRecord.metaRecord.type = 0x80;
+        }
+
         printf("Pushing application record...\n");
-        PROPAGATE_RESULT_STDOUT(nsPushApplicationRecord(m_metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
+        PROPAGATE_RESULT_STDOUT(nsPushApplicationRecord(storageRecord.metaRecord.titleId, 0x3, &storageRecord, sizeof(ContentStorageRecord)), "Failed to push application record");
         printf("Creating and registering NCA placeholders...\n");
 
         for (auto& record : m_contentMeta.m_contentRecords)
         {
             PROPAGATE_RESULT_STDOUT(this->InstallNCA(record.ncaId), "Failed to install NCA");
         }
+
+        PROPAGATE_RESULT_STDOUT(this->InstallNCA(m_cnmtContentRecord.ncaId), "Failed to install cnmt NCA");
 
         printf("Writing content records...\n");
         PROPAGATE_RESULT_STDOUT(this->WriteRecords(), "Failed to write content records");
