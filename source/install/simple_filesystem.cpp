@@ -44,6 +44,7 @@ namespace tin::install::nsp
         nx::fs::IFile file;
         try
         {
+            fprintf(nxlinkout, ("Attempting to find file at " + m_rootPath + path + "\n").c_str());
             m_fileSystem->OpenFile(m_rootPath + path, file);
             return true;
         }

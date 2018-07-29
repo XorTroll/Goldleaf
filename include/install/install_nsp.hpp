@@ -21,13 +21,13 @@ namespace tin::install::nsp
         public:
             NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId);
 
-            Result PrepareForInstall() override;
-            Result Install() override;
+            void PrepareForInstall() override;
+            void Install() override;
 
         private:
-            Result InstallNCA(const NcmNcaId& ncaId);
-            Result WriteRecords();
-            Result InstallTicketCert();
+            void InstallNCA(const NcmNcaId& ncaId);
+            void WriteRecords();
+            void InstallTicketCert();
     };
 };
 
