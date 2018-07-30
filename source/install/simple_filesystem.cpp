@@ -22,7 +22,7 @@ namespace tin::install::nsp
     {
         try
         {
-            fprintf(nxlinkout, ("Attempting to find file at " + m_rootPath + path + "\n").c_str());
+            LOG_DEBUG(("Attempting to find file at " + m_rootPath + path + "\n").c_str());
             m_fileSystem->OpenFile(m_rootPath + path);
             return true;
         }
@@ -37,7 +37,7 @@ namespace tin::install::nsp
 
         if (R_FAILED(rc = m_fileSystem->OpenDirectory(m_rootPath + path, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY, dir)))
         {
-            fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to open dir", rc);
+            LOG_DEBUG("%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to open dir", rc);
             return "";
         }
 
@@ -46,7 +46,7 @@ namespace tin::install::nsp
 
         if (R_FAILED(rc = dir.Read(0, dirEntries.get(), 256, &numEntriesRead)))
         {
-            fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to read dir", rc);
+            LOG_DEBUG("%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to read dir", rc);
             return "";
         }
 

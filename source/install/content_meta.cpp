@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include "debug.h"
+#include "error.hpp"
 
 // TODO: Fix printfs in here to use proper logging
 
@@ -16,7 +17,7 @@ namespace tin::install
 
         if (dataSize < sizeof(ContentMetaHeader))
         {
-            fprintf(nxlinkout, "Data size is too small! 0x%lx", dataSize);
+            LOG_DEBUG("Data size is too small! 0x%lx", dataSize);
             return -1;
         }
 

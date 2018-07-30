@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "debug.h"
+#include "error.hpp"
 
 Result getTitleName(u64 titleId, char *outBuf, size_t bufSize)
 {
@@ -11,16 +12,16 @@ Result getTitleName(u64 titleId, char *outBuf, size_t bufSize)
     NsApplicationControlData appControlData;
     size_t sizeRead;
 
-    fprintf(nxlinkout, "%lx\n", titleId);
+    LOG_DEBUG("%lx\n", titleId);
 
     if (R_FAILED(rc = nsGetApplicationControlData(0x1, titleId, &appControlData, sizeof(NsApplicationControlData), &sizeRead)))
     {
-        fprintf(nxlinkout, "getTitleName: Failed to get application control data. Error code: 0x%08x\n", rc);
+        LOG_DEBUG("getTitleName: Failed to get application control data. Error code: 0x%08x\n", rc);
         return rc;
     }
     else if (sizeRead < sizeof(appControlData.nacp))
     {
-        fprintf(nxlinkout, "getTitleName: Incorrect size for nacp\n");
+        LOG_DEBUG("getTitleName: Incorrect size for nacp\n");
         return -1;
     }
 
@@ -28,13 +29,13 @@ Result getTitleName(u64 titleId, char *outBuf, size_t bufSize)
 
     if (R_FAILED(rc = nacpGetLanguageEntry(&appControlData.nacp, &languageEntry)))
     {
-        fprintf(nxlinkout, "getTitleName: Failed to get language entry. Error code: 0x%08x\n", rc);
+        LOG_DEBUG("Failed to get language entry. Error code: 0x%08x\n", rc);
         return rc;
     }
 
     if (languageEntry == NULL)
     {
-        fprintf(nxlinkout, "getTitleName: Language entry is null\n");
+        LOG_DEBUG("Language entry is null\n");
         return -1;
     }
 

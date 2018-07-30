@@ -134,7 +134,6 @@ namespace tin::install::nsp
 
     void NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
     {
-        // TODO: It appears freezing occurs if this isn't done using snprintf?
         char ncaIdStr[FS_MAX_PATH] = {0};
         u64 ncaIdLower = __bswap64(*(u64 *)ncaId.c);
         u64 ncaIdUpper = __bswap64(*(u64 *)(ncaId.c + 0x8));
@@ -150,8 +149,8 @@ namespace tin::install::nsp
             throw std::runtime_error(("Failed to find NCA file " + ncaName + ".nca/.cnmt.nca").c_str());
         }
 
-        fprintf(nxlinkout, "NcaId: %s\n", ncaName.c_str());
-        fprintf(nxlinkout, "Dest storage Id: %u\n", m_destStorageId);
+        LOG_DEBUG("NcaId: %s\n", ncaName.c_str());
+        LOG_DEBUG("Dest storage Id: %u\n", m_destStorageId);
 
         nx::ncm::ContentStorage contentStorage(FsStorageId_SdCard);
 
@@ -171,7 +170,7 @@ namespace tin::install::nsp
         if (readBuffer == NULL) 
             throw std::runtime_error(("Failed to allocate read buffer for " + ncaName).c_str());
 
-        fprintf(nxlinkout, "Size: 0x%lx\n", ncaSize);
+        LOG_DEBUG("Size: 0x%lx\n", ncaSize);
         contentStorage.CreatePlaceholder(ncaId, ncaId, ncaSize);
                 
         float progress;
@@ -228,7 +227,7 @@ namespace tin::install::nsp
             throw e;
         }
 
-        fprintf(nxlinkout, "Post Install Records: \n");
+        LOG_DEBUG("Post Install Records: \n");
         this->DebugPrintInstallData();
     }
 
@@ -258,6 +257,8 @@ namespace tin::install::nsp
 
     void NSPInstallTask::DebugPrintInstallData()
     {
+        #ifdef NXLINK_DEBUG
+
         NcmContentMetaDatabase contentMetaDatabase;
         u64 baseTitleId;
         u64 updateTitleId;
@@ -305,9 +306,9 @@ namespace tin::install::nsp
                 throw std::runtime_error("Mismatch between app content record size and content record size read");
             }
 
-            fprintf(nxlinkout, "Application content meta key: \n");
+            LOG_DEBUG("Application content meta key: \n");
             printBytes(nxlinkout, (u8*)&latestApplicationContentMetaKey, sizeof(NcmMetaRecord), true);
-            fprintf(nxlinkout, "Application content meta: \n");
+            LOG_DEBUG("Application content meta: \n");
             printBytes(nxlinkout, appContentRecordBuf.get(), appContentRecordSize, true);
 
             if (hasUpdate)
@@ -324,28 +325,30 @@ namespace tin::install::nsp
                     throw std::runtime_error("Mismatch between app content record size and content record size read");
                 }
 
-                fprintf(nxlinkout, "Patch content meta key: \n");
+                LOG_DEBUG("Patch content meta key: \n");
                 printBytes(nxlinkout, (u8*)&latestPatchContentMetaKey, sizeof(NcmMetaRecord), true);
-                fprintf(nxlinkout, "Patch content meta: \n");
+                LOG_DEBUG("Patch content meta: \n");
                 printBytes(nxlinkout, patchContentRecordBuf.get(), patchContentRecordsSize, true);
             }
             else
             {
-                fprintf(nxlinkout, "No update records found, or an error occurred.\n");
+                LOG_DEBUG("No update records found, or an error occurred.\n");
             }
 
             auto appRecordBuf = std::make_unique<u8[]>(0x100);
             u32 numEntriesRead;
             ASSERT_OK(nsListApplicationRecordContentMeta(0, baseTitleId, appRecordBuf.get(), 0x100, &numEntriesRead), "Failed to list application record content meta");
 
-            fprintf(nxlinkout, "Application record content meta: \n");
+            LOG_DEBUG("Application record content meta: \n");
             printBytes(nxlinkout, appRecordBuf.get(), 0x100, true);
         }
         catch (std::runtime_error& e)
         {
             serviceClose(&contentMetaDatabase.s);
-            fprintf(nxlinkout, "Failed to log install data. Error: %s", e.what());
+            LOG_DEBUG("Failed to log install data. Error: %s", e.what());
         }
+
+        #endif
     }
 }
 
@@ -362,7 +365,7 @@ Result installTitle(InstallContext *context)
             tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
 
             task.PrepareForInstall();
-            fprintf(nxlinkout, "Pre Install Records: \n");
+            LOG_DEBUG("Pre Install Records: \n");
             task.DebugPrintInstallData();
             task.Install();
 
@@ -384,7 +387,7 @@ Result installTitle(InstallContext *context)
     }
     catch (std::exception& e)
     {
-        fprintf(nxlinkout, "%s", e.what());
+        LOG_DEBUG("%s", e.what());
         fprintf(stdout, "%s", e.what());
     }
 
