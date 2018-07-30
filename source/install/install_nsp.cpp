@@ -138,7 +138,7 @@ namespace tin::install::nsp
         char ncaIdStr[FS_MAX_PATH] = {0};
         u64 ncaIdLower = __bswap64(*(u64 *)ncaId.c);
         u64 ncaIdUpper = __bswap64(*(u64 *)(ncaId.c + 0x8));
-        snprintf(ncaIdStr, FS_MAX_PATH, "%lx%lx", ncaIdLower, ncaIdUpper);
+        snprintf(ncaIdStr, FS_MAX_PATH, "%016lx%016lx", ncaIdLower, ncaIdUpper);
         std::string ncaName = ncaIdStr;
 
         if (m_simpleFileSystem->HasFile(ncaName + ".nca"))
