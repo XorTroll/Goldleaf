@@ -30,12 +30,16 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
-BUILD		:=	build
-SOURCES		:=	source source/install source/ipc source/lib source/ui source/nx source/nx/ipc
-DATA		:=	data
-INCLUDES	:=	include
-EXEFS_SRC	:=	exefs_src
+TARGET		:= $(notdir $(CURDIR))
+BUILD		:= build
+SOURCES		:= source source/install source/ipc source/lib source/ui source/nx source/nx/ipc
+DATA		:= data
+INCLUDES	:= include
+EXEFS_SRC	:= exefs_src
+APP_TITLE   := tinfoil
+APP_AUTHOR  := Adubbz
+APP_VERSION := 0.0.1
+ICON        := icon.jpg
 
 #ROMFS	:=	romfs
 
