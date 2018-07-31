@@ -129,7 +129,7 @@ namespace tin::install::nsp
             printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
         }
 
-        printf("Done!\n");
+        printf("Done!\n\nPress (B) to return.\n");
     }
 
     void NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
