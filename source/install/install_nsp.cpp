@@ -63,38 +63,76 @@ namespace tin::install::nsp
 
     void NSPInstallTask::Install()
     {
-        u64 baseTitleId = 0;
+        Result rc = 0;
         std::vector<ContentStorageRecord> storageRecords;
+        u64 baseTitleId = 0;
+        u32 contentMetaCount = 0;
 
+        // Updates and DLC don't share the same title id as the base game, but we
+        // should be able to derive it manually.
         if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
         {
             baseTitleId = m_metaRecord.titleId;
-
-            ContentStorageRecord appStorageRecord;
-            appStorageRecord.metaRecord = m_metaRecord;
-            appStorageRecord.storageId = FsStorageId_SdCard;
-
-            storageRecords.push_back(appStorageRecord);
         }
         else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
         {
             baseTitleId = m_metaRecord.titleId ^ 0x800;
+        }
+        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::ADD_ON_CONTENT))
+        {
+            baseTitleId = (m_metaRecord.titleId ^ 0x1000) & ~0xFFF;
+        }
 
-            NcmContentMetaDatabase contentMetaDatabase;
+        // TODO: Make custom error with result code field
+        // 0x410: The record doesn't already exist
+        if (R_FAILED(rc = nsCountApplicationContentMeta(baseTitleId, &contentMetaCount)) && rc != 0x410)
+        {
+            throw std::runtime_error("Failed to count application content meta");
+        }
+        rc = 0;
+
+        LOG_DEBUG("Content meta count: %u\n", contentMetaCount);
+
+        // Obtain any existing app record content meta and append it to our vector
+        if (contentMetaCount > 0)
+        {
+            storageRecords.resize(contentMetaCount);
+            size_t contentStorageBufSize = contentMetaCount * sizeof(ContentStorageRecord);
+            auto contentStorageBuf = std::make_unique<ContentStorageRecord[]>(contentMetaCount);
+            u32 entriesRead;
+
+            ASSERT_OK(nsListApplicationRecordContentMeta(0, baseTitleId, contentStorageBuf.get(), contentStorageBufSize, &entriesRead), "Failed to list application record content meta");
+
+            if (entriesRead != contentMetaCount)
+            {
+                throw std::runtime_error("Mismatch between entries read and content meta count");
+            }
+
+            memcpy(storageRecords.data(), contentStorageBuf.get(), contentStorageBufSize);
+        }
+
+        // Add our new content meta
+        if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
+        {
             ContentStorageRecord appStorageRecord;
+            appStorageRecord.metaRecord = m_metaRecord;
             appStorageRecord.storageId = FsStorageId_SdCard;
+            storageRecords.push_back(appStorageRecord);
+        }
+        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
+        {
             ContentStorageRecord patchStorageRecord;
-
-            ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
-            ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, baseTitleId, &appStorageRecord.metaRecord), "Failed to get latest application content meta key");
-
             patchStorageRecord.metaRecord = m_metaRecord;
             patchStorageRecord.storageId = FsStorageId_SdCard;
-            printBytes(nxlinkout, (u8*)&patchStorageRecord, sizeof(ContentStorageRecord), true);
-
-            storageRecords.push_back(appStorageRecord);
             storageRecords.push_back(patchStorageRecord);
         }
+
+        // Replace the existing application records with our own
+        try
+        {
+            nsDeleteApplicationRecord(baseTitleId);
+        }
+        catch (...) {}
 
         printf("Pushing application record...\n");
         ASSERT_OK(nsPushApplicationRecord(baseTitleId, 0x3, storageRecords.data(), storageRecords.size() * sizeof(ContentStorageRecord)), "Failed to push application record");
