@@ -97,14 +97,6 @@ namespace tin::install::nsp
         }
 
         printf("Pushing application record...\n");
-
-        // NOTE: HOS doesn't seem to do this, pushApplicationRecord typically *appends* content meta records, not sets?
-        try
-        {
-            nsDeleteApplicationRecord(baseTitleId);
-        }
-        catch (...) {}
-
         ASSERT_OK(nsPushApplicationRecord(baseTitleId, 0x3, storageRecords.data(), storageRecords.size() * sizeof(ContentStorageRecord)), "Failed to push application record");
 
         printf("Writing content records...\n");

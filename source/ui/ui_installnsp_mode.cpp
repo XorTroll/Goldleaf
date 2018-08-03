@@ -74,6 +74,8 @@ namespace tin::ui
             LOG_DEBUG("Pre Install Records: \n");
             task.DebugPrintInstallData();
             task.Install();
+            LOG_DEBUG("Post Install Records: \n");
+            task.DebugPrintInstallData();
         }
         catch (std::exception& e)
         {
