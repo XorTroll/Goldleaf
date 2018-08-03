@@ -86,6 +86,12 @@ namespace nx::fs
 
     Result IFileSystem::OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId)
     {
+        if (path.length() >= FS_MAX_PATH)
+            throw std::runtime_error("Directory path is too long!");
+
+        // libnx expects a FS_MAX_PATH-sized buffer
+        path.reserve(FS_MAX_PATH);
+
         ASSERT_OK(fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str()), "Failed to open file system with id");
         return 0;  
     }
@@ -97,6 +103,12 @@ namespace nx::fs
 
     IFile IFileSystem::OpenFile(std::string path)
     {
+        if (path.length() >= FS_MAX_PATH)
+            throw std::runtime_error("Directory path is too long!");
+
+        // libnx expects a FS_MAX_PATH-sized buffer
+        path.reserve(FS_MAX_PATH);
+
         FsFile file;
         ASSERT_OK(fsFsOpenFile(&m_fileSystem, path.c_str(), FS_OPEN_READ, &file), ("Failed to open file " + path).c_str());
         return IFile(file);
@@ -104,11 +116,15 @@ namespace nx::fs
 
     IDirectory IFileSystem::OpenDirectory(std::string path, int flags)
     {
+        // Account for null at the end of c strings
+        if (path.length() >= FS_MAX_PATH)
+            throw std::runtime_error("Directory path is too long!");
+
+        // libnx expects a FS_MAX_PATH-sized buffer
+        path.reserve(FS_MAX_PATH);
+
         FsDir dir;
-        memset(&dir, 0, sizeof(FsDir));
-        LOG_DEBUG(("Attempting to open directory " + path + "\n").c_str());
         ASSERT_OK(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir), ("Failed to open directory " + path).c_str());
-        LOG_DEBUG(("Opened directory " + path + "\n").c_str());
         return IDirectory(dir);
     }
-}
+}        

@@ -32,8 +32,7 @@ namespace tin::ui
 
     // TitleIdOptionValue end
 
-    ConsoleOptionsView::ConsoleOptionsView() :
-        m_cursorPos(0)
+    ConsoleOptionsView::ConsoleOptionsView()
     {
 
     }

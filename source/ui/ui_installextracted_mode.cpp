@@ -14,17 +14,17 @@ namespace tin::ui
 
     }
 
-    void InstallExtractedNSPMode::OnSelected() try
+    void InstallExtractedNSPMode::OnSelected()
     {
-        /*tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
         auto view = std::make_unique<tin::ui::ConsoleOptionsView>();
         view->AddEntry(m_name, tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
-        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);*/
+        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
 
         nx::fs::IFileSystem fileSystem;
         fileSystem.OpenSdFileSystem();
-        nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/extracted/", FS_DIROPEN_DIRECTORY | FS_DIROPEN_FILE);
-        /*u64 entryCount = dir.GetEntryCount();
+        nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/extracted/", FS_DIROPEN_DIRECTORY);
+        u64 entryCount = dir.GetEntryCount();
         LOG_DEBUG("Entry count: 0x%lx\n", entryCount);
 
         if (entryCount > 0)
@@ -43,11 +43,7 @@ namespace tin::ui
             }
         }
 
-        manager.PushView(std::move(view));*/
-    }
-    catch (std::runtime_error& e)
-    {
-        LOG_DEBUG("%s\n%s", "Failed to list extracted NSP entries", e.what());
+        manager.PushView(std::move(view));
     }
 
     void InstallExtractedNSPMode::OnExtractedNSPSelected()
@@ -60,7 +56,7 @@ namespace tin::ui
             throw std::runtime_error("View must be a ConsoleOptionsView!");
         }
 
-        std::string path = "/tinfoil/extracted/" + prevView->GetSelectedOptionValue()->GetText();
+        std::string path = "/tinfoil/extracted/" + prevView->GetSelectedOptionValue()->GetText() + "/";
         std::string fullPath = "@Sdcard:/" + path;
 
         // Push a blank view ready for installation
