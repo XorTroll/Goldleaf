@@ -112,20 +112,10 @@ namespace tin::install::nsp
         }
 
         // Add our new content meta
-        if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
-        {
-            ContentStorageRecord appStorageRecord;
-            appStorageRecord.metaRecord = m_metaRecord;
-            appStorageRecord.storageId = FsStorageId_SdCard;
-            storageRecords.push_back(appStorageRecord);
-        }
-        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
-        {
-            ContentStorageRecord patchStorageRecord;
-            patchStorageRecord.metaRecord = m_metaRecord;
-            patchStorageRecord.storageId = FsStorageId_SdCard;
-            storageRecords.push_back(patchStorageRecord);
-        }
+        ContentStorageRecord storageRecord;
+        storageRecord.metaRecord = m_metaRecord;
+        storageRecord.storageId = FsStorageId_SdCard;
+        storageRecords.push_back(storageRecord);
 
         // Replace the existing application records with our own
         try
@@ -297,15 +287,21 @@ namespace tin::install::nsp
         if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
         {
             baseTitleId = m_metaRecord.titleId;
-            updateTitleId = baseTitleId ^ 0x800;
+            
         }
         else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
         {
             updateTitleId = m_metaRecord.titleId;
             baseTitleId = updateTitleId ^ 0x800;
         }
+        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::ADD_ON_CONTENT))
+        {
+            baseTitleId = (m_metaRecord.titleId ^ 0x1000) & ~0xFFF;
+        }
         else
             return;
+
+        updateTitleId = baseTitleId ^ 0x800;
 
         try
         {

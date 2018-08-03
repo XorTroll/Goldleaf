@@ -37,9 +37,6 @@ namespace tin::install
 
     Result ContentMeta::GetInstallContentMeta(NcmMetaRecord *contentMetaKeyOut, NcmContentRecord& cnmtContentRecord, std::vector<u8>& installContentMetaBytesOut)
     {
-        if (m_contentMetaHeader.type == ContentMetaType::ADD_ON_CONTENT)
-            return -1;
-
         memset(contentMetaKeyOut, 0, sizeof(NcmMetaRecord));
         contentMetaKeyOut->titleId = m_contentMetaHeader.titleId;
         contentMetaKeyOut->version = m_contentMetaHeader.titleVersion;
