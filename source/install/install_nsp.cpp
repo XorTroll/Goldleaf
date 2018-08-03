@@ -107,6 +107,9 @@ namespace tin::install::nsp
 
         ASSERT_OK(nsPushApplicationRecord(baseTitleId, 0x3, storageRecords.data(), storageRecords.size() * sizeof(ContentStorageRecord)), "Failed to push application record");
 
+        printf("Writing content records...\n");
+        this->WriteRecords();
+
         printf("Installing CNNT NCA...\n");
         this->InstallNCA(m_cnmtContentRecord.ncaId);
 
@@ -115,9 +118,6 @@ namespace tin::install::nsp
         {
             this->InstallNCA(record.ncaId);
         }
-
-        printf("Writing content records...\n");
-        this->WriteRecords();
 
         printf("Installing ticket and cert...\n");
         try
