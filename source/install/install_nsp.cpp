@@ -356,22 +356,7 @@ Result installTitle(InstallContext *context)
 {
     try
     {
-        if (context->sourceType == InstallSourceType_Nsp)
-        {
-            std::string fullPath = "@Sdcard:/" + std::string(context->path);
-            nx::fs::IFileSystem fileSystem;
-            ASSERT_OK(fileSystem.OpenFileSystemWithId(fullPath, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
-            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", fullPath + "/");
-            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
-
-            task.PrepareForInstall();
-            LOG_DEBUG("Pre Install Records: \n");
-            task.DebugPrintInstallData();
-            task.Install();
-
-            return 0;
-        }
-        else if (context->sourceType == InstallSourceType_Extracted)
+        if (context->sourceType == InstallSourceType_Extracted)
         {
             std::string fullPath = "@Sdcard:/" + std::string(context->path);
             nx::fs::IFileSystem fileSystem;

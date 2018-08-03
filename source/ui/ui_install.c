@@ -149,76 +149,7 @@ void onTitleExtractedDirSelected(void)
 
 void showNspInstallOptions(void)
 {
-    Result rc;
-    FsFileSystem sdFs;
-    FsDir dir;
 
-    if (R_FAILED(rc = fsMountSdcard(&sdFs)))
-    {
-        printf("showNspInstallOptions: Failed to mount sd card. Error code: 0x%08x\n", rc);
-        return;
-    }
-
-    if (R_FAILED(rc = fsFsOpenDirectory(&sdFs, "/tinfoil/nsp/", FS_DIROPEN_DIRECTORY | FS_DIROPEN_FILE, &dir)))
-    {
-        printf("showNspInstallOptions: Failed to open nsp dir. Error code: 0x%08x\n", rc);
-        fsFsClose(&sdFs);
-        return;
-    }
-
-    size_t numEntriesRead;
-    FsDirectoryEntry *dirEntries = calloc(41, sizeof(FsDirectoryEntry)); // 41 = Max num entries (44) -3 for the heading, the space under it and the back option
-
-    if (R_FAILED(rc = fsDirRead(&dir, 0, &numEntriesRead, 41, dirEntries)))
-    {
-        printf("showNspInstallOptions: Failed to read extracted dir. Error code: 0x%08x\n", rc);
-        goto CLEANUP;
-    }
-
-    View *view = calloc(1, sizeof(View));
-
-    view->viewEntries[0] = (ViewEntry)
-    {
-        .type = ViewEntryType_Heading,
-        .text = "Install NSP",
-    };
-
-    view->viewEntries[1] = (ViewEntry)
-    {
-        .type = ViewEntryType_None,
-    };
-
-    view->viewEntries[2] = (ViewEntry)
-    {
-        .type = ViewEntryType_Select,
-        .text = "Back",
-        .onSelected = unwind
-    };
-
-    for (int i = 0; i < numEntriesRead; i++)
-    {
-        FsDirectoryEntry dirEntry = dirEntries[i];
-        ViewEntryType type = ViewEntryType_Select;
-
-        if (dirEntry.type != ENTRYTYPE_FILE || strcmp(strchr(dirEntry.name, '.') + 1, "nsp") != 0)
-            continue;
-
-        view->viewEntries[i + 3] = (ViewEntry)
-        {
-            .type = type,
-            .onSelected = onTitleNspSelected,
-        };
-
-        memcpy(view->viewEntries[i + 3].text, dirEntry.name, 256-1);
-    }
-
-    view->numEntries = 3 + numEntriesRead;
-    pushView(view);
-
-    CLEANUP:
-    free(dirEntries);
-    fsDirClose(&dir);
-    fsFsClose(&sdFs);
 }
 
 void onTitleNspSelected(void)

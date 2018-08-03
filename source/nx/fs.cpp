@@ -1,5 +1,6 @@
 #include "nx/fs.hpp"
 
+#include <cstring>
 #include "nx/ipc/tin_ipc.h"
 #include "error.hpp"
 
@@ -39,16 +40,33 @@ namespace nx::fs
     // End IFile
 
     // IDirectory
-    IDirectory::IDirectory() {}
+    IDirectory::IDirectory(FsDir& dir) 
+    {
+        m_dir = dir;
+    }
+
     IDirectory::~IDirectory()
     {
         fsDirClose(&m_dir);
     }
 
-    Result IDirectory::Read(u64 inval, FsDirectoryEntry* buf, size_t maxEntries, size_t* entriesRead)
+    void IDirectory::Read(u64 inval, FsDirectoryEntry* buf, size_t numEntries)
     {
-        ASSERT_OK(fsDirRead(&m_dir, inval, entriesRead, maxEntries, buf), "Failed to read directory");
-        return 0;
+        size_t entriesRead;
+        ASSERT_OK(fsDirRead(&m_dir, inval, &entriesRead, numEntries, buf), "Failed to read directory");
+
+        /*if (entriesRead != numEntries)
+        {
+            std::string msg = "Entries read " + std::string("" + entriesRead) + " doesn't match expected number " + std::string("" + numEntries);
+            throw std::runtime_error(msg);
+        }*/
+    }
+
+    u64 IDirectory::GetEntryCount()
+    {
+        u64 entryCount = 0;
+        ASSERT_OK(fsDirGetEntryCount(&m_dir, &entryCount), "Failed to get entry count");
+        return entryCount;
     }
 
     // End IDirectory
@@ -84,9 +102,13 @@ namespace nx::fs
         return IFile(file);
     }
 
-    Result IFileSystem::OpenDirectory(std::string path, int flags, IDirectory& dir)
+    IDirectory IFileSystem::OpenDirectory(std::string path, int flags)
     {
-        ASSERT_OK(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir.m_dir), ("Failed to open directory " + path).c_str());
-        return 0;
+        FsDir dir;
+        memset(&dir, 0, sizeof(FsDir));
+        LOG_DEBUG(("Attempting to open directory " + path + "\n").c_str());
+        ASSERT_OK(fsFsOpenDirectory(&m_fileSystem, path.c_str(), flags, &dir), ("Failed to open directory " + path).c_str());
+        LOG_DEBUG(("Opened directory " + path + "\n").c_str());
+        return IDirectory(dir);
     }
 }

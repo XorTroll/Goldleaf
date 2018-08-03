@@ -32,25 +32,14 @@ namespace tin::install::nsp
 
     std::string SimpleFileSystem::GetFileNameFromExtension(std::string path, std::string extension)
     {
-        Result rc = 0;
-        nx::fs::IDirectory dir;
+        nx::fs::IDirectory dir = m_fileSystem->OpenDirectory(m_rootPath + path, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY);
 
-        if (R_FAILED(rc = m_fileSystem->OpenDirectory(m_rootPath + path, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY, dir)))
-        {
-            LOG_DEBUG("%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to open dir", rc);
-            return "";
-        }
+        u64 entryCount = dir.GetEntryCount();
+        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
 
-        size_t numEntriesRead;
-        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(256);
+        dir.Read(0, dirEntries.get(), entryCount);
 
-        if (R_FAILED(rc = dir.Read(0, dirEntries.get(), 256, &numEntriesRead)))
-        {
-            LOG_DEBUG("%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to read dir", rc);
-            return "";
-        }
-
-        for (unsigned int i = 0; i < numEntriesRead; i++)
+        for (unsigned int i = 0; i < entryCount; i++)
         {
             FsDirectoryEntry dirEntry = dirEntries[i];
             std::string dirEntryName = dirEntry.name;
