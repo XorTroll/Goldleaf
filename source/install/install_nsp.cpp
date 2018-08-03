@@ -351,30 +351,3 @@ namespace tin::install::nsp
         #endif
     }
 }
-
-Result installTitle(InstallContext *context)
-{
-    try
-    {
-        if (context->sourceType == InstallSourceType_Extracted)
-        {
-            std::string fullPath = "@Sdcard:/" + std::string(context->path);
-            nx::fs::IFileSystem fileSystem;
-            ASSERT_OK(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
-            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, context->path, fullPath);
-            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
-
-            task.PrepareForInstall();
-            task.Install();
-
-            return 0;
-        }
-    }
-    catch (std::exception& e)
-    {
-        LOG_DEBUG("%s", e.what());
-        fprintf(stdout, "%s", e.what());
-    }
-
-    return 0xDEAD;
-}

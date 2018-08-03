@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ui/ui.h"
-
 Result createTinfoilDirs(void)
 {
     Result rc = 0;

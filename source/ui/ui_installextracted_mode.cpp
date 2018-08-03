@@ -25,7 +25,6 @@ namespace tin::ui
         fileSystem.OpenSdFileSystem();
         nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/extracted/", FS_DIROPEN_DIRECTORY);
         u64 entryCount = dir.GetEntryCount();
-        LOG_DEBUG("Entry count: 0x%lx\n", entryCount);
 
         if (entryCount > 0)
         {

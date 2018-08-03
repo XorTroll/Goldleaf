@@ -8,13 +8,11 @@
 #include <switch.h>
 
 #include "nx/ipc/tin_ipc.h"
-#include "ui/ui.h"
-#include "ui/ui_install.h"
-#include "ui/ui_ticket.h"
 
 #include "ui/ui_mode.hpp"
 #include "ui/ui_installextracted_mode.hpp"
 #include "ui/ui_installnsp_mode.hpp"
+#include "ui/ui_deletecommonticket_mode.hpp"
 #include "ui/view.hpp"
 #include "ui/console_options_view.hpp"
 
@@ -89,7 +87,7 @@ int main(int argc, char **argv)
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
 
         gfxInitDefault();
-        manager.m_printConsole = g_console = consoleInit(NULL);
+        manager.m_printConsole = consoleInit(NULL);
         
         // Create the tinfoil directory and subdirs on the sd card if they don't already exist. 
         // These are used throughout the app without existance checks.
@@ -103,8 +101,12 @@ int main(int argc, char **argv)
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
-
         // TODO: Add uninstall and dump nsp
+
+        tin::ui::Category tikManCat("Ticket Management");
+        tikManCat.AddMode(std::move(std::make_unique<tin::ui::DeleteCommonTicketMode>()));
+
+        // TODO: Add install tik and cert, delete personalized ticket and view title keys
 
         auto mainView = std::make_unique<tin::ui::ConsoleOptionsView>();
 
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
         mainView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
         mainView->AddEntry(titleManCat.m_name, tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &titleManCat));
         mainView->AddEntry("Install Information", tin::ui::ConsoleEntrySelectType::SELECT_INACTIVE, nullptr);
-        mainView->AddEntry("Ticket Management", tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
+        mainView->AddEntry("Ticket Management", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &tikManCat));
         mainView->AddEntry("Exit", tin::ui::ConsoleEntrySelectType::SELECT, markForExit);
         
         manager.PushView(std::move(mainView));

@@ -1,8 +1,11 @@
 #include "ui/console_options_view.hpp"
 
+#include "util/title_util.hpp"
+#include "error.hpp"
+
 namespace tin::ui
 {
-    // TextOptionValue start
+    // TextOptionValue
 
     TextOptionValue::TextOptionValue(std::string name) :
         name(name)
@@ -15,9 +18,9 @@ namespace tin::ui
         return this->name;
     }
 
-    // TextOptionValue end
+    // End TextOptionValue
 
-    // TitleIdOptionValue start
+    // TitleIdOptionValue
 
     TitleIdOptionValue::TitleIdOptionValue(u64 titleId) :
         titleId(titleId)
@@ -30,7 +33,45 @@ namespace tin::ui
         return ""; //TODO
     }
 
-    // TitleIdOptionValue end
+    // End TitleIdOptionValue
+
+    // RightsIdOptionValue
+
+    RightsIdOptionValue::RightsIdOptionValue(RightsId rightsId) :
+        rightsId(rightsId)
+    {
+
+    }
+
+    std::string RightsIdOptionValue::GetText()
+    {
+        u64 titleId = tin::util::GetRightsIdTid(this->rightsId);
+        u64 keyGen = tin::util::GetRightsIdKeyGen(this->rightsId);
+        std::string titleName = "";
+        
+        try
+        {
+            titleName = tin::util::GetTitleName(titleId);
+        }
+        catch (...) {}
+
+        if (titleName.empty())
+        {
+            try
+            {
+                titleName = tin::util::GetTitleName(titleId ^ 0x800);
+            }
+            catch (...) {}
+        }
+
+        char rightsIdStr[34] = {0};
+        snprintf(rightsIdStr, 34-1, "%016lx%016lx", titleId, keyGen);
+        titleName += " - " + std::string(rightsIdStr);
+
+        return titleName;
+    }
+
+    // End RightsIdOptionValue
 
     ConsoleOptionsView::ConsoleOptionsView()
     {
@@ -81,9 +122,14 @@ namespace tin::ui
         this->AddEntry(std::make_shared<TextOptionValue>(text), selectType, onSelected);
     }
 
-    std::shared_ptr<IOptionValue> ConsoleOptionsView::GetSelectedOptionValue()
+    ConsoleEntry* ConsoleOptionsView::GetSelectedEntry()
     {
-        return m_consoleEntries[m_cursorPos].optionValue;
+        return &m_consoleEntries[m_cursorPos];
+    }
+
+    IOptionValue* ConsoleOptionsView::GetSelectedOptionValue()
+    {
+        return this->GetSelectedEntry()->optionValue.get();
     }
 
     void ConsoleOptionsView::MoveCursor(signed char off)

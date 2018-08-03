@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include "ui/console_view.hpp"
+#include "nx/ipc/tin_ipc.h"
 
 namespace tin::ui
 {
@@ -30,6 +31,15 @@ namespace tin::ui
         u64 titleId;
 
         TitleIdOptionValue(u64 titleId);
+
+        std::string GetText() override;
+    };
+
+    struct RightsIdOptionValue : public IOptionValue
+    {
+        RightsId rightsId;
+
+        RightsIdOptionValue(RightsId rightsId);
 
         std::string GetText() override;
     };
@@ -61,7 +71,8 @@ namespace tin::ui
             void AddEntry(std::shared_ptr<IOptionValue> value, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
             void AddEntry(std::string text, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
 
-            std::shared_ptr<IOptionValue> GetSelectedOptionValue();
+            ConsoleEntry* GetSelectedEntry();
+            IOptionValue* GetSelectedOptionValue();
 
         protected:
             void MoveCursor(signed char off);
