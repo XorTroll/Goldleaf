@@ -13,6 +13,7 @@
 #include "ui/ui_installextracted_mode.hpp"
 #include "ui/ui_installnsp_mode.hpp"
 #include "ui/ui_deletecommonticket_mode.hpp"
+#include "ui/ui_deletepersonalizedticket_mode.hpp"
 #include "ui/view.hpp"
 #include "ui/console_options_view.hpp"
 
@@ -105,6 +106,7 @@ int main(int argc, char **argv)
 
         tin::ui::Category tikManCat("Ticket Management");
         tikManCat.AddMode(std::move(std::make_unique<tin::ui::DeleteCommonTicketMode>()));
+        tikManCat.AddMode(std::move(std::make_unique<tin::ui::DeletePersonalizedTicketMode>()));
 
         // TODO: Add install tik and cert, delete personalized ticket and view title keys
 
