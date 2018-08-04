@@ -11,7 +11,7 @@ DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions,
 Courtesy of ao, builds are made automatically for each commit at:
 https://buildserv.stayathomeserver.club/tinfoil/
 
-When a full release is made, it will be located at:
+When ready, full releases will be located at:
 https://github.com/Adubbz/Tinfoil/releases/latest
 
 ## Donate
