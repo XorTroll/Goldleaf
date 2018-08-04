@@ -84,8 +84,7 @@ namespace tin::ui
 
     // End ConsoleEntry
 
-    ConsoleOptionsView::ConsoleOptionsView() :
-        m_cursorPos(0)
+    ConsoleOptionsView::ConsoleOptionsView()
     {
 
     }
