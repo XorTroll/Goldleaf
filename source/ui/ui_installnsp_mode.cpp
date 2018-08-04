@@ -23,7 +23,7 @@ namespace tin::ui
 
         nx::fs::IFileSystem fileSystem;
         fileSystem.OpenSdFileSystem();
-        nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/nsp/", FS_DIROPEN_DIRECTORY | FS_DIROPEN_FILE);
+        nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/nsp/", FS_DIROPEN_FILE);
 
         u64 entryCount = dir.GetEntryCount();
 
