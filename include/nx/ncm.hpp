@@ -12,6 +12,10 @@ namespace nx::ncm
             NcmContentStorage m_contentStorage;
 
         public:
+            // Don't allow copying, or garbage may be closed by the destructor
+            ContentStorage& operator=(const ContentStorage&) = delete;
+            ContentStorage(const ContentStorage&) = delete;   
+
             ContentStorage(FsStorageId storageId);
             ~ContentStorage();
 

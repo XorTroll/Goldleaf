@@ -7,12 +7,12 @@ typedef struct {
     u64 titleID;
     u64 unk;
     u64 size;
-} ApplicationRecord;
+} PACKED ApplicationRecord;
 
 typedef struct {
     NcmMetaRecord metaRecord;
     u64 storageId;
-} ContentStorageRecord;
+} PACKED ContentStorageRecord;
 
 Result nsextInitialize(void);
 void nsextExit(void);
@@ -25,6 +25,7 @@ Result nsDeleteApplicationRecord(u64 titleID);
 Result nsTouchApplication(u64 titleID);
 Result nsLaunchApplication(u64 titleID);
 Result nsPushLaunchVersion(u64 titleID, u32 version);
+Result nsCountApplicationContentMeta(u64 titleId, u32* countOut);
 Result nsCheckApplicationLaunchVersion(u64 titleID);
 Result nsDisableApplicationAutoUpdate(u64 titleID);
 Result nsGetContentMetaStorage(const NcmMetaRecord *record, u8 *out);

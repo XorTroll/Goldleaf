@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include "debug.h"
+#include "error.hpp"
 
 // TODO: Fix printfs in here to use proper logging
 
@@ -16,7 +17,7 @@ namespace tin::install
 
         if (dataSize < sizeof(ContentMetaHeader))
         {
-            fprintf(nxlinkout, "Data size is too small! 0x%lx", dataSize);
+            LOG_DEBUG("Data size is too small! 0x%lx", dataSize);
             return -1;
         }
 
@@ -44,7 +45,7 @@ namespace tin::install
         // Setup the content meta header
         InstallContentMetaHeader installContentMetaHeader;
         installContentMetaHeader.extendedHeaderSize = m_contentMetaHeader.extendedHeaderSize;
-        installContentMetaHeader.contentCount = m_contentMetaHeader.contentCount + 1; // Add one for the cnmt content record
+        installContentMetaHeader.contentCount = m_contentRecords.size() + 1; // Add one for the cnmt content record
         installContentMetaHeader.contentMetaCount = m_contentMetaHeader.contentMetaCount;
 
         auto installContentMetaHeaderBytes = reinterpret_cast<u8*>(&installContentMetaHeader);
@@ -59,7 +60,7 @@ namespace tin::install
         installContentMetaBytesOut.insert(installContentMetaBytesOut.end(), cnmtContentRecordBytes, cnmtContentRecordBytes + sizeof(ContentRecord));
 
         // Setup the content records
-        for (unsigned int i = 0; i < m_contentMetaHeader.contentCount; i++)
+        for (unsigned int i = 0; i < m_contentRecords.size(); i++)
         {
             auto contentRecordBytes = reinterpret_cast<u8*>(&m_contentRecords[i]);
             installContentMetaBytesOut.insert(installContentMetaBytesOut.end(), contentRecordBytes, contentRecordBytes + sizeof(ContentRecord));

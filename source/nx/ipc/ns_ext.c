@@ -403,6 +403,44 @@ Result nsCheckApplicationLaunchVersion(u64 titleID)
     return rc;
 }
 
+Result nsCountApplicationContentMeta(u64 titleId, u32* countOut)
+{
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+        u64 title_id;
+    } *raw;
+    
+    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 600;
+    raw->title_id = titleId;
+    
+    Result rc = serviceIpcDispatch(&g_nsAppManSrv);
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        ipcParse(&r);
+
+        struct {
+            u64 magic;
+            u64 result;
+            u32 count;
+        } *resp = r.Raw;
+
+        rc = resp->result;
+
+        if (R_SUCCEEDED(rc)) {
+            if (countOut) *countOut = resp->count;
+        }
+    }
+    
+    return rc;
+}
+
 Result nsDisableApplicationAutoUpdate(u64 titleID)
 {
     IpcCommand c;

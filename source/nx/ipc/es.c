@@ -155,6 +155,42 @@ Result esCountCommonTicket(u32 *numTickets)
     return rc;  
 }
 
+Result esCountPersonalizedTicket(u32 *numTickets)
+{
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+    } *raw;
+    
+    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 10;
+    
+    Result rc = serviceIpcDispatch(&g_esSrv);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        ipcParse(&r);
+
+        struct {
+            u64 magic;
+            u64 result;
+            u32 num_tickets;
+        } *resp = r.Raw;
+
+        rc = resp->result;
+
+        if (R_SUCCEEDED(rc)) {
+            if (numTickets) *numTickets = resp->num_tickets;
+        }
+    }
+    
+    return rc;  
+}
+
 Result esListCommonTicket(u32 *numRightsIdsWritten, RightsId *outBuf, size_t bufSize) {
     IpcCommand c;
     ipcInitialize(&c);

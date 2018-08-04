@@ -9,11 +9,14 @@
 
 #include <switch/runtime/nxlink.h>
 
+#ifdef NXLINK_DEBUG
 static int sock = -1;
+#endif
 FILE *nxlinkout;
 
 int nxLinkInitialize(void)
 {
+    #ifdef NXLINK_DEBUG
     int ret = -1;
     struct sockaddr_in srv_addr;
 
@@ -36,16 +39,22 @@ int nxLinkInitialize(void)
     fflush(nxlinkout);
     nxlinkout = fdopen(sock, "w");
     setvbuf(nxlinkout, NULL, _IONBF, 0);
-    return ret;
+    #endif
+    return 0;
 }
 
 void nxLinkExit(void)
 {
+    #ifdef NXLINK_DEBUG
     fclose(nxlinkout);
+    #endif
 }
 
 void printBytes(FILE* out, u8 *bytes, size_t size, bool includeHeader)
 {
+    if (out == NULL)
+        return;
+
     int count = 0;
 
     if (includeHeader)
@@ -62,5 +71,5 @@ void printBytes(FILE* out, u8 *bytes, size_t size, bool includeHeader)
             fprintf(out, "\n");
     }
 
-    printf("\n\n\n");
+    fprintf(out, "\n");
 }

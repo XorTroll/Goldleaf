@@ -12,40 +12,18 @@ namespace tin::install::nsp
     {}
 
     SimpleFileSystem::~SimpleFileSystem() {}
-    
-    Result SimpleFileSystem::ReadFile(std::string path, u8* buff, size_t size, size_t offset)
+
+    nx::fs::IFile SimpleFileSystem::OpenFile(std::string path)
     {
-        nx::fs::IFile file;
-        ASSERT_OK(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
-
-        size_t actualReadSize = 0;
-
-        ASSERT_OK(file.Read(offset, buff, size, &actualReadSize), "Failed to read file");
-
-        if (actualReadSize != size)
-        {
-            printf("readExtractedInstallFile: Size read 0x%lx doesn't match expected size 0x%lx", actualReadSize, size);
-            return -1;
-        }
-
-        return 0;
-    }
-
-    Result SimpleFileSystem::GetFileSize(std::string path, size_t* sizeOut)
-    {
-        nx::fs::IFile file;
-        ASSERT_OK(m_fileSystem->OpenFile(m_rootPath + path, file), "Failed to open file");
-        ASSERT_OK(file.GetSize(sizeOut), "Failed to get file size");
-        return 0;
+        return m_fileSystem->OpenFile(m_rootPath + path);
     }
 
     bool SimpleFileSystem::HasFile(std::string path)
     {
-        nx::fs::IFile file;
         try
         {
-            fprintf(nxlinkout, ("Attempting to find file at " + m_rootPath + path + "\n").c_str());
-            m_fileSystem->OpenFile(m_rootPath + path, file);
+            LOG_DEBUG(("Attempting to find file at " + m_rootPath + path + "\n").c_str());
+            m_fileSystem->OpenFile(m_rootPath + path);
             return true;
         }
         catch (std::exception& e) {}
@@ -54,25 +32,14 @@ namespace tin::install::nsp
 
     std::string SimpleFileSystem::GetFileNameFromExtension(std::string path, std::string extension)
     {
-        Result rc = 0;
-        nx::fs::IDirectory dir;
+        nx::fs::IDirectory dir = m_fileSystem->OpenDirectory(m_rootPath + path, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY);
 
-        if (R_FAILED(rc = m_fileSystem->OpenDirectory(m_rootPath + path, FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY, dir)))
-        {
-            fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to open dir", rc);
-            return "";
-        }
+        u64 entryCount = dir.GetEntryCount();
+        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
 
-        size_t numEntriesRead;
-        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(256);
+        dir.Read(0, dirEntries.get(), entryCount);
 
-        if (R_FAILED(rc = dir.Read(0, dirEntries.get(), 256, &numEntriesRead)))
-        {
-            fprintf(nxlinkout, "%s:%u: %s.  Error code: 0x%08x\n", __func__, __LINE__, "Failed to read dir", rc);
-            return "";
-        }
-
-        for (unsigned int i = 0; i < numEntriesRead; i++)
+        for (unsigned int i = 0; i < entryCount; i++)
         {
             FsDirectoryEntry dirEntry = dirEntries[i];
             std::string dirEntryName = dirEntry.name;
