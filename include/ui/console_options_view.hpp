@@ -51,15 +51,20 @@ namespace tin::ui
 
     struct ConsoleEntry
     {
-        std::shared_ptr<IOptionValue> optionValue;
+        std::unique_ptr<IOptionValue> optionValue;
         ConsoleEntrySelectType selectType;
         std::function<void ()> onSelected;
+
+        ConsoleEntry& operator=(const ConsoleEntry&) = delete;
+        ConsoleEntry(const ConsoleEntry&) = delete;   
+
+        ConsoleEntry(std::unique_ptr<IOptionValue> optionValue, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
     };
 
     class ConsoleOptionsView : public ConsoleView
     {
         private:
-            std::vector<ConsoleEntry> m_consoleEntries;
+            std::vector<std::unique_ptr<ConsoleEntry>> m_consoleEntries;
             unsigned int m_cursorPos;
 
         public:
@@ -68,7 +73,7 @@ namespace tin::ui
             virtual void OnPresented() override;
             virtual void ProcessInput(u64 keys) override;
 
-            void AddEntry(std::shared_ptr<IOptionValue> value, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
+            void AddEntry(std::unique_ptr<IOptionValue> value, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
             void AddEntry(std::string text, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
 
             ConsoleEntry* GetSelectedEntry();

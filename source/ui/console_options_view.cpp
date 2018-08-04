@@ -73,6 +73,16 @@ namespace tin::ui
 
     // End RightsIdOptionValue
 
+    // ConsoleEntry
+
+    ConsoleEntry::ConsoleEntry(std::unique_ptr<IOptionValue> optionValue, ConsoleEntrySelectType selectType, std::function<void ()> onSelected) :
+        optionValue(std::move(optionValue)), selectType(selectType), onSelected(onSelected)
+    {
+        
+    }
+
+    // End ConsoleEntry
+
     ConsoleOptionsView::ConsoleOptionsView()
     {
 
@@ -82,9 +92,9 @@ namespace tin::ui
     {
         for (unsigned char i = 0; i < m_consoleEntries.size(); i++)
         {
-            ConsoleEntry entry = m_consoleEntries[i];
+            ConsoleEntry* entry = m_consoleEntries[i].get();
 
-            if (entry.selectType == ConsoleEntrySelectType::SELECT)
+            if (entry->selectType == ConsoleEntrySelectType::SELECT)
             {
                 m_cursorPos = i;
                 break;
@@ -102,29 +112,29 @@ namespace tin::ui
             this->MoveCursor(-1);
         else if (keys & KEY_A)
         {
-            ConsoleEntry consoleEntry = m_consoleEntries[m_cursorPos];
+            ConsoleEntry* consoleEntry = m_consoleEntries[m_cursorPos].get();
 
-            if (consoleEntry.onSelected != NULL && consoleEntry.selectType == ConsoleEntrySelectType::SELECT)
-                consoleEntry.onSelected();
+            if (consoleEntry->onSelected != NULL && consoleEntry->selectType == ConsoleEntrySelectType::SELECT)
+                consoleEntry->onSelected();
         }
         else if (keys & KEY_B)
             m_viewManager->Unwind();
     }
 
-    void ConsoleOptionsView::AddEntry(std::shared_ptr<IOptionValue> optionValue, ConsoleEntrySelectType selectType, std::function<void ()> onSelected)
+    void ConsoleOptionsView::AddEntry(std::unique_ptr<IOptionValue> optionValue, ConsoleEntrySelectType selectType, std::function<void ()> onSelected)
     {
-        ConsoleEntry entry {optionValue, selectType, onSelected};
-        m_consoleEntries.push_back(entry);
+        auto entry = std::make_unique<ConsoleEntry>(std::move(optionValue), selectType, onSelected);
+        m_consoleEntries.push_back(std::move(entry));
     }
 
     void ConsoleOptionsView::AddEntry(std::string text, ConsoleEntrySelectType selectType, std::function<void ()> onSelected)
     {
-        this->AddEntry(std::make_shared<TextOptionValue>(text), selectType, onSelected);
+        this->AddEntry(std::move(std::make_unique<TextOptionValue>(text)), selectType, onSelected);
     }
 
     ConsoleEntry* ConsoleOptionsView::GetSelectedEntry()
     {
-        return &m_consoleEntries[m_cursorPos];
+        return m_consoleEntries[m_cursorPos].get();
     }
 
     IOptionValue* ConsoleOptionsView::GetSelectedOptionValue()
@@ -149,9 +159,9 @@ namespace tin::ui
 
             // Numbers greater than the number of entries should wrap around to the start
             newCursorPos %= m_consoleEntries.size();
-            ConsoleEntry entry = m_consoleEntries[newCursorPos];
+            ConsoleEntry* entry = m_consoleEntries[newCursorPos].get();
         
-            if (entry.selectType == ConsoleEntrySelectType::SELECT)
+            if (entry->selectType == ConsoleEntrySelectType::SELECT)
             {
                 m_cursorPos = newCursorPos;
                 break;
@@ -168,22 +178,24 @@ namespace tin::ui
 
         for (auto& entry : m_consoleEntries)
         {
-            switch (entry.selectType)
+            const char* text = entry->optionValue->GetText().c_str();
+
+            switch (entry->selectType)
             {
                 case ConsoleEntrySelectType::HEADING:
                     console->flags |= CONSOLE_COLOR_BOLD;
-                    printf("%s\n", entry.optionValue->GetText().c_str());
+                    printf("%s\n", text);
                     console->flags &= ~CONSOLE_COLOR_BOLD;
                     break;
 
                 case ConsoleEntrySelectType::SELECT_INACTIVE:
                     console->flags |= CONSOLE_COLOR_FAINT;
-                    printf("  %s\n", entry.optionValue->GetText().c_str());
+                    printf("  %s\n", text);
                     console->flags &= ~CONSOLE_COLOR_FAINT;
                     break;
 
                 case ConsoleEntrySelectType::SELECT:
-                    printf("  %s\n", entry.optionValue->GetText().c_str());
+                    printf("  %s\n", text);
                     break;
 
                 default:

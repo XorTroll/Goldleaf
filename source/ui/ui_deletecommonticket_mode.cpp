@@ -40,7 +40,7 @@ namespace tin::ui
         {
             RightsId rightsId = rightsIdBuf[i];
         
-            view->AddEntry(std::make_shared<RightsIdOptionValue>(rightsId), tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&DeleteCommonTicketMode::OnRightsIdSelected, this));
+            view->AddEntry(std::make_unique<RightsIdOptionValue>(rightsId), tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&DeleteCommonTicketMode::OnRightsIdSelected, this));
         }
 
         manager.PushView(std::move(view));
