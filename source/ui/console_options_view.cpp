@@ -1,5 +1,6 @@
 #include "ui/console_options_view.hpp"
 
+#include <cstring>
 #include "util/title_util.hpp"
 #include "error.hpp"
 
@@ -83,7 +84,8 @@ namespace tin::ui
 
     // End ConsoleEntry
 
-    ConsoleOptionsView::ConsoleOptionsView()
+    ConsoleOptionsView::ConsoleOptionsView() :
+        m_cursorPos(0)
     {
 
     }
@@ -92,11 +94,11 @@ namespace tin::ui
     {
         for (unsigned char i = 0; i < m_consoleEntries.size(); i++)
         {
-            ConsoleEntry* entry = m_consoleEntries[i].get();
+            ConsoleEntry* entry = m_consoleEntries.at(i).get();
+            m_cursorPos = i;
 
             if (entry->selectType == ConsoleEntrySelectType::SELECT)
             {
-                m_cursorPos = i;
                 break;
             }
         }
@@ -112,7 +114,7 @@ namespace tin::ui
             this->MoveCursor(-1);
         else if (keys & KEY_A)
         {
-            ConsoleEntry* consoleEntry = m_consoleEntries[m_cursorPos].get();
+            ConsoleEntry* consoleEntry = m_consoleEntries.at(m_cursorPos).get();
 
             if (consoleEntry->onSelected != NULL && consoleEntry->selectType == ConsoleEntrySelectType::SELECT)
                 consoleEntry->onSelected();
@@ -134,7 +136,7 @@ namespace tin::ui
 
     ConsoleEntry* ConsoleOptionsView::GetSelectedEntry()
     {
-        return m_consoleEntries[m_cursorPos].get();
+        return m_consoleEntries.at(m_cursorPos).get();
     }
 
     IOptionValue* ConsoleOptionsView::GetSelectedOptionValue()
@@ -159,7 +161,7 @@ namespace tin::ui
 
             // Numbers greater than the number of entries should wrap around to the start
             newCursorPos %= m_consoleEntries.size();
-            ConsoleEntry* entry = m_consoleEntries[newCursorPos].get();
+            ConsoleEntry* entry = m_consoleEntries.at(newCursorPos).get();
         
             if (entry->selectType == ConsoleEntrySelectType::SELECT)
             {
@@ -178,24 +180,25 @@ namespace tin::ui
 
         for (auto& entry : m_consoleEntries)
         {
-            const char* text = entry->optionValue->GetText().c_str();
+            char optionValueText[78] = {0};
+            strncpy(optionValueText, entry->optionValue->GetText().c_str(), 78-1);
 
             switch (entry->selectType)
             {
                 case ConsoleEntrySelectType::HEADING:
                     console->flags |= CONSOLE_COLOR_BOLD;
-                    printf("%s\n", text);
+                    printf("%s\n", optionValueText);
                     console->flags &= ~CONSOLE_COLOR_BOLD;
                     break;
 
                 case ConsoleEntrySelectType::SELECT_INACTIVE:
                     console->flags |= CONSOLE_COLOR_FAINT;
-                    printf("  %s\n", text);
+                    printf("  %s\n", optionValueText);
                     console->flags &= ~CONSOLE_COLOR_FAINT;
                     break;
 
                 case ConsoleEntrySelectType::SELECT:
-                    printf("  %s\n", text);
+                    printf("  %s\n", optionValueText);
                     break;
 
                 default:
