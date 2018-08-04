@@ -89,7 +89,8 @@ int main(int argc, char **argv)
 
         gfxInitDefault();
         manager.m_printConsole = consoleInit(NULL);
-        
+        LOG_DEBUG("NXLink is active\n");
+
         // Create the tinfoil directory and subdirs on the sd card if they don't already exist. 
         // These are used throughout the app without existance checks.
         if (R_FAILED(rc = createTinfoilDirs()))

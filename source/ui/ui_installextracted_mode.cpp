@@ -47,6 +47,28 @@ namespace tin::ui
 
     void InstallExtractedNSPMode::OnExtractedNSPSelected()
     {
+        // Retrieve previous selection
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+        ConsoleOptionsView* prevView;
+
+        if (!(prevView = dynamic_cast<ConsoleOptionsView*>(manager.GetCurrentView())))
+        {
+            throw std::runtime_error("Previous view must be a ConsoleOptionsView!");
+        }
+
+        m_name = prevView->GetSelectedOptionValue()->GetText();
+
+        // Prepare the next view
+        auto view = std::make_unique<tin::ui::ConsoleOptionsView>();
+        view->AddEntry("Select Destination", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+        view->AddEntry("SD Card", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&InstallExtractedNSPMode::OnDestinationSelected, this));
+        view->AddEntry("NAND", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&InstallExtractedNSPMode::OnDestinationSelected, this));
+        manager.PushView(std::move(view));
+    }
+
+    void InstallExtractedNSPMode::OnDestinationSelected()
+    {
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
         ConsoleOptionsView* prevView;
 
@@ -55,7 +77,15 @@ namespace tin::ui
             throw std::runtime_error("View must be a ConsoleOptionsView!");
         }
 
-        std::string path = "/tinfoil/extracted/" + prevView->GetSelectedOptionValue()->GetText() + "/";
+        auto destStr = prevView->GetSelectedOptionValue()->GetText();
+        FsStorageId destStorageId = FsStorageId_SdCard;
+
+        if (destStr == "NAND")
+        {
+            destStorageId = FsStorageId_NandUser;
+        }
+
+        std::string path = "/tinfoil/extracted/" + m_name + "/";
         std::string fullPath = "@Sdcard:/" + path;
 
         // Push a blank view ready for installation
@@ -67,7 +97,7 @@ namespace tin::ui
             nx::fs::IFileSystem fileSystem;
             ASSERT_OK(fileSystem.OpenSdFileSystem(), "Failed to open SD file system");
             tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, path, fullPath);
-            tin::install::nsp::NSPInstallTask task(simpleFS, FsStorageId_SdCard);
+            tin::install::nsp::NSPInstallTask task(simpleFS, destStorageId);
 
             task.PrepareForInstall();
             task.Install();

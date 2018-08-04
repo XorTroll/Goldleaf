@@ -114,7 +114,7 @@ namespace tin::install::nsp
         // Add our new content meta
         ContentStorageRecord storageRecord;
         storageRecord.metaRecord = m_metaRecord;
-        storageRecord.storageId = FsStorageId_SdCard;
+        storageRecord.storageId = m_destStorageId;
         storageRecords.push_back(storageRecord);
 
         // Replace the existing application records with our own
@@ -172,7 +172,7 @@ namespace tin::install::nsp
         LOG_DEBUG("NcaId: %s\n", ncaName.c_str());
         LOG_DEBUG("Dest storage Id: %u\n", m_destStorageId);
 
-        nx::ncm::ContentStorage contentStorage(FsStorageId_SdCard);
+        nx::ncm::ContentStorage contentStorage(m_destStorageId);
 
         // Attempt to delete any leftover placeholders
         try

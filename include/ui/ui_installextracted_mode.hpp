@@ -7,10 +7,14 @@ namespace tin::ui
 {
     class InstallExtractedNSPMode : public IMode
     {
+        private:
+            std::string m_name;
+
         public:
             InstallExtractedNSPMode();
 
             void OnSelected() override;
             void OnExtractedNSPSelected();
+            void OnDestinationSelected();
     };
 }
