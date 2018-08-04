@@ -8,7 +8,10 @@ DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions,
 2. Place the tinfoil nro in the "switch" folder on your sd card, and run using the homebrew menu.
 
 ## Download
-When ready, will be located at:
+Courtesy of ao, builds are made automatically for each commit at:
+https://buildserv.stayathomeserver.club/tinfoil/
+
+When a full release is made, it will be located at:
 https://github.com/Adubbz/Tinfoil/releases/latest
 
 ## Donate
