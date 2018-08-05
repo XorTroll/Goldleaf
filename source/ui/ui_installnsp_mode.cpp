@@ -36,8 +36,10 @@ namespace tin::ui
             for (unsigned int i = 0; i < entryCount; i++)
             {
                 FsDirectoryEntry dirEntry = dirEntries[i];
+                std::string dirEntryName(dirEntry.name);
+                std::string ext = ".nsp";
 
-                if (dirEntry.type != ENTRYTYPE_FILE || strcmp(strchr(dirEntry.name, '.') + 1, "nsp") != 0)
+                if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
                     continue;
 
                 view->AddEntry(dirEntry.name, ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
