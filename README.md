@@ -2,7 +2,7 @@
 A homebrew application for the Nintendo Switch used to manage titles.
 
 DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions, or anything else the use of Tinfoil may cause. Proceed with caution!
- 
+
 ## Installation
 1. Install FS sig patches using the latest [hekate](https://github.com/CTCaer/hekate) with the option ``kip1patch=nosigchk`` in ``hekate_ipl.ini``.
 2. Place the tinfoil nro in the "switch" folder on your sd card, and run using the homebrew menu.
