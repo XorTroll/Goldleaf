@@ -83,11 +83,38 @@ namespace tin::ui
         }
 
         auto destStr = prevView->GetSelectedOptionValue()->GetText();
-        FsStorageId destStorageId = FsStorageId_SdCard;
+        m_destStorageId = FsStorageId_SdCard;
 
         if (destStr == "NAND")
         {
-            destStorageId = FsStorageId_NandUser;
+            m_destStorageId = FsStorageId_NandUser;
+        }
+
+        auto view = std::make_unique<tin::ui::ConsoleOptionsView>();
+        view->AddEntry("Ignore Required Firmware Version", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+        view->AddEntry("No", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnIgnoreReqFirmVersionSelected, this));
+        view->AddEntry("Yes", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnIgnoreReqFirmVersionSelected, this));
+        manager.PushView(std::move(view));
+    }
+
+    void InstallNSPMode::OnIgnoreReqFirmVersionSelected()
+    {
+        // Retrieve previous selection
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+        ConsoleOptionsView* prevView;
+
+        if (!(prevView = dynamic_cast<ConsoleOptionsView*>(manager.GetCurrentView())))
+        {
+            throw std::runtime_error("Previous view must be a ConsoleOptionsView!");
+        }
+
+        auto optStr = prevView->GetSelectedOptionValue()->GetText();
+        m_ignoreReqFirmVersion = false;
+
+        if (optStr == "Yes")
+        {
+            m_ignoreReqFirmVersion = true;
         }
 
         std::string path = "@Sdcard://tinfoil/nsp/" + m_name;
@@ -101,7 +128,7 @@ namespace tin::ui
             nx::fs::IFileSystem fileSystem;
             ASSERT_OK(fileSystem.OpenFileSystemWithId(path, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
             tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", path + "/");
-            tin::install::nsp::NSPInstallTask task(simpleFS, destStorageId);
+            tin::install::nsp::NSPInstallTask task(simpleFS, m_destStorageId, m_ignoreReqFirmVersion);
 
             task.PrepareForInstall();
             LOG_DEBUG("Pre Install Records: \n");

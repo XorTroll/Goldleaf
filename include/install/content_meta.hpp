@@ -51,6 +51,13 @@ namespace tin::install
         u8 padding[0x8];
     } PACKED;
 
+    struct AddOnContentMetaExtendedHeader
+    {
+        u64 applicationTitleId;
+        u32 requiredApplicationVersion;
+        u32 padding;
+    } PACKED;
+
     struct ContentRecord
     {
         NcmNcaId ncaId;
@@ -88,6 +95,6 @@ namespace tin::install
             ContentMeta();
 
             Result ParseData(u8* data, size_t dataSize);
-            Result GetInstallContentMeta(NcmMetaRecord *contentMetaKeyOut, NcmContentRecord& cnmtContentRecord, std::vector<u8>& installContentMetaBytesOut);
+            Result GetInstallContentMeta(NcmMetaRecord *contentMetaKeyOut, NcmContentRecord& cnmtContentRecord, std::vector<u8>& installContentMetaBytesOut, bool ignoreReqFirmVersion);
     };
 }
