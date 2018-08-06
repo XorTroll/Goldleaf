@@ -84,7 +84,8 @@ namespace tin::ui
 
     // End ConsoleEntry
 
-    ConsoleOptionsView::ConsoleOptionsView()
+    ConsoleOptionsView::ConsoleOptionsView(unsigned int unwindDistance) :
+        ConsoleView(unwindDistance)
     {
 
     }
@@ -119,7 +120,7 @@ namespace tin::ui
                 consoleEntry->onSelected();
         }
         else if (keys & KEY_B)
-            m_viewManager->Unwind();
+            m_viewManager->Unwind(m_unwindDistance);
     }
 
     void ConsoleOptionsView::AddEntry(std::unique_ptr<IOptionValue> optionValue, ConsoleEntrySelectType selectType, std::function<void ()> onSelected)

@@ -38,7 +38,7 @@ namespace tin::ui
             static ViewManager& Instance();
 
             void PushView(std::unique_ptr<View> view);
-            void Unwind();
+            void Unwind(unsigned int count = 1);
 
             void ProcessInput(u64 keys);
             void Update();

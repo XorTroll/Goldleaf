@@ -120,7 +120,7 @@ namespace tin::ui
         std::string path = "@Sdcard://tinfoil/nsp/" + m_name;
 
         // Push a blank view ready for installation
-        auto view = std::make_unique<tin::ui::ConsoleView>();
+        auto view = std::make_unique<tin::ui::ConsoleView>(3);
         manager.PushView(std::move(view));
 
         try

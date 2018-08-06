@@ -24,11 +24,15 @@ namespace tin::ui
         m_views.push(std::move(view));
     }
 
-    void ViewManager::Unwind()
+    void ViewManager::Unwind(unsigned int count)
     {
-        if (m_views.size() > 1)
+        if (m_views.size() > 1 && count > 0)
         {
-            m_views.pop();
+            for (unsigned int i = 0; i < count; i++)
+            {
+                m_views.pop();
+            }
+        
             this->GetCurrentView()->OnPresented();
         }
         else

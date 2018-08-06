@@ -66,9 +66,8 @@ namespace tin::ui
         private:
             std::vector<std::unique_ptr<ConsoleEntry>> m_consoleEntries;
             unsigned int m_cursorPos = 0;
-
         public:
-            ConsoleOptionsView();
+            ConsoleOptionsView(unsigned int unwindDistance = 1);
 
             virtual void OnPresented() override;
             virtual void ProcessInput(u64 keys) override;
