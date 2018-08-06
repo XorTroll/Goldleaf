@@ -1,5 +1,7 @@
 #include "ui/view.hpp"
 
+extern bool g_shouldExit;
+
 namespace tin::ui
 {
     ViewManager::ViewManager() {}
@@ -25,9 +27,14 @@ namespace tin::ui
     void ViewManager::Unwind()
     {
         if (m_views.size() > 1)
+        {
             m_views.pop();
-
-        this->GetCurrentView()->OnPresented();
+            this->GetCurrentView()->OnPresented();
+        }
+        else
+        {
+            g_shouldExit = true;
+        }
     }
 
     void ViewManager::ProcessInput(u64 keys)
