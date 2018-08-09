@@ -133,7 +133,7 @@ namespace tin::ui
         }
         else
         {
-            install_list[0] = m_name;
+            install_list.push_back(m_name);
         }
 
         // Push a blank view ready for installation
