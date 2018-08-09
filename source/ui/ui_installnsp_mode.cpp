@@ -172,7 +172,10 @@ namespace tin::ui
                 LOG_DEBUG("Failed to install NSP");
                 LOG_DEBUG("%s", e.what());
                 fprintf(stdout, "%s", e.what());
+                break;
             }
         }
+        
+        printf("Done!\n\nPress (B) to return.\n");
     }
 }
