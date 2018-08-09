@@ -34,3 +34,4 @@ Result nsInvalidateAllApplicationControlCache(void);
 Result nsInvalidateApplicationControlCache(u64 tid);
 Result nsCheckApplicationLaunchRights(u64 tid);
 Result nsGetApplicationContentPath(u64 titleId, u8 type, char *outBuf, size_t bufSize);
+Result nsWithdrawApplicationUpdateRequest(u64 titleId);
