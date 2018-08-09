@@ -9,7 +9,7 @@
 namespace tin::ui
 {
     InstallNSPMode::InstallNSPMode() :
-        IMode("Install NSP")
+    IMode("Install NSP")
     {
 
     }
@@ -29,6 +29,8 @@ namespace tin::ui
 
         if (entryCount > 0)
         {
+            view->AddEntry("Install All", ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
+
             auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
 
             dir.Read(0, dirEntries.get(), entryCount);
@@ -110,39 +112,67 @@ namespace tin::ui
         }
 
         auto optStr = prevView->GetSelectedOptionValue()->GetText();
-        m_ignoreReqFirmVersion = false;
+        m_ignoreReqFirmVersion = (optStr == "Yes");
+        std::vector<std::string> install_list;
 
-        if (optStr == "Yes")
+        if (m_name == "Install All")
         {
-            m_ignoreReqFirmVersion = true;
-        }
+            nx::fs::IFileSystem fileSystem;
+            fileSystem.OpenSdFileSystem();
+            nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/nsp/", FS_DIROPEN_FILE);
 
-        std::string path = "@Sdcard://tinfoil/nsp/" + m_name;
+            u64 entryCount = dir.GetEntryCount();
+
+            auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
+
+            dir.Read(0, dirEntries.get(), entryCount);
+
+            for (unsigned int i = 0; i < entryCount; i++) {
+                FsDirectoryEntry dirEntry = dirEntries[i];
+                std::string dirEntryName(dirEntry.name);
+                std::string ext = ".nsp";
+
+                if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
+                    continue;
+
+                install_list.push_back(dirEntry.name);
+            }
+        }
+        else
+        {
+            install_list[0] = m_name;
+        }
 
         // Push a blank view ready for installation
         auto view = std::make_unique<tin::ui::ConsoleView>(3);
         manager.PushView(std::move(view));
 
-        try
+        for (unsigned int i = 0; i < install_list.size(); i++)
         {
-            nx::fs::IFileSystem fileSystem;
-            ASSERT_OK(fileSystem.OpenFileSystemWithId(path, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
-            tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", path + "/");
-            tin::install::nsp::NSPInstallTask task(simpleFS, m_destStorageId, m_ignoreReqFirmVersion);
+            printf("Installing %i/%ld\n", (i + 1), install_list.size());
+            std::string path = "@Sdcard://tinfoil/nsp/" + install_list[i];
 
-            task.PrepareForInstall();
-            LOG_DEBUG("Pre Install Records: \n");
-            task.DebugPrintInstallData();
-            task.Install();
-            LOG_DEBUG("Post Install Records: \n");
-            task.DebugPrintInstallData();
-        }
-        catch (std::exception& e)
-        {
-            printf("Failed to install NSP!\n");
-            LOG_DEBUG("Failed to install NSP");
-            LOG_DEBUG("%s", e.what());
-            fprintf(stdout, "%s", e.what());
+            try
+            {
+                nx::fs::IFileSystem fileSystem;
+                ASSERT_OK(fileSystem.OpenFileSystemWithId(path, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
+                tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", path + "/");
+                tin::install::nsp::NSPInstallTask task(simpleFS, m_destStorageId, m_ignoreReqFirmVersion);
+
+                task.PrepareForInstall();
+                LOG_DEBUG("Pre Install Records: \n");
+                task.DebugPrintInstallData();
+                task.Install();
+                LOG_DEBUG("Post Install Records: \n");
+                task.DebugPrintInstallData();
+            }
+            catch (std::exception& e)
+            {
+                printf("Failed to install NSP!\n");
+                LOG_DEBUG("Failed to install NSP");
+                LOG_DEBUG("%s", e.what());
+                fprintf(stdout, "%s", e.what());
+            }
         }
     }
 }
