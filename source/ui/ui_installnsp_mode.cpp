@@ -14,12 +14,9 @@ namespace tin::ui
 
     }
 
-    void InstallNSPMode::OnSelected()
+    std::vector<std::string> GetNSPList()
     {
-        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
-        auto view = std::make_unique<tin::ui::ConsoleOptionsView>();
-        view->AddEntry("Select NSP", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
-        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+        std::vector<std::string> nsp_list;
 
         nx::fs::IFileSystem fileSystem;
         fileSystem.OpenSdFileSystem();
@@ -27,24 +24,39 @@ namespace tin::ui
 
         u64 entryCount = dir.GetEntryCount();
 
-        if (entryCount > 0)
+        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
+
+        dir.Read(0, dirEntries.get(), entryCount);
+
+        for (unsigned int i = 0; i < entryCount; i++) {
+            FsDirectoryEntry dirEntry = dirEntries[i];
+            std::string dirEntryName(dirEntry.name);
+            std::string ext = ".nsp";
+
+            if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
+                continue;
+
+            nsp_list.push_back(dirEntry.name);
+        }
+        return nsp_list;
+    }
+
+    void InstallNSPMode::OnSelected()
+    {
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+        auto view = std::make_unique<tin::ui::ConsoleOptionsView>();
+        view->AddEntry("Select NSP", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+
+        std::vector<std::string> nspList = GetNSPList();
+
+        if (nspList.size() > 0)
         {
             view->AddEntry("Install All", ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
 
-            auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
-
-            dir.Read(0, dirEntries.get(), entryCount);
-
-            for (unsigned int i = 0; i < entryCount; i++)
+            for (unsigned int i = 0; i < nspList.size(); i++)
             {
-                FsDirectoryEntry dirEntry = dirEntries[i];
-                std::string dirEntryName(dirEntry.name);
-                std::string ext = ".nsp";
-
-                if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
-                    continue;
-
-                view->AddEntry(dirEntry.name, ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
+                view->AddEntry(nspList[i], ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
             }
         }
 
@@ -117,26 +129,7 @@ namespace tin::ui
 
         if (m_name == "Install All")
         {
-            nx::fs::IFileSystem fileSystem;
-            fileSystem.OpenSdFileSystem();
-            nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/nsp/", FS_DIROPEN_FILE);
-
-            u64 entryCount = dir.GetEntryCount();
-
-            auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
-
-            dir.Read(0, dirEntries.get(), entryCount);
-
-            for (unsigned int i = 0; i < entryCount; i++) {
-                FsDirectoryEntry dirEntry = dirEntries[i];
-                std::string dirEntryName(dirEntry.name);
-                std::string ext = ".nsp";
-
-                if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
-                    continue;
-
-                install_list.push_back(dirEntry.name);
-            }
+            install_list = GetNSPList();
         }
         else
         {
@@ -175,7 +168,7 @@ namespace tin::ui
                 break;
             }
         }
-        
+
         printf("Done!\n\nPress (B) to return.\n");
     }
 }
