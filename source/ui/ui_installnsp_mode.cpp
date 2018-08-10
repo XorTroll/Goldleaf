@@ -14,10 +14,8 @@ namespace tin::ui
 
     }
 
-    std::vector<std::string> InstallNSPMode::GetNSPList()
+    void InstallNSPMode::GetNSPList()
     {
-        std::vector<std::string> nspList;
-
         nx::fs::IFileSystem fileSystem;
         fileSystem.OpenSdFileSystem();
         nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/nsp/", FS_DIROPEN_FILE);
@@ -37,9 +35,8 @@ namespace tin::ui
             if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
                 continue;
 
-            nspList.push_back(dirEntry.name);
+            m_nspList.push_back(dirEntry.name);
         }
-        return nspList;
     }
 
     void InstallNSPMode::OnSelected()
@@ -49,15 +46,15 @@ namespace tin::ui
         view->AddEntry("Select NSP", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
 
-        nspList = GetNSPList();
+        GetNSPList();
 
-        if (nspList.size() > 0)
+        if (m_nspList.size() > 0)
         {
             view->AddEntry("Install All", ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
 
-            for (unsigned int i = 0; i < nspList.size(); i++)
+            for (unsigned int i = 0; i < m_nspList.size(); i++)
             {
-                view->AddEntry(nspList[i], ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
+                view->AddEntry(m_nspList[i], ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
             }
         }
 
@@ -130,8 +127,7 @@ namespace tin::ui
 
         if (m_name == "Install All")
         {
-            // installList = GetNSPList();
-            installList = nspList;
+            installList = m_nspList;
         }
         else
         {
