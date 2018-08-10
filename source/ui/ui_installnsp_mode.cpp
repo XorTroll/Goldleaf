@@ -46,7 +46,8 @@ namespace tin::ui
         view->AddEntry("Select NSP", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
 
-        GetNSPList();
+        m_nspList.clear();
+        this->GetNSPList();
 
         if (m_nspList.size() > 0)
         {
