@@ -9,14 +9,14 @@
 namespace tin::ui
 {
     InstallNSPMode::InstallNSPMode() :
-    IMode("Install NSP")
+        IMode("Install NSP")
     {
 
     }
 
-    std::vector<std::string> GetNSPList()
+    std::vector<std::string> InstallNSPMode::GetNSPList()
     {
-        std::vector<std::string> nsp_list;
+        std::vector<std::string> nspList;
 
         nx::fs::IFileSystem fileSystem;
         fileSystem.OpenSdFileSystem();
@@ -28,7 +28,8 @@ namespace tin::ui
 
         dir.Read(0, dirEntries.get(), entryCount);
 
-        for (unsigned int i = 0; i < entryCount; i++) {
+        for (unsigned int i = 0; i < entryCount; i++)
+        {
             FsDirectoryEntry dirEntry = dirEntries[i];
             std::string dirEntryName(dirEntry.name);
             std::string ext = ".nsp";
@@ -36,9 +37,9 @@ namespace tin::ui
             if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
                 continue;
 
-            nsp_list.push_back(dirEntry.name);
+            nspList.push_back(dirEntry.name);
         }
-        return nsp_list;
+        return nspList;
     }
 
     void InstallNSPMode::OnSelected()
@@ -48,7 +49,7 @@ namespace tin::ui
         view->AddEntry("Select NSP", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
 
-        std::vector<std::string> nspList = GetNSPList();
+        nspList = GetNSPList();
 
         if (nspList.size() > 0)
         {
@@ -125,25 +126,26 @@ namespace tin::ui
 
         auto optStr = prevView->GetSelectedOptionValue()->GetText();
         m_ignoreReqFirmVersion = (optStr == "Yes");
-        std::vector<std::string> install_list;
+        std::vector<std::string> installList;
 
         if (m_name == "Install All")
         {
-            install_list = GetNSPList();
+            // installList = GetNSPList();
+            installList = nspList;
         }
         else
         {
-            install_list.push_back(m_name);
+            installList.push_back(m_name);
         }
 
         // Push a blank view ready for installation
         auto view = std::make_unique<tin::ui::ConsoleView>(3);
         manager.PushView(std::move(view));
 
-        for (unsigned int i = 0; i < install_list.size(); i++)
+        for (unsigned int i = 0; i < installList.size(); i++)
         {
-            printf("Installing %i/%ld\n", (i + 1), install_list.size());
-            std::string path = "@Sdcard://tinfoil/nsp/" + install_list[i];
+            printf("Installing %i/%ld\n", (i + 1), installList.size());
+            std::string path = "@Sdcard://tinfoil/nsp/" + installList[i];
 
             try
             {
