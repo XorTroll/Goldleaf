@@ -14,6 +14,7 @@
 #include "ui/ui_installnsp_mode.hpp"
 #include "ui/ui_deletecommonticket_mode.hpp"
 #include "ui/ui_deletepersonalizedticket_mode.hpp"
+#include "ui/ui_networkinstall_mode.hpp"
 #include "ui/view.hpp"
 #include "ui/console_options_view.hpp"
 
@@ -59,6 +60,9 @@ void userAppInit(void)
     if (R_FAILED(esInitialize()))
         fatalSimple(0xBEE5);
 
+    if (R_FAILED(nifmInitialize()))
+        fatalSimple(0xBEE6);
+
     // This may fail, but this doesn't matter for end users
     socketInitializeDefault();
     nxLinkInitialize();
@@ -66,6 +70,7 @@ void userAppInit(void)
 
 void userAppExit(void)
 {
+    nifmExit();
     nxLinkExit();
     socketExit();
     ncmextExit();
@@ -103,6 +108,7 @@ int main(int argc, char **argv)
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
+        titleManCat.AddMode(std::move(std::make_unique<tin::ui::NetworkInstallMode>()));
         // TODO: Add uninstall and dump nsp
 
         tin::ui::Category tikManCat("Ticket Management");
