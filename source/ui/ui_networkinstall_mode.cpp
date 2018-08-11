@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sstream>
+#include <curl/curl.h>
 
 #include "nx/ipc/tin_ipc.h"
 #include "ui/console_view.hpp"
@@ -42,7 +43,9 @@ namespace tin::ui
         m_serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
     
         if (m_serverSocket < -1)
+        {
             THROW_FORMAT("Failed to create a server socket. Error code: %u\n", errno);
+        }
 
         struct sockaddr_in server;
         server.sin_family = AF_INET;
@@ -50,13 +53,17 @@ namespace tin::ui
         server.sin_addr.s_addr = htonl(INADDR_ANY);
 
         if (bind(m_serverSocket, (struct sockaddr*) &server, sizeof(server)) < 0)
+        {
             THROW_FORMAT("Failed to bind server socket. Error code: %u\n", errno);
+        }
 
         // Set as non-blocking
         fcntl(m_serverSocket, F_SETFL, fcntl(m_serverSocket, F_GETFL, 0) | O_NONBLOCK);
 
         if (listen(m_serverSocket, 5) < 0) 
+        {
             THROW_FORMAT("Failed to listen on server socket. Error code: %u\n", errno);
+        }
     }
     catch (std::exception& e)
     {
@@ -81,11 +88,18 @@ namespace tin::ui
             #ifndef NXLINK_DEBUG
             ASSERT_OK(socketInitializeDefault(), "Failed to initialize socket");
             #endif
+            ASSERT_OK(curl_global_init(CURL_GLOBAL_ALL), "Curl failed to initialized");
 
-            this->InitializeServerSocket();
+            // Initialize the server socket if it hasn't already been
+            if (m_serverSocket == 0)
+            {
+                this->InitializeServerSocket();
 
-            if (m_serverSocket <= 0)
-                THROW_FORMAT("Server socket failed to initialize.\n");
+                if (m_serverSocket <= 0)
+                {
+                    THROW_FORMAT("Server socket failed to initialize.\n");
+                }
+            }
 
             struct in_addr addr = {(in_addr_t) gethostid()};
 
@@ -94,6 +108,13 @@ namespace tin::ui
 
             while (true)
             {
+                // Break on input pressed
+                hidScanInput();
+                u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+                if (kDown & KEY_B)
+                    break;
+
                 struct sockaddr_in client;
                 socklen_t clientLen = sizeof(client);
 
@@ -109,7 +130,9 @@ namespace tin::ui
                     printf("Received url buf size: 0x%x\n", size);
 
                     if (size > MAX_URL_SIZE * MAX_URLS)
+                    {
                         THROW_FORMAT("URL size %x is too large!\n", size);
+                    }
 
                     // Make sure the last string is null terminated
                     auto urlBuf = std::make_unique<char[]>(size+1);
@@ -134,9 +157,14 @@ namespace tin::ui
                         if (url.compare(url.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
                         {
                             printf("Received NSP URL: %s\n", url.c_str());
+                            tin::network::HTTPHeader header(url);
+                            printf("Requesting header...\n");
+                            //header.PerformRequest();
+                            printf("Got header!\n");
                         }
                     }
 
+                    printf("Sending ack...\n");
                     // Send 1 byte ack to close the server
                     u8 ack = 0;
                     tin::network::WaitSendNetworkData(m_clientSocket, &ack, sizeof(u8));
@@ -147,17 +175,11 @@ namespace tin::ui
                 {
                     THROW_FORMAT("Failed to open client socket with code %u\n", errno);
                 }
-
-                // Break on input pressed
-                u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-                if (kDown & KEY_B)
-                    break;
             }
 
 
         }
-        catch (std::exception& e)
+        catch (std::runtime_error& e)
         {
             printf("Failed to perform remote install!\n");
             LOG_DEBUG("Failed to perform remote install");
@@ -171,6 +193,7 @@ namespace tin::ui
             m_clientSocket = 0;
         }
 
+        curl_global_cleanup();
         #ifndef NXLINK_DEBUG
         socketExit();
         #endif

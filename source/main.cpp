@@ -160,6 +160,20 @@ int main(int argc, char **argv)
             kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         }
     }
+    catch (...)
+    {
+        consoleClear();
+        printf("An unknown error occurred\n\nPress any button to exit.");
+        LOG_DEBUG("An unknown error occurred:\n");
+
+        u64 kDown = 0;
+
+        while (!kDown)
+        {
+            hidScanInput();
+            kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+        }
+    }
 
     gfxExit();
     return 0;

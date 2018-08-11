@@ -66,7 +66,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx
+LIBS	:= -lcurl -lz -lnx
 
 
 
