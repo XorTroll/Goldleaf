@@ -8,10 +8,13 @@ DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions,
 2. Place the tinfoil nro in the "switch" folder on your sd card, and run using the homebrew menu.
 
 ## Download
-When ready, will be located at:
+Courtesy of [LavaTech](https://discord.gg/VjyDSuu), builds are made automatically for each commit at:
+https://buildserv.stayathomeserver.club/tinfoil/
+
+When ready, full releases will be located at:
 https://github.com/Adubbz/Tinfoil/releases/latest
 
 ## Donate
 If you enjoy my work any and all donations are much appreciated :)
 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate?token=UlSHinXCuq-McPOKE-YezKQcEuDKBpxvW3JH9r8GBCwG8GogGeaV-U1KuNEgUgDRTxZKvm&country.x=AU&locale.x=AU&Z3JncnB0=)
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=TBB9Q9YL9AB74&lc=AU&item_name=Adubbz%27s%20Tools%20%26%20Game%20Mods&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)

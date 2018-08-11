@@ -86,13 +86,21 @@ namespace nx::fs
 
     Result IFileSystem::OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId)
     {
+        Result rc = 0;
+
         if (path.length() >= FS_MAX_PATH)
             throw std::runtime_error("Directory path is too long!");
 
         // libnx expects a FS_MAX_PATH-sized buffer
         path.reserve(FS_MAX_PATH);
 
-        ASSERT_OK(fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str()), "Failed to open file system with id");
+        std::string errorMsg = "Failed to open file system with id";
+        rc = fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str());
+
+        if (rc == 0x236e02)
+            errorMsg = "File " + path + " is corrupt! You may have a bad dump, or fs_mitm may need to be removed.";
+
+        ASSERT_OK(rc, errorMsg.c_str());
         return 0;  
     }
 

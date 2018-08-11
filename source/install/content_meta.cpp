@@ -35,7 +35,7 @@ namespace tin::install
         return 0;
     }
 
-    Result ContentMeta::GetInstallContentMeta(NcmMetaRecord *contentMetaKeyOut, NcmContentRecord& cnmtContentRecord, std::vector<u8>& installContentMetaBytesOut)
+    Result ContentMeta::GetInstallContentMeta(NcmMetaRecord *contentMetaKeyOut, NcmContentRecord& cnmtContentRecord, std::vector<u8>& installContentMetaBytesOut, bool ignoreReqFirmVersion)
     {
         memset(contentMetaKeyOut, 0, sizeof(NcmMetaRecord));
         contentMetaKeyOut->titleId = m_contentMetaHeader.titleId;
@@ -53,6 +53,13 @@ namespace tin::install
 
         // Setup the meta extended header
         auto extendedHeaderBytes = m_contentMetaBytes.data() + sizeof(ContentMetaHeader);
+
+        // Optionally disable the required system version field
+        if (ignoreReqFirmVersion && (m_contentMetaHeader.type == ContentMetaType::APPLICATION || m_contentMetaHeader.type == ContentMetaType::PATCH))
+        {
+            *(u64 *)(extendedHeaderBytes + 8) = 0;
+        }
+
         installContentMetaBytesOut.insert(installContentMetaBytesOut.end(), extendedHeaderBytes, extendedHeaderBytes + m_contentMetaHeader.extendedHeaderSize);
 
         // Setup cnmt content record

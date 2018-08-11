@@ -11,6 +11,8 @@ namespace tin::install::nsp
     class NSPInstallTask : public IInstallTask
     {
         private:
+            bool m_ignoreReqFirmVersion = false;
+
             tin::install::nsp::SimpleFileSystem* const m_simpleFileSystem;
             tin::install::ContentMeta m_contentMeta;
 
@@ -19,7 +21,7 @@ namespace tin::install::nsp
             std::vector<u8> m_installContentMetaData;
 
         public:
-            NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId);
+            NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId, bool ignoreReqFirmVersion);
 
             void PrepareForInstall() override;
             void Install() override;

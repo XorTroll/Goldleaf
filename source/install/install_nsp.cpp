@@ -12,8 +12,8 @@
 
 namespace tin::install::nsp
 {
-    NSPInstallTask::NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId) :
-        IInstallTask(destStorageId), m_simpleFileSystem(&simpleFileSystem)
+    NSPInstallTask::NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId, bool ignoreReqFirmVersion) :
+        IInstallTask(destStorageId), m_ignoreReqFirmVersion(ignoreReqFirmVersion), m_simpleFileSystem(&simpleFileSystem)
     {
 
     }
@@ -55,7 +55,10 @@ namespace tin::install::nsp
         *(u64*)m_cnmtContentRecord.size = cnmtNCASize & 0xFFFFFFFFFFFF;
         m_cnmtContentRecord.type = NcmContentType_CNMT;
 
-        ASSERT_OK(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData), "Failed to get install content meta");
+        if (m_ignoreReqFirmVersion)
+            printf("WARNING: Required system firmware version is being IGNORED!\n");
+
+        ASSERT_OK(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData, m_ignoreReqFirmVersion), "Failed to get install content meta");
 
         // Check NCA files are present
         // Check tik/cert is present
@@ -148,8 +151,6 @@ namespace tin::install::nsp
         {
             printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
         }
-
-        printf("Done!\n\nPress (B) to return.\n");
     }
 
     void NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
