@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -16,15 +17,17 @@ namespace tin::network
     {
         private:
             std::string m_url;
+            std::map<std::string, std::string> m_values;
+
+            static size_t ParseHTMLHeader(char* bytes, size_t size, size_t numItems, void* userData);
 
         public:
-            std::string m_test = "HI";
-
             HTTPHeader(std::string url);
 
             void PerformRequest();
-            std::string GetValue();
-            static size_t ParseHTMLHeader(char* bytes, size_t size, size_t numItems, void* userData);
+
+            bool HasValue(std::string key);
+            std::string GetValue(std::string key);
     };
 
     size_t WaitReceiveNetworkData(int sockfd, void* buf, size_t len);

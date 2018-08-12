@@ -11,3 +11,4 @@ notes.txt
 samples/*
 tools/nsp.py
 patches/dev
+tools/remote/

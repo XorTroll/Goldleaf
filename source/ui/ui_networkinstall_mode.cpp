@@ -82,6 +82,7 @@ namespace tin::ui
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
         auto view = std::make_unique<tin::ui::ConsoleView>();
         manager.PushView(std::move(view));
+        printf("THIS FEATURE IS STILL IN DEVELOPMENT! IT WILL NOT WORK YET!\n");
 
         try
         {
@@ -159,8 +160,9 @@ namespace tin::ui
                             printf("Received NSP URL: %s\n", url.c_str());
                             tin::network::HTTPHeader header(url);
                             printf("Requesting header...\n");
-                            //header.PerformRequest();
+                            header.PerformRequest();
                             printf("Got header!\n");
+                            printf("Range requests supported: %s\n", header.GetValue("accept-ranges").c_str());
                         }
                     }
 

@@ -18,13 +18,20 @@ namespace tin::network
         line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
 
         // Split into key and value
-        auto keyEnd = line.find(": ");
-        std::string key = line.substr(0, keyEnd);
-        std::string value = line.substr(keyEnd + 2);
+        if (!line.empty())
+        {
+            auto keyEnd = line.find(": ");
 
-        //printf("Key: |%s|\n", key.c_str());
-        //printf("Value: |%s|\n", value.c_str());
-        //printf("Test: %s\n", header->m_test.c_str());
+            if (keyEnd != 0)
+            {
+                std::string key = line.substr(0, keyEnd);
+                std::string value = line.substr(keyEnd + 2);
+
+                // Make key lowercase
+                std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+                header->m_values[key] = value;
+            }
+        }
 
         return numBytes;
     }
@@ -38,6 +45,9 @@ namespace tin::network
 
     void HTTPHeader::PerformRequest()
     {
+        // We don't want any existing values to get mixed up with this request
+        m_values.clear();
+
         CURL* curl = curl_easy_init();
         CURLcode rc = (CURLcode)0;
 
@@ -67,6 +77,16 @@ namespace tin::network
         {
             THROW_FORMAT("Unexpected HTTP response code when retrieving header: %lu\n", httpCode);
         }
+    }
+
+    bool HTTPHeader::HasValue(std::string key)
+    {
+        return m_values.count(key);
+    }
+
+    std::string HTTPHeader::GetValue(std::string key)
+    {
+        return m_values[key];
     }
 
     /*
