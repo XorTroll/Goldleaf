@@ -120,6 +120,16 @@ namespace tin::install::nsp
         storageRecord.storageId = m_destStorageId;
         storageRecords.push_back(storageRecord);
 
+        printf("Installing ticket and cert...\n");
+        try
+        {
+            this->InstallTicketCert();
+        }
+        catch (std::runtime_error& e)
+        {
+            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
+        }
+
         // Replace the existing application records with our own
         try
         {
@@ -140,16 +150,6 @@ namespace tin::install::nsp
         for (auto& record : m_contentMeta.m_contentRecords)
         {
             this->InstallNCA(record.ncaId);
-        }
-
-        printf("Installing ticket and cert...\n");
-        try
-        {
-            this->InstallTicketCert();
-        }
-        catch (std::runtime_error& e)
-        {
-            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
         }
     }
 
