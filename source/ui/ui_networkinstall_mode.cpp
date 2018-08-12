@@ -158,11 +158,10 @@ namespace tin::ui
                         if (url.compare(url.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
                         {
                             printf("Received NSP URL: %s\n", url.c_str());
-                            tin::network::HTTPHeader header(url);
-                            printf("Requesting header...\n");
-                            header.PerformRequest();
-                            printf("Got header!\n");
-                            printf("Range requests supported: %s\n", header.GetValue("accept-ranges").c_str());
+                            tin::network::HTTPDownload download(url);
+                            auto testBuf = std::make_unique<u8[]>(0x10);
+                            download.RequestDataRange(testBuf.get(), 0, 0x10);
+                            printBytes(nxlinkout, testBuf.get(), 0x10, true);
                         }
                     }
 

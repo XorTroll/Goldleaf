@@ -3,10 +3,19 @@
 #include <curl/curl.h>
 #include <algorithm>
 #include <cstring>
+#include <sstream>
 #include "error.hpp"
 
 namespace tin::network
 {
+    // HTTPHeader
+ 
+    HTTPHeader::HTTPHeader(std::string url) :
+        m_url(url)
+    {
+
+    }
+
     size_t HTTPHeader::ParseHTMLHeader(char* bytes, size_t size, size_t numItems, void* userData)
     {
         HTTPHeader* header = reinterpret_cast<HTTPHeader*>(userData);
@@ -34,13 +43,6 @@ namespace tin::network
         }
 
         return numBytes;
-    }
-
-    // HTTPHeader
-    HTTPHeader::HTTPHeader(std::string url) :
-        m_url(url)
-    {
-
     }
 
     void HTTPHeader::PerformRequest()
@@ -89,43 +91,127 @@ namespace tin::network
         return m_values[key];
     }
 
-    /*
-        def __init__(self, url):
-        self.values = {}
-        self.url = url
-
-        curl = pycurl.Curl()
-        curl.setopt(curl.URL, self.url)
-        curl.setopt(curl.NOBODY, True) 
-        curl.setopt(curl.SSL_VERIFYPEER, False)
-        curl.setopt(curl.HEADERFUNCTION, self.parse_header_line)
-        curl.perform()
-
-        http_code = curl.getinfo(curl.HTTP_CODE)
-        curl.close()
-
-        if http_code != 200 and http_code != 204:
-            raise Exception('Unexpected HTTP code when retrieving header: {}'.format(http_code))
-
-    def parse_header_line(self, line):
-        header_line = line.decode('iso-8859-1')
-
-        if ':' not in header_line:
-            return
-
-        name, value = header_line.split(':', 1)
-        
-        # Remove newlines and whitespace
-        name = name.strip()
-        value = value.strip()
-
-        name = name.lower()
-        self.values[name] = value
-    */
-
     // End HTTPHeader
 
+    // HTTPDownloadBuffer
 
+    HTTPDownloadBuffer::HTTPDownloadBuffer(size_t size, void* buffer) :
+        m_totalSize(size), m_buffer(buffer)
+    {
+
+    }
+
+    // End HTTPDownloadBuffer
+
+    // HTTPDownload
+
+    HTTPDownload::HTTPDownload(std::string url) :
+        m_url(url), m_header(url)
+    {
+
+    }
+
+    size_t HTTPDownload::ParseHTMLData(char* bytes, size_t size, size_t numItems, void* userData)
+    {
+        HTTPDownloadBuffer* downloadBuffer = reinterpret_cast<HTTPDownloadBuffer*>(userData);
+        size_t numBytes = size * numItems;
+
+        if (downloadBuffer->m_readSize + numBytes > downloadBuffer->m_totalSize)
+        {
+            printf("New read size 0x%lx would exceed total expected size 0x%lx\n", downloadBuffer->m_readSize + numBytes, downloadBuffer->m_totalSize);
+            return 0;
+        }
+
+        memcpy(reinterpret_cast<u8*>(downloadBuffer->m_buffer) + downloadBuffer->m_readSize, bytes, numBytes);
+        downloadBuffer->m_readSize += numBytes;
+
+        return numBytes;
+    }
+
+    bool HTTPDownload::IsRangesSupported()
+    {
+        // The header won't be populated until we do this
+        m_header.PerformRequest();
+
+        if (m_header.HasValue("accept-ranges"))
+        {
+            return m_header.GetValue("accept-ranges") == "bytes";
+        }
+
+        CURL* curl = curl_easy_init();
+        CURLcode rc = (CURLcode)0;
+
+        if (!curl)
+        {
+            THROW_FORMAT("Failed to initialize curl\n");
+        }
+
+        curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
+        curl_easy_setopt(curl, CURLOPT_NOBODY, true);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
+        curl_easy_setopt(curl, CURLOPT_RANGE, "0-0");
+
+        rc = curl_easy_perform(curl);
+        if (rc != CURLE_OK)
+        {
+            THROW_FORMAT("Failed to retrieve HTTP Header: %s\n", curl_easy_strerror(rc));
+        }
+
+        u64 httpCode = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+        curl_easy_cleanup(curl);
+
+        return httpCode == 206;
+    }
+
+    void HTTPDownload::RequestDataRange(void* buffer, size_t offset, size_t size)
+    {
+        if (!this->IsRangesSupported())
+        {
+            THROW_FORMAT("Attempted range request when ranges aren't supported!\n");
+        }
+
+        HTTPDownloadBuffer downloadBuffer(size, buffer);
+        CURL* curl = curl_easy_init();
+        CURLcode rc = (CURLcode)0;
+
+        if (!curl)
+        {
+            THROW_FORMAT("Failed to initialize curl\n");
+        }
+
+        std::stringstream ss;
+        ss << offset << "-" << (offset + size - 1);
+        auto range = ss.str();
+        printf("Requesting from range: %s\n", range.c_str());
+
+        curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
+        curl_easy_setopt(curl, CURLOPT_RANGE, range.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &downloadBuffer);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &tin::network::HTTPDownload::ParseHTMLData);
+
+        rc = curl_easy_perform(curl);
+        if (rc != CURLE_OK)
+        {
+            THROW_FORMAT("Failed to retrieve perform range request: %s\n", curl_easy_strerror(rc));
+        }
+
+        u64 httpCode = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+        curl_easy_cleanup(curl);
+
+        if (httpCode != 206)
+        {
+            THROW_FORMAT("Failed to request range! Response code is %lu\n", httpCode);
+        }
+
+        printf("Data size read: %lx\n", downloadBuffer.m_readSize);
+    }
+
+    // End HTTPDownload
 
     size_t WaitReceiveNetworkData(int sockfd, void* buf, size_t len)
     {
