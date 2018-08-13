@@ -12,7 +12,7 @@ namespace tin::install::nsp
             std::string m_url;
 
         public:
-            NetworkNSPInstallTask(FsStorageId destStorageId, std::string url);
+            NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url);
 
             void PrepareForInstall() override;
             void Install() override;

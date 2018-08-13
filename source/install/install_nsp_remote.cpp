@@ -2,8 +2,8 @@
 
 namespace tin::install::nsp
 {
-    NetworkNSPInstallTask::NetworkNSPInstallTask(FsStorageId destStorageId, std::string url) :
-        IInstallTask(destStorageId), m_url(url)
+    NetworkNSPInstallTask::NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url) :
+        IInstallTask(destStorageId, ignoreReqFirmVersion), m_url(url)
     {
 
     }
