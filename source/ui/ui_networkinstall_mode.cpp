@@ -13,6 +13,7 @@
 #include "ui/console_view.hpp"
 #include "ui/console_options_view.hpp"
 #include "util/network_util.hpp"
+#include "install/install_nsp_remote.hpp"
 #include "error.hpp"
 
 namespace tin::ui
@@ -157,11 +158,14 @@ namespace tin::ui
                     {
                         if (url.compare(url.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
                         {
-                            printf("Received NSP URL: %s\n", url.c_str());
-                            tin::network::HTTPDownload download(url);
-                            auto testBuf = std::make_unique<u8[]>(0x10);
-                            download.RequestDataRange(testBuf.get(), 0, 0x10);
-                            printBytes(nxlinkout, testBuf.get(), 0x10, true);
+                            tin::install::nsp::NetworkNSPInstallTask task(FsStorageId_SdCard, false, url);
+
+                            task.PrepareForInstall();
+                            LOG_DEBUG("Pre Install Records: \n");
+                            task.DebugPrintInstallData();
+                            task.Install();
+                            LOG_DEBUG("Post Install Records: \n");
+                            task.DebugPrintInstallData();
                         }
                     }
 
