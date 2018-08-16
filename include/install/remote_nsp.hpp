@@ -12,19 +12,24 @@ namespace tin::install::nsp
     class RemoteNSP
     {
         private:
-            tin::network::HTTPDownload m_download;
             std::vector<u8> m_headerBytes;
 
         public:
+            tin::network::HTTPDownload m_download;
+
             RemoteNSP(std::string url);
 
             void RetrieveHeader();
             void RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc);
     
             const PFS0BaseHeader* GetBaseHeader();
+            u64 GetDataOffset();
+
             const PFS0FileEntry* GetFileEntry(unsigned int index);
             const PFS0FileEntry* GetFileEntryByName(std::string name);
+            const PFS0FileEntry* GetFileEntryByNcaId(const NcmNcaId& ncaId);
             const PFS0FileEntry* GetFileEntryByExtension(std::string extension);
+
             const char* GetFileEntryName(const PFS0FileEntry* fileEntry);
     };
 }

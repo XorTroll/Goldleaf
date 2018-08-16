@@ -184,7 +184,7 @@ namespace tin::network
         std::stringstream ss;
         ss << offset << "-" << (offset + size - 1);
         auto range = ss.str();
-        printf("Requesting from range: %s\n", range.c_str());
+        LOG_DEBUG("Requesting from range: %s\n", range.c_str());
 
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -208,7 +208,7 @@ namespace tin::network
             THROW_FORMAT("Failed to request range! Response code is %lu\n", httpCode);
         }
 
-        printf("Data size read: %lx\n", downloadBuffer.m_readSize);
+        LOG_DEBUG("Data size read: %lx\n", downloadBuffer.m_readSize);
     }
 
     // End HTTPDownload

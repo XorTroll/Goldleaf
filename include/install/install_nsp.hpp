@@ -17,6 +17,7 @@ namespace tin::install::nsp
             void ReadCNMT() override;
             void InstallNCA(const NcmNcaId& ncaId) override;
             void InstallTicketCert() override;
+            void InstallCNMT() override;
 
         public:
             NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId, bool ignoreReqFirmVersion);

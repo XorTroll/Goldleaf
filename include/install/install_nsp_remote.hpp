@@ -16,6 +16,7 @@ namespace tin::install::nsp
             void ReadCNMT() override;
             void InstallNCA(const NcmNcaId& ncaId) override;
             void InstallTicketCert() override;
+            void InstallCNMT() override;
 
         public:
             NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url);

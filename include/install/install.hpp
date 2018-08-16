@@ -31,6 +31,7 @@ namespace tin::install
             virtual void WriteRecords();
             virtual void InstallTicketCert() = 0;
             virtual void InstallNCA(const NcmNcaId &ncaId) = 0;
+            virtual void InstallCNMT() = 0;
 
         public:
             virtual void PrepareForInstall();

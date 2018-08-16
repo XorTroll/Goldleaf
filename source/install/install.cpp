@@ -110,8 +110,8 @@ namespace tin::install
         printf("Writing content records...\n");
         this->WriteRecords();
 
-        printf("Installing CNNT NCA...\n");
-        this->InstallNCA(m_cnmtContentRecord.ncaId);
+        // Install CNMT
+        this->InstallCNMT();
 
         printf("Installing NCAs...\n");
         for (auto& record : m_contentMeta.m_contentRecords)

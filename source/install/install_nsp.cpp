@@ -144,4 +144,10 @@ namespace tin::install::nsp
         }
         catch (...) {}
     }
+
+    void NSPInstallTask::InstallCNMT()
+    {
+        printf("Installing CNNT NCA...\n");
+        this->InstallNCA(m_cnmtContentRecord.ncaId);
+    }
 }

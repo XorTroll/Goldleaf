@@ -1,6 +1,8 @@
 #include "install/install_nsp_remote.hpp"
 
 #include <machine/endian.h>
+#include "nx/fs.hpp"
+#include "nx/ncm.hpp"
 #include "util/title_util.hpp"
 #include "debug.h"
 #include "error.hpp"
@@ -20,17 +22,17 @@ namespace tin::install::nsp
         if (fileEntry == nullptr)
             THROW_FORMAT("Failed to find cnmt file entry!\n");
 
-        std::string cnmtName(m_remoteNSP.GetFileEntryName(fileEntry));
-        NcmNcaId cnmtNcaId = tin::util::GetNcaIdFromString(cnmtName);
+        std::string cnmtNcaName(m_remoteNSP.GetFileEntryName(fileEntry));
+        NcmNcaId cnmtNcaId = tin::util::GetNcaIdFromString(cnmtNcaName);
+        size_t cnmtNcaSize = fileEntry->fileSize;
 
-        // From regular NSP installation:
-        /*
-        // Create the path of the cnmt NCA
-        auto cnmtNCAName = m_simpleFileSystem->GetFileNameFromExtension("", "cnmt.nca");
-        auto cnmtNCAFile = m_simpleFileSystem->OpenFile(cnmtNCAName);
-        u64 cnmtNCASize = cnmtNCAFile.GetSize();
+        nx::ncm::ContentStorage contentStorage(m_destStorageId);
 
-        auto cnmtNCAFullPath = m_simpleFileSystem->m_absoluteRootPath + cnmtNCAName;
+        printf("CNMT Name: %s\n", cnmtNcaName.c_str());
+
+        // We install the cnmt nca early to read from it later
+        this->InstallNCA(cnmtNcaId);
+        std::string cnmtNCAFullPath = contentStorage.GetPath(cnmtNcaId);
 
         // Create the cnmt filesystem
         nx::fs::IFileSystem cnmtNCAFileSystem;
@@ -45,27 +47,84 @@ namespace tin::install::nsp
         m_cnmtByteBuf.resize(cnmtSize, 0);
         cnmtFile.Read(0x0, m_cnmtByteBuf.data(), cnmtSize);
 
-        // Prepare cnmt ncaid
-        char lowerU64[17] = {0};
-        char upperU64[17] = {0};
-        memcpy(lowerU64, cnmtNCAName.c_str(), 16);
-        memcpy(upperU64, cnmtNCAName.c_str() + 16, 16);
-
         // Prepare cnmt content record
-        *(u64 *)m_cnmtContentRecord.ncaId.c = __bswap64(strtoul(lowerU64, NULL, 16));
-        *(u64 *)(m_cnmtContentRecord.ncaId.c + 8) = __bswap64(strtoul(upperU64, NULL, 16));
-        *(u64*)m_cnmtContentRecord.size = cnmtNCASize & 0xFFFFFFFFFFFF;
+        m_cnmtContentRecord.ncaId = cnmtNcaId;
+        *(u64*)m_cnmtContentRecord.size = cnmtNcaSize & 0xFFFFFFFFFFFF;
         m_cnmtContentRecord.type = NcmContentType_CNMT;
-        */
     }
 
     void NetworkNSPInstallTask::InstallNCA(const NcmNcaId& ncaId)
     {
-        printf("Install NCA  is stubbed!\n");
+        const PFS0FileEntry* fileEntry = m_remoteNSP.GetFileEntryByNcaId(ncaId);
+        std::string ncaFileName = m_remoteNSP.GetFileEntryName(fileEntry);
+        size_t ncaSize = fileEntry->fileSize;
+
+        printf("Installing %s to storage Id %u\n", ncaFileName.c_str(), m_destStorageId);
+
+        nx::ncm::ContentStorage contentStorage(m_destStorageId);
+
+        // Attempt to delete any leftover placeholders
+        try
+        {
+            contentStorage.DeletePlaceholder(ncaId);
+        }
+        catch (...) {}
+
+        LOG_DEBUG("Size: 0x%lx\n", ncaSize);
+        contentStorage.CreatePlaceholder(ncaId, ncaId, ncaSize);
+
+        auto installNCAFunc = [&] (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)
+        {
+            float progress = (float)blockStartOffset / (float)ncaSize;
+            printf("> Progress: %lu/%lu MB (%d%s)\r", (blockStartOffset / 1000000), (ncaSize / 1000000), (int)(progress * 100.0), "%");
+            contentStorage.WritePlaceholder(ncaId, blockStartOffset, blockBuf, bufSize);
+        };
+
+        m_remoteNSP.RetrieveAndProcessNCA(ncaId, installNCAFunc);
+
+        // Clean up the line for whatever comes next
+        printf("                                                           \r");
+        printf("Registering placeholder...\n");
+        
+        try
+        {
+            contentStorage.Register(ncaId, ncaId);
+        }
+        catch (...)
+        {
+            printf(("Failed to register " + ncaFileName + ". It may already exist.\n").c_str());
+        }
+
+        try
+        {
+            contentStorage.DeletePlaceholder(ncaId);
+        }
+        catch (...) {}
     }
 
     void NetworkNSPInstallTask::InstallTicketCert()
+    {        
+        // Read the tik file and put it into a buffer
+        const PFS0FileEntry* tikFileEntry = m_remoteNSP.GetFileEntryByExtension("tik");
+        u64 tikSize = tikFileEntry->fileSize;
+        auto tikBuf = std::make_unique<u8[]>(tikSize);
+        printf("> Reading tik\n");
+        m_remoteNSP.m_download.RequestDataRange(tikBuf.get(), m_remoteNSP.GetDataOffset() + tikFileEntry->dataOffset, tikSize);
+
+        // Read the cert file and put it into a buffer
+        const PFS0FileEntry* certFileEntry = m_remoteNSP.GetFileEntryByExtension("cert");
+        u64 certSize = certFileEntry->fileSize;
+        auto certBuf = std::make_unique<u8[]>(certSize);
+        printf("> Reading cert\n");
+        m_remoteNSP.m_download.RequestDataRange(certBuf.get(), m_remoteNSP.GetDataOffset() + certFileEntry->dataOffset, certSize);
+
+        // Finally, let's actually import the ticket
+        ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
+    }
+
+    void NetworkNSPInstallTask::InstallCNMT()
     {
-        printf("InstallTicketCert is stubbed!\n");
+        // We manually install CNMTs early, so don't do it during
+        // the install process
     }
 }

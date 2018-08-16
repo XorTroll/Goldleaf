@@ -37,4 +37,11 @@ namespace nx::ncm
     {
         ASSERT_OK(ncmDelete(&m_contentStorage, &registeredId), "Failed to delete registered NCA");
     }
+
+    std::string ContentStorage::GetPath(const NcmNcaId &registeredId)
+    {
+        char pathBuf[FS_MAX_PATH] = {0};
+        ASSERT_OK(ncmContentStorageGetPath(&m_contentStorage, &registeredId, pathBuf, FS_MAX_PATH), "Failed to get installed NCA path");
+        return std::string(pathBuf);
+    }
 }

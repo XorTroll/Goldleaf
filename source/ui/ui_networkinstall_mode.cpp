@@ -83,7 +83,6 @@ namespace tin::ui
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
         auto view = std::make_unique<tin::ui::ConsoleView>();
         manager.PushView(std::move(view));
-        printf("THIS FEATURE IS STILL IN DEVELOPMENT! IT WILL NOT WORK YET!\n");
 
         try
         {
@@ -158,6 +157,7 @@ namespace tin::ui
                     {
                         if (url.compare(url.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
                         {
+                            printf("Installing from %s\n", url.c_str());
                             tin::install::nsp::NetworkNSPInstallTask task(FsStorageId_SdCard, false, url);
 
                             task.PrepareForInstall();
@@ -166,6 +166,7 @@ namespace tin::ui
                             task.Install();
                             LOG_DEBUG("Post Install Records: \n");
                             task.DebugPrintInstallData();
+                            printf("\n");
                         }
                     }
 
