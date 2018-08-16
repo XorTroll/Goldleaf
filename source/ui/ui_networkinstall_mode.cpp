@@ -20,7 +20,7 @@ namespace tin::ui
 {
     const unsigned int MAX_URL_SIZE = 1024;
     const unsigned int MAX_URLS = 256;
-    const int REMOTE_INSTALL_PORT = 5000;
+    const int REMOTE_INSTALL_PORT = 2000;
     static int m_serverSocket = 0;
     static int m_clientSocket = 0;
 
