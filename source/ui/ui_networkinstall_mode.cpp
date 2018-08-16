@@ -106,6 +106,7 @@ namespace tin::ui
 
             printf("Switch IP is %s\n", inet_ntoa(addr));
             printf("Waiting for connection...\n");
+            printf("Press B to cancel\n");
 
             while (true)
             {
