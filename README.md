@@ -11,7 +11,7 @@ DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions,
 
 ## Download
 Courtesy of [LavaTech](https://discord.gg/VjyDSuu), builds are made automatically for each commit at:
-https://buildserv.stayathomeserver.club/tinfoil/
+https://bsnx.lavatech.top/tinfoil/
 
 When ready, full releases will be located at:
 https://github.com/Adubbz/Tinfoil/releases/latest
