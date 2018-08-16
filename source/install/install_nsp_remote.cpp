@@ -1,5 +1,10 @@
 #include "install/install_nsp_remote.hpp"
 
+#include <machine/endian.h>
+#include "util/title_util.hpp"
+#include "debug.h"
+#include "error.hpp"
+
 namespace tin::install::nsp
 {
     NetworkNSPInstallTask::NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url) :
@@ -10,7 +15,13 @@ namespace tin::install::nsp
 
     void NetworkNSPInstallTask::ReadCNMT()
     {
-        printf("Read CNMT is stubbed!\n");
+        const PFS0FileEntry* fileEntry = m_remoteNSP.GetFileEntryByExtension("cnmt.nca");
+
+        if (fileEntry == nullptr)
+            THROW_FORMAT("Failed to find cnmt file entry!\n");
+
+        std::string cnmtName(m_remoteNSP.GetFileEntryName(fileEntry));
+        NcmNcaId cnmtNcaId = tin::util::GetNcaIdFromString(cnmtName);
 
         // From regular NSP installation:
         /*

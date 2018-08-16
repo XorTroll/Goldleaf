@@ -37,8 +37,45 @@ namespace tin::install::nsp
 
     }
 
+    const PFS0FileEntry* RemoteNSP::GetFileEntry(unsigned int index)
+    {
+        if (index >= this->GetBaseHeader()->numFiles)
+            THROW_FORMAT("File entry index is out of bounds\n")
+    
+        size_t fileEntryOffset = sizeof(PFS0BaseHeader) + index * sizeof(PFS0FileEntry);
+
+        if (m_headerBytes.size() < fileEntryOffset + sizeof(PFS0FileEntry))
+            THROW_FORMAT("Header bytes is too small to get file entry!");
+
+        return reinterpret_cast<PFS0FileEntry*>(m_headerBytes.data() + fileEntryOffset);
+    }
+
+    const PFS0FileEntry* RemoteNSP::GetFileEntryByExtension(std::string extension)
+    {
+        for (unsigned int i = 0; i < this->GetBaseHeader()->numFiles; i++)
+        {
+            const PFS0FileEntry* fileEntry = this->GetFileEntry(i);
+            std::string name(this->GetFileEntryName(fileEntry));
+            auto foundExtension = name.substr(name.find(".") + 1); 
+
+            if (foundExtension == extension)
+                return fileEntry;
+        }
+
+        return nullptr;
+    }
+
+    const char* RemoteNSP::GetFileEntryName(const PFS0FileEntry* fileEntry)
+    {
+        u64 stringTableStart = sizeof(PFS0BaseHeader) + this->GetBaseHeader()->numFiles * sizeof(PFS0FileEntry);
+        return reinterpret_cast<const char*>(m_headerBytes.data() + stringTableStart + fileEntry->stringTableOffset);
+    }
+
     const PFS0BaseHeader* RemoteNSP::GetBaseHeader()
     {
+        if (m_headerBytes.empty())
+            THROW_FORMAT("Cannot retrieve header as header bytes are empty. Have you retrieved it yet?\n");
+
         return reinterpret_cast<PFS0BaseHeader*>(m_headerBytes.data());
     }
 }

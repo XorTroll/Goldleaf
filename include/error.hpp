@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <stdexcept>
 #include <stdio.h>
 #include <switch.h>

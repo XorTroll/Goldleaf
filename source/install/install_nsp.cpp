@@ -7,6 +7,7 @@
 #include <string>
 #include <machine/endian.h>
 #include "nx/ncm.hpp"
+#include "util/title_util.hpp"
 #include "debug.h"
 #include "error.hpp"
 
@@ -40,15 +41,8 @@ namespace tin::install::nsp
         m_cnmtByteBuf.resize(cnmtSize, 0);
         cnmtFile.Read(0x0, m_cnmtByteBuf.data(), cnmtSize);
 
-        // Prepare cnmt ncaid
-        char lowerU64[17] = {0};
-        char upperU64[17] = {0};
-        memcpy(lowerU64, cnmtNCAName.c_str(), 16);
-        memcpy(upperU64, cnmtNCAName.c_str() + 16, 16);
-
         // Prepare cnmt content record
-        *(u64 *)m_cnmtContentRecord.ncaId.c = __bswap64(strtoul(lowerU64, NULL, 16));
-        *(u64 *)(m_cnmtContentRecord.ncaId.c + 8) = __bswap64(strtoul(upperU64, NULL, 16));
+        m_cnmtContentRecord.ncaId = tin::util::GetNcaIdFromString(cnmtNCAName);
         *(u64*)m_cnmtContentRecord.size = cnmtNCASize & 0xFFFFFFFFFFFF;
         m_cnmtContentRecord.type = NcmContentType_CNMT;
     }
@@ -79,11 +73,7 @@ namespace tin::install::nsp
 
     void NSPInstallTask::InstallNCA(const NcmNcaId &ncaId)
     {
-        char ncaIdStr[FS_MAX_PATH] = {0};
-        u64 ncaIdLower = __bswap64(*(u64 *)ncaId.c);
-        u64 ncaIdUpper = __bswap64(*(u64 *)(ncaId.c + 0x8));
-        snprintf(ncaIdStr, FS_MAX_PATH, "%016lx%016lx", ncaIdLower, ncaIdUpper);
-        std::string ncaName = ncaIdStr;
+        std::string ncaName = tin::util::GetNcaIdString(ncaId);
 
         if (m_simpleFileSystem->HasFile(ncaName + ".nca"))
             ncaName += ".nca";
