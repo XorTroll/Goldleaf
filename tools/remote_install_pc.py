@@ -11,7 +11,6 @@ import struct
 import sys
 import threading
 import time
-import urllib
 
 try:
     from SimpleHTTPServer import SimpleHTTPRequestHandler
@@ -22,6 +21,7 @@ except ImportError:
     from http.server import SimpleHTTPRequestHandler
     from socketserver import TCPServer
     from urllib.parse import quote
+
 
 class RangeHTTPRequestHandler(SimpleHTTPRequestHandler):
     """RangeHTTPRequestHandler is a SimpleHTTPRequestHandler
@@ -36,32 +36,33 @@ class RangeHTTPRequestHandler(SimpleHTTPRequestHandler):
         ctype = self.guess_type(path)
 
         # Handling file location
-        ## If directory, let SimpleHTTPRequestHandler handle the request
+        # If directory, let SimpleHTTPRequestHandler handle the request
         if os.path.isdir(path):
             return SimpleHTTPRequestHandler.send_head(self)
 
-        ## Handle file not found
+        # Handle file not found
         if not os.path.exists(path):
             return self.send_error(404, self.responses.get(404)[0])
 
-        ## Handle file request
+        # Handle file request
         f = open(path, 'rb')
         fs = os.fstat(f.fileno())
         size = fs[6]
 
         # Parse range header
         # Range headers look like 'bytes=500-1000'
-        start, end = 0, size-1
+        start, end = 0, size - 1
         if 'Range' in self.headers:
-            start, end = self.headers.get('Range').strip().strip('bytes=').split('-')
+            start, end = self.headers.get('Range').strip().strip('bytes=')\
+                .split('-')
         if start == "":
-            ## If no start, then the request is for last N bytes
-            ## e.g. bytes=-500
+            # If no start, then the request is for last N bytes
+            # e.g. bytes=-500
             try:
                 end = int(end)
             except ValueError as e:
                 self.send_error(400, 'invalid range')
-            start = size-end
+            start = size - end
         else:
             try:
                 start = int(start)
@@ -71,20 +72,20 @@ class RangeHTTPRequestHandler(SimpleHTTPRequestHandler):
                 # If requested start is greater than filesize
                 self.send_error(416, self.responses.get(416)[0])
             if end == "":
-                ## If only start is provided then serve till end
-                end = size-1
+                # If only start is provided then serve till end
+                end = size - 1
             else:
                 try:
                     end = int(end)
                 except ValueError as e:
                     self.send_error(400, 'invalid range')
 
-        ## Correct the values of start and end
+        # Correct the values of start and end
         start = max(start, 0)
-        end = min(end, size-1)
+        end = min(end, size - 1)
         self.range = (start, end)
-        ## Setup headers and response
-        l = end-start+1
+        # Setup headers and response
+        cont_length = end - start + 1
         if 'Range' in self.headers:
             self.send_response(206)
         else:
@@ -93,7 +94,7 @@ class RangeHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Accept-Ranges', 'bytes')
         self.send_header('Content-Range',
                          'bytes %s-%s/%s' % (start, end, size))
-        self.send_header('Content-Length', str(l))
+        self.send_header('Content-Length', str(cont_length))
         self.send_header('Last-Modified', self.date_time_string(fs.st_mtime))
         self.end_headers()
 
@@ -105,70 +106,80 @@ class RangeHTTPRequestHandler(SimpleHTTPRequestHandler):
         bytes are copied.
         Otherwise, the entire file is copied using SimpleHTTPServer.copyfile
         """
-        if not 'Range' in self.headers:
+        if 'Range' not in self.headers:
             SimpleHTTPRequestHandler.copyfile(self, infile, outfile)
             return
 
         start, end = self.range
         infile.seek(start)
-        bufsize=64*1024 ## 64KB
+        bufsize = 64 * 1024  # 64KB
         while True:
             buf = infile.read(bufsize)
             if not buf:
                 break
-            outfile.write(buf)
+            try:
+                outfile.write(buf)
+            except BrokenPipeError:
+                pass
+
 
 interactive = False
-    
+
+
 if len(sys.argv) <= 2:
     # If there aren't enough variables, use interactive mode
     if len(sys.argv) == 2:
         if sys.argv[1].lower() in ('--help', '-help', 'help', 'h', '-h', '--h'):
-            print('Usage: ' + sys.argv[0] + ' <target ip> <file / directory> [host ip] [host port]')
+            print('Usage: ' + sys.argv[0] + ' <target ip> '
+                  '<file / directory> [host ip] [host port]')
             sys.exit(1)
-    
+
     interactive = True
 
 elif len(sys.argv) < 3 or len(sys.argv) > 6:
-    print('Usage: ' + sys.argv[0] + ' <target ip> <file / directory> [host ip] [host port]')
+    print('Usage: ' + sys.argv[0] + ' <target ip> <file / directory>'
+          ' [host ip] [host port]')
     sys.exit(1)
 
 accepted_extension = ('.nsp')
-hostPort = 8080 # Default value
+hostPort = 8080  # Default value
 
 if interactive:
     target_ip = input("The IP of your Switch: ")
     target_path = input("The file you want to send (.nsp): ")
-    
-    hostIp = input("Host IP (or press Enter to have the script detect host IP):")
+
+    hostIp = input("Host IP "
+                   "(or press Enter to have the script detect host IP):")
     if hostIp == '':
-        print('Detecting host IP...') 
-        hostIp = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+        print('Detecting host IP...')
+        hostIp = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close())
+                 for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
     else:
         hostPort = input("Host port (or press Enter to keep default, 8080):")
         if hostPort == '':
-            hostPort = 8080 # Default
-    
+            hostPort = 8080  # Default
+
 
 else:
     # (if the script is being run using a full python path; ex: "path/to/python script_name.py foo foo..")
     if sys.argv[1] == os.path.basename(__file__):
         target_ip = sys.argv[2]
         target_path = sys.argv[3]
-        
+
         if len(sys.argv) >= 5:
             hostIp = sys.argv[4]
             if len(sys.argv) == 6:
                 hostPort = int(sys.argv[5])
         else:
             print('Detecting host IP...')
-            hostIp = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-                
+            hostIp = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close())
+                    for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+
     # (if the script is being run using just the script name and default executable for python scripts; ex: "script_name.py foo foo..")
     else:
         target_ip = sys.argv[1]
         target_path = sys.argv[2]
-        
+
         if len(sys.argv) >= 4:
             hostIp = sys.argv[3]
             if len(sys.argv) == 5:
@@ -212,11 +223,13 @@ if directory and directory != '.':  # doesn't need to move if it's already the c
 print('\nURLs:')
 print(file_list_payload + '\n')
 
+
 class MyServer(TCPServer):
     def server_bind(self):
         import socket
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
+
 
 print('Opening HTTP server on port ' + str(hostPort))
 server = MyServer(('', hostPort), RangeHTTPRequestHandler)
