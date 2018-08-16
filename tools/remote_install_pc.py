@@ -237,9 +237,9 @@ thread = threading.Thread(target=server.serve_forever)
 thread.start()
 
 try:
-    print('Sending URL(s) to ' + target_ip + ' on port 5000...')
+    print('Sending URL(s) to ' + target_ip + ' on port 2000...')
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((target_ip, 5000))
+    sock.connect((target_ip, 2000))
     sock.sendall(struct.pack('!L', len(file_list_payloadBytes)) + file_list_payloadBytes)
     while len(sock.recv(1)) < 1:
         time.sleep(0.05)

@@ -119,7 +119,7 @@ try:
     print('Creating URL socket', flush=True)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         print('Binding URL socket', flush=True)
-        sock.bind((HOST_IP, 5000))
+        sock.bind((HOST_IP, 2000))
 
         print('Listening on URL socket', flush=True)
         sock.listen(10)
