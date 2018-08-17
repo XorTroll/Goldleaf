@@ -91,17 +91,6 @@ namespace tin::network
     }
 
     // End HTTPHeader
-
-    // HTTPDownloadBuffer
-
-    HTTPDownloadBuffer::HTTPDownloadBuffer(size_t size, void* buffer) :
-        m_totalSize(size), m_buffer(buffer)
-    {
-
-    }
-
-    // End HTTPDownloadBuffer
-
     // HTTPDownload
 
     HTTPDownload::HTTPDownload(std::string url) :
@@ -146,29 +135,47 @@ namespace tin::network
 
     size_t HTTPDownload::ParseHTMLData(char* bytes, size_t size, size_t numItems, void* userData)
     {
-        HTTPDownloadBuffer* downloadBuffer = reinterpret_cast<HTTPDownloadBuffer*>(userData);
+        auto streamFunc = *reinterpret_cast<std::function<size_t (u8* bytes, size_t size)>*>(userData);
         size_t numBytes = size * numItems;
 
-        if (downloadBuffer->m_readSize + numBytes > downloadBuffer->m_totalSize)
-        {
-            printf("New read size 0x%lx would exceed total expected size 0x%lx\n", downloadBuffer->m_readSize + numBytes, downloadBuffer->m_totalSize);
-            return 0;
-        }
-
-        memcpy(reinterpret_cast<u8*>(downloadBuffer->m_buffer) + downloadBuffer->m_readSize, bytes, numBytes);
-        downloadBuffer->m_readSize += numBytes;
+        if (streamFunc != nullptr)
+            return streamFunc((u8*)bytes, numBytes);
 
         return numBytes;
     }
 
-    void HTTPDownload::RequestDataRange(void* buffer, size_t offset, size_t size)
+    void HTTPDownload::BufferDataRange(void* buffer, size_t offset, size_t size, std::function<void (size_t sizeRead)> progressFunc)
+    {
+        size_t sizeRead = 0;
+
+        auto streamFunc = [&](u8* streamBuf, size_t streamBufSize) -> size_t
+        {
+            if (sizeRead + streamBufSize > size)
+            {
+                printf("New read size 0x%lx would exceed total expected size 0x%lx\n", sizeRead + streamBufSize, size);
+                return 0;
+            }
+
+            if (progressFunc != nullptr)
+                progressFunc(sizeRead);
+
+            memcpy(reinterpret_cast<u8*>(buffer) + sizeRead, streamBuf, streamBufSize);
+            sizeRead += streamBufSize;
+            return streamBufSize;
+        };
+
+        this->StreamDataRange(offset, size, streamFunc);
+    }
+
+    void HTTPDownload::StreamDataRange(size_t offset, size_t size, std::function<size_t (u8* bytes, size_t size)> streamFunc)
     {
         if (!m_rangesSupported)
         {
             THROW_FORMAT("Attempted range request when ranges aren't supported!\n");
         }
 
-        HTTPDownloadBuffer downloadBuffer(size, buffer);
+        auto writeDataFunc = streamFunc;
+
         CURL* curl = curl_easy_init();
         CURLcode rc = (CURLcode)0;
 
@@ -177,22 +184,25 @@ namespace tin::network
             THROW_FORMAT("Failed to initialize curl\n");
         }
 
+        #ifdef NXLINK_DEBUG
         std::stringstream ss;
         ss << offset << "-" << (offset + size - 1);
         auto range = ss.str();
         LOG_DEBUG("Requesting from range: %s\n", range.c_str());
+        LOG_DEBUG("Read size: %lx\n", size);
+        #endif
 
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
         curl_easy_setopt(curl, CURLOPT_RANGE, range.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &downloadBuffer);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &writeDataFunc);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &tin::network::HTTPDownload::ParseHTMLData);
 
         rc = curl_easy_perform(curl);
         if (rc != CURLE_OK)
         {
-            THROW_FORMAT("Failed to retrieve perform range request: %s\n", curl_easy_strerror(rc));
+            THROW_FORMAT("Failed to perform range request: %s\n", curl_easy_strerror(rc));
         }
 
         u64 httpCode = 0;
@@ -203,8 +213,6 @@ namespace tin::network
         {
             THROW_FORMAT("Failed to request range! Response code is %lu\n", httpCode);
         }
-
-        LOG_DEBUG("Data size read: %lx\n", downloadBuffer.m_readSize);
     }
 
     // End HTTPDownload

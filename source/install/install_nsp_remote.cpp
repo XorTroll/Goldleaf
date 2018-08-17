@@ -73,14 +73,16 @@ namespace tin::install::nsp
         LOG_DEBUG("Size: 0x%lx\n", ncaSize);
         contentStorage.CreatePlaceholder(ncaId, ncaId, ncaSize);
 
-        auto installNCAFunc = [&] (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)
+        auto installBlockFunc = [&] (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)
         {
+            contentStorage.WritePlaceholder(ncaId, blockStartOffset, blockBuf, bufSize);
             float progress = (float)blockStartOffset / (float)ncaSize;
             printf("> Progress: %lu/%lu MB (%d%s)\r", (blockStartOffset / 1000000), (ncaSize / 1000000), (int)(progress * 100.0), "%");
-            contentStorage.WritePlaceholder(ncaId, blockStartOffset, blockBuf, bufSize);
         };
 
-        m_remoteNSP.RetrieveAndProcessNCA(ncaId, installNCAFunc);
+        //auto progressFunc = [&] (size_t sizeRead) {};
+
+        m_remoteNSP.RetrieveAndProcessNCA(ncaId, installBlockFunc, nullptr);
 
         // Clean up the line for whatever comes next
         printf("                                                           \r");
@@ -109,14 +111,14 @@ namespace tin::install::nsp
         u64 tikSize = tikFileEntry->fileSize;
         auto tikBuf = std::make_unique<u8[]>(tikSize);
         printf("> Reading tik\n");
-        m_remoteNSP.m_download.RequestDataRange(tikBuf.get(), m_remoteNSP.GetDataOffset() + tikFileEntry->dataOffset, tikSize);
+        m_remoteNSP.m_download.BufferDataRange(tikBuf.get(), m_remoteNSP.GetDataOffset() + tikFileEntry->dataOffset, tikSize, nullptr);
 
         // Read the cert file and put it into a buffer
         const PFS0FileEntry* certFileEntry = m_remoteNSP.GetFileEntryByExtension("cert");
         u64 certSize = certFileEntry->fileSize;
         auto certBuf = std::make_unique<u8[]>(certSize);
         printf("> Reading cert\n");
-        m_remoteNSP.m_download.RequestDataRange(certBuf.get(), m_remoteNSP.GetDataOffset() + certFileEntry->dataOffset, certSize);
+        m_remoteNSP.m_download.BufferDataRange(certBuf.get(), m_remoteNSP.GetDataOffset() + certFileEntry->dataOffset, certSize, nullptr);
 
         // Finally, let's actually import the ticket
         ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");

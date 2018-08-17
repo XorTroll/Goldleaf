@@ -20,7 +20,7 @@ namespace tin::install::nsp
             RemoteNSP(std::string url);
 
             void RetrieveHeader();
-            void RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc);
+            void RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc, std::function<void (size_t sizeRead)> progressFunc);
     
             const PFS0BaseHeader* GetBaseHeader();
             u64 GetDataOffset();

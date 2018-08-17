@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -31,16 +32,6 @@ namespace tin::network
             std::string GetValue(std::string key);
     };
 
-    class HTTPDownloadBuffer
-    {
-        public:
-            size_t m_readSize = 0;
-            const size_t m_totalSize; 
-            void* m_buffer;
-
-            HTTPDownloadBuffer(size_t size, void* buffer);
-    };
-
     class HTTPDownload
     {
         private:
@@ -53,7 +44,8 @@ namespace tin::network
         public:
             HTTPDownload(std::string url);
     
-            void RequestDataRange(void* buffer, size_t offset, size_t size);
+            void BufferDataRange(void* buffer, size_t offset, size_t size, std::function<void (size_t sizeRead)> progressFunc);
+            void StreamDataRange(size_t offset, size_t size, std::function<size_t (u8* bytes, size_t size)> streamFunc);
     };
 
     size_t WaitReceiveNetworkData(int sockfd, void* buf, size_t len);

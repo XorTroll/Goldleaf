@@ -19,7 +19,7 @@ namespace tin::install::nsp
 
         // Retrieve the base header
         m_headerBytes.resize(sizeof(PFS0BaseHeader), 0);
-        m_download.RequestDataRange(m_headerBytes.data(), 0x0, sizeof(PFS0BaseHeader));
+        m_download.BufferDataRange(m_headerBytes.data(), 0x0, sizeof(PFS0BaseHeader), nullptr);
 
         LOG_DEBUG("Base header: \n");
         printBytes(nxlinkout, m_headerBytes.data(), sizeof(PFS0BaseHeader), true);
@@ -27,13 +27,13 @@ namespace tin::install::nsp
         // Retrieve the full header
         size_t remainingHeaderSize = this->GetBaseHeader()->numFiles * sizeof(PFS0FileEntry) + this->GetBaseHeader()->stringTableSize;
         m_headerBytes.resize(sizeof(PFS0BaseHeader) + remainingHeaderSize, 0);
-        m_download.RequestDataRange(m_headerBytes.data() + sizeof(PFS0BaseHeader), sizeof(PFS0BaseHeader), remainingHeaderSize);
+        m_download.BufferDataRange(m_headerBytes.data() + sizeof(PFS0BaseHeader), sizeof(PFS0BaseHeader), remainingHeaderSize, nullptr);
 
         LOG_DEBUG("Full header: \n");
         printBytes(nxlinkout, m_headerBytes.data(), m_headerBytes.size(), true);
     }
 
-    void RemoteNSP::RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc)
+    void RemoteNSP::RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc, std::function<void (size_t sizeRead)> progressFunc)
     {
         const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(ncaId);
         std::string ncaFileName = this->GetFileEntryName(fileEntry);
@@ -42,7 +42,7 @@ namespace tin::install::nsp
 
         size_t ncaSize = fileEntry->fileSize;
         u64 fileOff = 0;
-        size_t readSize = 0x400000; // 4MB buff
+        size_t readSize = 0x200000; // 8MB buff
         auto readBuffer = std::make_unique<u8[]>(readSize);
 
         if (readBuffer == NULL) 
@@ -52,7 +52,7 @@ namespace tin::install::nsp
         {   
             if (fileOff + readSize >= ncaSize) readSize = ncaSize - fileOff;
 
-            m_download.RequestDataRange(readBuffer.get(), this->GetDataOffset() + fileEntry->dataOffset + fileOff, readSize);
+            m_download.BufferDataRange(readBuffer.get(), this->GetDataOffset() + fileEntry->dataOffset + fileOff, readSize, progressFunc);
 
             if (processBlockFunc != nullptr)
                 processBlockFunc(readBuffer.get(), readSize, fileOff, ncaSize);
