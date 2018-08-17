@@ -13,7 +13,6 @@ namespace tin::network
     HTTPHeader::HTTPHeader(std::string url) :
         m_url(url)
     {
-
     }
 
     size_t HTTPHeader::ParseHTMLHeader(char* bytes, size_t size, size_t numItems, void* userData)
@@ -108,7 +107,41 @@ namespace tin::network
     HTTPDownload::HTTPDownload(std::string url) :
         m_url(url), m_header(url)
     {
+        // The header won't be populated until we do this
+        m_header.PerformRequest();
 
+        if (m_header.HasValue("accept-ranges"))
+        {
+            m_rangesSupported = m_header.GetValue("accept-ranges") == "bytes";
+        }
+        else
+        {
+            CURL* curl = curl_easy_init();
+            CURLcode rc = (CURLcode)0;
+
+            if (!curl)
+            {
+                THROW_FORMAT("Failed to initialize curl\n");
+            }
+
+            curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
+            curl_easy_setopt(curl, CURLOPT_NOBODY, true);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
+            curl_easy_setopt(curl, CURLOPT_RANGE, "0-0");
+
+            rc = curl_easy_perform(curl);
+            if (rc != CURLE_OK)
+            {
+                THROW_FORMAT("Failed to retrieve HTTP Header: %s\n", curl_easy_strerror(rc));
+            }
+
+            u64 httpCode = 0;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+            curl_easy_cleanup(curl);
+
+            m_rangesSupported = httpCode == 206;
+        }
     }
 
     size_t HTTPDownload::ParseHTMLData(char* bytes, size_t size, size_t numItems, void* userData)
@@ -128,46 +161,9 @@ namespace tin::network
         return numBytes;
     }
 
-    bool HTTPDownload::IsRangesSupported()
-    {
-        // The header won't be populated until we do this
-        m_header.PerformRequest();
-
-        if (m_header.HasValue("accept-ranges"))
-        {
-            return m_header.GetValue("accept-ranges") == "bytes";
-        }
-
-        CURL* curl = curl_easy_init();
-        CURLcode rc = (CURLcode)0;
-
-        if (!curl)
-        {
-            THROW_FORMAT("Failed to initialize curl\n");
-        }
-
-        curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
-        curl_easy_setopt(curl, CURLOPT_NOBODY, true);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "tinfoil");
-        curl_easy_setopt(curl, CURLOPT_RANGE, "0-0");
-
-        rc = curl_easy_perform(curl);
-        if (rc != CURLE_OK)
-        {
-            THROW_FORMAT("Failed to retrieve HTTP Header: %s\n", curl_easy_strerror(rc));
-        }
-
-        u64 httpCode = 0;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
-        curl_easy_cleanup(curl);
-
-        return httpCode == 206;
-    }
-
     void HTTPDownload::RequestDataRange(void* buffer, size_t offset, size_t size)
     {
-        if (!this->IsRangesSupported())
+        if (!m_rangesSupported)
         {
             THROW_FORMAT("Attempted range request when ranges aren't supported!\n");
         }

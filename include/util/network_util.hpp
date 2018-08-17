@@ -46,13 +46,13 @@ namespace tin::network
         private:
             std::string m_url;
             HTTPHeader m_header;
+            bool m_rangesSupported = false;
 
             static size_t ParseHTMLData(char* bytes, size_t size, size_t numItems, void* userData);
 
         public:
             HTTPDownload(std::string url);
     
-            bool IsRangesSupported();
             void RequestDataRange(void* buffer, size_t offset, size_t size);
     };
 
