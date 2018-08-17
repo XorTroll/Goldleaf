@@ -184,13 +184,11 @@ namespace tin::network
             THROW_FORMAT("Failed to initialize curl\n");
         }
 
-        #ifdef NXLINK_DEBUG
         std::stringstream ss;
         ss << offset << "-" << (offset + size - 1);
         auto range = ss.str();
         LOG_DEBUG("Requesting from range: %s\n", range.c_str());
         LOG_DEBUG("Read size: %lx\n", size);
-        #endif
 
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
