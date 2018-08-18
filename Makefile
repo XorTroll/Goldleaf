@@ -36,7 +36,7 @@ SOURCES     := source source/install source/ipc source/lib source/ui source/nx s
 DATA        := data
 INCLUDES    := include
 EXEFS_SRC   := exefs_src
-APP_TITLE   := tinfoil
+APP_TITLE   := Tinfoil
 APP_AUTHOR  := Adubbz
 APP_VERSION := 0.0.1
 
@@ -66,7 +66,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx
+LIBS	:= -lcurl -lz -lnx
 
 
 

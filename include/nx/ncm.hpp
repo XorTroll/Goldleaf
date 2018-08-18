@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <switch.h>
 
 #include "nx/ipc/tin_ipc.h"
@@ -24,5 +25,6 @@ namespace nx::ncm
             void WritePlaceholder(const NcmNcaId &placeholderId, u64 offset, void *buffer, size_t bufSize);
             void Register(const NcmNcaId &placeholderId, const NcmNcaId &registeredId);
             void Delete(const NcmNcaId &registeredId);
+            std::string GetPath(const NcmNcaId &registeredId);
     };
 }

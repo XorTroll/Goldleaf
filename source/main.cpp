@@ -33,10 +33,7 @@ void userAppExit(void);
 }
 #endif
 
-// TODO: Throughout the application, error messages should reference the function name they occurred in
 // TODO: Make custom error codes in some sort of logical fashion
-// TOOD: Abstract the data source for NCA/xml/tik/cert data, so it can originate from (call it install_source.h)
-// TODO: Prevent going back in certain views (title installation). Also hide the cursor
 // TODO: Create a proper logging setup, as well as a log viewing screen
 // TODO: Validate NCAs
 // TODO: Verify dumps, ncaids match sha256s, installation succeess, perform proper uninstallation on failure and prior to install
@@ -63,16 +60,22 @@ void userAppInit(void)
     if (R_FAILED(nifmInitialize()))
         fatalSimple(0xBEE6);
 
-    // This may fail, but this doesn't matter for end users
+    // We initialize this inside ui_networkinstall_mode for normal users.
+    #ifdef NXLINK_DEBUG
     socketInitializeDefault();
     nxLinkInitialize();
+    #endif
 }
 
 void userAppExit(void)
 {
     nifmExit();
+
+    #ifdef NXLINK_DEBUG
     nxLinkExit();
     socketExit();
+    #endif
+
     ncmextExit();
     ncmExit();
     nsExit();
@@ -148,6 +151,20 @@ int main(int argc, char **argv)
         consoleClear();
         printf("An error occurred:\n%s\n\nPress any button to exit.", e.what());
         LOG_DEBUG("An error occurred:\n%s", e.what());
+
+        u64 kDown = 0;
+
+        while (!kDown)
+        {
+            hidScanInput();
+            kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+        }
+    }
+    catch (...)
+    {
+        consoleClear();
+        printf("An unknown error occurred\n\nPress any button to exit.");
+        LOG_DEBUG("An unknown error occurred:\n");
 
         u64 kDown = 0;
 
