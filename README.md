@@ -16,8 +16,11 @@ https://bsnx.lavatech.top/tinfoil/
 When ready, full releases will be located at:
 https://github.com/Adubbz/Tinfoil/releases/latest
 
-# Network Install Instructions
+## Usage
+1. Place NSPs in ``/tinfoil/nsp`` or extracted NSPs in ``/tinfoil/extracted``.
+2. Launch Tinfoil via the homebrew menu and install your NSPs.
 
+## Network Install Instructions
 1. Download and install Python 3.6.6 from https://www.python.org/downloads/
 2. Download remote_install_pc.py from https://github.com/Adubbz/Tinfoil/blob/master/tools/remote_install_pc.py by right clicking on Raw and clicking "Save link as..."
 3. Open the Network Install menu in Tinfoil
