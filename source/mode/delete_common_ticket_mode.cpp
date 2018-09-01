@@ -1,4 +1,4 @@
-#include "ui/ui_deletecommonticket_mode.hpp"
+#include "mode/delete_common_ticket_mode.hpp"
 
 #include <exception>
 #include <memory>

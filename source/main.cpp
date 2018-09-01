@@ -9,12 +9,12 @@
 
 #include "nx/ipc/tin_ipc.h"
 
-#include "ui/ui_mode.hpp"
-#include "ui/ui_installextracted_mode.hpp"
-#include "ui/ui_installnsp_mode.hpp"
-#include "ui/ui_deletecommonticket_mode.hpp"
-#include "ui/ui_deletepersonalizedticket_mode.hpp"
-#include "ui/ui_networkinstall_mode.hpp"
+#include "mode/mode.hpp"
+#include "mode/install_extracted_mode.hpp"
+#include "mode/install_nsp_mode.hpp"
+#include "mode/delete_common_ticket_mode.hpp"
+#include "mode/delete_personalized_ticket_mode.hpp"
+#include "mode/network_install_mode.hpp"
 #include "ui/view.hpp"
 #include "ui/console_options_view.hpp"
 
@@ -107,6 +107,7 @@ int main(int argc, char **argv)
             return 0;
         }
         
+        LOG_DEBUG(nsLaunchApplication(0x01000320000CC000), "Failed to launch application\n");
 
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
@@ -129,7 +130,7 @@ int main(int argc, char **argv)
         mainView->AddEntry("Ticket Management", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &tikManCat));
         mainView->AddEntry("Exit", tin::ui::ConsoleEntrySelectType::SELECT, markForExit);
         
-        manager.PushView(std::move(mainView));
+        //manager.PushView(std::move(mainView));
 
         while (appletMainLoop() && !g_shouldExit)
         {

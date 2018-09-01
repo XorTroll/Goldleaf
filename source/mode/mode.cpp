@@ -1,4 +1,4 @@
-#include "ui/ui_mode.hpp"
+#include "mode/mode.hpp"
 #include "ui/console_options_view.hpp"
 #include "nx/fs.hpp"
 
