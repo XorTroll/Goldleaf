@@ -1,6 +1,7 @@
 #include "ui/console_options_view.hpp"
 
 #include <cstring>
+#include "util/graphics_util.hpp"
 #include "util/title_util.hpp"
 #include "error.hpp"
 
@@ -84,8 +85,8 @@ namespace tin::ui
 
     // End ConsoleEntry
 
-    ConsoleOptionsView::ConsoleOptionsView(unsigned int unwindDistance) :
-        ConsoleView(unwindDistance)
+    ConsoleOptionsView::ConsoleOptionsView(std::string title, unsigned int unwindDistance) :
+        ConsoleView(unwindDistance), m_title(title)
     {
 
     }
@@ -178,6 +179,12 @@ namespace tin::ui
         auto console = ViewManager::Instance().m_printConsole;
         consoleClear();
 
+        // Print the header
+        console->flags |= CONSOLE_COLOR_BOLD;
+        tin::util::PrintTextCentred(m_title);
+        console->flags &= ~CONSOLE_COLOR_BOLD;
+
+        // Print the entries
         for (auto& entry : m_consoleEntries)
         {
             char optionValueText[78] = {0};
@@ -213,7 +220,7 @@ namespace tin::ui
     {
         auto console = ViewManager::Instance().m_printConsole;
         console->cursorX = 0;
-        console->cursorY = m_cursorPos;
+        console->cursorY = m_cursorPos + 2;
         console->flags |= CONSOLE_COLOR_BOLD;
         printf("> ");
         console->flags &= ~CONSOLE_COLOR_BOLD;
@@ -223,7 +230,7 @@ namespace tin::ui
     {
         auto console = ViewManager::Instance().m_printConsole;
         console->cursorX = 0;
-        console->cursorY = m_cursorPos;
+        console->cursorY = m_cursorPos + 2;
         printf("  ");
     }
 }

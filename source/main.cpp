@@ -121,14 +121,14 @@ int main(int argc, char **argv)
 
         auto mainView = std::make_unique<tin::ui::ConsoleOptionsView>();
 
-        mainView->AddEntry("Tinfoil v0.0.1 by Adubbz", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        mainView->AddEntry("Main Menu", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         mainView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
         mainView->AddEntry(titleManCat.m_name, tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &titleManCat));
         mainView->AddEntry("Install Information", tin::ui::ConsoleEntrySelectType::SELECT_INACTIVE, nullptr);
         mainView->AddEntry("Ticket Management", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &tikManCat));
         mainView->AddEntry("Exit", tin::ui::ConsoleEntrySelectType::SELECT, markForExit);
         
-        //manager.PushView(std::move(mainView));
+        manager.PushView(std::move(mainView));
 
         while (appletMainLoop() && !g_shouldExit)
         {
