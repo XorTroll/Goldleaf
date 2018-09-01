@@ -107,8 +107,6 @@ int main(int argc, char **argv)
             return 0;
         }
         
-        LOG_DEBUG(nsLaunchApplication(0x01000320000CC000), "Failed to launch application\n");
-
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
