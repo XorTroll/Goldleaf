@@ -127,8 +127,8 @@ namespace tin::ui
             tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, path, fullPath);
             tin::install::nsp::NSPInstallTask task(simpleFS, m_destStorageId, m_ignoreReqFirmVersion);
 
-            task.PrepareForInstall();
-            task.Install();
+            task.Prepare();
+            task.Begin();
         }
         catch (std::exception& e)
         {

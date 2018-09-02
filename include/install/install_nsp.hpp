@@ -1,23 +1,22 @@
 #pragma once
 
 #include <switch.h>
-#include "install/content_meta.hpp"
 #include "install/install.hpp"
 #include "install/simple_filesystem.hpp"
+#include "nx/content_meta.hpp"
 #include "nx/ipc/tin_ipc.h"
 
 namespace tin::install::nsp
 {
-    class NSPInstallTask : public IInstallTask
+    class NSPInstallTask : public Install
     {
         private:
             tin::install::nsp::SimpleFileSystem* const m_simpleFileSystem;
 
         protected:
-            void ReadCNMT() override;
+            void ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer) override;
             void InstallNCA(const NcmNcaId& ncaId) override;
             void InstallTicketCert() override;
-            void InstallCNMT() override;
 
         public:
             NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId, bool ignoreReqFirmVersion);

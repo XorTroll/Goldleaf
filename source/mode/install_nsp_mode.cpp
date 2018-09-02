@@ -153,7 +153,8 @@ namespace tin::ui
                 tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", path + "/");
                 tin::install::nsp::NSPInstallTask task(simpleFS, m_destStorageId, m_ignoreReqFirmVersion);
 
-                task.PrepareForInstall();
+                printf("Preparing install...\n");
+                task.Prepare();
                 LOG_DEBUG("Pre Install Records: \n");
                 task.DebugPrintInstallData();
 
@@ -163,7 +164,7 @@ namespace tin::ui
                 tin::util::PrintTextCentred(ss.str());
                 manager.m_printConsole->flags &= ~CONSOLE_COLOR_BOLD;
 
-                task.Install();
+                task.Begin();
                 LOG_DEBUG("Post Install Records: \n");
                 task.DebugPrintInstallData();
             }

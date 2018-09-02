@@ -7,16 +7,15 @@
 
 namespace tin::install::nsp
 {
-    class NetworkNSPInstallTask : public IInstallTask
+    class NetworkNSPInstallTask : public Install
     {
         private:
             RemoteNSP m_remoteNSP;
 
         protected:
-            void ReadCNMT() override;
+            void ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer) override;
             void InstallNCA(const NcmNcaId& ncaId) override;
             void InstallTicketCert() override;
-            void InstallCNMT() override;
 
         public:
             NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url);

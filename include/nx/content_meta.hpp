@@ -2,9 +2,10 @@
 
 #include <switch.h>
 #include <vector>
-#include "nx/ipc/tin_ipc.h"
 
-namespace tin::install
+#include "util/byte_buffer.hpp"
+
+namespace nx::ncm
 {
     enum class ContentMetaType : u8
     {
@@ -85,16 +86,15 @@ namespace tin::install
     class ContentMeta final
     {
         private:
-            std::vector<u8> m_contentMetaBytes;
-
-            ContentMetaHeader m_contentMetaHeader;
+            tin::util::ByteBuffer m_bytes;
 
         public:
-            std::vector<ContentRecord> m_contentRecords;
+            ContentMeta(u8* data, size_t size);
 
-            ContentMeta();
+            ContentMetaHeader GetContentMetaHeader();
+            NcmMetaRecord GetContentMetaKey();
+            std::vector<ContentRecord> GetContentRecords();
 
-            Result ParseData(u8* data, size_t dataSize);
-            Result GetInstallContentMeta(NcmMetaRecord *contentMetaKeyOut, NcmContentRecord& cnmtContentRecord, std::vector<u8>& installContentMetaBytesOut, bool ignoreReqFirmVersion);
+            void GetInstallContentMeta(tin::util::ByteBuffer& installContentMetaBuffer, ContentRecord& cnmtContentRecord, bool ignoreReqFirmVersion);
     };
 }

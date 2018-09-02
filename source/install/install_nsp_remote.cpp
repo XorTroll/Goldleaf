@@ -10,12 +10,12 @@
 namespace tin::install::nsp
 {
     NetworkNSPInstallTask::NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url) :
-        IInstallTask(destStorageId, ignoreReqFirmVersion), m_remoteNSP(url)
+        Install(destStorageId, ignoreReqFirmVersion), m_remoteNSP(url)
     {
         m_remoteNSP.RetrieveHeader();
     }
 
-    void NetworkNSPInstallTask::ReadCNMT()
+    void NetworkNSPInstallTask::ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer)
     {
         const PFS0FileEntry* fileEntry = m_remoteNSP.GetFileEntryByExtension("cnmt.nca");
 
@@ -44,13 +44,13 @@ namespace tin::install::nsp
         auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
         u64 cnmtSize = cnmtFile.GetSize();
 
-        m_cnmtByteBuf.resize(cnmtSize, 0);
-        cnmtFile.Read(0x0, m_cnmtByteBuf.data(), cnmtSize);
+        byteBuffer.Resize(cnmtSize);
+        cnmtFile.Read(0x0, byteBuffer.GetData(), cnmtSize);
 
         // Prepare cnmt content record
-        m_cnmtContentRecord.ncaId = cnmtNcaId;
-        *(u64*)m_cnmtContentRecord.size = cnmtNcaSize & 0xFFFFFFFFFFFF;
-        m_cnmtContentRecord.type = NcmContentType_CNMT;
+        cnmtContentRecordOut->ncaId = cnmtNcaId;
+        *(u64*)cnmtContentRecordOut->size = cnmtNcaSize & 0xFFFFFFFFFFFF;
+        cnmtContentRecordOut->contentType = NcmContentType_CNMT;
     }
 
     void NetworkNSPInstallTask::InstallNCA(const NcmNcaId& ncaId)
@@ -122,11 +122,5 @@ namespace tin::install::nsp
 
         // Finally, let's actually import the ticket
         ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
-    }
-
-    void NetworkNSPInstallTask::InstallCNMT()
-    {
-        // We manually install CNMTs early, so don't do it during
-        // the install process
     }
 }

@@ -161,10 +161,11 @@ namespace tin::ui
                             printf("Installing from %s\n", url.c_str());
                             tin::install::nsp::NetworkNSPInstallTask task(FsStorageId_SdCard, false, url);
 
-                            task.PrepareForInstall();
+                            printf("Preparing install...\n");
+                            task.Prepare();
                             LOG_DEBUG("Pre Install Records: \n");
                             task.DebugPrintInstallData();
-                            task.Install();
+                            task.Begin();
                             LOG_DEBUG("Post Install Records: \n");
                             task.DebugPrintInstallData();
                             printf("\n");

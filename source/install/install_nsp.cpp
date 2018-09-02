@@ -14,12 +14,12 @@
 namespace tin::install::nsp
 {
     NSPInstallTask::NSPInstallTask(tin::install::nsp::SimpleFileSystem& simpleFileSystem, FsStorageId destStorageId, bool ignoreReqFirmVersion) :
-        IInstallTask(destStorageId, ignoreReqFirmVersion), m_simpleFileSystem(&simpleFileSystem)
+        Install(destStorageId, ignoreReqFirmVersion), m_simpleFileSystem(&simpleFileSystem)
     {
 
     }
 
-    void NSPInstallTask::ReadCNMT()
+    void NSPInstallTask::ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer)
     {
         // Create the path of the cnmt NCA
         auto cnmtNCAName = m_simpleFileSystem->GetFileNameFromExtension("", "cnmt.nca");
@@ -38,13 +38,13 @@ namespace tin::install::nsp
         auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
         u64 cnmtSize = cnmtFile.GetSize();
 
-        m_cnmtByteBuf.resize(cnmtSize, 0);
-        cnmtFile.Read(0x0, m_cnmtByteBuf.data(), cnmtSize);
+        byteBuffer.Resize(cnmtSize);
+        cnmtFile.Read(0x0, byteBuffer.GetData(), cnmtSize);
 
         // Prepare cnmt content record
-        m_cnmtContentRecord.ncaId = tin::util::GetNcaIdFromString(cnmtNCAName);
-        *(u64*)m_cnmtContentRecord.size = cnmtNCASize & 0xFFFFFFFFFFFF;
-        m_cnmtContentRecord.type = NcmContentType_CNMT;
+        cnmtContentRecordOut->ncaId = tin::util::GetNcaIdFromString(cnmtNCAName);
+        *(u64*)cnmtContentRecordOut->size = cnmtNCASize & 0xFFFFFFFFFFFF;
+        cnmtContentRecordOut->contentType = NcmContentType_CNMT;
     }
 
     void NSPInstallTask::InstallTicketCert()
@@ -143,11 +143,5 @@ namespace tin::install::nsp
             contentStorage.DeletePlaceholder(ncaId);
         }
         catch (...) {}
-    }
-
-    void NSPInstallTask::InstallCNMT()
-    {
-        printf("Installing CNNT NCA...\n");
-        this->InstallNCA(m_cnmtContentRecord.ncaId);
     }
 }
