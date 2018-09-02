@@ -3,6 +3,7 @@
 #include <cstring>
 #include <memory>
 #include "error.hpp"
+#include "util/title_util.hpp"
 
 namespace tin::install
 {
@@ -35,23 +36,8 @@ namespace tin::install
     {
         Result rc = 0;
         std::vector<ContentStorageRecord> storageRecords;
-        u64 baseTitleId = 0;
+        u64 baseTitleId = tin::util::GetBaseTitleId(this->GetTitleId(), this->GetContentMetaType());
         u32 contentMetaCount = 0;
-
-        // Updates and DLC don't share the same title id as the base game, but we
-        // should be able to derive it manually.
-        if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
-        {
-            baseTitleId = m_metaRecord.titleId;
-        }
-        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
-        {
-            baseTitleId = m_metaRecord.titleId ^ 0x800;
-        }
-        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::ADD_ON_CONTENT))
-        {
-            baseTitleId = (m_metaRecord.titleId ^ 0x1000) & ~0xFFF;
-        }
 
         // TODO: Make custom error with result code field
         // 0x410: The record doesn't already exist
@@ -139,6 +125,16 @@ namespace tin::install
 
         LOG_DEBUG("Post Install Records: \n");
         this->DebugPrintInstallData();
+    }
+
+    u64 IInstallTask::GetTitleId()
+    {
+        return m_metaRecord.titleId;
+    }
+
+    ContentMetaType IInstallTask::GetContentMetaType()
+    {
+        return static_cast<ContentMetaType>(m_metaRecord.type);
     }
 
     void IInstallTask::DebugPrintInstallData()

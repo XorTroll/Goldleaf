@@ -49,19 +49,13 @@ namespace tin::ui
     {
         u64 titleId = tin::util::GetRightsIdTid(this->rightsId);
         u64 keyGen = tin::util::GetRightsIdKeyGen(this->rightsId);
-        std::string titleName = "";
-        
-        try
-        {
-            titleName = tin::util::GetTitleName(titleId);
-        }
-        catch (...) {}
+        std::string titleName = tin::util::GetBaseTitleName(titleId);
 
-        if (titleName.empty())
+        if (titleName.empty() || titleName == "Unknown")
         {
             try
             {
-                titleName = tin::util::GetTitleName(titleId ^ 0x800);
+                titleName = tin::util::GetBaseTitleName(titleId ^ 0x800);
             }
             catch (...) {}
         }
