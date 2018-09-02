@@ -37,6 +37,9 @@ namespace tin::install
             virtual void PrepareForInstall();
             virtual void Install();
 
+            virtual u64 GetTitleId();
+            virtual ContentMetaType GetContentMetaType();
+
             virtual void DebugPrintInstallData();
     };
 }

@@ -9,12 +9,12 @@
 
 #include "nx/ipc/tin_ipc.h"
 
-#include "ui/ui_mode.hpp"
-#include "ui/ui_installextracted_mode.hpp"
-#include "ui/ui_installnsp_mode.hpp"
-#include "ui/ui_deletecommonticket_mode.hpp"
-#include "ui/ui_deletepersonalizedticket_mode.hpp"
-#include "ui/ui_networkinstall_mode.hpp"
+#include "mode/mode.hpp"
+#include "mode/install_extracted_mode.hpp"
+#include "mode/install_nsp_mode.hpp"
+#include "mode/delete_common_ticket_mode.hpp"
+#include "mode/delete_personalized_ticket_mode.hpp"
+#include "mode/network_install_mode.hpp"
 #include "ui/view.hpp"
 #include "ui/console_options_view.hpp"
 
@@ -107,7 +107,6 @@ int main(int argc, char **argv)
             return 0;
         }
         
-
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
@@ -122,7 +121,7 @@ int main(int argc, char **argv)
 
         auto mainView = std::make_unique<tin::ui::ConsoleOptionsView>();
 
-        mainView->AddEntry("Tinfoil v0.0.1 by Adubbz", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        mainView->AddEntry("Main Menu", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         mainView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
         mainView->AddEntry(titleManCat.m_name, tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &titleManCat));
         mainView->AddEntry("Install Information", tin::ui::ConsoleEntrySelectType::SELECT_INACTIVE, nullptr);

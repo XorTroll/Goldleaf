@@ -38,27 +38,75 @@ namespace tin::util
         return ncaId;
     }
 
-    std::string GetTitleName(u64 titleId)
+    u64 GetBaseTitleId(u64 titleId, tin::install::ContentMetaType contentMetaType)
     {
+        switch (contentMetaType)
+        {
+            case tin::install::ContentMetaType::PATCH:
+                return titleId ^ 0x800;
+
+            case tin::install::ContentMetaType::ADD_ON_CONTENT:
+                return (titleId ^ 0x1000) & ~0xFFF;
+
+            default:
+                return titleId;
+        }
+    }
+
+    std::string GetBaseTitleName(u64 baseTitleId)
+    {
+        Result rc = 0;
         NsApplicationControlData appControlData;
         size_t sizeRead;
 
-        ASSERT_OK(nsGetApplicationControlData(0x1, titleId, &appControlData, sizeof(NsApplicationControlData), &sizeRead), "Failed to get application control data");
+        if (R_FAILED(rc = nsGetApplicationControlData(0x1, baseTitleId, &appControlData, sizeof(NsApplicationControlData), &sizeRead)))
+        {
+            LOG_DEBUG("Failed to get application control data. Error code: 0x%08x\n", rc);
+            return "Unknown";
+        }
 
         if (sizeRead < sizeof(appControlData.nacp))
         {
-            throw std::runtime_error("Incorrect size for nacp");
+            LOG_DEBUG("Incorrect size for nacp\n");
+            return "Unknown";
         }
 
         NacpLanguageEntry *languageEntry;
 
-        ASSERT_OK(nacpGetLanguageEntry(&appControlData.nacp, &languageEntry), "Failed to get language entry");
+        if (R_FAILED(rc = nacpGetLanguageEntry(&appControlData.nacp, &languageEntry)))
+        {
+            LOG_DEBUG("Failed to get language entry. Error code: 0x%08x\n", rc);
+            return "Unknown";
+        }
 
         if (languageEntry == NULL)
         {
-            throw std::runtime_error("Language entry is null!");
+            LOG_DEBUG("Language entry is null! Error code: 0x%08x\n", rc);
+            return "Unknown";
         }
 
         return languageEntry->name;
+    }
+
+    std::string GetTitleName(u64 titleId, tin::install::ContentMetaType contentMetaType)
+    {
+        u64 baseTitleId = GetBaseTitleId(titleId, contentMetaType);
+        std::string titleName = GetBaseTitleName(baseTitleId);
+
+        switch (contentMetaType)
+        {
+            case tin::install::ContentMetaType::PATCH:
+                titleName += " (Update)";
+                break;
+
+            case tin::install::ContentMetaType::ADD_ON_CONTENT:
+                titleName += " (DLC)";
+                break;
+
+            default:
+                break;
+        }
+
+        return titleName;
     }
 }

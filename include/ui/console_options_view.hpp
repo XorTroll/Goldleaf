@@ -60,14 +60,18 @@ namespace tin::ui
 
         ConsoleEntry(std::unique_ptr<IOptionValue> optionValue, ConsoleEntrySelectType selectType, std::function<void ()> onSelected);
     };
-
     class ConsoleOptionsView : public ConsoleView
     {
         private:
+            static const int MAX_ENTRIES_PER_PAGE = 32;
+
+            const std::string m_title;
+
             std::vector<std::unique_ptr<ConsoleEntry>> m_consoleEntries;
             unsigned int m_cursorPos = 0;
+
         public:
-            ConsoleOptionsView(unsigned int unwindDistance = 1);
+            ConsoleOptionsView(std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
 
             virtual void OnPresented() override;
             virtual void ProcessInput(u64 keys) override;
@@ -79,8 +83,9 @@ namespace tin::ui
             IOptionValue* GetSelectedOptionValue();
 
         protected:
-            void MoveCursor(signed char off);
             void DisplayAll();
+
+            void MoveCursor(signed char off);
             void DisplayCursor();
             void ClearCursor();
     };

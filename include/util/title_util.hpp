@@ -2,6 +2,7 @@
 
 #include <switch.h>
 #include <string>
+#include "install/content_meta.hpp"
 #include "nx/ipc/tin_ipc.h"
 
 namespace tin::util
@@ -12,5 +13,7 @@ namespace tin::util
     std::string GetNcaIdString(const NcmNcaId& ncaId);
     NcmNcaId GetNcaIdFromString(std::string ncaIdStr);
 
-    std::string GetTitleName(u64 titleId);
+    u64 GetBaseTitleId(u64 titleId, tin::install::ContentMetaType contentMetaType);
+    std::string GetBaseTitleName(u64 baseTitleId);
+    std::string GetTitleName(u64 titleId, tin::install::ContentMetaType contentMetaType);
 }

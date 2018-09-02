@@ -1,9 +1,12 @@
-#include "ui/ui_installnsp_mode.hpp"
+#include "mode/install_nsp_mode.hpp"
 
 #include <cstring>
+#include <sstream>
 #include "install/install_nsp.hpp"
 #include "nx/fs.hpp"
 #include "ui/console_options_view.hpp"
+#include "util/title_util.hpp"
+#include "util/graphics_util.hpp"
 #include "error.hpp"
 
 namespace tin::ui
@@ -141,7 +144,6 @@ namespace tin::ui
 
         for (unsigned int i = 0; i < installList.size(); i++)
         {
-            printf("Installing %i/%ld\n", (i + 1), installList.size());
             std::string path = "@Sdcard://tinfoil/nsp/" + installList[i];
 
             try
@@ -154,6 +156,13 @@ namespace tin::ui
                 task.PrepareForInstall();
                 LOG_DEBUG("Pre Install Records: \n");
                 task.DebugPrintInstallData();
+
+                std::stringstream ss;
+                ss << "Installing " << tin::util::GetTitleName(task.GetTitleId(), task.GetContentMetaType()) << " (" << (i + 1) << "/" << installList.size() << ")";
+                manager.m_printConsole->flags |= CONSOLE_COLOR_BOLD;
+                tin::util::PrintTextCentred(ss.str());
+                manager.m_printConsole->flags &= ~CONSOLE_COLOR_BOLD;
+
                 task.Install();
                 LOG_DEBUG("Post Install Records: \n");
                 task.DebugPrintInstallData();

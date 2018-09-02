@@ -1,4 +1,4 @@
-#include "ui/ui_networkinstall_mode.hpp"
+#include "mode/network_install_mode.hpp"
 
 #include <cstring>
 #include <sys/socket.h>

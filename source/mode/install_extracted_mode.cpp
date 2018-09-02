@@ -1,4 +1,4 @@
-#include "ui/ui_installextracted_mode.hpp"
+#include "mode/install_extracted_mode.hpp"
 
 #include <cstring>
 #include "install/install_nsp.hpp"
