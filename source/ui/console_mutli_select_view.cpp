@@ -17,7 +17,7 @@ namespace tin::ui
         if (keys & KEY_A)
         {
             bool found = false;
-            for (int i = 0; i < m_selectedEntries.size(); i++)
+            for (std::vector<unsigned int>::size_type i = 0; i < m_selectedEntries.size(); i++)
             {
                 auto& index = m_selectedEntries[i];
                 if (index == m_cursorPos)
