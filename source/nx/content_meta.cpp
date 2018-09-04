@@ -71,17 +71,18 @@ namespace nx::ncm
         installContentMetaBuffer.Append<InstallContentMetaHeader>(installContentMetaHeader);
 
         // Setup the meta extended header
-        auto* extendedHeaderBytes = m_bytes.GetData() + sizeof(ContentMetaHeader);
+        LOG_DEBUG("Install content meta pre size: 0x%lx\n", installContentMetaBuffer.GetSize());
+        installContentMetaBuffer.Resize(installContentMetaBuffer.GetSize() + contentMetaHeader.extendedHeaderSize);
+        LOG_DEBUG("Install content meta post size: 0x%lx\n", installContentMetaBuffer.GetSize());
+        auto* extendedHeaderSourceBytes = m_bytes.GetData() + sizeof(ContentMetaHeader);
+        u8* installExtendedHeaderStart = installContentMetaBuffer.GetData() + sizeof(InstallContentMetaHeader);
+        memcpy(installExtendedHeaderStart, extendedHeaderSourceBytes, contentMetaHeader.extendedHeaderSize);
 
         // Optionally disable the required system version field
         if (ignoreReqFirmVersion && (contentMetaHeader.type == ContentMetaType::APPLICATION || contentMetaHeader.type == ContentMetaType::PATCH))
         {
-            *(u64 *)(extendedHeaderBytes + 8) = 0;
+            m_bytes.Write<u64>(0, sizeof(ContentMetaHeader) + 8);
         }
-        
-        auto* extendedHeaderStart = installContentMetaBuffer.GetData() + installContentMetaBuffer.GetSize();
-        installContentMetaBuffer.Resize(installContentMetaBuffer.GetSize() + contentMetaHeader.extendedHeaderSize);
-        memcpy(extendedHeaderStart, extendedHeaderBytes, contentMetaHeader.extendedHeaderSize);
 
         // Setup cnmt content record
         installContentMetaBuffer.Append<ContentRecord>(cnmtContentRecord);
@@ -94,7 +95,7 @@ namespace nx::ncm
 
         if (contentMetaHeader.type == ContentMetaType::PATCH)
         {
-            PatchMetaExtendedHeader* patchMetaExtendedHeader = (PatchMetaExtendedHeader*)extendedHeaderBytes;
+            PatchMetaExtendedHeader* patchMetaExtendedHeader = (PatchMetaExtendedHeader*)extendedHeaderSourceBytes;
             installContentMetaBuffer.Resize(installContentMetaBuffer.GetSize() + patchMetaExtendedHeader->extendedDataSize);
         }
     }

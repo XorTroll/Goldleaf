@@ -108,6 +108,13 @@ namespace tin::install::nsp
     {        
         // Read the tik file and put it into a buffer
         const PFS0FileEntry* tikFileEntry = m_remoteNSP.GetFileEntryByExtension("tik");
+
+        if (tikFileEntry == nullptr)
+        {
+            LOG_DEBUG("Remote tik file is missing.\n");
+            throw std::runtime_error("Remote tik file is not present!");
+        }
+
         u64 tikSize = tikFileEntry->fileSize;
         auto tikBuf = std::make_unique<u8[]>(tikSize);
         printf("> Reading tik\n");
@@ -115,6 +122,13 @@ namespace tin::install::nsp
 
         // Read the cert file and put it into a buffer
         const PFS0FileEntry* certFileEntry = m_remoteNSP.GetFileEntryByExtension("cert");
+
+        if (certFileEntry == nullptr)
+        {
+            LOG_DEBUG("Remote cert file is missing.\n");
+            throw std::runtime_error("Remote cert file is not present!");
+        }
+
         u64 certSize = certFileEntry->fileSize;
         auto certBuf = std::make_unique<u8[]>(certSize);
         printf("> Reading cert\n");
