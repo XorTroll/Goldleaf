@@ -1,0 +1,36 @@
+#pragma once
+
+#include <vector>
+#include <switch.h>
+
+#include "console_options_view.hpp"
+
+namespace tin::ui
+{
+    class ConsoleMultiSelectView : public ConsoleOptionsView
+    {
+        public:
+            ConsoleMultiSelectView(std::function<void ()> onDone = nullptr, std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
+
+            std::vector<ConsoleEntry*> GetSelectedEntries();
+            std::vector<IOptionValue*> GetSelectedOptionValues();
+
+            std::function<void ()> onDone;
+
+            void ProcessInput(u64 keys) override;
+        protected:
+            const char* PADDING_AFTER_CURSOR() const override
+            {
+                return "   ";
+            }
+
+            std::vector<unsigned int> m_selectedEntries;
+
+            void DisplayAll() override;
+
+            void DisplayIndicators();
+            void ClearIndicators();
+            void DisplayIndicator(int entryIndex);
+            void ClearIndicator(int entryIndex);
+    };
+}

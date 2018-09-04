@@ -194,12 +194,12 @@ namespace tin::ui
 
                 case ConsoleEntrySelectType::SELECT_INACTIVE:
                     console->flags |= CONSOLE_COLOR_FAINT;
-                    printf("  %s\n", optionValueText);
+                    printf(" %s%s\n", PADDING_AFTER_CURSOR(), optionValueText);
                     console->flags &= ~CONSOLE_COLOR_FAINT;
                     break;
 
                 case ConsoleEntrySelectType::SELECT:
-                    printf("  %s\n", optionValueText);
+                    printf(" %s%s\n", PADDING_AFTER_CURSOR(), optionValueText);
                     break;
 
                 default:

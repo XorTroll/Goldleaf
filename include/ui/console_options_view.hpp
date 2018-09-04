@@ -64,12 +64,6 @@ namespace tin::ui
     {
         private:
             static const int MAX_ENTRIES_PER_PAGE = 32;
-
-            const std::string m_title;
-
-            std::vector<std::unique_ptr<ConsoleEntry>> m_consoleEntries;
-            unsigned int m_cursorPos = 0;
-
         public:
             ConsoleOptionsView(std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
 
@@ -83,7 +77,17 @@ namespace tin::ui
             IOptionValue* GetSelectedOptionValue();
 
         protected:
-            void DisplayAll();
+            const std::string m_title;
+
+            std::vector<std::unique_ptr<ConsoleEntry>> m_consoleEntries;
+            unsigned int m_cursorPos = 0;
+
+            virtual const char* PADDING_AFTER_CURSOR() const
+            {
+                return " ";
+            }
+
+            virtual void DisplayAll();
 
             void MoveCursor(signed char off);
             void DisplayCursor();
