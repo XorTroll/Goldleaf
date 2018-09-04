@@ -71,7 +71,7 @@ namespace tin::ui
             unsigned int m_cursorPos = 0;
 
         public:
-            ConsoleOptionsView(std::string title="Tinfoil 0.1.0 by Adubbz. WARNING - THIS VERSION IS UNSTABLE. EXPECT BUGS.", unsigned int unwindDistance = 1);
+            ConsoleOptionsView(std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
 
             virtual void OnPresented() override;
             virtual void ProcessInput(u64 keys) override;

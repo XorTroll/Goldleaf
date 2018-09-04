@@ -44,6 +44,8 @@ namespace tin::install
         u64 baseTitleId = tin::util::GetBaseTitleId(this->GetTitleId(), this->GetContentMetaType());
         u32 contentMetaCount = 0;
 
+        LOG_DEBUG("Base title Id: 0x%lx", baseTitleId);
+
         // TODO: Make custom error with result code field
         // 0x410: The record doesn't already exist
         if (R_FAILED(rc = nsCountApplicationContentMeta(baseTitleId, &contentMetaCount)) && rc != 0x410)
@@ -53,12 +55,6 @@ namespace tin::install
         rc = 0;
 
         LOG_DEBUG("Content meta count: %u\n", contentMetaCount);
-
-        // Add our new content meta
-        ContentStorageRecord storageRecord;
-        storageRecord.metaRecord = this->m_contentMeta->GetContentMetaKey();
-        storageRecord.storageId = m_destStorageId;
-        storageRecords.push_back(storageRecord);
 
         // Obtain any existing app record content meta and append it to our vector
         if (contentMetaCount > 0)
@@ -77,6 +73,12 @@ namespace tin::install
 
             memcpy(storageRecords.data(), contentStorageBuf.get(), contentStorageBufSize);
         }
+
+        // Add our new content meta
+        ContentStorageRecord storageRecord;
+        storageRecord.metaRecord = this->m_contentMeta->GetContentMetaKey();
+        storageRecord.storageId = m_destStorageId;
+        storageRecords.push_back(storageRecord);
 
         // Replace the existing application records with our own
         try
