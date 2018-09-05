@@ -11,6 +11,7 @@
 
 namespace tin::ui
 {
+    static const char* const DEFAULT_TITLE = "Tinfoil 0.1.0 by Adubbz";
     struct IOptionValue
     {
         public:
@@ -65,7 +66,7 @@ namespace tin::ui
         private:
             static const int MAX_ENTRIES_PER_PAGE = 32;
         public:
-            ConsoleOptionsView(std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
+            ConsoleOptionsView(std::string title=DEFAULT_TITLE, unsigned int unwindDistance = 1);
 
             virtual void OnPresented() override;
             virtual void ProcessInput(u64 keys) override;
@@ -82,7 +83,7 @@ namespace tin::ui
             std::vector<std::unique_ptr<ConsoleEntry>> m_consoleEntries;
             unsigned int m_cursorPos = 0;
 
-            virtual const char* PADDING_AFTER_CURSOR() const
+            virtual const char* PaddingAfterCursor() const
             {
                 return " ";
             }

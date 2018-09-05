@@ -7,14 +7,14 @@
 namespace tin::ui
 {
     ConsoleMultiSelectView::ConsoleMultiSelectView(std::function<void ()> _onDone, std::string title, unsigned int unwindDistance) :
-        ConsoleOptionsView(title, unwindDistance), onDone(_onDone)
+        ConsoleOptionsView(title, unwindDistance), m_onDone(_onDone)
     {
 
     }
 
     void ConsoleMultiSelectView::ProcessInput(u64 keys)
     {
-        if (keys & KEY_A)
+        if (keys & KEY_X)
         {
             bool found = false;
             for (std::vector<unsigned int>::size_type i = 0; i < m_selectedEntries.size(); i++)
@@ -34,8 +34,8 @@ namespace tin::ui
                 DisplayIndicator(m_cursorPos);
             }
         }
-        else if (keys & KEY_X)
-            onDone();
+        else if (keys & KEY_A)
+            m_onDone();
         else
             ConsoleOptionsView::ProcessInput(keys);
     }
@@ -74,7 +74,7 @@ namespace tin::ui
         console->cursorX = 0;
         console->cursorY = m_consoleEntries.size() + 3;
         console->flags |= CONSOLE_COLOR_BOLD;
-        tin::util::PrintTextCentred("(A) to toggle option, (X) to continue");
+        tin::util::PrintTextCentred("(X) to toggle option, (A) to continue");
         console->flags &= ~CONSOLE_COLOR_BOLD;
     }
 

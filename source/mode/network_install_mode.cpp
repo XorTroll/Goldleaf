@@ -78,10 +78,27 @@ namespace tin::ui
         }
     }
 
+    void NetworkInstallMode::OnUnwound()
+    {
+        LOG_DEBUG("unwinding view\n");
+        if (m_clientSocket != 0)
+        {
+            close(m_clientSocket);
+            m_clientSocket = 0;
+        }
+
+        curl_global_cleanup();
+        #ifndef NXLINK_DEBUG
+        socketExit();
+        #endif
+    }
+
     void NetworkInstallMode::OnSelected()
     {
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
         auto view = std::make_unique<tin::ui::ConsoleView>();
+        LOG_DEBUG("setting onUnwound...\n");
+        view->m_onUnwound = std::bind(&NetworkInstallMode::OnUnwound, this);
         manager.PushView(std::move(view));
 
         try
@@ -161,8 +178,7 @@ namespace tin::ui
                 }
             }
 
-            manager.Unwind(1);
-            auto view = std::make_unique<tin::ui::ConsoleMultiSelectView>(std::bind(&NetworkInstallMode::OnNSPSelected, this));
+            auto view = std::make_unique<tin::ui::ConsoleMultiSelectView>(std::bind(&NetworkInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
             view->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
             view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
             
@@ -228,7 +244,7 @@ namespace tin::ui
         auto view = std::make_unique<tin::ui::ConsoleView>();
         manager.PushView(std::move(view));
 
-         std::string nspExt = ".nsp";
+        std::string nspExt = ".nsp";
                     
         for (auto& url : m_urls)
         {
@@ -253,16 +269,5 @@ namespace tin::ui
         u8 ack = 0;
         tin::network::WaitSendNetworkData(m_clientSocket, &ack, sizeof(u8));
         printf("\n Press (B) to return.");
-
-        if (m_clientSocket != 0)
-        {
-            close(m_clientSocket);
-            m_clientSocket = 0;
-        }
-
-        curl_global_cleanup();
-        #ifndef NXLINK_DEBUG
-        socketExit();
-        #endif
     }
 }

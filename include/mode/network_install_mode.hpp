@@ -18,6 +18,7 @@ namespace tin::ui
             NetworkInstallMode();
             ~NetworkInstallMode();
 
+            void OnUnwound();
             void OnSelected() override;
             void OnNSPSelected();
             void OnDestinationSelected();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <switch.h>
+#include <functional>
 
 #include <memory>
 #include <stack>
@@ -12,6 +13,9 @@ namespace tin::ui
     class View
     {
         friend ViewManager;
+
+        public:
+            std::function<void ()> m_onUnwound = nullptr;
 
         protected:
             ViewManager *m_viewManager;

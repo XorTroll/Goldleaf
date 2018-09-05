@@ -15,11 +15,11 @@ namespace tin::ui
             std::vector<ConsoleEntry*> GetSelectedEntries();
             std::vector<IOptionValue*> GetSelectedOptionValues();
 
-            std::function<void ()> onDone;
+            std::function<void ()> m_onDone;
 
             void ProcessInput(u64 keys) override;
         protected:
-            const char* PADDING_AFTER_CURSOR() const override
+            const char* PaddingAfterCursor() const override
             {
                 return "   ";
             }
