@@ -81,7 +81,7 @@ namespace nx::ncm
         // Optionally disable the required system version field
         if (ignoreReqFirmVersion && (contentMetaHeader.type == ContentMetaType::APPLICATION || contentMetaHeader.type == ContentMetaType::PATCH))
         {
-            installContentMetaBuffer.Write<u64>(0, sizeof(ContentMetaHeader) + 8);
+            installContentMetaBuffer.Write<u32>(0, sizeof(ContentMetaHeader) + 8);
         }
 
         // Setup cnmt content record
