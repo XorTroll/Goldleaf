@@ -12,8 +12,6 @@ namespace tin::ui
             std::string m_name;
             FsStorageId m_destStorageId = FsStorageId_SdCard;
             bool m_ignoreReqFirmVersion = false;
-            std::vector<std::string> m_nspList;
-            void GetNSPList();
 
         public:
             InstallNSPMode();

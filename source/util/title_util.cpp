@@ -38,14 +38,14 @@ namespace tin::util
         return ncaId;
     }
 
-    u64 GetBaseTitleId(u64 titleId, tin::install::ContentMetaType contentMetaType)
+    u64 GetBaseTitleId(u64 titleId, nx::ncm::ContentMetaType contentMetaType)
     {
         switch (contentMetaType)
         {
-            case tin::install::ContentMetaType::PATCH:
+            case nx::ncm::ContentMetaType::PATCH:
                 return titleId ^ 0x800;
 
-            case tin::install::ContentMetaType::ADD_ON_CONTENT:
+            case nx::ncm::ContentMetaType::ADD_ON_CONTENT:
                 return (titleId ^ 0x1000) & ~0xFFF;
 
             default:
@@ -88,18 +88,18 @@ namespace tin::util
         return languageEntry->name;
     }
 
-    std::string GetTitleName(u64 titleId, tin::install::ContentMetaType contentMetaType)
+    std::string GetTitleName(u64 titleId, nx::ncm::ContentMetaType contentMetaType)
     {
         u64 baseTitleId = GetBaseTitleId(titleId, contentMetaType);
         std::string titleName = GetBaseTitleName(baseTitleId);
 
         switch (contentMetaType)
         {
-            case tin::install::ContentMetaType::PATCH:
+            case nx::ncm::ContentMetaType::PATCH:
                 titleName += " (Update)";
                 break;
 
-            case tin::install::ContentMetaType::ADD_ON_CONTENT:
+            case nx::ncm::ContentMetaType::ADD_ON_CONTENT:
                 titleName += " (DLC)";
                 break;
 

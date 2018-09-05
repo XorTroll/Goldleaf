@@ -3,41 +3,48 @@
 #include <cstring>
 #include <memory>
 #include "error.hpp"
+
+#include "nx/ncm.hpp"
 #include "util/title_util.hpp"
 
+
+// TODO: Check NCA files are present
+// TODO: Check tik/cert is present
 namespace tin::install
 {
-    IInstallTask::IInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion) :
+    Install::Install(FsStorageId destStorageId, bool ignoreReqFirmVersion) :
         m_destStorageId(destStorageId), m_ignoreReqFirmVersion(ignoreReqFirmVersion)
     {}
 
-    // Validate and obtain all data needed for install
-    void IInstallTask::PrepareForInstall()
-    {
-        this->ReadCNMT();
-        this->ParseCNMT();
+    Install::~Install() {}
 
-        // Check NCA files are present
-        // Check tik/cert is present
+    // TODO: Implement RAII on NcmContentMetaDatabase
+    void Install::InstallContentMetaRecords(tin::util::ByteBuffer& installContentMetaBuf)
+    {
+        NcmContentMetaDatabase contentMetaDatabase;
+        NcmMetaRecord contentMetaKey = this->m_contentMeta->GetContentMetaKey();
+
+        try
+        {
+            ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
+            ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &contentMetaKey, installContentMetaBuf.GetSize(), (NcmContentMetaRecordsHeader*)installContentMetaBuf.GetData()), "Failed to set content records");
+            ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
+        }
+        catch (std::runtime_error& e)
+        {
+            serviceClose(&contentMetaDatabase.s);
+            throw e;
+        }
     }
 
-    void IInstallTask::ParseCNMT()
-    {
-        // Parse data and create install content meta
-        ASSERT_OK(m_contentMeta.ParseData(m_cnmtByteBuf.data(), m_cnmtByteBuf.size()), "Failed to parse data");
-
-        if (m_ignoreReqFirmVersion)
-            printf("WARNING: Required system firmware version is being IGNORED!\n");
-
-        ASSERT_OK(m_contentMeta.GetInstallContentMeta(&m_metaRecord, m_cnmtContentRecord, m_installContentMetaData, m_ignoreReqFirmVersion), "Failed to get install content meta");
-    }
-
-    void IInstallTask::Install()
+    void Install::InstallApplicationRecord()
     {
         Result rc = 0;
         std::vector<ContentStorageRecord> storageRecords;
         u64 baseTitleId = tin::util::GetBaseTitleId(this->GetTitleId(), this->GetContentMetaType());
         u32 contentMetaCount = 0;
+
+        LOG_DEBUG("Base title Id: 0x%lx", baseTitleId);
 
         // TODO: Make custom error with result code field
         // 0x410: The record doesn't already exist
@@ -69,19 +76,9 @@ namespace tin::install
 
         // Add our new content meta
         ContentStorageRecord storageRecord;
-        storageRecord.metaRecord = m_metaRecord;
+        storageRecord.metaRecord = this->m_contentMeta->GetContentMetaKey();
         storageRecord.storageId = m_destStorageId;
         storageRecords.push_back(storageRecord);
-
-        printf("Installing ticket and cert...\n");
-        try
-        {
-            this->InstallTicketCert();
-        }
-        catch (std::runtime_error& e)
-        {
-            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
-        }
 
         // Replace the existing application records with our own
         try
@@ -92,78 +89,83 @@ namespace tin::install
 
         printf("Pushing application record...\n");
         ASSERT_OK(nsPushApplicationRecord(baseTitleId, 0x3, storageRecords.data(), storageRecords.size() * sizeof(ContentStorageRecord)), "Failed to push application record");
-
-        printf("Writing content records...\n");
-        this->WriteRecords();
-
-        // Install CNMT
-        this->InstallCNMT();
-
-        printf("Installing NCAs...\n");
-        for (auto& record : m_contentMeta.m_contentRecords)
-        {
-            this->InstallNCA(record.ncaId);
-        }
     }
 
-    // TODO: Implement RAII on NcmContentMetaDatabase
-    void IInstallTask::WriteRecords()
+    // Validate and obtain all data needed for install
+    void Install::Prepare()
     {
-        NcmContentMetaDatabase contentMetaDatabase;
+        nx::ncm::ContentRecord cnmtContentRecord;
+        tin::util::ByteBuffer cnmtBuf;
 
+        this->ReadCNMT(&cnmtContentRecord, cnmtBuf);
+
+        nx::ncm::ContentStorage contentStorage(m_destStorageId);
+
+        if (!contentStorage.Has(cnmtContentRecord.ncaId))
+        {
+            printf("Installing CNMT NCA...\n");
+            this->InstallNCA(cnmtContentRecord.ncaId);
+        }
+        else
+        {
+            printf("CNMT NCA already installed. Proceeding...\n");
+        }
+
+        // Parse data and create install content meta
+        m_contentMeta = std::make_unique<nx::ncm::ContentMeta>(cnmtBuf.GetData(), cnmtBuf.GetSize());
+
+        if (m_ignoreReqFirmVersion)
+            printf("WARNING: Required system firmware version is being IGNORED!\n");
+
+        tin::util::ByteBuffer installContentMetaBuf;
+        m_contentMeta->GetInstallContentMeta(installContentMetaBuf, cnmtContentRecord, m_ignoreReqFirmVersion);
+
+        this->InstallContentMetaRecords(installContentMetaBuf);
+        this->InstallApplicationRecord();
+
+        printf("Installing ticket and cert...\n");
         try
         {
-            ASSERT_OK(ncmOpenContentMetaDatabase(m_destStorageId, &contentMetaDatabase), "Failed to open content meta database");
-            ASSERT_OK(ncmContentMetaDatabaseSet(&contentMetaDatabase, &m_metaRecord, m_installContentMetaData.size(), (NcmContentMetaRecordsHeader*)m_installContentMetaData.data()), "Failed to set content records");
-            ASSERT_OK(ncmContentMetaDatabaseCommit(&contentMetaDatabase), "Failed to commit content records");
+            this->InstallTicketCert();
         }
         catch (std::runtime_error& e)
         {
-            serviceClose(&contentMetaDatabase.s);
-            throw e;
+            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
+        }
+    }
+
+    void Install::Begin()
+    {
+        printf("Installing NCAs...\n");
+        for (auto& record : this->m_contentMeta->GetContentRecords())
+        {
+            LOG_DEBUG("Installing from %s\n", tin::util::GetNcaIdString(record.ncaId).c_str());
+            this->InstallNCA(record.ncaId);
         }
 
         LOG_DEBUG("Post Install Records: \n");
         this->DebugPrintInstallData();
     }
 
-    u64 IInstallTask::GetTitleId()
+    u64 Install::GetTitleId()
     {
-        return m_metaRecord.titleId;
+        return this->m_contentMeta->GetContentMetaKey().titleId;
     }
 
-    ContentMetaType IInstallTask::GetContentMetaType()
+    nx::ncm::ContentMetaType Install::GetContentMetaType()
     {
-        return static_cast<ContentMetaType>(m_metaRecord.type);
+        return static_cast<nx::ncm::ContentMetaType>(this->m_contentMeta->GetContentMetaKey().type);
     }
 
-    void IInstallTask::DebugPrintInstallData()
+    void Install::DebugPrintInstallData()
     {
         #ifdef NXLINK_DEBUG
 
         NcmContentMetaDatabase contentMetaDatabase;
-        u64 baseTitleId;
-        u64 updateTitleId;
+        NcmMetaRecord metaRecord = this->m_contentMeta->GetContentMetaKey();
+        u64 baseTitleId = tin::util::GetBaseTitleId(metaRecord.titleId, static_cast<nx::ncm::ContentMetaType>(metaRecord.type));
+        u64 updateTitleId = baseTitleId ^ 0x800;
         bool hasUpdate = true;
-
-        if (m_metaRecord.type == static_cast<u8>(ContentMetaType::APPLICATION))
-        {
-            baseTitleId = m_metaRecord.titleId;
-            
-        }
-        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::PATCH))
-        {
-            updateTitleId = m_metaRecord.titleId;
-            baseTitleId = updateTitleId ^ 0x800;
-        }
-        else if (m_metaRecord.type == static_cast<u8>(ContentMetaType::ADD_ON_CONTENT))
-        {
-            baseTitleId = (m_metaRecord.titleId ^ 0x1000) & ~0xFFF;
-        }
-        else
-            return;
-
-        updateTitleId = baseTitleId ^ 0x800;
 
         try
         {

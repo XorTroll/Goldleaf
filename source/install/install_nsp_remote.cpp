@@ -10,12 +10,12 @@
 namespace tin::install::nsp
 {
     NetworkNSPInstallTask::NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url) :
-        IInstallTask(destStorageId, ignoreReqFirmVersion), m_remoteNSP(url)
+        Install(destStorageId, ignoreReqFirmVersion), m_remoteNSP(url)
     {
         m_remoteNSP.RetrieveHeader();
     }
 
-    void NetworkNSPInstallTask::ReadCNMT()
+    void NetworkNSPInstallTask::ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer)
     {
         const PFS0FileEntry* fileEntry = m_remoteNSP.GetFileEntryByExtension("cnmt.nca");
 
@@ -44,13 +44,13 @@ namespace tin::install::nsp
         auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
         u64 cnmtSize = cnmtFile.GetSize();
 
-        m_cnmtByteBuf.resize(cnmtSize, 0);
-        cnmtFile.Read(0x0, m_cnmtByteBuf.data(), cnmtSize);
+        byteBuffer.Resize(cnmtSize);
+        cnmtFile.Read(0x0, byteBuffer.GetData(), cnmtSize);
 
         // Prepare cnmt content record
-        m_cnmtContentRecord.ncaId = cnmtNcaId;
-        *(u64*)m_cnmtContentRecord.size = cnmtNcaSize & 0xFFFFFFFFFFFF;
-        m_cnmtContentRecord.type = NcmContentType_CNMT;
+        cnmtContentRecordOut->ncaId = cnmtNcaId;
+        *(u64*)cnmtContentRecordOut->size = cnmtNcaSize & 0xFFFFFFFFFFFF;
+        cnmtContentRecordOut->contentType = NcmContentType_CNMT;
     }
 
     void NetworkNSPInstallTask::InstallNCA(const NcmNcaId& ncaId)
@@ -108,6 +108,13 @@ namespace tin::install::nsp
     {        
         // Read the tik file and put it into a buffer
         const PFS0FileEntry* tikFileEntry = m_remoteNSP.GetFileEntryByExtension("tik");
+
+        if (tikFileEntry == nullptr)
+        {
+            LOG_DEBUG("Remote tik file is missing.\n");
+            throw std::runtime_error("Remote tik file is not present!");
+        }
+
         u64 tikSize = tikFileEntry->fileSize;
         auto tikBuf = std::make_unique<u8[]>(tikSize);
         printf("> Reading tik\n");
@@ -115,6 +122,13 @@ namespace tin::install::nsp
 
         // Read the cert file and put it into a buffer
         const PFS0FileEntry* certFileEntry = m_remoteNSP.GetFileEntryByExtension("cert");
+
+        if (certFileEntry == nullptr)
+        {
+            LOG_DEBUG("Remote cert file is missing.\n");
+            throw std::runtime_error("Remote cert file is not present!");
+        }
+
         u64 certSize = certFileEntry->fileSize;
         auto certBuf = std::make_unique<u8[]>(certSize);
         printf("> Reading cert\n");
@@ -122,11 +136,5 @@ namespace tin::install::nsp
 
         // Finally, let's actually import the ticket
         ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
-    }
-
-    void NetworkNSPInstallTask::InstallCNMT()
-    {
-        // We manually install CNMTs early, so don't do it during
-        // the install process
     }
 }
