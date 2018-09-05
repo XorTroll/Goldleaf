@@ -5,6 +5,7 @@
 #include "install/install_nsp.hpp"
 #include "nx/fs.hpp"
 #include "ui/console_options_view.hpp"
+#include "util/file_util.hpp"
 #include "util/title_util.hpp"
 #include "util/graphics_util.hpp"
 #include "error.hpp"
@@ -17,31 +18,6 @@ namespace tin::ui
 
     }
 
-    void InstallNSPMode::GetNSPList()
-    {
-        nx::fs::IFileSystem fileSystem;
-        fileSystem.OpenSdFileSystem();
-        nx::fs::IDirectory dir = fileSystem.OpenDirectory("/tinfoil/nsp/", FS_DIROPEN_FILE);
-
-        u64 entryCount = dir.GetEntryCount();
-
-        auto dirEntries = std::make_unique<FsDirectoryEntry[]>(entryCount);
-
-        dir.Read(0, dirEntries.get(), entryCount);
-
-        for (unsigned int i = 0; i < entryCount; i++)
-        {
-            FsDirectoryEntry dirEntry = dirEntries[i];
-            std::string dirEntryName(dirEntry.name);
-            std::string ext = ".nsp";
-
-            if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
-                continue;
-
-            m_nspList.push_back(dirEntry.name);
-        }
-    }
-
     void InstallNSPMode::OnSelected()
     {
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
@@ -49,16 +25,15 @@ namespace tin::ui
         view->AddEntry("Select NSP", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
 
-        m_nspList.clear();
-        this->GetNSPList();
+        auto nspList = tin::util::GetNSPList();
 
-        if (m_nspList.size() > 0)
+        if (nspList.size() > 0)
         {
             view->AddEntry("Install All", ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
 
-            for (unsigned int i = 0; i < m_nspList.size(); i++)
+            for (unsigned int i = 0; i < nspList.size(); i++)
             {
-                view->AddEntry(m_nspList[i], ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
+                view->AddEntry(nspList[i], ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
             }
         }
 
@@ -131,7 +106,7 @@ namespace tin::ui
 
         if (m_name == "Install All")
         {
-            installList = m_nspList;
+            installList = tin::util::GetNSPList();
         }
         else
         {
