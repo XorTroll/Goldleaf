@@ -168,10 +168,12 @@ namespace tin::ui
                     // Split the string up into individual URLs
                     std::stringstream urlStream(urlBuf.get());
                     std::string segment;
+                    std::string nspExt = ".nsp";
 
                     while (std::getline(urlStream, segment, '\n'))
                     {
-                        urls.push_back(segment);
+                        if (segment.compare(segment.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
+                            urls.push_back(segment);
                     }
 
                     break;
@@ -251,25 +253,20 @@ namespace tin::ui
 
         auto view = std::make_unique<tin::ui::ConsoleView>(4);
         manager.PushView(std::move(view));
-
-        std::string nspExt = ".nsp";
                     
         for (auto& url : m_urls)
         {
-            if (url.compare(url.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
-            {
-                printf("Installing from %s\n", url.c_str());
-                tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, url);
+            printf("Installing from %s\n", url.c_str());
+            tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, url);
 
-                printf("Preparing install...\n");
-                task.Prepare();
-                LOG_DEBUG("Pre Install Records: \n");
-                task.DebugPrintInstallData();
-                task.Begin();
-                LOG_DEBUG("Post Install Records: \n");
-                task.DebugPrintInstallData();
-                printf("\n");
-            }
+            printf("Preparing install...\n");
+            task.Prepare();
+            LOG_DEBUG("Pre Install Records: \n");
+            task.DebugPrintInstallData();
+            task.Begin();
+            LOG_DEBUG("Post Install Records: \n");
+            task.DebugPrintInstallData();
+            printf("\n");
         }
 
         printf("Sending ack...\n");
