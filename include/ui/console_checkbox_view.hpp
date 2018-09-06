@@ -7,10 +7,10 @@
 
 namespace tin::ui
 {
-    class ConsoleMultiSelectView : public ConsoleOptionsView
+    class ConsoleCheckboxView : public ConsoleOptionsView
     {
         public:
-            ConsoleMultiSelectView(std::function<void ()> onDone = nullptr, std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
+            ConsoleCheckboxView(std::function<void ()> onDone = nullptr, std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
 
             std::vector<ConsoleEntry*> GetSelectedEntries();
             std::vector<IOptionValue*> GetSelectedOptionValues();

@@ -11,7 +11,7 @@
 
 #include "nx/ipc/tin_ipc.h"
 #include "ui/console_view.hpp"
-#include "ui/console_multi_select_view.hpp"
+#include "ui/console_checkbox_view.hpp"
 #include "util/network_util.hpp"
 #include "install/install_nsp_remote.hpp"
 #include "error.hpp"
@@ -127,6 +127,7 @@ namespace tin::ui
             
             std::vector<std::string> urls;
 
+            bool canceled = false;
             while (true)
             {
                 // Break on input pressed
@@ -134,7 +135,10 @@ namespace tin::ui
                 u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 
                 if (kDown & KEY_B)
+                {
+                    canceled = true;
                     break;
+                }
 
                 struct sockaddr_in client;
                 socklen_t clientLen = sizeof(client);
@@ -178,15 +182,20 @@ namespace tin::ui
                 }
             }
 
-            auto view = std::make_unique<tin::ui::ConsoleMultiSelectView>(std::bind(&NetworkInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
-            view->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
-            view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
-            
-            for (auto& url : urls)
+            if (!canceled)
             {
-                view->AddEntry(url, tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
+                auto view = std::make_unique<tin::ui::ConsoleCheckboxView>(std::bind(&NetworkInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
+                view->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+                view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+                
+                for (auto& url : urls)
+                {
+                    view->AddEntry(url, tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
+                }
+                manager.PushView(std::move(view));
             }
-            manager.PushView(std::move(view));
+            else
+                manager.Unwind(1);
         }
         catch (std::runtime_error& e)
         {
@@ -200,11 +209,11 @@ namespace tin::ui
     void NetworkInstallMode::OnNSPSelected()
     {
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
-        ConsoleMultiSelectView* prevView;
+        ConsoleCheckboxView* prevView;
 
-        if (!(prevView = dynamic_cast<ConsoleMultiSelectView*>(manager.GetCurrentView())))
+        if (!(prevView = dynamic_cast<ConsoleCheckboxView*>(manager.GetCurrentView())))
         {
-            throw std::runtime_error("Previous view must be a ConsoleMultiSelectView!");
+            throw std::runtime_error("Previous view must be a ConsoleCheckboxView!");
         }
 
         auto values = prevView->GetSelectedOptionValues();
@@ -214,7 +223,7 @@ namespace tin::ui
             m_urls.push_back(destStr->GetText());
         }
 
-        auto view = std::make_unique<tin::ui::ConsoleOptionsView>();
+        auto view = std::make_unique<tin::ui::ConsoleOptionsView>(DEFAULT_TITLE);
         view->AddEntry("Select Destination", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
         view->AddEntry("SD Card", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&NetworkInstallMode::OnDestinationSelected, this));
@@ -240,8 +249,7 @@ namespace tin::ui
             m_destStorageId = FsStorageId_NandUser;
         }
 
-        manager.Unwind(2);
-        auto view = std::make_unique<tin::ui::ConsoleView>();
+        auto view = std::make_unique<tin::ui::ConsoleView>(4);
         manager.PushView(std::move(view));
 
         std::string nspExt = ".nsp";

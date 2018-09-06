@@ -1,4 +1,4 @@
-#include "ui/console_multi_select_view.hpp"
+#include "ui/console_checkbox_view.hpp"
 
 #include "util/graphics_util.hpp"
 #include "util/title_util.hpp"
@@ -6,13 +6,13 @@
 
 namespace tin::ui
 {
-    ConsoleMultiSelectView::ConsoleMultiSelectView(std::function<void ()> _onDone, std::string title, unsigned int unwindDistance) :
+    ConsoleCheckboxView::ConsoleCheckboxView(std::function<void ()> _onDone, std::string title, unsigned int unwindDistance) :
         ConsoleOptionsView(title, unwindDistance), m_onDone(_onDone)
     {
 
     }
 
-    void ConsoleMultiSelectView::ProcessInput(u64 keys)
+    void ConsoleCheckboxView::ProcessInput(u64 keys)
     {
         if (keys & KEY_X)
         {
@@ -40,7 +40,7 @@ namespace tin::ui
             ConsoleOptionsView::ProcessInput(keys);
     }
 
-    std::vector<ConsoleEntry*> ConsoleMultiSelectView::GetSelectedEntries()
+    std::vector<ConsoleEntry*> ConsoleCheckboxView::GetSelectedEntries()
     {
         std::vector<ConsoleEntry*> selected;
 
@@ -53,7 +53,7 @@ namespace tin::ui
         return selected;
     }
 
-    std::vector<IOptionValue*> ConsoleMultiSelectView::GetSelectedOptionValues()
+    std::vector<IOptionValue*> ConsoleCheckboxView::GetSelectedOptionValues()
     {
         std::vector<IOptionValue*> selectedOptions;
         std::vector<ConsoleEntry*> selectedEntries = GetSelectedEntries();
@@ -66,7 +66,7 @@ namespace tin::ui
         return selectedOptions;
     }
 
-    void ConsoleMultiSelectView::DisplayAll()
+    void ConsoleCheckboxView::DisplayAll()
     {
         auto console = ViewManager::Instance().m_printConsole;
         ConsoleOptionsView::DisplayAll();
@@ -78,7 +78,7 @@ namespace tin::ui
         console->flags &= ~CONSOLE_COLOR_BOLD;
     }
 
-    void ConsoleMultiSelectView::DisplayIndicators()
+    void ConsoleCheckboxView::DisplayIndicators()
     {
         auto console = ViewManager::Instance().m_printConsole;
 
@@ -92,7 +92,7 @@ namespace tin::ui
         }
     }
 
-    void ConsoleMultiSelectView::ClearIndicators()
+    void ConsoleCheckboxView::ClearIndicators()
     {
         auto console = ViewManager::Instance().m_printConsole;
 
@@ -104,7 +104,7 @@ namespace tin::ui
         }
     }
 
-    void ConsoleMultiSelectView::DisplayIndicator(int entryIndex)
+    void ConsoleCheckboxView::DisplayIndicator(int entryIndex)
     {
         auto console = ViewManager::Instance().m_printConsole;
         console->cursorX = 2;
@@ -114,7 +114,7 @@ namespace tin::ui
         console->flags &= ~CONSOLE_COLOR_BOLD;
     }
 
-    void ConsoleMultiSelectView::ClearIndicator(int entryIndex)
+    void ConsoleCheckboxView::ClearIndicator(int entryIndex)
     {
         auto console = ViewManager::Instance().m_printConsole;
         console->cursorX = 2;
