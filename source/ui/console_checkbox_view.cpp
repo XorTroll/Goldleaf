@@ -34,7 +34,7 @@ namespace tin::ui
                 DisplayIndicator(m_cursorPos);
             }
         }
-        else if (keys & KEY_A)
+        else if (keys & KEY_A && !m_selectedEntries.empty())
             m_onDone();
         else
             ConsoleOptionsView::ProcessInput(keys);
