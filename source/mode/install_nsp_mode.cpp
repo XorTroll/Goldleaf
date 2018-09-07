@@ -124,7 +124,7 @@ namespace tin::ui
             try
             {
                 nx::fs::IFileSystem fileSystem;
-                ASSERT_OK(fileSystem.OpenFileSystemWithId(path, FsFileSystemType_ApplicationPackage, 0), "Failed to open application package file system");
+                fileSystem.OpenFileSystemWithId(path, FsFileSystemType_ApplicationPackage, 0);
                 tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", path + "/");
                 tin::install::nsp::NSPInstallTask task(simpleFS, m_destStorageId, m_ignoreReqFirmVersion);
 

@@ -2,6 +2,7 @@
 
 #include <switch.h>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include "install/install.hpp"
@@ -19,12 +20,12 @@ namespace tin::install
             const FsStorageId m_destStorageId;
             bool m_ignoreReqFirmVersion = false;
 
-            std::unique_ptr<nx::ncm::ContentMeta> m_contentMeta;
+            nx::ncm::ContentMeta m_contentMeta;
 
             Install(FsStorageId destStorageId, bool ignoreReqFirmVersion);
             ~Install();
 
-            virtual void ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer) = 0;
+            virtual std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> ReadCNMT() = 0;
 
             virtual void InstallContentMetaRecords(tin::util::ByteBuffer& installContentMetaBuf);
             virtual void InstallApplicationRecord();

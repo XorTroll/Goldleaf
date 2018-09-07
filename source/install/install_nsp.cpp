@@ -6,7 +6,9 @@
 #include <memory>
 #include <string>
 #include <machine/endian.h>
+
 #include "nx/ncm.hpp"
+#include "util/file_util.hpp"
 #include "util/title_util.hpp"
 #include "debug.h"
 #include "error.hpp"
@@ -19,32 +21,10 @@ namespace tin::install::nsp
 
     }
 
-    void NSPInstallTask::ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer)
+    std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> NSPInstallTask::ReadCNMT()
     {
-        // Create the path of the cnmt NCA
-        auto cnmtNCAName = m_simpleFileSystem->GetFileNameFromExtension("", "cnmt.nca");
-        auto cnmtNCAFile = m_simpleFileSystem->OpenFile(cnmtNCAName);
-        u64 cnmtNCASize = cnmtNCAFile.GetSize();
-
-        auto cnmtNCAFullPath = m_simpleFileSystem->m_absoluteRootPath + cnmtNCAName;
-
-        // Create the cnmt filesystem
-        nx::fs::IFileSystem cnmtNCAFileSystem;
-        ASSERT_OK(cnmtNCAFileSystem.OpenFileSystemWithId(cnmtNCAFullPath, FsFileSystemType_ContentMeta, 0), ("Failed to open content meta file system " + cnmtNCAFullPath).c_str());
-        tin::install::nsp::SimpleFileSystem cnmtNCASimpleFileSystem(cnmtNCAFileSystem, "/", cnmtNCAFullPath + "/");
-        
-        // Find and read the cnmt file
-        auto cnmtName = cnmtNCASimpleFileSystem.GetFileNameFromExtension("", "cnmt");
-        auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
-        u64 cnmtSize = cnmtFile.GetSize();
-
-        byteBuffer.Resize(cnmtSize);
-        cnmtFile.Read(0x0, byteBuffer.GetData(), cnmtSize);
-
-        // Prepare cnmt content record
-        cnmtContentRecordOut->ncaId = tin::util::GetNcaIdFromString(cnmtNCAName);
-        *(u64*)cnmtContentRecordOut->size = cnmtNCASize & 0xFFFFFFFFFFFF;
-        cnmtContentRecordOut->contentType = NcmContentType_CNMT;
+        std::tuple<std::string, nx::ncm::ContentRecord> cnmtNCAInfo = tin::util::GetCNMTNCAInfo(this->m_simpleFileSystem->m_absoluteRootPath.substr(0, this->m_simpleFileSystem->m_absoluteRootPath.size() - 1));
+        return { tin::util::GetContentMetaFromNCA(std::get<0>(cnmtNCAInfo)), std::get<1>(cnmtNCAInfo) };
     }
 
     void NSPInstallTask::InstallTicketCert()

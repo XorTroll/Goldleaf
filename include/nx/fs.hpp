@@ -62,7 +62,7 @@ namespace nx::fs
             ~IFileSystem();
 
             Result OpenSdFileSystem();
-            Result OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId);
+            void OpenFileSystemWithId(std::string path, FsFileSystemType fileSystemType, u64 titleId);
             void CloseFileSystem();
              
             IFile OpenFile(std::string path);

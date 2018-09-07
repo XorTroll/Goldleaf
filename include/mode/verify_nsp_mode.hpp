@@ -6,11 +6,12 @@
 
 namespace tin::ui
 {
-    class VerifyNSPMode : public tin::ui::IMode
+    class VerifyNSPMode : public IMode
     {
         public:
             VerifyNSPMode();
 
             void OnSelected() override;
+            void OnNSPSelected();
     };
 }

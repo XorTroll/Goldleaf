@@ -13,7 +13,7 @@ namespace tin::install::nsp
             RemoteNSP m_remoteNSP;
 
         protected:
-            void ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer) override;
+            std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> ReadCNMT() override;
             void InstallNCA(const NcmNcaId& ncaId) override;
             void InstallTicketCert() override;
 

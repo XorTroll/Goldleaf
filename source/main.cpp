@@ -15,6 +15,7 @@
 #include "mode/delete_common_ticket_mode.hpp"
 #include "mode/delete_personalized_ticket_mode.hpp"
 #include "mode/network_install_mode.hpp"
+#include "mode/verify_nsp_mode.hpp"
 #include "ui/view.hpp"
 #include "ui/console_options_view.hpp"
 
@@ -109,6 +110,7 @@ int main(int argc, char **argv)
         
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
+        titleManCat.AddMode(std::move(std::make_unique<tin::ui::VerifyNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::NetworkInstallMode>()));
         // TODO: Add uninstall and dump nsp

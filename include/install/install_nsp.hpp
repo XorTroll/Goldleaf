@@ -14,7 +14,7 @@ namespace tin::install::nsp
             tin::install::nsp::SimpleFileSystem* const m_simpleFileSystem;
 
         protected:
-            void ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer) override;
+            std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> ReadCNMT() override;
             void InstallNCA(const NcmNcaId& ncaId) override;
             void InstallTicketCert() override;
 
