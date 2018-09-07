@@ -14,6 +14,15 @@ namespace tin::ui
 
     void ConsoleCheckboxView::ProcessInput(u64 keys)
     {
+        // Account for a potential lack of any selectable console entries
+        if (keys & KEY_X || keys & KEY_A)
+        {
+            ConsoleEntry* consoleEntry = m_consoleEntries.at(m_cursorPos).get();
+
+            if (consoleEntry->selectType != ConsoleEntrySelectType::SELECT)
+                return;
+        }
+
         if (keys & KEY_X)
         {
             bool found = false;
@@ -34,8 +43,15 @@ namespace tin::ui
                 DisplayIndicator(m_cursorPos);
             }
         }
-        else if (keys & KEY_A && !m_selectedEntries.empty())
+        else if (keys & KEY_A)
+        {
+            if (m_selectedEntries.empty())
+            {
+                m_selectedEntries.push_back(m_cursorPos);
+            }
+
             m_onDone();
+        }
         else
             ConsoleOptionsView::ProcessInput(keys);
     }
