@@ -11,7 +11,7 @@
 
 namespace tin::ui
 {
-    static const char* const DEFAULT_TITLE = "Tinfoil 0.1.0 by Adubbz";
+    static const char* const DEFAULT_TITLE = "Tinfoil 0.2.0";
     struct IOptionValue
     {
         public:
