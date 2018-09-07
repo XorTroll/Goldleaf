@@ -30,6 +30,9 @@ namespace tin::ui
         {
             for (unsigned int i = 0; i < count; i++)
             {
+                View* view = m_views.top().get();
+                if (view->m_onUnwound != nullptr)
+                    view->m_onUnwound();
                 m_views.pop();
             }
         
