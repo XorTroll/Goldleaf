@@ -20,6 +20,17 @@ namespace nx::ncm
         DELTA                   = 0x83
     };
 
+    enum class ContentType : u8
+    {
+        META                    = 0x0, 
+        PROGRAM                 = 0x1, 
+        DATA                    = 0x2, 
+        CONTROL                 = 0x3, 
+        HTML_DOCUMENT           = 0x4, 
+        LEGAL_INFORMATION       = 0x5, 
+        DELTA_FRAGMENT          = 0x6
+    };
+
     struct ContentMetaHeader
     {
         u64 titleId;
@@ -63,7 +74,7 @@ namespace nx::ncm
     {
         NcmNcaId ncaId;
         u8 size[0x6];
-        u8 contentType;
+        ContentType contentType;
         u8 unk;
     } PACKED;
 

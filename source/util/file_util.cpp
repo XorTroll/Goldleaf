@@ -26,7 +26,7 @@ namespace tin::util
         nx::ncm::ContentRecord contentRecord;
         contentRecord.ncaId = tin::util::GetNcaIdFromString(cnmtNCAName);
         *(u64*)contentRecord.size = cnmtNCASize & 0xFFFFFFFFFFFF;
-        contentRecord.contentType = NcmContentType_CNMT;
+        contentRecord.contentType = nx::ncm::ContentType::META;
 
         return { cnmtNCAFullPath, contentRecord };
     }

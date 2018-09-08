@@ -38,7 +38,7 @@ namespace tin::install::nsp
         nx::ncm::ContentRecord cnmtContentRecord;
         cnmtContentRecord.ncaId = cnmtNcaId;
         *(u64*)&cnmtContentRecord.size = cnmtNcaSize & 0xFFFFFFFFFFFF;
-        cnmtContentRecord.contentType = NcmContentType_CNMT;
+        cnmtContentRecord.contentType = nx::ncm::ContentType::META;
 
         return { tin::util::GetContentMetaFromNCA(cnmtNCAFullPath), cnmtContentRecord };
     }
