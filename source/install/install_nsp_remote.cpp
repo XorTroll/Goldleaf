@@ -3,6 +3,7 @@
 #include <machine/endian.h>
 #include "nx/fs.hpp"
 #include "nx/ncm.hpp"
+#include "util/file_util.hpp"
 #include "util/title_util.hpp"
 #include "debug.h"
 #include "error.hpp"
@@ -15,7 +16,7 @@ namespace tin::install::nsp
         m_remoteNSP.RetrieveHeader();
     }
 
-    void NetworkNSPInstallTask::ReadCNMT(nx::ncm::ContentRecord* cnmtContentRecordOut, tin::util::ByteBuffer& byteBuffer)
+    std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> NetworkNSPInstallTask::ReadCNMT()
     {
         const PFS0FileEntry* fileEntry = m_remoteNSP.GetFileEntryByExtension("cnmt.nca");
 
@@ -34,23 +35,12 @@ namespace tin::install::nsp
         this->InstallNCA(cnmtNcaId);
         std::string cnmtNCAFullPath = contentStorage.GetPath(cnmtNcaId);
 
-        // Create the cnmt filesystem
-        nx::fs::IFileSystem cnmtNCAFileSystem;
-        ASSERT_OK(cnmtNCAFileSystem.OpenFileSystemWithId(cnmtNCAFullPath, FsFileSystemType_ContentMeta, 0), ("Failed to open content meta file system " + cnmtNCAFullPath).c_str());
-        tin::install::nsp::SimpleFileSystem cnmtNCASimpleFileSystem(cnmtNCAFileSystem, "/", cnmtNCAFullPath + "/");
-        
-        // Find and read the cnmt file
-        auto cnmtName = cnmtNCASimpleFileSystem.GetFileNameFromExtension("", "cnmt");
-        auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
-        u64 cnmtSize = cnmtFile.GetSize();
+        nx::ncm::ContentRecord cnmtContentRecord;
+        cnmtContentRecord.ncaId = cnmtNcaId;
+        *(u64*)&cnmtContentRecord.size = cnmtNcaSize & 0xFFFFFFFFFFFF;
+        cnmtContentRecord.contentType = NcmContentType_CNMT;
 
-        byteBuffer.Resize(cnmtSize);
-        cnmtFile.Read(0x0, byteBuffer.GetData(), cnmtSize);
-
-        // Prepare cnmt content record
-        cnmtContentRecordOut->ncaId = cnmtNcaId;
-        *(u64*)cnmtContentRecordOut->size = cnmtNcaSize & 0xFFFFFFFFFFFF;
-        cnmtContentRecordOut->contentType = NcmContentType_CNMT;
+        return { tin::util::GetContentMetaFromNCA(cnmtNCAFullPath), cnmtContentRecord };
     }
 
     void NetworkNSPInstallTask::InstallNCA(const NcmNcaId& ncaId)

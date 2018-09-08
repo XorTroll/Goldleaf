@@ -89,6 +89,7 @@ namespace nx::ncm
             tin::util::ByteBuffer m_bytes;
 
         public:
+            ContentMeta();
             ContentMeta(u8* data, size_t size);
 
             ContentMetaHeader GetContentMetaHeader();

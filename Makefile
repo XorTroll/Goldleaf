@@ -38,7 +38,7 @@ INCLUDES    := include
 EXEFS_SRC   := exefs_src
 APP_TITLE   := Tinfoil
 APP_AUTHOR  := Adubbz
-APP_VERSION := 0.0.1
+APP_VERSION := 0.2.0
 
 #ROMFS	:=	romfs
 

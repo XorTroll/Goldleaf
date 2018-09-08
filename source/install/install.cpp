@@ -13,7 +13,7 @@
 namespace tin::install
 {
     Install::Install(FsStorageId destStorageId, bool ignoreReqFirmVersion) :
-        m_destStorageId(destStorageId), m_ignoreReqFirmVersion(ignoreReqFirmVersion)
+        m_destStorageId(destStorageId), m_ignoreReqFirmVersion(ignoreReqFirmVersion), m_contentMeta()
     {}
 
     Install::~Install() {}
@@ -22,7 +22,7 @@ namespace tin::install
     void Install::InstallContentMetaRecords(tin::util::ByteBuffer& installContentMetaBuf)
     {
         NcmContentMetaDatabase contentMetaDatabase;
-        NcmMetaRecord contentMetaKey = this->m_contentMeta->GetContentMetaKey();
+        NcmMetaRecord contentMetaKey = m_contentMeta.GetContentMetaKey();
 
         try
         {
@@ -76,7 +76,7 @@ namespace tin::install
 
         // Add our new content meta
         ContentStorageRecord storageRecord;
-        storageRecord.metaRecord = this->m_contentMeta->GetContentMetaKey();
+        storageRecord.metaRecord = m_contentMeta.GetContentMetaKey();
         storageRecord.storageId = m_destStorageId;
         storageRecords.push_back(storageRecord);
 
@@ -94,10 +94,10 @@ namespace tin::install
     // Validate and obtain all data needed for install
     void Install::Prepare()
     {
-        nx::ncm::ContentRecord cnmtContentRecord;
         tin::util::ByteBuffer cnmtBuf;
-
-        this->ReadCNMT(&cnmtContentRecord, cnmtBuf);
+        auto cnmtTuple = this->ReadCNMT();
+        m_contentMeta = std::get<0>(cnmtTuple);
+        nx::ncm::ContentRecord cnmtContentRecord = std::get<1>(cnmtTuple);
 
         nx::ncm::ContentStorage contentStorage(m_destStorageId);
 
@@ -112,13 +112,11 @@ namespace tin::install
         }
 
         // Parse data and create install content meta
-        m_contentMeta = std::make_unique<nx::ncm::ContentMeta>(cnmtBuf.GetData(), cnmtBuf.GetSize());
-
         if (m_ignoreReqFirmVersion)
             printf("WARNING: Required system firmware version is being IGNORED!\n");
 
         tin::util::ByteBuffer installContentMetaBuf;
-        m_contentMeta->GetInstallContentMeta(installContentMetaBuf, cnmtContentRecord, m_ignoreReqFirmVersion);
+        m_contentMeta.GetInstallContentMeta(installContentMetaBuf, cnmtContentRecord, m_ignoreReqFirmVersion);
 
         this->InstallContentMetaRecords(installContentMetaBuf);
         this->InstallApplicationRecord();
@@ -137,7 +135,7 @@ namespace tin::install
     void Install::Begin()
     {
         printf("Installing NCAs...\n");
-        for (auto& record : this->m_contentMeta->GetContentRecords())
+        for (auto& record : m_contentMeta.GetContentRecords())
         {
             LOG_DEBUG("Installing from %s\n", tin::util::GetNcaIdString(record.ncaId).c_str());
             this->InstallNCA(record.ncaId);
@@ -149,12 +147,12 @@ namespace tin::install
 
     u64 Install::GetTitleId()
     {
-        return this->m_contentMeta->GetContentMetaKey().titleId;
+        return m_contentMeta.GetContentMetaKey().titleId;
     }
 
     nx::ncm::ContentMetaType Install::GetContentMetaType()
     {
-        return static_cast<nx::ncm::ContentMetaType>(this->m_contentMeta->GetContentMetaKey().type);
+        return static_cast<nx::ncm::ContentMetaType>(m_contentMeta.GetContentMetaKey().type);
     }
 
     void Install::DebugPrintInstallData()
@@ -162,7 +160,7 @@ namespace tin::install
         #ifdef NXLINK_DEBUG
 
         NcmContentMetaDatabase contentMetaDatabase;
-        NcmMetaRecord metaRecord = this->m_contentMeta->GetContentMetaKey();
+        NcmMetaRecord metaRecord = m_contentMeta.GetContentMetaKey();
         u64 baseTitleId = tin::util::GetBaseTitleId(metaRecord.titleId, static_cast<nx::ncm::ContentMetaType>(metaRecord.type));
         u64 updateTitleId = baseTitleId ^ 0x800;
         bool hasUpdate = true;

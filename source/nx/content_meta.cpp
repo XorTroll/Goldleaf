@@ -7,6 +7,11 @@
 
 namespace nx::ncm
 {
+    ContentMeta::ContentMeta()
+    {
+        m_bytes.Resize(sizeof(ContentMetaHeader));
+    }
+
     ContentMeta::ContentMeta(u8* data, size_t size) :
         m_bytes(size)
     {
