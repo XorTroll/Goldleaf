@@ -216,8 +216,11 @@ namespace tin::ui
         console->cursorX = 0;
         console->cursorY = m_cursorPos + 2;
         console->flags |= CONSOLE_COLOR_BOLD;
-        printf("> ");
+        printf("%s> ", CONSOLE_CYAN);
         console->flags &= ~CONSOLE_COLOR_BOLD;
+        console->cursorX = 0;
+        console->cursorY = m_cursorPos + 3;
+        printf("%s", CONSOLE_RESET);
     }
 
     void ConsoleOptionsView::ClearCursor()

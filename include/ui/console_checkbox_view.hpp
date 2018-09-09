@@ -10,7 +10,7 @@ namespace tin::ui
     class ConsoleCheckboxView : public ConsoleOptionsView
     {
         public:
-            ConsoleCheckboxView(std::function<void ()> onDone = nullptr, std::string title="Tinfoil 0.1.0 by Adubbz", unsigned int unwindDistance = 1);
+            ConsoleCheckboxView(std::function<void ()> onDone = nullptr, std::string title=DEFAULT_TITLE, unsigned int unwindDistance = 1);
 
             std::vector<ConsoleEntry*> GetSelectedEntries();
             std::vector<IOptionValue*> GetSelectedOptionValues();
