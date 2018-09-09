@@ -30,11 +30,11 @@ namespace tin::install
         }
         catch (std::exception& e)
         {
-            printf("[CRITICAL] NSP is invalid and cannot be opened! Error: %s\n", e.what());
+            this->PrintCritical("NSP is invalid and cannot be opened! Error: " + std::string(e.what()));
             printf("> NSP Path: %s\n", m_nspPath.c_str());
             return false;
         }
-        printf("PFS0 structure is valid\n");
+        this->PrintSuccess("PFS0 structure is valid");
 
         tin::install::nsp::SimpleFileSystem simpleFS(nspFileSystem, "/", m_nspPath + "/");
 
@@ -48,7 +48,7 @@ namespace tin::install
         }
         catch (std::exception& e)
         {
-            printf("[CRITICAL] Failed to find CNMT NCA. Error: %s\n", e.what());
+            this->PrintCritical("Failed to find CNMT NCA. Error: " + std::string(e.what()));
             return false;
         }
         
@@ -58,17 +58,18 @@ namespace tin::install
         }
         catch (std::exception& e)
         {
-            printf("[CRITICAL] Content meta could not be read. Error: %s\n", e.what());
+            this->PrintCritical("Content meta could not be read. Error: " + std::string(e.what()));
             return false;
         }
-        printf("Successfully read content meta.\n");
+        this->PrintSuccess("Successfully read content meta.");
 
         if (!simpleFS.HasFile(tin::util::GetNcaIdString(cnmtContentRecord.ncaId) + ".cnmt.xml"))
-            printf("[WARNING] CNMT XML is absent!\n");
+            this->PrintWarning("CNMT XML is absent!");
         else
-            printf("CNMT XML is present.\n");
+            this->PrintSuccess("CNMT XML is present.");
 
-        u64 titleId = contentMeta.GetContentMetaHeader().titleId;
+        auto contentMetaHeader = contentMeta.GetContentMetaHeader();
+        u64 titleId = tin::util::GetBaseTitleId(contentMetaHeader.titleId, contentMetaHeader.type);
 
         for (nx::ncm::ContentRecord contentRecord : contentMeta.GetContentRecords())
         {
@@ -77,10 +78,10 @@ namespace tin::install
             std::string xmlName = ncaIdStr + ".";
 
             if (simpleFS.HasFile(ncaName))
-                printf("%s is present.\n", ncaName.c_str());
+                this->PrintSuccess(ncaName + " is present.");
             else
             {
-                printf("[CRITICAL] %s is missing!\n", ncaName.c_str());
+                this->PrintCritical(ncaName + " is missing!");
                 return false;
             }
 
@@ -104,10 +105,10 @@ namespace tin::install
                     }
                     catch (std::exception& e)
                     {
-                        printf("[CRITICAL] Control NCA could not be read. Error: %s\n", e.what());
+                        this->PrintCritical("Control NCA could not be read. Error: " + std::string(e.what()));
                         return false;
                     }
-                    printf("Control NCA is valid.\n");
+                    this->PrintSuccess("Control NCA is valid.");
 
                     xmlName += "nacp.xml";
                     break;
@@ -124,10 +125,10 @@ namespace tin::install
                     }
                     catch (std::exception& e)
                     {
-                        printf("[CRITICAL] Legal information NCA could not be read. Error: %s\n", e.what());
+                        this->PrintCritical("Legal information NCA could not be read. Error: " + std::string(e.what()));
                         return false;
                     }
-                    printf("Legal information NCA is valid.\n");
+                    this->PrintSuccess("Legal information NCA is valid.");
 
                     xmlName += "legalinfo.xml";
                     break;
@@ -138,7 +139,7 @@ namespace tin::install
                     continue;
 
                 default:
-                    printf("[CRITICAL] Unrecognized content type!\n");
+                    this->PrintCritical("Unrecognized content type!");
                     return false;
             }
 
@@ -146,19 +147,34 @@ namespace tin::install
                 continue;
 
             if (simpleFS.HasFile(xmlName))
-                printf("%s is present.\n", xmlName.c_str());
+                this->PrintSuccess(xmlName + " is present.");
             else
             {
-                printf("[WARNING] %s is missing!\n", xmlName.c_str());
+                this->PrintWarning(xmlName + " is missing!");
                 isComplete = false;
             }
         }
 
         if (isComplete)
-            printf("NSP is valid.\n");
+            this->PrintSuccess("NSP is valid.");
         else
-            printf("NSP is installable, but incomplete.\n");
+            this->PrintWarning("NSP is installable, but incomplete.");
 
         return true;
+    }
+
+    void NSPVerifier::PrintCritical(std::string text)
+    {
+        printf("[%sCRITICAL%s] %s\n", CONSOLE_RED, CONSOLE_RESET, text.c_str());
+    }
+
+    void NSPVerifier::PrintWarning(std::string text)
+    {
+        printf("[%sWARNING%s] %s\n", CONSOLE_YELLOW, CONSOLE_RESET, text.c_str());
+    }
+
+    void NSPVerifier::PrintSuccess(std::string text)
+    {
+        printf("[%sOK%s] %s\n", CONSOLE_GREEN, CONSOLE_RESET, text.c_str());
     }
 }
