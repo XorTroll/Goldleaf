@@ -76,46 +76,6 @@ static Result _nsGetInterface(Service* srv_out, u64 cmd_id) {
     return rc;
 }
 
-Result nsListApplicationRecord(u64 offset, void *out_buf, size_t out_buf_size, u32 *entries_read_out)
-{
-    IpcCommand c;
-    ipcInitialize(&c);
-    ipcAddRecvBuffer(&c, out_buf, out_buf_size, 0);
-
-    struct {
-        u64 magic;
-        u64 cmd_id;
-        u32 offset;
-    } *raw;
-    
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
-    
-    raw->magic = SFCI_MAGIC;
-    raw->cmd_id = 0;
-    raw->offset = offset;
-    
-    Result rc = serviceIpcDispatch(&g_nsAppManSrv);
-    if (R_SUCCEEDED(rc)) {
-        IpcParsedCommand r;
-        ipcParse(&r);
-
-        struct {
-            u64 magic;
-            u64 result;
-            u32 entries_read;
-        } *resp = r.Raw;
-
-        rc = resp->result;
-
-        
-        if (R_SUCCEEDED(rc)) {
-            if (entries_read_out) *entries_read_out = resp->entries_read;
-        }
-    }
-    
-    return rc;
-}
-
 Result nsPushApplicationRecord(u64 title_id, u8 last_modified_event, ContentStorageRecord *content_records_buf, size_t buf_size)
 {
     IpcCommand c;
