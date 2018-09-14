@@ -12,9 +12,9 @@ namespace tin::ui
 
     void Layer::DrawLayer()
     {
-        for (auto& element : m_elements)
+        for (auto& entry : m_elementEntries)
         {
-            element->DrawElement();
+            entry->element->DrawElement(entry->position);
         }
     }
 
@@ -23,8 +23,9 @@ namespace tin::ui
         return m_name;
     }
 
-    void Layer::AddElement(std::unique_ptr<Element> element)
+    void Layer::AddElement(std::unique_ptr<Element> element, unsigned int x, unsigned int y)
     {
-        m_elements.push_back(std::move(element));
+        auto entry = std::make_unique<ElementEntry>(std::move(element), Position(x, y));
+        m_elementEntries.push_back(std::move(entry));
     }
 }

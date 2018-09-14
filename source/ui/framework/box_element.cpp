@@ -5,20 +5,20 @@
 
 namespace tin::ui
 {
-    BoxElement::BoxElement(u32 width, u32 height, u32 posX, u32 posY) :
-        Element(width, height, posX, posY)
+    BoxElement::BoxElement(u32 width, u32 height) :
+        Element(width, height)
     {
 
     }
 
-    void BoxElement::DrawElement()
+    void BoxElement::DrawElement(Position position)
     {
         for (u32 y = 0; y < m_dimensions.height; y++)
         {
             for (u32 x = 0; x < m_dimensions.width; x++)
             {
-                u32 pixelX = x + m_position.x;
-                u32 pixelY = y + m_position.y;
+                u32 pixelX = x + position.x;
+                u32 pixelY = y + position.y;
 
                 tin::util::DrawPixel(pixelX, pixelY, m_colour);
             }

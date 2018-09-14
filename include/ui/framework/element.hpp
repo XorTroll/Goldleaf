@@ -1,45 +1,20 @@
 #pragma once
 
 #include <switch.h>
+#include "ui/framework/layout.hpp"
 
 namespace tin::ui
 {
-    struct ElementDimensions
-    {
-        unsigned int width;
-        unsigned int height;
-
-        ElementDimensions(unsigned int width, unsigned int height) :
-            width(width), height(height)
-        {
-
-        }
-    };
-
-    struct ElementPosition
-    {
-        unsigned int x;
-        unsigned int y;
-
-        ElementPosition(unsigned int x, unsigned int y) :
-            x(x), y(y)
-        {
-
-        }
-    };
-
     class Element
     {
         protected:
-            ElementDimensions m_dimensions;
-            ElementPosition m_position;
+            Dimensions m_dimensions;
 
-            Element(u32 width, u32 height, u32 posX, u32 posY);
+            Element(u32 width, u32 height);
 
         public:
-            virtual void DrawElement();
+            virtual void DrawElement(Position position);
 
-            ElementDimensions GetDimensions();
-            ElementPosition GetPosition();
+            Dimensions GetDimensions();
     };
 }

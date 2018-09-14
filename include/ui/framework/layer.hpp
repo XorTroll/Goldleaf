@@ -4,14 +4,27 @@
 #include <string>
 #include <vector>
 #include "ui/framework/element.hpp"
+#include "ui/framework/layout.hpp"
 
 namespace tin::ui
 {
+    struct ElementEntry
+    {
+        std::unique_ptr<Element> element;
+        Position position;
+
+        ElementEntry(std::unique_ptr<Element> element, Position position) :
+            element(std::move(element)), position(position)
+        {
+            
+        }
+    };
+
     class Layer
     {
         private:
             std::string m_name;
-            std::vector<std::unique_ptr<Element>> m_elements;
+            std::vector<std::unique_ptr<ElementEntry>> m_elementEntries;
 
         public:
             Layer(std::string name);
@@ -19,6 +32,6 @@ namespace tin::ui
             void DrawLayer();
 
             std::string GetName();
-            void AddElement(std::unique_ptr<Element> element);
+            void AddElement(std::unique_ptr<Element> element, unsigned int x, unsigned int y);
     };
 }
