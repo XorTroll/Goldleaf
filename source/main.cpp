@@ -94,84 +94,8 @@ void markForExit(void)
     g_shouldExit = true;
 }
 
-int newUIMain(void)
-{
-    try
-    {
-        Result rc = 0;
-        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
-
-        gfxInitDefault();
-        LOG_DEBUG("NXLink is active\n");
-
-        g_framebuf = gfxGetFramebuffer(&g_framebufWidth, &g_framebufHeight);
-
-        // Create the tinfoil directory and subdirs on the sd card if they don't already exist. 
-        // These are used throughout the app without existance checks.
-        if (R_FAILED(rc = createTinfoilDirs()))
-        {
-            printf("main: Failed to create tinfoil dirs. Error code: 0x%08x\n", rc);
-            return 0;
-        }
-        
-        auto mainView = std::make_unique<tin::ui::InstallView>();
-
-        manager.PushView(std::move(mainView));
-
-        while (appletMainLoop() && !g_shouldExit)
-        {
-            hidScanInput();
-            u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-            if (kDown)
-                manager.ProcessInput(kDown);
-
-            manager.Update();
-
-            gfxFlushBuffers();
-            gfxSwapBuffers();
-            gfxWaitForVsync();
-        }
-    }
-    catch (std::exception& e)
-    {
-        consoleClear();
-        printf("An error occurred:\n%s\n\nPress any button to exit.", e.what());
-        LOG_DEBUG("An error occurred:\n%s", e.what());
-
-        u64 kDown = 0;
-
-        while (!kDown)
-        {
-            hidScanInput();
-            kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-        }
-    }
-    catch (...)
-    {
-        consoleClear();
-        printf("An unknown error occurred\n\nPress any button to exit.");
-        LOG_DEBUG("An unknown error occurred:\n");
-
-        u64 kDown = 0;
-
-        while (!kDown)
-        {
-            hidScanInput();
-            kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-        }
-    }
-
-    gfxExit();
-    return 0;
-}
-
 int main(int argc, char **argv)
 {
-    #ifdef NXLINK_DEBUG
-    return newUIMain();
-    #endif
-
     try
     {
         Result rc = 0;
@@ -205,12 +129,18 @@ int main(int argc, char **argv)
         // TODO: Add install tik and cert, delete personalized ticket and view title keys
 
         auto mainView = std::make_unique<tin::ui::ConsoleOptionsView>();
+        auto showUITesting = [&]()
+        {
+            auto installView = std::make_unique<tin::ui::InstallView>();
+            manager.PushView(std::move(installView));
+        };
 
         mainView->AddEntry("Main Menu", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         mainView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
         mainView->AddEntry(titleManCat.m_name, tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &titleManCat));
         mainView->AddEntry("Install Information", tin::ui::ConsoleEntrySelectType::SELECT_INACTIVE, nullptr);
         mainView->AddEntry("Ticket Management", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &tikManCat));
+        mainView->AddEntry("UI Testing", tin::ui::ConsoleEntrySelectType::SELECT, showUITesting);
         mainView->AddEntry("Exit", tin::ui::ConsoleEntrySelectType::SELECT, markForExit);
         
         manager.PushView(std::move(mainView));
@@ -222,6 +152,8 @@ int main(int argc, char **argv)
 
             if (kDown)
                 manager.ProcessInput(kDown);
+
+            g_framebuf = gfxGetFramebuffer(&g_framebufWidth, &g_framebufHeight);
 
             manager.Update();
 

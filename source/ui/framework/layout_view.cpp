@@ -12,7 +12,8 @@ namespace tin::ui
 
     void LayoutView::OnPresented()
     {
-        
+        consoleClear();
+        gfxSetMode(GfxMode_LinearDouble);
     }
 
     void LayoutView::ProcessInput(u64 keys)

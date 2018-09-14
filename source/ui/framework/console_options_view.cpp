@@ -87,6 +87,8 @@ namespace tin::ui
 
     void ConsoleOptionsView::OnPresented()
     {
+        ConsoleView::OnPresented();
+
         for (unsigned char i = 0; i < m_consoleEntries.size(); i++)
         {
             ConsoleEntry* entry = m_consoleEntries.at(i).get();

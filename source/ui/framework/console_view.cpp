@@ -11,6 +11,7 @@ namespace tin::ui
     void ConsoleView::OnPresented()
     {
         consoleClear();
+        gfxSetMode(GfxMode_TiledDouble);
     }
 
     void ConsoleView::ProcessInput(u64 keys)
