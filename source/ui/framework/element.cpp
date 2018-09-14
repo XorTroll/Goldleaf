@@ -10,7 +10,7 @@ namespace tin::ui
 
     }
 
-    void Element::DrawElement(Position position) 
+    void Element::DrawElement(Position position, Dimensions boundaries) 
     {
         LOG_DEBUG("Base DrawElement called\n");
     }

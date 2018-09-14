@@ -20,8 +20,24 @@ namespace tin::ui
         sidebarBox->SetColour(tin::util::Colour(0x2B334F));
         foregroundLayer->AddElement(std::move(sidebarBox), 0, 0);
 
+        // Setup the header
         auto headerBox = std::make_unique<BoxElement>(1280-120, 80);
         headerBox->SetColour(tin::util::Colour(0x556C91));
+
+        SubElementLayout headerSubElementLayout;
+        headerSubElementLayout.gapSize = 20;
+        headerSubElementLayout.leftInset = 50;
+        headerSubElementLayout.arrangementType = SubElementArrangementType::LEFT_TO_RIGHT;
+        headerBox->SetSubElementLayout(headerSubElementLayout);
+
+        auto redBox1 = std::make_unique<BoxElement>(20, 0);
+        redBox1->SetColour(tin::util::Colour(255, 0, 0, 255));
+        headerBox->AddSubElement(std::move(redBox1));
+
+        auto redBox2 = std::make_unique<BoxElement>(20, 0);
+        redBox2->SetColour(tin::util::Colour(255, 0, 0, 255));
+        headerBox->AddSubElement(std::move(redBox2));
+
         foregroundLayer->AddElement(std::move(headerBox), 120, 0);
 
         this->AddLayer(std::move(backgroundLayer));
