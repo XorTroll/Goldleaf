@@ -3,9 +3,9 @@
 #include <exception>
 #include <memory>
 #include "nx/ipc/tin_ipc.h"
-#include "ui/console_view.hpp"
-#include "ui/console_options_view.hpp"
-#include "ui/view.hpp"
+#include "ui/framework/console_view.hpp"
+#include "ui/framework/console_options_view.hpp"
+#include "ui/framework/view.hpp"
 #include "error.hpp"
 
 namespace tin::ui

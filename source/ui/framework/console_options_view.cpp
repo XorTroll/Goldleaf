@@ -1,4 +1,4 @@
-#include "ui/console_options_view.hpp"
+#include "ui/framework/console_options_view.hpp"
 
 #include <cstring>
 #include "util/graphics_util.hpp"

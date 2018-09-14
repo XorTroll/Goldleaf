@@ -16,8 +16,9 @@
 #include "mode/delete_personalized_ticket_mode.hpp"
 #include "mode/network_install_mode.hpp"
 #include "mode/verify_nsp_mode.hpp"
-#include "ui/view.hpp"
-#include "ui/console_options_view.hpp"
+#include "ui/framework/view.hpp"
+#include "ui/framework/console_options_view.hpp"
+#include "ui/install_view.hpp"
 
 #include "debug.h"
 #include "error.hpp"
@@ -38,6 +39,10 @@ void userAppExit(void);
 // TODO: Create a proper logging setup, as well as a log viewing screen
 // TODO: Validate NCAs
 // TODO: Verify dumps, ncaids match sha256s, installation succeess, perform proper uninstallation on failure and prior to install
+
+u8* g_framebuf;
+u32 g_framebufWidth;
+u32 g_framebufHeight;
 
 bool g_shouldExit = false;
 
@@ -89,8 +94,84 @@ void markForExit(void)
     g_shouldExit = true;
 }
 
+int newUIMain(void)
+{
+    try
+    {
+        Result rc = 0;
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+
+        gfxInitDefault();
+        LOG_DEBUG("NXLink is active\n");
+
+        g_framebuf = gfxGetFramebuffer(&g_framebufWidth, &g_framebufHeight);
+
+        // Create the tinfoil directory and subdirs on the sd card if they don't already exist. 
+        // These are used throughout the app without existance checks.
+        if (R_FAILED(rc = createTinfoilDirs()))
+        {
+            printf("main: Failed to create tinfoil dirs. Error code: 0x%08x\n", rc);
+            return 0;
+        }
+        
+        auto mainView = std::make_unique<tin::ui::InstallView>();
+
+        manager.PushView(std::move(mainView));
+
+        while (appletMainLoop() && !g_shouldExit)
+        {
+            hidScanInput();
+            u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+            if (kDown)
+                manager.ProcessInput(kDown);
+
+            manager.Update();
+
+            gfxFlushBuffers();
+            gfxSwapBuffers();
+            gfxWaitForVsync();
+        }
+    }
+    catch (std::exception& e)
+    {
+        consoleClear();
+        printf("An error occurred:\n%s\n\nPress any button to exit.", e.what());
+        LOG_DEBUG("An error occurred:\n%s", e.what());
+
+        u64 kDown = 0;
+
+        while (!kDown)
+        {
+            hidScanInput();
+            kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+        }
+    }
+    catch (...)
+    {
+        consoleClear();
+        printf("An unknown error occurred\n\nPress any button to exit.");
+        LOG_DEBUG("An unknown error occurred:\n");
+
+        u64 kDown = 0;
+
+        while (!kDown)
+        {
+            hidScanInput();
+            kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+        }
+    }
+
+    gfxExit();
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
+    #ifdef NXLINK_DEBUG
+    return newUIMain();
+    #endif
+
     try
     {
         Result rc = 0;
@@ -99,6 +180,8 @@ int main(int argc, char **argv)
         gfxInitDefault();
         manager.m_printConsole = consoleInit(NULL);
         LOG_DEBUG("NXLink is active\n");
+
+        g_framebuf = gfxGetFramebuffer(&g_framebufWidth, &g_framebufHeight);
 
         // Create the tinfoil directory and subdirs on the sd card if they don't already exist. 
         // These are used throughout the app without existance checks.

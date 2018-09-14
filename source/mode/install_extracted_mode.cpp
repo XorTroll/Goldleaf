@@ -3,7 +3,7 @@
 #include <cstring>
 #include "install/install_nsp.hpp"
 #include "nx/fs.hpp"
-#include "ui/console_options_view.hpp"
+#include "ui/framework/console_options_view.hpp"
 #include "error.hpp"
 
 namespace tin::ui

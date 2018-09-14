@@ -1,7 +1,7 @@
 #pragma once
 
 #include <switch.h>
-#include "ui/view.hpp"
+#include "ui/framework/view.hpp"
 
 namespace tin::ui
 {

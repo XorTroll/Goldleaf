@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "ui/console_view.hpp"
+#include "ui/framework/console_view.hpp"
 #include "nx/ipc/tin_ipc.h"
 
 namespace tin::ui

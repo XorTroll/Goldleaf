@@ -1,4 +1,4 @@
-#include "ui/console_view.hpp"
+#include "ui/framework/console_view.hpp"
 
 namespace tin::ui
 {
