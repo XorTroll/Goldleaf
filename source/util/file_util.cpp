@@ -13,8 +13,23 @@ namespace tin::util
     {
         // Open filesystem
         nx::fs::IFileSystem fileSystem;
-        fileSystem.OpenFileSystemWithId(nspPath, FsFileSystemType_ApplicationPackage, 0);
-        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, "/", nspPath + "/");
+        std::string nspExt = ".nsp";
+        std::string rootPath = "/";
+        std::string absolutePath = nspPath + "/";
+
+        // Check if this is an nsp file
+        if (nspPath.compare(nspPath.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
+        {
+            fileSystem.OpenFileSystemWithId(nspPath, FsFileSystemType_ApplicationPackage, 0);
+        }
+        else // Otherwise assume this is an extracted NSP directory
+        {
+            fileSystem.OpenSdFileSystem();
+            rootPath = nspPath.substr(9) + "/";
+            absolutePath = nspPath + "/";
+        }
+        
+        tin::install::nsp::SimpleFileSystem simpleFS(fileSystem, rootPath, absolutePath);
 
         // Create the path of the cnmt NCA
         auto cnmtNCAName = simpleFS.GetFileNameFromExtension("", "cnmt.nca");
