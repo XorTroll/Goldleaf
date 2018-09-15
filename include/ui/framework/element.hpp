@@ -2,6 +2,7 @@
 
 #include <switch.h>
 #include "ui/framework/layout.hpp"
+#include "ui/framework/canvas.hpp"
 
 namespace tin::ui
 {
@@ -13,7 +14,7 @@ namespace tin::ui
             Element(u32 width, u32 height);
 
         public:
-            virtual void DrawElement(Position position, Dimensions boundaries);
+            virtual void Draw(Canvas canvas, Position position);
 
             Dimensions GetDimensions();
     };

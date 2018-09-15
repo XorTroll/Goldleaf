@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include "ui/framework/element.hpp"
-#include "util/graphics_util.hpp"
+#include "ui/framework/canvas.hpp"
 
 namespace tin::ui
 {
@@ -28,15 +28,15 @@ namespace tin::ui
     class BoxElement : public Element
     {
         public:
-            tin::util::Colour m_colour;
+            tin::ui::Colour m_colour;
             SubElementLayout m_subElementLayout;
             std::vector<std::unique_ptr<Element>> m_subElements;
 
             BoxElement(u32 width, u32 height);
 
-            virtual void DrawElement(Position position, Dimensions boundaries) override;
+            virtual void Draw(Canvas canvas, Position position) override;
 
-            void SetColour(tin::util::Colour colour);
+            void SetColour(tin::ui::Colour colour);
             void SetSubElementLayout(SubElementLayout subElementLayout);
 
             void AddSubElement(std::unique_ptr<Element> element);

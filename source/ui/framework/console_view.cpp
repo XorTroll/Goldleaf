@@ -10,8 +10,8 @@ namespace tin::ui
 
     void ConsoleView::OnPresented()
     {
-        consoleClear();
         gfxSetMode(GfxMode_TiledDouble);
+        consoleClear();
     }
 
     void ConsoleView::ProcessInput(u64 keys)

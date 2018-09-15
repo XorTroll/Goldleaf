@@ -10,9 +10,9 @@ namespace tin::ui
 
     }
 
-    void Element::DrawElement(Position position, Dimensions boundaries) 
+    void Element::Draw(Canvas canvas, Position position) 
     {
-        LOG_DEBUG("Base DrawElement called\n");
+        LOG_DEBUG("Base Draw called\n");
     }
 
     Dimensions Element::GetDimensions()

@@ -159,7 +159,6 @@ int main(int argc, char **argv)
 
             gfxFlushBuffers();
             gfxSwapBuffers();
-            gfxWaitForVsync();
         }
     }
     catch (std::exception& e)

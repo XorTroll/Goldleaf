@@ -14,7 +14,7 @@ namespace tin::ui
     {
         for (auto& entry : m_elementEntries)
         {
-            entry->element->DrawElement(entry->position, Dimensions(1280, 720));
+            entry->element->Draw(Canvas(), entry->position);
         }
     }
 

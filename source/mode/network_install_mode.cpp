@@ -128,6 +128,12 @@ namespace tin::ui
             std::vector<std::string> urls;
 
             bool canceled = false;
+
+            // Do this now because otherwise we won't get an opportunity whilst waiting
+            // in the loop
+            gfxFlushBuffers();
+            gfxSwapBuffers();
+
             while (true)
             {
                 // Break on input pressed

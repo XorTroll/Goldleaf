@@ -11,10 +11,10 @@ namespace tin::ui
 
     }
 
-    void BoxElement::DrawElement(Position position, Dimensions boundaries)
+    void BoxElement::Draw(Canvas canvas, Position position)
     {
-        unsigned int renderHeight = m_dimensions.height == 0 ? boundaries.height : m_dimensions.height;
-        unsigned int renderWidth = m_dimensions.width == 0 ? boundaries.width : m_dimensions.width;
+        unsigned int renderHeight = m_dimensions.height == 0 ? canvas.m_restrictionDimensions.height : m_dimensions.height;
+        unsigned int renderWidth = m_dimensions.width == 0 ? canvas.m_restrictionDimensions.width : m_dimensions.width;
 
         for (u32 y = 0; y < renderHeight; y++)
         {
@@ -23,7 +23,7 @@ namespace tin::ui
                 u32 pixelX = x + position.x;
                 u32 pixelY = y + position.y;
 
-                tin::util::DrawPixel(pixelX, pixelY, m_colour);
+                canvas.DrawPixel(pixelX, pixelY, m_colour);
             }
         }
 
@@ -32,6 +32,7 @@ namespace tin::ui
             return;
 
         unsigned int startOffset = 0;
+        Position subElementPos(position.x + m_subElementLayout.leftInset, position.y + m_subElementLayout.topInset);
         Dimensions subElementBoundaries(m_dimensions.width - m_subElementLayout.leftInset - m_subElementLayout.rightInset, m_dimensions.height - m_subElementLayout.topInset - m_subElementLayout.bottomInset);
         
         for (auto& subElement : m_subElements)
@@ -50,12 +51,12 @@ namespace tin::ui
                     break;
             }
 
-            subElement->DrawElement(Position(startX, startY), subElementBoundaries);
+            subElement->Draw(Canvas(subElementPos, subElementBoundaries), Position(startX, startY));
             startOffset += subElement->GetDimensions().width + m_subElementLayout.gapSize;
         }
     }
 
-    void BoxElement::SetColour(tin::util::Colour colour)
+    void BoxElement::SetColour(tin::ui::Colour colour)
     {
         m_colour = colour;
     }
