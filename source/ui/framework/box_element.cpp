@@ -32,8 +32,7 @@ namespace tin::ui
             return;
 
         unsigned int startOffset = 0;
-        Position subElementPos(position.x + m_subElementLayout.leftInset, position.y + m_subElementLayout.topInset);
-        Dimensions subElementBoundaries(m_dimensions.width - m_subElementLayout.leftInset - m_subElementLayout.rightInset, m_dimensions.height - m_subElementLayout.topInset - m_subElementLayout.bottomInset);
+        Dimensions subElementBoundaries(renderWidth - m_subElementLayout.leftInset - m_subElementLayout.rightInset, renderHeight - m_subElementLayout.topInset - m_subElementLayout.bottomInset);
         
         for (auto& subElement : m_subElements)
         {
@@ -46,10 +45,16 @@ namespace tin::ui
                     startY += startOffset;
                     break;
 
+                case SubElementArrangementType::BOTTOM_TO_TOP:
+                    startY = startY + subElementBoundaries.height - startOffset;
+                    break;
+
                 default:
                     startX += startOffset;
                     break;
             }
+
+            Position subElementPos(startX, startY);
 
             subElement->Draw(Canvas(subElementPos, subElementBoundaries), Position(startX, startY));
             startOffset += subElement->GetDimensions().width + m_subElementLayout.gapSize;

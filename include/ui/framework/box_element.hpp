@@ -9,7 +9,7 @@ namespace tin::ui
 {
     enum class SubElementArrangementType
     {
-        LEFT_TO_RIGHT, TOP_TO_BOTTOM
+        LEFT_TO_RIGHT, TOP_TO_BOTTOM, BOTTOM_TO_TOP
     };
 
     struct SubElementLayout

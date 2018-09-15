@@ -21,25 +21,32 @@ namespace tin::ui
         sidebarBox->SetColour(tin::ui::Colour(0x2B334F));
         foregroundLayer->AddElement(std::move(sidebarBox), 0, 0);
 
-        // Setup the header
+        // Header
         auto headerBox = std::make_unique<BoxElement>(1280-120, 80);
         headerBox->SetColour(tin::ui::Colour(0x556C91));
-
-        SubElementLayout headerSubElementLayout;
-        headerSubElementLayout.gapSize = 20;
-        headerSubElementLayout.leftInset = 50;
-        headerSubElementLayout.arrangementType = SubElementArrangementType::LEFT_TO_RIGHT;
-        headerBox->SetSubElementLayout(headerSubElementLayout);
-
-        auto redBox1 = std::make_unique<BoxElement>(20, 0);
-        redBox1->SetColour(tin::ui::Colour(255, 0, 0, 255));
-        headerBox->AddSubElement(std::move(redBox1));
-
-        auto redBox2 = std::make_unique<BoxElement>(20, 0);
-        redBox2->SetColour(tin::ui::Colour(255, 0, 0, 255));
-        headerBox->AddSubElement(std::move(redBox2));
-
         foregroundLayer->AddElement(std::move(headerBox), 120, 0);
+
+        // Game list
+        auto gameListBox = std::make_unique<BoxElement>(625, 720-80);
+        gameListBox->SetColour(0x394566);
+
+        SubElementLayout gameListSubElementLayout;
+        gameListSubElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
+        gameListBox->SetSubElementLayout(gameListSubElementLayout);
+
+        auto rowElement = std::make_unique<BoxElement>(0, 80);
+        SubElementLayout rowSubElementLayout;
+        rowSubElementLayout.arrangementType = SubElementArrangementType::BOTTOM_TO_TOP;
+        rowElement->SetColour(0x394566);
+        rowElement->SetSubElementLayout(rowSubElementLayout);
+
+        auto underlineElement = std::make_unique<BoxElement>(0, 3);
+        underlineElement->SetColour(0x556C91);
+        rowElement->AddSubElement(std::move(underlineElement));
+
+        
+        gameListBox->AddSubElement(std::move(rowElement));
+        foregroundLayer->AddElement(std::move(gameListBox), 120+25, 80);
 
         this->AddLayer(std::move(backgroundLayer));
         this->AddLayer(std::move(foregroundLayer));
