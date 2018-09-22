@@ -128,7 +128,7 @@ namespace tin::install
         }
         catch (std::runtime_error& e)
         {
-            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your usecase.\nProceed with caution!\n");
+            printf("WARNING: Ticket installation failed! This may not be an issue, depending on your use case.\nProceed with caution!\n");
         }
     }
 
