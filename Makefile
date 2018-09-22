@@ -38,7 +38,7 @@ INCLUDES    := include
 EXEFS_SRC   := exefs_src
 APP_TITLE   := Tinfoil
 APP_AUTHOR  := Adubbz
-APP_VERSION := 0.2.0
+APP_VERSION := 0.2.1
 
 #ROMFS	:=	romfs
 
@@ -59,14 +59,14 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
 
 CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lz -lnx
+LIBS	:= `freetype-config --libs` -lcurl -lz -lnx
 
 
 

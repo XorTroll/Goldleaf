@@ -3,6 +3,7 @@
 #include <memory>
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/box_element.hpp"
+#include "ui/framework/font_renderer.hpp"
 
 namespace tin::ui
 {
@@ -50,5 +51,14 @@ namespace tin::ui
 
         this->AddLayer(std::move(backgroundLayer));
         this->AddLayer(std::move(foregroundLayer));
+    }
+
+    void InstallView::Update()
+    {
+        LayoutView::Update();
+
+        auto& fontRenderer = FontRenderer::Instance();
+        fontRenderer.SetFontScale(FontFaceType::NINTY_EXT, 20);
+        fontRenderer.DrawText(FontFaceType::NINTY_EXT, Canvas(), Position(1280 / 2, 720 / 2), Colour(0xFF, 0xFF, 0xFF, 0xFF), "This is a test");
     }
 }

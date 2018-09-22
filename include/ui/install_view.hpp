@@ -8,5 +8,7 @@ namespace tin::ui
     {
         public:
             InstallView();
+
+            virtual void Update() override;
     };
 }

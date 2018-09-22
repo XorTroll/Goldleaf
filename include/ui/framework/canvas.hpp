@@ -43,6 +43,13 @@ namespace tin::ui
             Canvas();
             Canvas(Position restrictionPosition, Dimensions restrictionDimensions);
 
+            static inline uint8_t BlendColour(uint32_t src, uint32_t dst, uint8_t alpha)
+            {
+                uint8_t one_minus_alpha = (uint8_t)255 - alpha;
+                return (dst*alpha + src*one_minus_alpha)/(uint8_t)255;
+            }
+
             void DrawPixel(u32 x, u32 y, Colour colour, bool restricted=true);
+            void DrawPixelBlend(u32 x, u32 y, Colour colour, bool restricted=true);
     };
 }

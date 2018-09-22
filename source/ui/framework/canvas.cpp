@@ -25,4 +25,18 @@ namespace tin::ui
         u32 off = (y * g_framebufWidth + x) * 4;
         *((u32*)&g_framebuf[off]) = colour.r | (colour.g << 8) | (colour.b << 16) | (0xff << 24);
     }
+
+    void Canvas::DrawPixelBlend(u32 x, u32 y, Colour colour, bool restricted)
+    {
+        if (x >= 1280 || y >= 720)
+            return;
+
+        u32 off = (y * g_framebufWidth + x) * 4;
+
+        u8 r = BlendColour(g_framebuf[off], colour.r, colour.a); off++;
+        u8 g = BlendColour(g_framebuf[off], colour.g, colour.a); off++;
+        u8 b = BlendColour(g_framebuf[off], colour.b, colour.a); off++;
+
+        this->DrawPixel(x, y, Colour(r, g, b, 0xFF), restricted);
+    }
 }
