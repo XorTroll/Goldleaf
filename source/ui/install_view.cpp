@@ -3,6 +3,7 @@
 #include <memory>
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/box_element.hpp"
+#include "ui/framework/text_element.hpp"
 #include "ui/framework/font_renderer.hpp"
 
 namespace tin::ui
@@ -24,7 +25,18 @@ namespace tin::ui
 
         // Header
         auto headerBox = std::make_unique<BoxElement>(1280-120, 80);
+        SubElementLayout headerSubElementLayout;
+        headerSubElementLayout.arrangementType = SubElementArrangementType::LEFT_TO_RIGHT;
+        headerSubElementLayout.leftInset = 25;
+        headerSubElementLayout.bottomInset = 27;
         headerBox->SetColour(tin::ui::Colour(0x556C91));
+        headerBox->SetSubElementLayout(headerSubElementLayout);
+
+        auto installApplicationText = std::make_unique<TextElement>(0, 0);
+        installApplicationText->SetText("Install Application");
+        installApplicationText->SetScale(6);
+
+        headerBox->AddSubElement(std::move(installApplicationText));
         foregroundLayer->AddElement(std::move(headerBox), 120, 0);
 
         // Game list
@@ -56,9 +68,5 @@ namespace tin::ui
     void InstallView::Update()
     {
         LayoutView::Update();
-
-        auto& fontRenderer = FontRenderer::Instance();
-        fontRenderer.SetFontScale(FontFaceType::NINTY_EXT, 20);
-        fontRenderer.DrawText(FontFaceType::NINTY_EXT, Canvas(), Position(1280 / 2, 720 / 2), Colour(0xFF, 0xFF, 0xFF, 0xFF), "This is a test");
     }
 }

@@ -80,7 +80,7 @@ namespace tin::ui
                 if (!colour.a)
                     continue;
 
-                canvas.DrawPixelBlend(x + tmpx, y + tmpy, colour);
+                canvas.DrawPixelBlend(x + tmpx, y + tmpy + (face->size->metrics.descender / 64), colour);
             }
 
             imageptr += bitmap->pitch;
