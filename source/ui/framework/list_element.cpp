@@ -1,7 +1,5 @@
 #include "ui/framework/list_element.hpp"
 
-#include "ui/framework/text_element.hpp"
-
 namespace tin::ui
 {
     RowElement::RowElement(u32 width, u32 height) :
@@ -23,10 +21,10 @@ namespace tin::ui
         contentElement->SetSubElementLayout(contentSubElementLayout);
 
         auto textElement = std::make_unique<TextElement>(m_dimensions.width * 0.8, m_dimensions.height);
-        textElement->SetText("Some Random Game");
         textElement->SetScale(5);
         textElement->SetColour(0xC3D0DF);
         textElement->SetInsets(0, 28);
+        m_textElement = textElement.get();
 
         contentElement->AddSubElement(std::move(textElement));
         this->AddSubElement(std::move(contentElement));
@@ -36,5 +34,20 @@ namespace tin::ui
         RowElement(width, DEFAULT_ROW_HEIGHT)
     {
 
+    }
+
+    ListElement::ListElement(u32 width, u32 height) :
+        BoxElement(width, height)
+    {
+        SubElementLayout subElementLayout;
+        subElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
+        this->SetSubElementLayout(subElementLayout);
+    }
+
+    void ListElement::AddRow(const char* text)
+    {
+        auto rowElement = std::make_unique<RowElement>(m_dimensions.width);
+        rowElement->m_textElement->SetText(text);
+        this->AddSubElement(std::move(rowElement));
     }
 }

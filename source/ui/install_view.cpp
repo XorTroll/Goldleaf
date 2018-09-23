@@ -41,19 +41,19 @@ namespace tin::ui
         foregroundLayer->AddElement(std::move(headerBox), 120, 0);
 
         // Game list
-        auto gameListBox = std::make_unique<BoxElement>(625, 720-80);
-        gameListBox->SetColour(0x394566);
-
-        SubElementLayout gameListSubElementLayout;
-        gameListSubElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
-        gameListBox->SetSubElementLayout(gameListSubElementLayout);
-
-        auto rowElement1 = std::make_unique<RowElement>(625);
-        auto rowElement2 = std::make_unique<RowElement>(625);
-
-        gameListBox->AddSubElement(std::move(rowElement1));
-        gameListBox->AddSubElement(std::move(rowElement2));
-        foregroundLayer->AddElement(std::move(gameListBox), 120+25, 80);
+        auto gameList = std::make_unique<ListElement>(625, 720-80);
+        gameList->SetColour(0x394566);
+        gameList->AddRow("Game 1");
+        gameList->AddRow("Game 2");
+        gameList->AddRow("Game 3");
+        gameList->AddRow("Game 4");
+        gameList->AddRow("Game 5");
+        gameList->AddRow("Game 6");
+        gameList->AddRow("Game 7");
+        gameList->AddRow("Game 8");
+        gameList->AddRow("Game 9");
+        gameList->AddRow("Game 10");
+        foregroundLayer->AddElement(std::move(gameList), 120+25, 80);
 
         this->AddLayer(std::move(backgroundLayer));
         this->AddLayer(std::move(foregroundLayer));
