@@ -13,17 +13,21 @@ namespace tin::ui
 
     void BoxElement::Draw(Canvas canvas, Position position)
     {
-        unsigned int renderHeight = m_dimensions.height == 0 ? canvas.m_restrictionDimensions.height : m_dimensions.height;
-        unsigned int renderWidth = m_dimensions.width == 0 ? canvas.m_restrictionDimensions.width : m_dimensions.width;
+        unsigned int renderHeight = m_dimensions.height;
+        unsigned int renderWidth = m_dimensions.width;
 
-        for (u32 y = 0; y < renderHeight; y++)
+        // There is nothing to draw if the alpha is 0
+        if (m_colour.a)
         {
-            for (u32 x = 0; x < renderWidth; x++)
+            for (u32 y = 0; y < renderHeight; y++)
             {
-                u32 pixelX = x + position.x;
-                u32 pixelY = y + position.y;
+                for (u32 x = 0; x < renderWidth; x++)
+                {
+                    u32 pixelX = x + position.x;
+                    u32 pixelY = y + position.y;
 
-                canvas.DrawPixel(pixelX, pixelY, m_colour);
+                    canvas.DrawPixel(pixelX, pixelY, m_colour);
+                }
             }
         }
 
@@ -46,7 +50,7 @@ namespace tin::ui
                     break;
 
                 case SubElementArrangementType::BOTTOM_TO_TOP:
-                    startY = startY + subElementBoundaries.height - startOffset;
+                    startY = startY + subElementBoundaries.height - subElement->GetDimensions().height - startOffset;
                     break;
 
                 default:
@@ -57,7 +61,18 @@ namespace tin::ui
             Position subElementPos(startX, startY);
 
             subElement->Draw(Canvas(subElementPos, subElementBoundaries), Position(startX, startY));
-            startOffset += subElement->GetDimensions().width + m_subElementLayout.gapSize;
+
+            switch (m_subElementLayout.arrangementType)
+            {
+                case SubElementArrangementType::TOP_TO_BOTTOM:
+                case SubElementArrangementType::BOTTOM_TO_TOP:
+                    startOffset += subElement->GetDimensions().height + m_subElementLayout.gapSize;
+                    break;
+
+                default:
+                    startOffset += subElement->GetDimensions().width + m_subElementLayout.gapSize;
+                    break;
+            }
         }
     }
 

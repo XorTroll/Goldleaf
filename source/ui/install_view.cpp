@@ -3,6 +3,7 @@
 #include <memory>
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/box_element.hpp"
+#include "ui/framework/list_element.hpp"
 #include "ui/framework/text_element.hpp"
 #include "ui/framework/font_renderer.hpp"
 
@@ -32,7 +33,7 @@ namespace tin::ui
         headerBox->SetColour(tin::ui::Colour(0x556C91));
         headerBox->SetSubElementLayout(headerSubElementLayout);
 
-        auto installApplicationText = std::make_unique<TextElement>(0, 0);
+        auto installApplicationText = std::make_unique<TextElement>(1280-120, 80);
         installApplicationText->SetText("Install Application");
         installApplicationText->SetScale(6);
 
@@ -47,18 +48,11 @@ namespace tin::ui
         gameListSubElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
         gameListBox->SetSubElementLayout(gameListSubElementLayout);
 
-        auto rowElement = std::make_unique<BoxElement>(0, 80);
-        SubElementLayout rowSubElementLayout;
-        rowSubElementLayout.arrangementType = SubElementArrangementType::BOTTOM_TO_TOP;
-        rowElement->SetColour(0x394566);
-        rowElement->SetSubElementLayout(rowSubElementLayout);
+        auto rowElement1 = std::make_unique<RowElement>(625);
+        auto rowElement2 = std::make_unique<RowElement>(625);
 
-        auto underlineElement = std::make_unique<BoxElement>(0, 3);
-        underlineElement->SetColour(0x556C91);
-        rowElement->AddSubElement(std::move(underlineElement));
-
-        
-        gameListBox->AddSubElement(std::move(rowElement));
+        gameListBox->AddSubElement(std::move(rowElement1));
+        gameListBox->AddSubElement(std::move(rowElement2));
         foregroundLayer->AddElement(std::move(gameListBox), 120+25, 80);
 
         this->AddLayer(std::move(backgroundLayer));
