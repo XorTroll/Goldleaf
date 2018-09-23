@@ -17,12 +17,6 @@ namespace tin::ui
         public:
             SubElementArrangementType arrangementType = SubElementArrangementType::LEFT_TO_RIGHT;
             unsigned int gapSize = 0;
-
-            // Offset subelements from the outer edges of the parent box
-            unsigned int leftInset = 0;
-            unsigned int rightInset = 0;
-            unsigned int topInset = 0;
-            unsigned int bottomInset = 0;
     };
 
     class BoxElement : public Element

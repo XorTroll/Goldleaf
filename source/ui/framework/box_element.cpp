@@ -36,12 +36,12 @@ namespace tin::ui
             return;
 
         unsigned int startOffset = 0;
-        Dimensions subElementBoundaries(renderWidth - m_subElementLayout.leftInset - m_subElementLayout.rightInset, renderHeight - m_subElementLayout.topInset - m_subElementLayout.bottomInset);
+        Dimensions subElementBoundaries(renderWidth, renderHeight);
         
         for (auto& subElement : m_subElements)
         {
-            unsigned int startX = position.x + m_subElementLayout.leftInset;
-            unsigned int startY = position.y + m_subElementLayout.topInset;
+            unsigned int startX = position.x;
+            unsigned int startY = position.y;
 
             switch (m_subElementLayout.arrangementType)
             {
@@ -60,7 +60,7 @@ namespace tin::ui
 
             Position subElementPos(startX, startY);
 
-            subElement->Draw(Canvas(subElementPos, subElementBoundaries), Position(startX, startY));
+            subElement->Draw(Canvas(), Position(startX, startY));
 
             switch (m_subElementLayout.arrangementType)
             {

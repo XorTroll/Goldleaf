@@ -23,7 +23,7 @@ namespace tin::ui
         auto textElement = std::make_unique<TextElement>(m_dimensions.width * 0.8, m_dimensions.height);
         textElement->SetScale(5);
         textElement->SetColour(0xC3D0DF);
-        textElement->SetInsets(0, 28);
+        textElement->SetInsets(0, 30);
         m_textElement = textElement.get();
 
         contentElement->AddSubElement(std::move(textElement));

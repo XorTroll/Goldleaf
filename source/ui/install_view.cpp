@@ -28,20 +28,20 @@ namespace tin::ui
         auto headerBox = std::make_unique<BoxElement>(1280-120, 80);
         SubElementLayout headerSubElementLayout;
         headerSubElementLayout.arrangementType = SubElementArrangementType::LEFT_TO_RIGHT;
-        headerSubElementLayout.leftInset = 25;
-        headerSubElementLayout.bottomInset = 27;
         headerBox->SetColour(tin::ui::Colour(0x556C91));
         headerBox->SetSubElementLayout(headerSubElementLayout);
 
         auto installApplicationText = std::make_unique<TextElement>(1280-120, 80);
         installApplicationText->SetText("Install Application");
         installApplicationText->SetScale(6);
+        installApplicationText->SetInsets(25, 30);
 
         headerBox->AddSubElement(std::move(installApplicationText));
         foregroundLayer->AddElement(std::move(headerBox), 120, 0);
 
         // Game list
-        auto gameList = std::make_unique<ListElement>(625, 720-80);
+        // 720 - 80 - 3 to account for the header and to chop off the underline on the bottom row
+        auto gameList = std::make_unique<ListElement>(5, 1);
         gameList->SetColour(0x394566);
         gameList->AddRow("Game 1");
         gameList->AddRow("Game 2");
