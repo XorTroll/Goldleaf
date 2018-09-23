@@ -14,6 +14,9 @@ namespace tin::ui
             Colour m_colour = Colour(0xFF, 0xFF, 0xFF, 0xFF);
             unsigned int m_scale = 5;
 
+            unsigned int m_leftInset = 0;
+            unsigned int m_bottomInset = 0;
+
         public:
             TextElement(u32 width, u32 height);
 
@@ -23,5 +26,6 @@ namespace tin::ui
             void SetFont(FontFaceType fontFaceType);
             void SetColour(Colour colour);
             void SetScale(unsigned int scale);
+            void SetInsets(unsigned int left, unsigned int bottom);
     };
 }

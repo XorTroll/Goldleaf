@@ -14,7 +14,7 @@ namespace tin::ui
     {
         auto& fontRenderer = FontRenderer::Instance();
         fontRenderer.SetFontScale(m_fontFaceType, m_scale);
-        fontRenderer.DrawText(m_fontFaceType, canvas, Position(position.x, position.y + canvas.m_restrictionDimensions.height), m_colour, m_text);
+        fontRenderer.DrawText(m_fontFaceType, canvas, Position(position.x + m_leftInset, position.y + canvas.m_restrictionDimensions.height - m_bottomInset), m_colour, m_text);
     }
 
     void TextElement::SetText(const char* text)
@@ -41,5 +41,11 @@ namespace tin::ui
     void TextElement::SetScale(unsigned int scale)
     {
         m_scale = scale;
+    }
+
+    void TextElement::SetInsets(unsigned int left, unsigned int bottom)
+    {
+        m_leftInset = left;
+        m_bottomInset = bottom;
     }
 }
