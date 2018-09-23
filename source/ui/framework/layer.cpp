@@ -14,7 +14,7 @@ namespace tin::ui
     {
         for (auto& entry : m_elementEntries)
         {
-            entry->element->Draw(Canvas(), entry->position);
+            entry->element->Draw(Canvas().Intersect(entry->position, entry->element->GetDimensions()), entry->position);
         }
     }
 
