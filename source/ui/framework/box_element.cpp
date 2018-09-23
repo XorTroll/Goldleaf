@@ -13,15 +13,12 @@ namespace tin::ui
 
     void BoxElement::Draw(Canvas canvas, Position position)
     {
-        unsigned int renderHeight = m_dimensions.height;
-        unsigned int renderWidth = m_dimensions.width;
-
         // There is nothing to draw if the alpha is 0
         if (m_colour.a)
         {
-            for (u32 y = 0; y < renderHeight; y++)
+            for (u32 y = 0; y < m_dimensions.height; y++)
             {
-                for (u32 x = 0; x < renderWidth; x++)
+                for (u32 x = 0; x < m_dimensions.width; x++)
                 {
                     u32 pixelX = x + position.x;
                     u32 pixelY = y + position.y;
@@ -34,10 +31,9 @@ namespace tin::ui
         // No need to draw sub elements if we don't have any
         if (m_subElements.empty())
             return;
-
+            
         unsigned int startOffset = 0;
-        Dimensions subElementBoundaries(renderWidth, renderHeight);
-        
+
         for (auto& subElement : m_subElements)
         {
             unsigned int startX = position.x;
@@ -50,7 +46,7 @@ namespace tin::ui
                     break;
 
                 case SubElementArrangementType::BOTTOM_TO_TOP:
-                    startY = startY + subElementBoundaries.height - subElement->GetDimensions().height - startOffset;
+                    startY = startY + m_dimensions.height - subElement->GetDimensions().height - startOffset;
                     break;
 
                 default:
@@ -59,8 +55,10 @@ namespace tin::ui
             }
 
             Position subElementPos(startX, startY);
-
-            subElement->Draw(Canvas(), Position(startX, startY));
+            // We need a canvas that fits into the parent canvas, is inside this element, and accounts for the desired position/size of the sub element
+            Canvas subElementCanvas = canvas.Intersect(position, this->GetDimensions()).Intersect(subElementPos, subElement->GetDimensions());
+            
+            subElement->Draw(subElementCanvas, subElementPos);
 
             switch (m_subElementLayout.arrangementType)
             {

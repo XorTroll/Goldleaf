@@ -1,5 +1,7 @@
 #include "ui/framework/canvas.hpp"
 
+#include "error.hpp"
+
 namespace tin::ui
 {
     Canvas::Canvas() :
@@ -38,5 +40,32 @@ namespace tin::ui
         u8 b = BlendColour(g_framebuf[off], colour.b, colour.a); off++;
 
         this->DrawPixel(x, y, Colour(r, g, b, 0xFF), restricted);
+    }
+
+    Canvas Canvas::Intersect(Position pos, Dimensions dimensions)
+    {
+        u32 rStartX = m_restrictionPosition.x;
+        u32 rStartY = m_restrictionPosition.y;
+        u32 rEndX = rStartX + m_restrictionDimensions.width;
+        u32 rEndY = rStartY + m_restrictionDimensions.height;
+
+        u32 newStartX = pos.x;
+        u32 newStartY = pos.y;
+        u32 newEndX = pos.x + dimensions.width;
+        u32 newEndY = pos.y + dimensions.height;
+
+        if (newStartX < rStartX) newStartX = rStartX;
+        else if (newStartX > rEndX) return Canvas(Position(0, 0), Dimensions(0, 0));
+
+        if (newStartY < rStartY) newStartY = rStartY;
+        else if (newStartY > rEndY) return Canvas(Position(0, 0), Dimensions(0, 0));
+
+        if (newEndX > rEndX) newEndX = rEndX;
+        else if (newEndX < rStartX) return Canvas(Position(0, 0), Dimensions(0, 0));
+
+        if (newEndY > rEndY) newEndY = rEndY;
+        else if (newEndY < rStartY) return Canvas(Position(0, 0), Dimensions(0, 0));
+
+        return Canvas(Position(newStartX, newStartY), Dimensions(newEndX - newStartX, newEndY - newStartY));
     }
 }

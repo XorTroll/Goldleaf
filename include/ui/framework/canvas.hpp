@@ -51,5 +51,7 @@ namespace tin::ui
 
             void DrawPixel(u32 x, u32 y, Colour colour, bool restricted=true);
             void DrawPixelBlend(u32 x, u32 y, Colour colour, bool restricted=true);
+
+            Canvas Intersect(Position pos, Dimensions dimensions);
     };
 }
