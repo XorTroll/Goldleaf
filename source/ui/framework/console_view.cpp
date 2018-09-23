@@ -1,4 +1,4 @@
-#include "ui/console_view.hpp"
+#include "ui/framework/console_view.hpp"
 
 namespace tin::ui
 {
@@ -10,6 +10,7 @@ namespace tin::ui
 
     void ConsoleView::OnPresented()
     {
+        gfxSetMode(GfxMode_TiledDouble);
         consoleClear();
     }
 

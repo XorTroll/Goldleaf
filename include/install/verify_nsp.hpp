@@ -23,5 +23,9 @@ namespace tin::install
             NSPVerifier(std::string nspPath);
 
             bool PerformVerification();
+
+            void PrintCritical(std::string text);
+            void PrintWarning(std::string text);
+            void PrintSuccess(std::string text);
     };
 }

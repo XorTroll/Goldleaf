@@ -16,8 +16,9 @@
 #include "mode/delete_personalized_ticket_mode.hpp"
 #include "mode/network_install_mode.hpp"
 #include "mode/verify_nsp_mode.hpp"
-#include "ui/view.hpp"
-#include "ui/console_options_view.hpp"
+#include "ui/framework/view.hpp"
+#include "ui/framework/console_options_view.hpp"
+#include "ui/install_view.hpp"
 
 #include "debug.h"
 #include "error.hpp"
@@ -38,6 +39,10 @@ void userAppExit(void);
 // TODO: Create a proper logging setup, as well as a log viewing screen
 // TODO: Validate NCAs
 // TODO: Verify dumps, ncaids match sha256s, installation succeess, perform proper uninstallation on failure and prior to install
+
+u8* g_framebuf;
+u32 g_framebufWidth;
+u32 g_framebufHeight;
 
 bool g_shouldExit = false;
 
@@ -61,6 +66,12 @@ void userAppInit(void)
     if (R_FAILED(nifmInitialize()))
         fatalSimple(0xBEE6);
 
+    if (R_FAILED(setInitialize()))
+        fatalSimple(0xBEE7);
+
+    if (R_FAILED(plInitialize()))
+        fatalSimple(0xBEE8);
+
     // We initialize this inside ui_networkinstall_mode for normal users.
     #ifdef NXLINK_DEBUG
     socketInitializeDefault();
@@ -77,6 +88,8 @@ void userAppExit(void)
     socketExit();
     #endif
 
+    plExit();
+    setExit();
     ncmextExit();
     ncmExit();
     nsExit();
@@ -100,6 +113,8 @@ int main(int argc, char **argv)
         manager.m_printConsole = consoleInit(NULL);
         LOG_DEBUG("NXLink is active\n");
 
+        g_framebuf = gfxGetFramebuffer(&g_framebufWidth, &g_framebufHeight);
+
         // Create the tinfoil directory and subdirs on the sd card if they don't already exist. 
         // These are used throughout the app without existance checks.
         if (R_FAILED(rc = createTinfoilDirs()))
@@ -110,7 +125,7 @@ int main(int argc, char **argv)
         
         tin::ui::Category titleManCat("Title Management");
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
-        //titleManCat.AddMode(std::move(std::make_unique<tin::ui::VerifyNSPMode>()));
+        titleManCat.AddMode(std::move(std::make_unique<tin::ui::VerifyNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::NetworkInstallMode>()));
         // TODO: Add uninstall and dump nsp
@@ -122,12 +137,18 @@ int main(int argc, char **argv)
         // TODO: Add install tik and cert, delete personalized ticket and view title keys
 
         auto mainView = std::make_unique<tin::ui::ConsoleOptionsView>();
+        auto showUITesting = [&]()
+        {
+            auto installView = std::make_unique<tin::ui::InstallView>();
+            manager.PushView(std::move(installView));
+        };
 
         mainView->AddEntry("Main Menu", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         mainView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
         mainView->AddEntry(titleManCat.m_name, tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &titleManCat));
         mainView->AddEntry("Install Information", tin::ui::ConsoleEntrySelectType::SELECT_INACTIVE, nullptr);
         mainView->AddEntry("Ticket Management", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&tin::ui::Category::OnSelected, &tikManCat));
+        mainView->AddEntry("UI Testing", tin::ui::ConsoleEntrySelectType::SELECT, showUITesting);
         mainView->AddEntry("Exit", tin::ui::ConsoleEntrySelectType::SELECT, markForExit);
         
         manager.PushView(std::move(mainView));
@@ -140,11 +161,12 @@ int main(int argc, char **argv)
             if (kDown)
                 manager.ProcessInput(kDown);
 
+            g_framebuf = gfxGetFramebuffer(&g_framebufWidth, &g_framebufHeight);
+
             manager.Update();
 
             gfxFlushBuffers();
             gfxSwapBuffers();
-            gfxWaitForVsync();
         }
     }
     catch (std::exception& e)

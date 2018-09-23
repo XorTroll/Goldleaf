@@ -1,4 +1,4 @@
-#include "ui/console_checkbox_view.hpp"
+#include "ui/framework/console_checkbox_view.hpp"
 
 #include "util/graphics_util.hpp"
 #include "util/title_util.hpp"

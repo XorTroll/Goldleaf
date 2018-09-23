@@ -53,7 +53,7 @@ namespace nx::ncm
             HashedContentRecord hashedContentRecord = hashedContentRecords[i];
             
             // Don't install delta fragments. Even patches don't seem to install them.
-            if (hashedContentRecord.record.contentType <= 5)
+            if (static_cast<u8>(hashedContentRecord.record.contentType) <= 5)
             {
                 contentRecords.push_back(hashedContentRecord.record); 
             }

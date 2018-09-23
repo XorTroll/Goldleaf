@@ -19,7 +19,6 @@ void nsextExit(void);
 
 Result nsCalculateApplicationOccupiedSize(u64 titleID, void *out_buf);
 Result nsPushApplicationRecord(u64 title_id, u8 last_modified_event, ContentStorageRecord *content_records_buf, size_t buf_size);
-Result nsListApplicationRecord(u64 offset, void *out_buf, size_t out_buf_size, u32 *entries_read_out);
 Result nsListApplicationRecordContentMeta(u64 offset, u64 titleID, void *out_buf, size_t out_buf_size, u32 *entries_read_out);
 Result nsDeleteApplicationRecord(u64 titleID);
 Result nsTouchApplication(u64 titleID);

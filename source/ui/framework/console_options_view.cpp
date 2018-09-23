@@ -1,4 +1,4 @@
-#include "ui/console_options_view.hpp"
+#include "ui/framework/console_options_view.hpp"
 
 #include <cstring>
 #include "util/graphics_util.hpp"
@@ -87,6 +87,8 @@ namespace tin::ui
 
     void ConsoleOptionsView::OnPresented()
     {
+        ConsoleView::OnPresented();
+
         for (unsigned char i = 0; i < m_consoleEntries.size(); i++)
         {
             ConsoleEntry* entry = m_consoleEntries.at(i).get();
@@ -216,8 +218,11 @@ namespace tin::ui
         console->cursorX = 0;
         console->cursorY = m_cursorPos + 2;
         console->flags |= CONSOLE_COLOR_BOLD;
-        printf("> ");
+        printf("%s> ", CONSOLE_CYAN);
         console->flags &= ~CONSOLE_COLOR_BOLD;
+        console->cursorX = 0;
+        console->cursorY = m_cursorPos + 3;
+        printf("%s", CONSOLE_RESET);
     }
 
     void ConsoleOptionsView::ClearCursor()

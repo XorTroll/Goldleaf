@@ -10,8 +10,8 @@
 #include <curl/curl.h>
 
 #include "nx/ipc/tin_ipc.h"
-#include "ui/console_view.hpp"
-#include "ui/console_checkbox_view.hpp"
+#include "ui/framework/console_view.hpp"
+#include "ui/framework/console_checkbox_view.hpp"
 #include "util/network_util.hpp"
 #include "install/install_nsp_remote.hpp"
 #include "error.hpp"
@@ -128,6 +128,12 @@ namespace tin::ui
             std::vector<std::string> urls;
 
             bool canceled = false;
+
+            // Do this now because otherwise we won't get an opportunity whilst waiting
+            // in the loop
+            gfxFlushBuffers();
+            gfxSwapBuffers();
+
             while (true)
             {
                 // Break on input pressed

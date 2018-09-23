@@ -12,7 +12,7 @@
                                 strncat(error_prefix, formatted_msg, 512-1); throw std::runtime_error(error_prefix); }
 
 #ifdef NXLINK_DEBUG
-#define LOG_DEBUG(format, ...) fprintf(nxlinkout, "%s:%u: ", __func__, __LINE__); fprintf(nxlinkout, format, ##__VA_ARGS__);
+#define LOG_DEBUG(format, ...) { fprintf(nxlinkout, "%s:%u: ", __func__, __LINE__); fprintf(nxlinkout, format, ##__VA_ARGS__); }
 #else
 #define LOG_DEBUG(format, ...) ;
 #endif

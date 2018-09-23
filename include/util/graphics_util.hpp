@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <switch.h>
 
 namespace tin::util
 {

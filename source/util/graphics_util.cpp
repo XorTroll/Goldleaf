@@ -1,5 +1,5 @@
 #include "util/graphics_util.hpp"
-#include "ui/view.hpp"
+#include "ui/framework/view.hpp"
 
 namespace tin::util
 {

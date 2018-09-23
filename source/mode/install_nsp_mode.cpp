@@ -4,7 +4,7 @@
 #include <sstream>
 #include "install/install_nsp.hpp"
 #include "nx/fs.hpp"
-#include "ui/console_options_view.hpp"
+#include "ui/framework/console_options_view.hpp"
 #include "util/file_util.hpp"
 #include "util/title_util.hpp"
 #include "util/graphics_util.hpp"
