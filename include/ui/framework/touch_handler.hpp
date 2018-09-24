@@ -15,6 +15,8 @@ namespace tin::ui
             Dimensions m_touchAreaSize;
 
         public:
+            std::function<void (unsigned int posX, unsigned int posY)> m_onTouchesStarted = nullptr;
+            std::function<void (unsigned int startX, unsigned int startY, signed int distX, signed int distY)> m_onTouchesMoving = nullptr;
             std::function<void (unsigned int posX, unsigned int posY)> m_onTapped = nullptr;
 
             TouchHandler(Position touchAreaPos, Dimensions touchAreaSize);

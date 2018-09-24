@@ -45,9 +45,19 @@ namespace tin::ui
         subElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
         this->SetSubElementLayout(subElementLayout);
 
+        m_touchHandler.m_onTouchesStarted = [](unsigned int posX, unsigned int posY)
+        {
+            LOG_DEBUG("Touches started. %u %u\n", posX, posY);
+        };
+
+        m_touchHandler.m_onTouchesMoving = [](unsigned int startX, unsigned int startY, signed int distX, unsigned int distY)
+        {
+            LOG_DEBUG("Touches moving. %i %i\n", distX, distY);
+        };
+
         m_touchHandler.m_onTapped = [](unsigned int posX, unsigned int posY)
         {
-            LOG_DEBUG("Touched! %u %u\n", posX, posY);
+            LOG_DEBUG("Touched. %u %u\n", posX, posY);
         };
     }
 

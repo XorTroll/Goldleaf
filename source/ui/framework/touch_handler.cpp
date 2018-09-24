@@ -37,6 +37,7 @@ namespace tin::ui
             touchesStarted = true;
             startTouchPos = touchPos;
             tapping = true;
+            m_onTouchesStarted(startTouchPos.px, startTouchPos.py);
         }
         else if (touchesStarted) // Touching has already been started
         {
@@ -46,6 +47,9 @@ namespace tin::ui
 
                 if (tapping && (abs(touchPos.px - startTouchPos.px) > MAX_TAP_MOVEMENT || abs(touchPos.py - startTouchPos.py) > MAX_TAP_MOVEMENT))
                     tapping = false;
+
+                if (!tapping)
+                    m_onTouchesMoving(startTouchPos.px, startTouchPos.py, touchPos.px - startTouchPos.px, touchPos.py - startTouchPos.py);
             }
             else // Stop touching
             {
