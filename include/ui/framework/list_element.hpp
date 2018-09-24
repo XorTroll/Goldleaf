@@ -21,8 +21,8 @@ namespace tin::ui
         private:
             TouchHandler m_touchHandler;
 
-            unsigned int m_scrollOffset = 0;
-            unsigned int m_startScrollOffset = 0;
+            int m_scrollOffset = 0;
+            int m_startScrollOffset = 0;
 
         public:
             ListElement(u32 width, u32 height);

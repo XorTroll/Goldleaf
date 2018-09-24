@@ -48,7 +48,20 @@ namespace tin::ui
 
         m_touchHandler.m_onTouchesMoving = [&](unsigned int startX, unsigned int startY, signed int distX, unsigned int distY)
         {
-            LOG_DEBUG("Touches moving. %i %i\n", distX, distY);
+            m_scrollOffset = m_startScrollOffset - distY;
+
+            // Subtract 3 to cut off the final underline
+            int maxScroll = RowElement::ROW_HEIGHT * m_subElements.size() - m_dimensions.height - 3;
+
+            // Don't allow scrolling if there is not enough elements
+            if (maxScroll < 0)
+                maxScroll = 0;
+
+            if (m_scrollOffset < 0)
+                m_scrollOffset = 0;
+
+            if (m_scrollOffset > maxScroll)
+                m_scrollOffset = maxScroll;
         };
 
         m_touchHandler.m_onTapped = [&](unsigned int posX, unsigned int posY)
@@ -57,32 +70,11 @@ namespace tin::ui
         };
     }
 
-    unsigned int time = 0;
-
     void ListElement::Draw(Canvas canvas, Position position)
     {
         // No need to draw sub elements if we don't have any
         if (m_subElements.empty())
             return;
-
-        time++;
-
-        if (time >= 2)
-        {
-            m_scrollOffset += 1;
-            time = 0;
-        }
-
-        if (m_scrollOffset < 0)
-            m_scrollOffset = 0;
-
-        // Subtract 3 to cut off the final underline
-        unsigned int maxScroll = RowElement::ROW_HEIGHT * m_subElements.size() - m_dimensions.height - 3;
-
-        LOG_DEBUG("Max Scroll: %u, Scroll: %u\n", maxScroll, m_scrollOffset);
-
-        if (m_scrollOffset > maxScroll)
-            m_scrollOffset = maxScroll;
 
         Position scrollPos = position;
         scrollPos.y = position.y - m_scrollOffset;
