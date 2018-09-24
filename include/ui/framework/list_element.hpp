@@ -8,12 +8,11 @@ namespace tin::ui
 {
     class RowElement : public BoxElement
     {
-        static const int DEFAULT_ROW_HEIGHT = 80;
-
         public:
+            static const int ROW_HEIGHT = 80;
+
             TextElement* m_textElement = nullptr;
 
-            RowElement(u32 width, u32 height);
             RowElement(u32 width);
     };
 
@@ -21,6 +20,9 @@ namespace tin::ui
     {
         private:
             TouchHandler m_touchHandler;
+
+            unsigned int m_scrollOffset = 0;
+            unsigned int m_startScrollOffset = 0;
 
         public:
             ListElement(u32 width, u32 height);
