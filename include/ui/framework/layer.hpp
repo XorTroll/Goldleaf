@@ -29,6 +29,7 @@ namespace tin::ui
         public:
             Layer(std::string name);
 
+            void UpdateLayer();
             void DrawLayer();
 
             std::string GetName();

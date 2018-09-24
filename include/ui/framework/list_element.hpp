@@ -2,6 +2,7 @@
 
 #include "ui/framework/box_element.hpp"
 #include "ui/framework/text_element.hpp"
+#include "ui/framework/touch_handler.hpp"
 
 namespace tin::ui
 {
@@ -18,9 +19,15 @@ namespace tin::ui
 
     class ListElement : public BoxElement
     {
+        private:
+            TouchHandler m_touchHandler;
+
         public:
             ListElement(u32 width, u32 height);
 
+            virtual void Draw(Canvas canvas, Position position) override;
+            virtual void Update(Position position) override;
+            
             void AddRow(const char* text);
     };
 }

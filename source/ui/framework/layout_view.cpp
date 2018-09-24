@@ -26,6 +26,7 @@ namespace tin::ui
     {        
         for (auto& layer : m_layers)
         {
+            layer->UpdateLayer();
             layer->DrawLayer();
         }
     }

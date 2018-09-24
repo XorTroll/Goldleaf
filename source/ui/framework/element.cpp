@@ -13,7 +13,12 @@ namespace tin::ui
 
     void Element::Draw(Canvas canvas, Position position) 
     {
-        LOG_DEBUG("Base Draw called\n");
+        //LOG_DEBUG("Base Draw called\n");
+    }
+
+    void Element::Update(Position position)
+    {
+        //LOG_DEBUG("Base Update called\n");
     }
 
     Dimensions Element::GetDimensions()

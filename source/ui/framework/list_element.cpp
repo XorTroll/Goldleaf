@@ -1,5 +1,7 @@
 #include "ui/framework/list_element.hpp"
 
+#include "error.hpp"
+
 namespace tin::ui
 {
     RowElement::RowElement(u32 width, u32 height) :
@@ -42,6 +44,22 @@ namespace tin::ui
         SubElementLayout subElementLayout;
         subElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
         this->SetSubElementLayout(subElementLayout);
+
+        m_touchHandler.m_onTapped = [](unsigned int posX, unsigned int posY)
+        {
+            LOG_DEBUG("Touched! %u %u\n", posX, posY);
+        };
+    }
+
+    void ListElement::Draw(Canvas canvas, Position position)
+    {
+        BoxElement::Draw(canvas, position);
+    }
+
+    void ListElement::Update(Position position)
+    {
+        m_touchHandler.SetTouchArea(position, m_dimensions);
+        m_touchHandler.Update();
     }
 
     void ListElement::AddRow(const char* text)

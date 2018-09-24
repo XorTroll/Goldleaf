@@ -10,6 +10,14 @@ namespace tin::ui
 
     }
 
+    void Layer::UpdateLayer()
+    {
+        for (auto& entry : m_elementEntries)
+        {
+            entry->element->Update(entry->position);
+        }
+    }
+
     void Layer::DrawLayer()
     {
         for (auto& entry : m_elementEntries)
