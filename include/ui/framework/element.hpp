@@ -15,6 +15,7 @@ namespace tin::ui
 
         public:
             virtual void Draw(Canvas canvas, Position position);
+            virtual void Update(Position position);
 
             Dimensions GetDimensions();
     };

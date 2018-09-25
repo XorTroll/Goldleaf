@@ -1,9 +1,11 @@
 #include "ui/framework/list_element.hpp"
 
+#include "error.hpp"
+
 namespace tin::ui
 {
-    RowElement::RowElement(u32 width, u32 height) :
-        BoxElement(width, height)
+    RowElement::RowElement(u32 width) :
+        BoxElement(width, ROW_HEIGHT)
     {
         SubElementLayout rowSubElementLayout;
         rowSubElementLayout.arrangementType = SubElementArrangementType::BOTTOM_TO_TOP;
@@ -30,18 +32,73 @@ namespace tin::ui
         this->AddSubElement(std::move(contentElement));
     }
 
-    RowElement::RowElement(u32 width) :
-        RowElement(width, DEFAULT_ROW_HEIGHT)
-    {
-
-    }
-
     ListElement::ListElement(u32 width, u32 height) :
         BoxElement(width, height)
     {
+        this->SetColour(Colour(0, 0, 0, 0));
+
         SubElementLayout subElementLayout;
         subElementLayout.arrangementType = SubElementArrangementType::TOP_TO_BOTTOM;
         this->SetSubElementLayout(subElementLayout);
+
+        m_touchHandler.m_onTouchesStarted = [&](unsigned int posX, unsigned int posY)
+        {
+            m_startScrollOffset = m_scrollOffset;
+        };
+
+        m_touchHandler.m_onTouchesMoving = [&](unsigned int startX, unsigned int startY, signed int distX, unsigned int distY)
+        {
+            m_scrollOffset = m_startScrollOffset - distY;
+
+            // Subtract 3 to cut off the final underline
+            int maxScroll = RowElement::ROW_HEIGHT * m_subElements.size() - m_dimensions.height - 3;
+
+            // Don't allow scrolling if there is not enough elements
+            if (maxScroll < 0)
+                maxScroll = 0;
+
+            if (m_scrollOffset < 0)
+                m_scrollOffset = 0;
+
+            if (m_scrollOffset > maxScroll)
+                m_scrollOffset = maxScroll;
+        };
+
+        m_touchHandler.m_onTapped = [&](unsigned int posX, unsigned int posY)
+        {
+            LOG_DEBUG("Touched. %u %u\n", posX, posY);
+        };
+    }
+
+    void ListElement::Draw(Canvas canvas, Position position)
+    {
+        // No need to draw sub elements if we don't have any
+        if (m_subElements.empty())
+            return;
+
+        Position scrollPos = position;
+        scrollPos.y = position.y - m_scrollOffset;
+            
+        unsigned int startOffset = 0;
+
+        for (auto& subElement : m_subElements)
+        {
+            unsigned int startX = scrollPos.x;
+            unsigned int startY = scrollPos.y + startOffset;
+
+            Position subElementPos(startX, startY);
+            // NOTE: The canvas is still whilst the list itself moves
+            Canvas subElementCanvas = canvas.Intersect(position, this->GetDimensions()).Intersect(subElementPos, subElement->GetDimensions());
+            
+            subElement->Draw(subElementCanvas, subElementPos);
+            startOffset += subElement->GetDimensions().height + m_subElementLayout.gapSize;
+        }
+    }
+
+    void ListElement::Update(Position position)
+    {
+        m_touchHandler.SetTouchArea(position, m_dimensions);
+        m_touchHandler.Update();
     }
 
     void ListElement::AddRow(const char* text)

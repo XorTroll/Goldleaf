@@ -42,7 +42,6 @@ namespace tin::ui
         // Game list
         // 720 - 80 - 3 to account for the header and to chop off the underline on the bottom row
         auto gameList = std::make_unique<ListElement>(625, 720 - 80 - 3);
-        gameList->SetColour(0x394566);
         gameList->AddRow("Game 1");
         gameList->AddRow("Game 2");
         gameList->AddRow("Game 3");
