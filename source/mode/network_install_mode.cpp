@@ -14,6 +14,7 @@
 #include "ui/framework/console_checkbox_view.hpp"
 #include "util/network_util.hpp"
 #include "install/install_nsp_remote.hpp"
+#include "debug.h"
 #include "error.hpp"
 
 namespace tin::ui
@@ -158,7 +159,7 @@ namespace tin::ui
                     tin::network::WaitReceiveNetworkData(m_clientSocket, &size, sizeof(u32));
                     size = ntohl(size);
 
-                    printf("Received url buf size: 0x%x\n", size);
+                    LOG_DEBUG("Received url buf size: 0x%x\n", size);
 
                     if (size > MAX_URL_SIZE * MAX_URLS)
                     {
