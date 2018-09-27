@@ -1,9 +1,9 @@
 #include "ui/install_view.hpp"
 
 #include <memory>
-#include <libpng16/png.h>
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/box_element.hpp"
+#include "ui/framework/image.hpp"
 #include "ui/framework/list_element.hpp"
 #include "ui/framework/text_element.hpp"
 #include "ui/framework/font_renderer.hpp"
@@ -14,6 +14,8 @@
 
 namespace tin::ui
 {
+    Image m_testImage;
+
     unsigned char testPng[3118] = 
     {
         0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
@@ -213,106 +215,6 @@ namespace tin::ui
         0x81, 0x0E, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 
     };
 
-    struct PNG
-    {
-        tin::data::ByteBuffer buffer;
-        u64 width = 0;
-        u64 height = 0;
-        u64 rowBytes = 0;
-    } m_png;
-
-    void ReadPNGDataFromStream(png_structp pngReadStructPtr, png_bytep bytesOut, png_size_t length)
-    {
-        png_voidp ioPtr = png_get_io_ptr(pngReadStructPtr);
-
-        if (ioPtr == NULL)
-            return;
-
-        tin::data::BufferedByteStream* stream = (tin::data::BufferedByteStream*)ioPtr;
-        stream->ReadBytes(bytesOut, length);
-    }
-
-    void SetupPNGData()
-    {
-        // Check if this is a valid png
-        bool validPNGSig = !png_sig_cmp(testPng, 0, 8);
-
-        if (!validPNGSig)
-        {
-            LOG_DEBUG("Invalid PNG Sig!\n");
-            return;
-        }
-
-        LOG_DEBUG("Valid PNG sig!\n");
-    
-        // Create the struct for reading the png
-        png_structp pngReadStructPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    
-        if (!pngReadStructPtr)
-        {
-            LOG_DEBUG("Failed to create PNG read struct!\n");
-            return;
-        }
-
-        // Create the struct which holds png info
-        png_infop pngInfoStructPtr = png_create_info_struct(pngReadStructPtr);
-
-        if (!pngInfoStructPtr)
-        {
-            LOG_DEBUG("Failed to create PNG info struct!\n");
-            png_destroy_read_struct(&pngReadStructPtr, NULL, NULL);
-            return;
-        }
-
-        tin::data::ByteBuffer byteBuffer;
-        byteBuffer.Resize(3118);
-        memcpy(byteBuffer.GetData(), testPng, 3118);
-        tin::data::BufferedByteStream bufferedByteStream(byteBuffer);
-
-        png_set_read_fn(pngReadStructPtr, &bufferedByteStream, ReadPNGDataFromStream);
-
-        // Setup error handling
-        if (setjmp(png_jmpbuf(pngReadStructPtr)))
-        {
-            LOG_DEBUG("An error occurred during PNG parsing!\n");
-            png_destroy_read_struct(&pngReadStructPtr, &pngInfoStructPtr, NULL);
-            return;
-        }
-
-        LOG_DEBUG("Reading PNG...\n");
-
-        // Read the entire PNG
-        png_read_png(pngReadStructPtr, pngInfoStructPtr, 0, 0);
-
-        // Retrieve the png height
-        png_uint_32 height = png_get_image_height(pngReadStructPtr, pngInfoStructPtr);
-        png_uint_32 width = png_get_image_width(pngReadStructPtr, pngInfoStructPtr);
-
-        png_bytepp rows = png_get_rows(pngReadStructPtr, pngInfoStructPtr);
-        png_uint_32 rowBytes = png_get_rowbytes(pngReadStructPtr, pngInfoStructPtr);
-
-        m_png.width = width;
-        m_png.height = height;
-        m_png.rowBytes = rowBytes;
-
-        for (png_uint_32 y = 0; y < height; y++)
-        {
-            png_bytep row = rows[y];
-
-            for (png_uint_32 x = 0; x < rowBytes; x++)
-            {
-                png_byte pixel = row[x];
-
-                m_png.buffer.Write<png_byte>(pixel, (y * rowBytes) + x);
-            }
-        }
-
-        LOG_DEBUG("PNG Height: %u\n", height);
-
-        // Delete the read struct
-        png_destroy_read_struct(&pngReadStructPtr, &pngInfoStructPtr, NULL);
-    }
-
     InstallView::InstallView()
     {
         auto backgroundLayer = std::make_unique<Layer>("background");
@@ -371,7 +273,9 @@ namespace tin::ui
         this->AddLayer(std::move(backgroundLayer));
         this->AddLayer(std::move(foregroundLayer));
 
-        SetupPNGData();
+        tin::data::ByteBuffer testImageBuf(3118);
+        memcpy(testImageBuf.GetData(), testPng, 3118);
+        m_testImage = Image(testImageBuf, ImageType::PNG);
     }
 
     void InstallView::Update()
@@ -379,14 +283,6 @@ namespace tin::ui
         LayoutView::Update();
 
         Canvas canvas;
-
-        for (unsigned int x = 0; x < m_png.width; x++)
-        {
-            for (unsigned int y = 0; y < m_png.height; y++)
-            {
-                tin::ui::Colour colour = m_png.buffer.Read<tin::ui::Colour>((y * m_png.rowBytes) + x * 4);
-                canvas.DrawPixelBlend(x, y, colour);
-            }
-        }
+        m_testImage.DrawImage(canvas, Position(0, 0));
     }
 }

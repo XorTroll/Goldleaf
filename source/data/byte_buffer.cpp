@@ -7,7 +7,7 @@ namespace tin::data
 {
     ByteBuffer::ByteBuffer(size_t reserveSize)
     {
-        m_buffer.reserve(reserveSize);
+        m_buffer.resize(reserveSize);
     }
 
     size_t ByteBuffer::GetSize()
