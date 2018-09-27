@@ -5,12 +5,14 @@
 
 namespace tin::ui
 {
-    Image::Image()
+    Image::Image() :
+        m_dimensions(0, 0)
     {
         
     }
 
-    Image::Image(tin::data::ByteBuffer& buffer, ImageType type)
+    Image::Image(tin::data::ByteBuffer& buffer, ImageType type) :
+        m_dimensions(0, 0)
     {
         switch (type)
         {
@@ -81,24 +83,24 @@ namespace tin::ui
         png_read_png(pngReadStructPtr, pngInfoStructPtr, 0, 0);
 
         // Retrieve the png height
-        m_height = png_get_image_height(pngReadStructPtr, pngInfoStructPtr);
-        m_width = png_get_image_width(pngReadStructPtr, pngInfoStructPtr);
+        m_dimensions.height = png_get_image_height(pngReadStructPtr, pngInfoStructPtr);
+        m_dimensions.width = png_get_image_width(pngReadStructPtr, pngInfoStructPtr);
 
         png_bytepp rows = png_get_rows(pngReadStructPtr, pngInfoStructPtr);
 
-        for (png_uint_32 y = 0; y < m_height; y++)
+        for (png_uint_32 y = 0; y < m_dimensions.height; y++)
         {
             png_bytep row = rows[y];
 
-            for (png_uint_32 x = 0; x < m_width * 4; x++)
+            for (png_uint_32 x = 0; x < m_dimensions.width * 4; x++)
             {
                 png_byte pixel = row[x];
 
-                m_rgbaBuffer.Write<png_byte>(pixel, (y * m_width * 4) + x);
+                m_abgrBuffer.Write<png_byte>(pixel, (y * m_dimensions.width * 4) + x);
             }
         }
 
-        LOG_DEBUG("PNG Height: %u\n", m_height);
+        LOG_DEBUG("PNG Height: %u\n", m_dimensions.height);
 
         // Delete the read struct
         png_destroy_read_struct(&pngReadStructPtr, &pngInfoStructPtr, NULL);
@@ -106,14 +108,97 @@ namespace tin::ui
 
     void Image::DrawImage(Canvas canvas, Position pos)
     {
-        for (unsigned int x = 0; x < m_width; x++)
+        for (unsigned int x = 0; x < m_dimensions.width; x++)
         {
-            for (unsigned int y = 0; y < m_height; y++)
+            for (unsigned int y = 0; y < m_dimensions.height; y++)
             {
                 tin::ui::Colour colour;
-                colour.abgr = m_rgbaBuffer.Read<u32>((y * m_width * 4) + x * 4);
+                colour.abgr = m_abgrBuffer.Read<u32>((y * m_dimensions.width * 4) + x * 4);
                 canvas.DrawPixelBlend(pos.x + x, pos.y + y, colour);
             }
         }
+    }
+
+    // Adapted from hb-menu. I mean, I did write it in the first place after all :P
+    void Image::ScaleImage(Dimensions scaledDimensions)
+    {
+        tin::data::ByteBuffer newImgBuf(scaledDimensions.width * scaledDimensions.height * 4);
+        const uint8_t* image = m_abgrBuffer.GetData();
+        uint8_t* out = newImgBuf.GetData();
+
+        unsigned int tmpx, tmpy;
+        int pos;
+        float sourceX, sourceY;
+        float xScale = (float)m_dimensions.width / (float)scaledDimensions.width;
+        float yScale = (float)m_dimensions.height / (float)scaledDimensions.height;
+        int pixelX, pixelY;
+        uint8_t r1, r2, r3, r4;
+        uint8_t g1, g2, g3, g4;
+        uint8_t b1, b2, b3, b4;
+        uint8_t a1, a2, a3, a4;
+        float fx, fy, fx1, fy1;
+        int w1, w2, w3, w4;
+
+        for (tmpx = 0; tmpx < scaledDimensions.width; tmpx++) 
+        {
+            for (tmpy = 0; tmpy < scaledDimensions.height; tmpy++) 
+            {
+                sourceX = tmpx * xScale;
+                sourceY = tmpy * yScale;
+                pixelX = (int)sourceX;
+                pixelY = (int)sourceY;
+
+                // get colours from four surrounding pixels
+                pos = ((pixelY + 0) * m_dimensions.width + pixelX + 0) * 4;
+
+                r1 = image[pos+0];
+                g1 = image[pos+1];
+                b1 = image[pos+2];
+                a1 = image[pos+3];
+
+                pos = ((pixelY + 0) * m_dimensions.width + pixelX + 1) * 4;
+
+                r2 = image[pos+0];
+                g2 = image[pos+1];
+                b2 = image[pos+2];
+                a2 = image[pos+3];
+
+                pos = ((pixelY + 1) * m_dimensions.width + pixelX + 0) * 4;
+
+                r3 = image[pos+0];
+                g3 = image[pos+1];
+                b3 = image[pos+2];
+                a3 = image[pos+3];
+
+                pos = ((pixelY + 1) * m_dimensions.width + pixelX + 1) * 4;
+
+                r4 = image[pos+0];
+                g4 = image[pos+1];
+                b4 = image[pos+2];
+                a4 = image[pos+3];
+
+                // determine weights
+                fx = sourceX - pixelX;
+                fy = sourceY - pixelY;
+                fx1 = 1.0f - fx;
+                fy1 = 1.0f - fy;
+
+                w1 = (int)(fx1 * fy1 * 256.0);
+                w2 = (int)(fx  * fy1 * 256.0);
+                w3 = (int)(fx1 * fy  * 256.0);
+                w4 = (int)(fx  * fy  * 256.0);
+    
+                // set output pixels
+                pos = ((tmpy * scaledDimensions.width) + tmpx) * 4;
+
+                out[pos+0] = (uint8_t)((r1 * w1 + r2 * w2 + r3 * w3 + r4 * w4) >> 8);
+                out[pos+1] = (uint8_t)((g1 * w1 + g2 * w2 + g3 * w3 + g4 * w4) >> 8);
+                out[pos+2] = (uint8_t)((b1 * w1 + b2 * w2 + b3 * w3 + b4 * w4) >> 8);
+                out[pos+3] = (uint8_t)((a1 * w1 + a2 * w2 + a3 * w3 + a4 * w4) >> 8);
+            }
+        }
+
+        m_dimensions = scaledDimensions;
+        m_abgrBuffer = newImgBuf;
     }
 }

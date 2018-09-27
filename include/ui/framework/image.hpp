@@ -17,9 +17,8 @@ namespace tin::ui
     class Image
     {
         private:
-            tin::data::ByteBuffer m_rgbaBuffer;
-            u32 m_width = 0;
-            u32 m_height = 0;
+            tin::data::ByteBuffer m_abgrBuffer;
+            Dimensions m_dimensions;
 
             static void ReadPNGData(png_structp pngReadStructPtr, png_bytep bytesOut, png_size_t length);
             void ParsePNG(tin::data::ByteBuffer& bufIn);
@@ -29,5 +28,6 @@ namespace tin::ui
             Image(tin::data::ByteBuffer& buffer, ImageType type);
 
             void DrawImage(Canvas canvas, Position pos);
+            void ScaleImage(Dimensions scaledDimensions);
     };
 }
