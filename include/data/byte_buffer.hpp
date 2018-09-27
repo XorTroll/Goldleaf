@@ -4,7 +4,7 @@
 #include <cstring>
 #include <vector>
 
-namespace tin::util
+namespace tin::data
 {
     class ByteBuffer
     {

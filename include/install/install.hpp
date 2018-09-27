@@ -7,7 +7,7 @@
 
 #include "install/install.hpp"
 #include "install/simple_filesystem.hpp"
-#include "util/byte_buffer.hpp"
+#include "data/byte_buffer.hpp"
 
 #include "nx/content_meta.hpp"
 #include "nx/ipc/tin_ipc.h"
@@ -27,7 +27,7 @@ namespace tin::install
 
             virtual std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> ReadCNMT() = 0;
 
-            virtual void InstallContentMetaRecords(tin::util::ByteBuffer& installContentMetaBuf);
+            virtual void InstallContentMetaRecords(tin::data::ByteBuffer& installContentMetaBuf);
             virtual void InstallApplicationRecord();
             virtual void InstallTicketCert() = 0;
             virtual void InstallNCA(const NcmNcaId &ncaId) = 0;

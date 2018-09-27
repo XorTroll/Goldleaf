@@ -1,9 +1,9 @@
-#include "util/byte_buffer.hpp"
+#include "data/byte_buffer.hpp"
 
 #include "error.hpp"
 #include "debug.h"
 
-namespace tin::util
+namespace tin::data
 {
     ByteBuffer::ByteBuffer(size_t reserveSize)
     {

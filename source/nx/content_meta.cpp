@@ -62,7 +62,7 @@ namespace nx::ncm
         return contentRecords;
     }
 
-    void ContentMeta::GetInstallContentMeta(tin::util::ByteBuffer& installContentMetaBuffer, ContentRecord& cnmtContentRecord, bool ignoreReqFirmVersion)
+    void ContentMeta::GetInstallContentMeta(tin::data::ByteBuffer& installContentMetaBuffer, ContentRecord& cnmtContentRecord, bool ignoreReqFirmVersion)
     {
         ContentMetaHeader contentMetaHeader = this->GetContentMetaHeader();
         std::vector<ContentRecord> contentRecords = this->GetContentRecords();

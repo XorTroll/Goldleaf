@@ -4,7 +4,7 @@
 
 #include "install/simple_filesystem.hpp"
 #include "nx/fs.hpp"
-#include "util/byte_buffer.hpp"
+#include "data/byte_buffer.hpp"
 #include "util/title_util.hpp"
 
 namespace tin::util
@@ -58,7 +58,7 @@ namespace tin::util
         auto cnmtFile = cnmtNCASimpleFileSystem.OpenFile(cnmtName);
         u64 cnmtSize = cnmtFile.GetSize();
 
-        tin::util::ByteBuffer cnmtBuf;
+        tin::data::ByteBuffer cnmtBuf;
         cnmtBuf.Resize(cnmtSize);
         cnmtFile.Read(0x0, cnmtBuf.GetData(), cnmtSize);
 
