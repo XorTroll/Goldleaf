@@ -11,9 +11,14 @@ namespace tin::ui
         public:
             static const int ROW_HEIGHT = 80;
 
+            BoxElement* m_underlineElement = nullptr;
             TextElement* m_textElement = nullptr;
 
+            bool m_isSelected = false;
+
             RowElement(u32 width);
+
+            void SetSelected(bool value);
     };
 
     class ListElement : public BoxElement

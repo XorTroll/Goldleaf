@@ -62,17 +62,7 @@ namespace tin::install::nsp
 
         LOG_DEBUG("Size: 0x%lx\n", ncaSize);
         contentStorage.CreatePlaceholder(ncaId, ncaId, ncaSize);
-
-        auto installBlockFunc = [&] (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)
-        {
-            contentStorage.WritePlaceholder(ncaId, blockStartOffset, blockBuf, bufSize);
-            float progress = (float)blockStartOffset / (float)ncaSize;
-            printf("> Progress: %lu/%lu MB (%d%s)\r", (blockStartOffset / 1000000), (ncaSize / 1000000), (int)(progress * 100.0), "%");
-        };
-
-        //auto progressFunc = [&] (size_t sizeRead) {};
-
-        m_remoteNSP.RetrieveAndProcessNCA(ncaId, installBlockFunc, nullptr);
+        m_remoteNSP.StreamToPlaceholder(contentStorage, ncaId);
 
         // Clean up the line for whatever comes next
         printf("                                                           \r");

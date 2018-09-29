@@ -187,8 +187,8 @@ namespace tin::network
         std::stringstream ss;
         ss << offset << "-" << (offset + size - 1);
         auto range = ss.str();
-        LOG_DEBUG("Requesting from range: %s\n", range.c_str());
-        LOG_DEBUG("Read size: %lx\n", size);
+        // LOG_DEBUG("Requesting from range: %s\n", range.c_str());
+        // LOG_DEBUG("Read size: %lx\n", size); NOTE: For some reason including these causes the cursor to disappear?
 
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -217,29 +217,28 @@ namespace tin::network
 
     size_t WaitReceiveNetworkData(int sockfd, void* buf, size_t len)
     {
-        size_t blockSizeRead = 0;
-        size_t sizeRead = 0;
+        int ret = 0;
+        size_t read = 0;
 
-        while ((sizeRead += (blockSizeRead = recv(sockfd, (u8*)buf + sizeRead, len - sizeRead, 0)) < len) && (blockSizeRead > 0 || errno == EAGAIN) && !(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B))
+        while ((((ret = recv(sockfd, (u8*)buf + read, len - read, 0)) > 0 && (read += ret) < len) || errno == EAGAIN) && !(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)) 
         {
-            hidScanInput();
             errno = 0;
         }
 
-        return sizeRead;
+        return read;
     }
 
     size_t WaitSendNetworkData(int sockfd, void* buf, size_t len)
     {
-        size_t blockSizeWritten = 0;
-        size_t sizeWritten = 0;
+        errno = 0;
+        int ret = 0;
+        size_t written = 0;
 
-        while ((sizeWritten += (blockSizeWritten = send(sockfd, (u8*)buf + sizeWritten, len - sizeWritten, 0)) < len) && (blockSizeWritten > 0 || errno == EAGAIN) && !(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B))
+        while ((((ret = send(sockfd, (u8*)buf + written, len - written, 0)) > 0 && (written += ret) < len) || errno == EAGAIN) && !(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)) 
         {
-            hidScanInput();
             errno = 0;
         }
 
-        return sizeWritten;
+        return written;
     }
 }

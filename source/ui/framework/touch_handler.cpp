@@ -69,4 +69,9 @@ namespace tin::ui
         m_touchAreaPos = touchAreaPos;
         m_touchAreaSize = touchAreaSize;
     }
+
+    Position TouchHandler::GetTouchAreaPos()
+    {
+        return m_touchAreaPos;
+    }
 }

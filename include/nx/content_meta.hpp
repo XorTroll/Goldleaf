@@ -3,7 +3,7 @@
 #include <switch.h>
 #include <vector>
 
-#include "util/byte_buffer.hpp"
+#include "data/byte_buffer.hpp"
 
 namespace nx::ncm
 {
@@ -97,7 +97,7 @@ namespace nx::ncm
     class ContentMeta final
     {
         private:
-            tin::util::ByteBuffer m_bytes;
+            tin::data::ByteBuffer m_bytes;
 
         public:
             ContentMeta();
@@ -107,6 +107,6 @@ namespace nx::ncm
             NcmMetaRecord GetContentMetaKey();
             std::vector<ContentRecord> GetContentRecords();
 
-            void GetInstallContentMeta(tin::util::ByteBuffer& installContentMetaBuffer, ContentRecord& cnmtContentRecord, bool ignoreReqFirmVersion);
+            void GetInstallContentMeta(tin::data::ByteBuffer& installContentMetaBuffer, ContentRecord& cnmtContentRecord, bool ignoreReqFirmVersion);
     };
 }

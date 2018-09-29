@@ -3,9 +3,14 @@
 #include <memory>
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/box_element.hpp"
+#include "ui/framework/image.hpp"
 #include "ui/framework/list_element.hpp"
 #include "ui/framework/text_element.hpp"
 #include "ui/framework/font_renderer.hpp"
+#include "data/byte_buffer.hpp"
+#include "data/byte_stream.hpp"
+
+#include "error.hpp"
 
 namespace tin::ui
 {
@@ -52,6 +57,16 @@ namespace tin::ui
         gameList->AddRow("Game 8");
         gameList->AddRow("Game 9");
         gameList->AddRow("Game 10");
+        gameList->AddRow("Game 11");
+        gameList->AddRow("Game 12");
+        gameList->AddRow("Game 13");
+        gameList->AddRow("Game 14");
+        gameList->AddRow("Game 15");
+        gameList->AddRow("Game 16");
+        gameList->AddRow("Game 17");
+        gameList->AddRow("Game 18");
+        gameList->AddRow("Game 19");
+        gameList->AddRow("Game 20");
         foregroundLayer->AddElement(std::move(gameList), 120+25, 80);
 
         this->AddLayer(std::move(backgroundLayer));

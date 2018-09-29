@@ -13,6 +13,7 @@ namespace tin::ui
         this->SetSubElementLayout(rowSubElementLayout);
 
         auto underlineElement = std::make_unique<BoxElement>(m_dimensions.width, 3);
+        m_underlineElement = underlineElement.get();
         underlineElement->SetColour(0x556C91);
         this->AddSubElement(std::move(underlineElement));
 
@@ -23,13 +24,29 @@ namespace tin::ui
         contentElement->SetSubElementLayout(contentSubElementLayout);
 
         auto textElement = std::make_unique<TextElement>(m_dimensions.width * 0.8, m_dimensions.height);
+        m_textElement = textElement.get();
         textElement->SetScale(5);
         textElement->SetColour(0xC3D0DF);
         textElement->SetInsets(0, 30);
-        m_textElement = textElement.get();
 
         contentElement->AddSubElement(std::move(textElement));
         this->AddSubElement(std::move(contentElement));
+    }
+
+    void RowElement::SetSelected(bool value)
+    {
+        if (value)
+        {
+            m_isSelected = true;
+            this->SetColour(0x2B324E);
+            m_textElement->SetColour(0xFFFFFF);
+        }
+        else
+        {
+            m_isSelected = false;
+            this->SetColour(Colour(0, 0, 0, 0));
+            m_textElement->SetColour(0xC3D0DF);
+        }
     }
 
     ListElement::ListElement(u32 width, u32 height) :
@@ -66,7 +83,9 @@ namespace tin::ui
 
         m_touchHandler.m_onTapped = [&](unsigned int posX, unsigned int posY)
         {
-            LOG_DEBUG("Touched. %u %u\n", posX, posY);
+            unsigned int row = (posY - m_touchHandler.GetTouchAreaPos().y + m_scrollOffset) / RowElement::ROW_HEIGHT;
+            RowElement* rowElement = dynamic_cast<RowElement*>(m_subElements.at(row).get());
+            rowElement->SetSelected(!rowElement->m_isSelected);
         };
     }
 

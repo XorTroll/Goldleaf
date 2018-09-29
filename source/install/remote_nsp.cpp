@@ -1,5 +1,7 @@
 #include "install/remote_nsp.hpp"
 
+#include <threads.h>
+#include "data/buffered_placeholder_writer.hpp"
 #include "util/title_util.hpp"
 #include "error.hpp"
 #include "debug.h"
@@ -33,32 +35,91 @@ namespace tin::install::nsp
         printBytes(nxlinkout, m_headerBytes.data(), m_headerBytes.size(), true);
     }
 
-    void RemoteNSP::RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc, std::function<void (size_t sizeRead)> progressFunc)
+    struct StreamFuncArgs
     {
-        const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(ncaId);
+        tin::network::HTTPDownload* download;
+        tin::data::BufferedPlaceholderWriter* bufferedPlaceholderWriter;
+        u64 pfs0Offset;
+        u64 ncaSize;
+    };
+
+    int CurlStreamFunc(void* in)
+    {
+        StreamFuncArgs* args = reinterpret_cast<StreamFuncArgs*>(in);
+
+        auto streamFunc = [&](u8* streamBuf, size_t streamBufSize) -> size_t
+        {
+            while (true)
+            {
+                if (args->bufferedPlaceholderWriter->CanAppendData(streamBufSize))
+                    break;
+            }
+
+            args->bufferedPlaceholderWriter->AppendData(streamBuf, streamBufSize);
+            return streamBufSize;
+        };
+
+        args->download->StreamDataRange(args->pfs0Offset, args->ncaSize, streamFunc);
+        return 0;
+    }
+
+    int PlaceholderWriteFunc(void* in)
+    {
+        StreamFuncArgs* args = reinterpret_cast<StreamFuncArgs*>(in);
+
+        while (!args->bufferedPlaceholderWriter->IsPlaceholderComplete())
+        {
+            if (args->bufferedPlaceholderWriter->CanWriteSegmentToPlaceholder())
+                args->bufferedPlaceholderWriter->WriteSegmentToPlaceholder();
+        }
+
+        return 0;
+    }
+
+    void RemoteNSP::StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId)
+    {
+        const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(placeholderId);
         std::string ncaFileName = this->GetFileEntryName(fileEntry);
 
         LOG_DEBUG("Retrieving %s\n", ncaFileName.c_str());
-
         size_t ncaSize = fileEntry->fileSize;
-        u64 fileOff = 0;
-        size_t readSize = 0x200000; // 8MB buff
-        auto readBuffer = std::make_unique<u8[]>(readSize);
 
-        if (readBuffer == NULL) 
-            throw std::runtime_error(("Failed to allocate read buffer for " + ncaFileName));
+        tin::data::BufferedPlaceholderWriter bufferedPlaceholderWriter(&contentStorage, placeholderId, ncaSize);
+        StreamFuncArgs args;
+        args.download = &m_download;
+        args.bufferedPlaceholderWriter = &bufferedPlaceholderWriter;
+        args.pfs0Offset = this->GetDataOffset() + fileEntry->dataOffset;
+        args.ncaSize = ncaSize;
+        thrd_t curlThread;
+        thrd_t writeThread;
 
-        while (fileOff < ncaSize) 
-        {   
-            if (fileOff + readSize >= ncaSize) readSize = ncaSize - fileOff;
+        thrd_create(&curlThread, CurlStreamFunc, &args);
+        thrd_create(&writeThread, PlaceholderWriteFunc, &args);
+        
+        while (!bufferedPlaceholderWriter.IsBufferDataComplete())
+        {
+            u64 totalSizeMB = bufferedPlaceholderWriter.GetTotalDataSize() / 1000000;
+            u64 downloadSizeMB = bufferedPlaceholderWriter.GetSizeBuffered() / 1000000;
+            int downloadProgress = (int)(((double)bufferedPlaceholderWriter.GetSizeBuffered() / (double)bufferedPlaceholderWriter.GetTotalDataSize()) * 100.0);
 
-            m_download.BufferDataRange(readBuffer.get(), this->GetDataOffset() + fileEntry->dataOffset + fileOff, readSize, progressFunc);
-
-            if (processBlockFunc != nullptr)
-                processBlockFunc(readBuffer.get(), readSize, fileOff, ncaSize);
-
-            fileOff += readSize;
+            printf("> Download Progress: %lu/%lu MB (%i%s)\r", downloadSizeMB, totalSizeMB, downloadProgress, "%");
+            gfxFlushBuffers();
+            gfxSwapBuffers();
         }
+
+        while (!bufferedPlaceholderWriter.IsPlaceholderComplete())
+        {
+            u64 totalSizeMB = bufferedPlaceholderWriter.GetTotalDataSize() / 1000000;
+            u64 installSizeMB = bufferedPlaceholderWriter.GetSizeWrittenToPlaceholder() / 1000000;
+            int installProgress = (int)(((double)bufferedPlaceholderWriter.GetSizeWrittenToPlaceholder() / (double)bufferedPlaceholderWriter.GetTotalDataSize()) * 100.0);
+
+            printf("> Install Progress: %lu/%lu MB (%i%s)\r", installSizeMB, totalSizeMB, installProgress, "%");
+            gfxFlushBuffers();
+            gfxSwapBuffers();
+        }
+
+        thrd_join(curlThread, NULL);
+        thrd_join(writeThread, NULL);
     }
 
     const PFS0FileEntry* RemoteNSP::GetFileEntry(unsigned int index)

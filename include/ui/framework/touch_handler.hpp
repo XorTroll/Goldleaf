@@ -25,5 +25,6 @@ namespace tin::ui
             void Update();
 
             void SetTouchArea(Position touchAreaPos, Dimensions touchAreaSize);
+            Position GetTouchAreaPos();
     };
 }

@@ -19,7 +19,7 @@ namespace tin::install
     Install::~Install() {}
 
     // TODO: Implement RAII on NcmContentMetaDatabase
-    void Install::InstallContentMetaRecords(tin::util::ByteBuffer& installContentMetaBuf)
+    void Install::InstallContentMetaRecords(tin::data::ByteBuffer& installContentMetaBuf)
     {
         NcmContentMetaDatabase contentMetaDatabase;
         NcmMetaRecord contentMetaKey = m_contentMeta.GetContentMetaKey();
@@ -94,7 +94,7 @@ namespace tin::install
     // Validate and obtain all data needed for install
     void Install::Prepare()
     {
-        tin::util::ByteBuffer cnmtBuf;
+        tin::data::ByteBuffer cnmtBuf;
         auto cnmtTuple = this->ReadCNMT();
         m_contentMeta = std::get<0>(cnmtTuple);
         nx::ncm::ContentRecord cnmtContentRecord = std::get<1>(cnmtTuple);
@@ -115,7 +115,7 @@ namespace tin::install
         if (m_ignoreReqFirmVersion)
             printf("WARNING: Required system firmware version is being IGNORED!\n");
 
-        tin::util::ByteBuffer installContentMetaBuf;
+        tin::data::ByteBuffer installContentMetaBuf;
         m_contentMeta.GetInstallContentMeta(installContentMetaBuf, cnmtContentRecord, m_ignoreReqFirmVersion);
 
         this->InstallContentMetaRecords(installContentMetaBuf);
