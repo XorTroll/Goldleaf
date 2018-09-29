@@ -187,8 +187,8 @@ namespace tin::network
         std::stringstream ss;
         ss << offset << "-" << (offset + size - 1);
         auto range = ss.str();
-        LOG_DEBUG("Requesting from range: %s\n", range.c_str());
-        LOG_DEBUG("Read size: %lx\n", size);
+        // LOG_DEBUG("Requesting from range: %s\n", range.c_str());
+        // LOG_DEBUG("Read size: %lx\n", size); NOTE: For some reason including these causes the cursor to disappear?
 
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
