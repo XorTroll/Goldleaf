@@ -281,5 +281,8 @@ namespace tin::ui
         u8 ack = 0;
         tin::network::WaitSendNetworkData(m_clientSocket, &ack, sizeof(u8));
         printf("\n Press (B) to return.");
+
+        gfxFlushBuffers();
+        gfxSwapBuffers();
     }
 }

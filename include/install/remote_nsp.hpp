@@ -5,6 +5,7 @@
 
 #include <switch.h>
 #include "install/pfs0.hpp"
+#include "nx/ncm.hpp"
 #include "util/network_util.hpp"
 
 namespace tin::install::nsp
@@ -20,7 +21,7 @@ namespace tin::install::nsp
             RemoteNSP(std::string url);
 
             void RetrieveHeader();
-            void RetrieveAndProcessNCA(NcmNcaId ncaId, std::function<void (void* blockBuf, size_t bufSize, size_t blockStartOffset, size_t ncaSize)> processBlockFunc, std::function<void (size_t sizeRead)> progressFunc);
+            void StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId);
     
             const PFS0BaseHeader* GetBaseHeader();
             u64 GetDataOffset();
