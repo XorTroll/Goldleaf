@@ -96,13 +96,31 @@ namespace tin::install::nsp
         thrd_create(&curlThread, CurlStreamFunc, &args);
         thrd_create(&writeThread, PlaceholderWriteFunc, &args);
         
+        u64 freq = armGetSystemTickFreq();
+        u64 startTime = armGetSystemTick();
+        size_t startSizeBuffered = 0;
+        double speed = 0.0;
+
         while (!bufferedPlaceholderWriter.IsBufferDataComplete())
         {
+            u64 newTime = armGetSystemTick();
+
+            if (newTime - startTime >= freq)
+            {
+                size_t newSizeBuffered = bufferedPlaceholderWriter.GetSizeBuffered();
+                double mbBuffered = (newSizeBuffered / 1000000.0) - (startSizeBuffered / 1000000.0);
+                double duration = ((double)(newTime - startTime) / (double)freq);
+                speed =  mbBuffered / duration;
+
+                startTime = newTime;
+                startSizeBuffered = newSizeBuffered;
+            }
+
             u64 totalSizeMB = bufferedPlaceholderWriter.GetTotalDataSize() / 1000000;
             u64 downloadSizeMB = bufferedPlaceholderWriter.GetSizeBuffered() / 1000000;
             int downloadProgress = (int)(((double)bufferedPlaceholderWriter.GetSizeBuffered() / (double)bufferedPlaceholderWriter.GetTotalDataSize()) * 100.0);
 
-            printf("> Download Progress: %lu/%lu MB (%i%s)\r", downloadSizeMB, totalSizeMB, downloadProgress, "%");
+            printf("> Download Progress: %lu/%lu MB (%i%s) (%.2f MB/s)\r", downloadSizeMB, totalSizeMB, downloadProgress, "%", speed);
             gfxFlushBuffers();
             gfxSwapBuffers();
         }
