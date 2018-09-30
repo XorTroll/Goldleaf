@@ -55,12 +55,6 @@ namespace tin::data
         if (m_sizeBuffered == m_totalDataSize)
         {
             BufferSegment* currentBufferSegment = &m_bufferSegments[m_currentFreeSegment];
-
-            if (currentBufferSegment->isFinalized)
-                THROW_FORMAT("Final buffer segment is unexpectedly finalized!\n");
-
-            size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - currentBufferSegment->writeOffset;
-            memset(currentBufferSegment->data + currentBufferSegment->writeOffset, 0, bufferSegmentSizeRemaining);
             currentBufferSegment->isFinalized = true;
         }
     }
@@ -86,6 +80,8 @@ namespace tin::data
         if (!currentBufferSegment->isFinalized)
             THROW_FORMAT("Cannot write segment as it hasn't been finalized!\n");
 
+        // NOTE: The final segment will have leftover data from previous writes, however
+        // this will be accounted for by this size
         size_t sizeToWriteToPlaceholder = std::min(m_totalDataSize - m_sizeWrittenToPlaceholder, BUFFER_SEGMENT_DATA_SIZE);
         m_contentStorage->WritePlaceholder(m_ncaId, m_sizeWrittenToPlaceholder, currentBufferSegment->data, sizeToWriteToPlaceholder);
 
