@@ -1,5 +1,6 @@
 #include "ui/framework/layout_view.hpp"
 
+#include <switch.h>
 #include "error.hpp"
 
 namespace tin::ui
