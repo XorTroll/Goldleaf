@@ -10,6 +10,8 @@ extern "C"
 
 #include <switch/kernel/svc.h>
 
+#include <stdlib.h>
+#include <malloc.h>
 #include <threads.h>
 #include <unistd.h>
 #include "ui/framework/console_view.hpp"
@@ -39,11 +41,14 @@ namespace tin::ui
 
     int USBSpeedFunc(void* in)
     {
-        u8* tmp = (u8*)malloc(0x800000);
+        u8* tmp = (u8*)memalign(0x1000, 0x800000);
+
+        if (!tmp)
+            THROW_FORMAT("Failed to allocate buf\n");
 
         while (!g_exit)
         {
-            g_sizeBuffered += usbCommsRead(tmp, 512);
+            g_sizeBuffered += usbCommsRead(tmp, 0x800000);
         }
         
         free(tmp);
@@ -82,7 +87,7 @@ namespace tin::ui
 
             if (newTime - startTime >= freq)
             {
-                double mbBuffered = (g_sizeBuffered / 1000000.0);
+                double mbBuffered = (g_sizeBuffered / 0x100000);
                 double duration = ((double)(newTime - startTime) / (double)freq);
                 speed =  mbBuffered / duration;
 

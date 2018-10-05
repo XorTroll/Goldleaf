@@ -14,8 +14,6 @@ from binascii import hexlify as hx, unhexlify as uhx
 import usb.core
 import usb.util
 
-print(len(b'\x01' * 0x8000))
-
 print('Sending magic...')
 
 # Find the switch
@@ -32,8 +30,7 @@ out_ep = usb.util.find_descriptor(cfg[(0,0)], custom_match=is_out_ep)
 
 assert out_ep is not None
 
-# Must be 511 or lower. 512 causes a crash (2168-0002)
-buf = b'\x01' * 511
+buf = b'\x01' * 0x800000 
 
 while True:
     out_ep.write(buf)

@@ -9,7 +9,6 @@
 #include <switch/kernel/rwlock.h>
 #include <switch/services/fatal.h>
 
-
 #define TOTAL_INTERFACES 4
 
 typedef struct {
@@ -224,7 +223,7 @@ static Result _usbCommsInterfaceInit5x(u32 intf_ind)
         .bDescriptorType = USB_DT_ENDPOINT,
         .bEndpointAddress = USB_ENDPOINT_IN + ep_num,
         .bmAttributes = USB_TRANSFER_TYPE_BULK,
-        .wMaxPacketSize = 0x200,
+        .wMaxPacketSize = 0x40,
     };
 
     struct usb_endpoint_descriptor endpoint_descriptor_out = {
@@ -232,7 +231,7 @@ static Result _usbCommsInterfaceInit5x(u32 intf_ind)
         .bDescriptorType = USB_DT_ENDPOINT,
         .bEndpointAddress = USB_ENDPOINT_OUT + ep_num,
         .bmAttributes = USB_TRANSFER_TYPE_BULK,
-        .wMaxPacketSize = 0x200,
+        .wMaxPacketSize = 0x40,
     };
     
     struct usb_ss_endpoint_companion_descriptor endpoint_companion = {
