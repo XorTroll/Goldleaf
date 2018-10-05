@@ -125,9 +125,10 @@ namespace tin::install::nsp
             gfxSwapBuffers();
         }
 
+        u64 totalSizeMB = bufferedPlaceholderWriter.GetTotalDataSize() / 1000000;
+
         while (!bufferedPlaceholderWriter.IsPlaceholderComplete())
         {
-            u64 totalSizeMB = bufferedPlaceholderWriter.GetTotalDataSize() / 1000000;
             u64 installSizeMB = bufferedPlaceholderWriter.GetSizeWrittenToPlaceholder() / 1000000;
             int installProgress = (int)(((double)bufferedPlaceholderWriter.GetSizeWrittenToPlaceholder() / (double)bufferedPlaceholderWriter.GetTotalDataSize()) * 100.0);
 

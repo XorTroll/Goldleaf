@@ -32,15 +32,14 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET      := $(notdir $(CURDIR))
 BUILD       := build
-SOURCES     := source source/install source/ipc source/lib source/data source/ui source/ui/framework source/nx source/nx/ipc source/util source/mode
+SOURCES     := source source/install source/ipc source/lib source/asset source/data source/ui source/ui/framework source/nx source/nx/ipc source/util source/mode
 DATA        := data
 INCLUDES    := include
 EXEFS_SRC   := exefs_src
+ROMFS       := romfs
 APP_TITLE   := Tinfoil
 APP_AUTHOR  := Adubbz
 APP_VERSION := 0.2.1
-
-#ROMFS	:=	romfs
 
 #---------------------------------------------------------------------------------
 # options for code generation

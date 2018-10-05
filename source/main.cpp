@@ -72,6 +72,9 @@ void userAppInit(void)
     if (R_FAILED(plInitialize()))
         fatalSimple(0xBEE8);
 
+    if (R_FAILED(romfsInit()))
+        fatalSimple(0xBEE9);
+
     // We initialize this inside ui_networkinstall_mode for normal users.
     #ifdef NXLINK_DEBUG
     socketInitializeDefault();
@@ -88,6 +91,7 @@ void userAppExit(void)
     socketExit();
     #endif
 
+    romfsExit();
     plExit();
     setExit();
     ncmextExit();
