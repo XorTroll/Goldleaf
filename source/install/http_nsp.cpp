@@ -140,4 +140,9 @@ namespace tin::install::nsp
         thrd_join(curlThread, NULL);
         thrd_join(writeThread, NULL);
     }
+
+    void HTTPNSP::BufferData(void* buf, off_t offset, size_t size)
+    {
+        m_download.BufferDataRange(buf, offset, size, nullptr);
+    }
 }

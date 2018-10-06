@@ -14,6 +14,7 @@
 #include "ui/framework/console_checkbox_view.hpp"
 #include "util/network_util.hpp"
 #include "install/install_nsp_remote.hpp"
+#include "install/http_nsp.hpp"
 #include "debug.h"
 #include "error.hpp"
 
@@ -263,16 +264,18 @@ namespace tin::ui
                     
         for (auto& url : m_urls)
         {
+            tin::install::nsp::HTTPNSP httpNSP(url);
+
             printf("Installing from %s\n", url.c_str());
-            tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, url);
+            tin::install::nsp::RemoteNSPInstall install(m_destStorageId, false, &httpNSP);
 
             printf("Preparing install...\n");
-            task.Prepare();
+            install.Prepare();
             LOG_DEBUG("Pre Install Records: \n");
-            task.DebugPrintInstallData();
-            task.Begin();
+            install.DebugPrintInstallData();
+            install.Begin();
             LOG_DEBUG("Post Install Records: \n");
-            task.DebugPrintInstallData();
+            install.DebugPrintInstallData();
             printf("\n");
         }
 

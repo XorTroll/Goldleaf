@@ -10,20 +10,20 @@
 
 namespace tin::install::nsp
 {
-    NetworkNSPInstallTask::NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url) :
-        Install(destStorageId, ignoreReqFirmVersion), m_httpNSP(url)
+    RemoteNSPInstall::RemoteNSPInstall(FsStorageId destStorageId, bool ignoreReqFirmVersion, RemoteNSP* remoteNSP) :
+        Install(destStorageId, ignoreReqFirmVersion), m_remoteNSP(remoteNSP)
     {
-        m_httpNSP.RetrieveHeader();
+        m_remoteNSP->RetrieveHeader();
     }
 
-    std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> NetworkNSPInstallTask::ReadCNMT()
+    std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> RemoteNSPInstall::ReadCNMT()
     {
-        const PFS0FileEntry* fileEntry = m_httpNSP.GetFileEntryByExtension("cnmt.nca");
+        const PFS0FileEntry* fileEntry = m_remoteNSP->GetFileEntryByExtension("cnmt.nca");
 
         if (fileEntry == nullptr)
             THROW_FORMAT("Failed to find cnmt file entry!\n");
 
-        std::string cnmtNcaName(m_httpNSP.GetFileEntryName(fileEntry));
+        std::string cnmtNcaName(m_remoteNSP->GetFileEntryName(fileEntry));
         NcmNcaId cnmtNcaId = tin::util::GetNcaIdFromString(cnmtNcaName);
         size_t cnmtNcaSize = fileEntry->fileSize;
 
@@ -43,10 +43,10 @@ namespace tin::install::nsp
         return { tin::util::GetContentMetaFromNCA(cnmtNCAFullPath), cnmtContentRecord };
     }
 
-    void NetworkNSPInstallTask::InstallNCA(const NcmNcaId& ncaId)
+    void RemoteNSPInstall::InstallNCA(const NcmNcaId& ncaId)
     {
-        const PFS0FileEntry* fileEntry = m_httpNSP.GetFileEntryByNcaId(ncaId);
-        std::string ncaFileName = m_httpNSP.GetFileEntryName(fileEntry);
+        const PFS0FileEntry* fileEntry = m_remoteNSP->GetFileEntryByNcaId(ncaId);
+        std::string ncaFileName = m_remoteNSP->GetFileEntryName(fileEntry);
         size_t ncaSize = fileEntry->fileSize;
 
         printf("Installing %s to storage Id %u\n", ncaFileName.c_str(), m_destStorageId);
@@ -62,7 +62,7 @@ namespace tin::install::nsp
 
         LOG_DEBUG("Size: 0x%lx\n", ncaSize);
         contentStorage.CreatePlaceholder(ncaId, ncaId, ncaSize);
-        m_httpNSP.StreamToPlaceholder(contentStorage, ncaId);
+        m_remoteNSP->StreamToPlaceholder(contentStorage, ncaId);
 
         // Clean up the line for whatever comes next
         printf("                                                           \r");
@@ -84,10 +84,10 @@ namespace tin::install::nsp
         catch (...) {}
     }
 
-    void NetworkNSPInstallTask::InstallTicketCert()
+    void RemoteNSPInstall::InstallTicketCert()
     {        
         // Read the tik file and put it into a buffer
-        const PFS0FileEntry* tikFileEntry = m_httpNSP.GetFileEntryByExtension("tik");
+        const PFS0FileEntry* tikFileEntry = m_remoteNSP->GetFileEntryByExtension("tik");
 
         if (tikFileEntry == nullptr)
         {
@@ -98,10 +98,10 @@ namespace tin::install::nsp
         u64 tikSize = tikFileEntry->fileSize;
         auto tikBuf = std::make_unique<u8[]>(tikSize);
         printf("> Reading tik\n");
-        m_httpNSP.m_download.BufferDataRange(tikBuf.get(), m_httpNSP.GetDataOffset() + tikFileEntry->dataOffset, tikSize, nullptr);
+        m_remoteNSP->BufferData(tikBuf.get(), m_remoteNSP->GetDataOffset() + tikFileEntry->dataOffset, tikSize);
 
         // Read the cert file and put it into a buffer
-        const PFS0FileEntry* certFileEntry = m_httpNSP.GetFileEntryByExtension("cert");
+        const PFS0FileEntry* certFileEntry = m_remoteNSP->GetFileEntryByExtension("cert");
 
         if (certFileEntry == nullptr)
         {
@@ -112,7 +112,7 @@ namespace tin::install::nsp
         u64 certSize = certFileEntry->fileSize;
         auto certBuf = std::make_unique<u8[]>(certSize);
         printf("> Reading cert\n");
-        m_httpNSP.m_download.BufferDataRange(certBuf.get(), m_httpNSP.GetDataOffset() + certFileEntry->dataOffset, certSize, nullptr);
+        m_remoteNSP->BufferData(certBuf.get(), m_remoteNSP->GetDataOffset() + certFileEntry->dataOffset, certSize);
 
         // Finally, let's actually import the ticket
         ASSERT_OK(esImportTicket(tikBuf.get(), tikSize, certBuf.get(), certSize), "Failed to import ticket");
