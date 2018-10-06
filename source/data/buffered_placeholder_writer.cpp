@@ -1,6 +1,5 @@
 #include "data/buffered_placeholder_writer.hpp"
 
-#include <malloc.h>
 #include <math.h>
 #include <algorithm>
 #include <exception>
@@ -10,9 +9,11 @@
 namespace tin::data
 {
     BufferedPlaceholderWriter::BufferedPlaceholderWriter(nx::ncm::ContentStorage* contentStorage, NcmNcaId ncaId, size_t totalDataSize) :
-        m_totalDataSize(totalDataSize),  m_bufferSegments(reinterpret_cast<BufferSegment*>(memalign(0x1000, sizeof(BufferSegment) * NUM_BUFFER_SEGMENTS)), free), m_contentStorage(contentStorage), m_ncaId(ncaId)
+        m_totalDataSize(totalDataSize), m_contentStorage(contentStorage), m_ncaId(ncaId)
     {
         // Though currently the number of segments is fixed, we want them allocated on the heap, not the stack
+        m_bufferSegments = std::make_unique<BufferSegment[]>(NUM_BUFFER_SEGMENTS);
+
         if (m_bufferSegments == nullptr)
             THROW_FORMAT("Failed to allocated buffer segments!\n");
 

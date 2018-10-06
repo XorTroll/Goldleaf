@@ -3,14 +3,14 @@
 #include <switch.h>
 #include <string>
 #include "install/install.hpp"
-#include "install/remote_nsp.hpp"
+#include "install/http_nsp.hpp"
 
 namespace tin::install::nsp
 {
     class NetworkNSPInstallTask : public Install
     {
         private:
-            RemoteNSP m_remoteNSP;
+            HTTPNSP m_httpNSP;
 
         protected:
             std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> ReadCNMT() override;

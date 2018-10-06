@@ -31,7 +31,7 @@ namespace tin::data
             u64 m_currentSegmentToWrite = 0;
             BufferSegment* m_currentSegmentToWritePtr = NULL;
 
-            std::unique_ptr<BufferSegment[], decltype(free)*> m_bufferSegments;
+            std::unique_ptr<BufferSegment[]> m_bufferSegments;
 
             nx::ncm::ContentStorage* m_contentStorage;
             NcmNcaId m_ncaId;
