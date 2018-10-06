@@ -41,9 +41,9 @@ namespace tin::ui
 
     }
 
-    struct TUIHeader
+    struct TUSHeader
     {
-        u32 magic; // TUI0 (Tinfoil Usb Install 0)
+        u32 magic; // TUS0 (Tinfoil Usb Switch 0)
         u32 nspListSize;
         u64 padding;
     } PACKED;
@@ -83,11 +83,11 @@ namespace tin::ui
         gfxFlushBuffers();
         gfxSwapBuffers();
 
-        TUIHeader header;
-        tin::util::USBRead(&header, sizeof(TUIHeader));
+        TUSHeader header;
+        tin::util::USBRead(&header, sizeof(TUSHeader));
 
-        if (header.magic != 0x30495554)
-            THROW_FORMAT("Incorrect TUI header magic!\n");
+        if (header.magic != 0x30535554)
+            THROW_FORMAT("Incorrect TUS header magic!\n");
 
         LOG_DEBUG("Valid header magic.\n");
         LOG_DEBUG("NSP List Size: %u\n", header.nspListSize);
@@ -132,17 +132,60 @@ namespace tin::ui
         }
 
         auto values = prevView->GetSelectedOptionValues();
+        m_nspNames.clear();
 
-        /*for (auto& destStr : values)
+        for (auto& destStr : values)
         {
-            m_urls.push_back(destStr->GetText());
-        }*/
+            m_nspNames.push_back(destStr->GetText());
+        }
 
         auto view = std::make_unique<tin::ui::ConsoleOptionsView>(DEFAULT_TITLE);
         view->AddEntry("Select Destination", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
         view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
-        //view->AddEntry("SD Card", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&NetworkInstallMode::OnDestinationSelected, this));
-        //view->AddEntry("NAND", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&NetworkInstallMode::OnDestinationSelected, this));
+        view->AddEntry("SD Card", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&USBInstallMode::OnDestinationSelected, this));
+        view->AddEntry("NAND", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&USBInstallMode::OnDestinationSelected, this));
         manager.PushView(std::move(view));
+    }
+
+    void USBInstallMode::OnDestinationSelected()
+    {
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+        ConsoleOptionsView* prevView;
+
+        if (!(prevView = dynamic_cast<ConsoleOptionsView*>(manager.GetCurrentView())))
+        {
+            throw std::runtime_error("Previous view must be a ConsoleOptionsView!");
+        }
+
+        auto destStr = prevView->GetSelectedOptionValue()->GetText();
+        m_destStorageId = FsStorageId_SdCard;
+
+        if (destStr == "NAND")
+        {
+            m_destStorageId = FsStorageId_NandUser;
+        }
+
+        auto view = std::make_unique<tin::ui::ConsoleView>(4);
+        manager.PushView(std::move(view));
+                    
+        for (auto& nspName : m_nspNames)
+        {
+            printf("Installing from %s\n", nspName.c_str());
+            /*tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, nspName);
+
+            printf("Preparing install...\n");
+            task.Prepare();
+            LOG_DEBUG("Pre Install Records: \n");
+            task.DebugPrintInstallData();
+            task.Begin();
+            LOG_DEBUG("Post Install Records: \n");
+            task.DebugPrintInstallData();
+            printf("\n");*/
+        }
+
+        printf("\n Press (B) to return.");
+
+        gfxFlushBuffers();
+        gfxSwapBuffers();
     }
 }
