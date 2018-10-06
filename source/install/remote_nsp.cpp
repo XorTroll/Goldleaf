@@ -13,6 +13,27 @@ namespace tin::install::nsp
 
     }
 
+    // TODO: Do verification: PFS0 magic, sizes not zero
+    void RemoteNSP::RetrieveHeader()
+    {
+        printf("Retrieving remote NSP header...\n");
+
+        // Retrieve the base header
+        m_headerBytes.resize(sizeof(PFS0BaseHeader), 0);
+        this->BufferData(m_headerBytes.data(), 0x0, sizeof(PFS0BaseHeader));
+
+        LOG_DEBUG("Base header: \n");
+        printBytes(nxlinkout, m_headerBytes.data(), sizeof(PFS0BaseHeader), true);
+
+        // Retrieve the full header
+        size_t remainingHeaderSize = this->GetBaseHeader()->numFiles * sizeof(PFS0FileEntry) + this->GetBaseHeader()->stringTableSize;
+        m_headerBytes.resize(sizeof(PFS0BaseHeader) + remainingHeaderSize, 0);
+        this->BufferData(m_headerBytes.data() + sizeof(PFS0BaseHeader), sizeof(PFS0BaseHeader), remainingHeaderSize);
+
+        LOG_DEBUG("Full header: \n");
+        printBytes(nxlinkout, m_headerBytes.data(), m_headerBytes.size(), true);
+    }
+
     const PFS0FileEntry* RemoteNSP::GetFileEntry(unsigned int index)
     {
         if (index >= this->GetBaseHeader()->numFiles)

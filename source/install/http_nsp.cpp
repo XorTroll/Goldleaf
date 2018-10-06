@@ -14,27 +14,6 @@ namespace tin::install::nsp
 
     }
 
-    // TODO: Do verification: PFS0 magic, sizes not zero
-    void HTTPNSP::RetrieveHeader()
-    {
-        printf("Retrieving remote NSP header...\n");
-
-        // Retrieve the base header
-        m_headerBytes.resize(sizeof(PFS0BaseHeader), 0);
-        m_download.BufferDataRange(m_headerBytes.data(), 0x0, sizeof(PFS0BaseHeader), nullptr);
-
-        LOG_DEBUG("Base header: \n");
-        printBytes(nxlinkout, m_headerBytes.data(), sizeof(PFS0BaseHeader), true);
-
-        // Retrieve the full header
-        size_t remainingHeaderSize = this->GetBaseHeader()->numFiles * sizeof(PFS0FileEntry) + this->GetBaseHeader()->stringTableSize;
-        m_headerBytes.resize(sizeof(PFS0BaseHeader) + remainingHeaderSize, 0);
-        m_download.BufferDataRange(m_headerBytes.data() + sizeof(PFS0BaseHeader), sizeof(PFS0BaseHeader), remainingHeaderSize, nullptr);
-
-        LOG_DEBUG("Full header: \n");
-        printBytes(nxlinkout, m_headerBytes.data(), m_headerBytes.size(), true);
-    }
-
     struct StreamFuncArgs
     {
         tin::network::HTTPDownload* download;

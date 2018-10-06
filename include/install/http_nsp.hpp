@@ -11,7 +11,6 @@ namespace tin::install::nsp
 
             HTTPNSP(std::string url);
 
-            virtual void RetrieveHeader() override;
             virtual void StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId) override;
             virtual void BufferData(void* buf, off_t offset, size_t size) override;
     };

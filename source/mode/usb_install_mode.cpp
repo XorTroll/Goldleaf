@@ -43,7 +43,7 @@ namespace tin::ui
 
     struct TUSHeader
     {
-        u32 magic; // TUS0 (Tinfoil Usb Switch 0)
+        u32 magic; // TUL0 (Tinfoil Usb List 0)
         u32 nspListSize;
         u64 padding;
     } PACKED;
@@ -86,8 +86,8 @@ namespace tin::ui
         TUSHeader header;
         tin::util::USBRead(&header, sizeof(TUSHeader));
 
-        if (header.magic != 0x30535554)
-            THROW_FORMAT("Incorrect TUS header magic!\n");
+        if (header.magic != 0x304C5554)
+            THROW_FORMAT("Incorrect TUL header magic!\n");
 
         LOG_DEBUG("Valid header magic.\n");
         LOG_DEBUG("NSP List Size: %u\n", header.nspListSize);
@@ -171,6 +171,9 @@ namespace tin::ui
         for (auto& nspName : m_nspNames)
         {
             printf("Installing from %s\n", nspName.c_str());
+
+            tin::util::USBCmdManager::SendFileRangeCmd(nspName, 0, 20);
+
             /*tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, nspName);
 
             printf("Preparing install...\n");
@@ -183,6 +186,7 @@ namespace tin::ui
             printf("\n");*/
         }
 
+        tin::util::USBCmdManager::SendExitCmd();
         printf("\n Press (B) to return.");
 
         gfxFlushBuffers();
