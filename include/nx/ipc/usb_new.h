@@ -9,6 +9,10 @@
 #include <switch/services/sm.h>
 #include <switch/kernel/event.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// usb:ds Switch-as-device<>host USB comms, see also here: http://switchbrew.org/index.php?title=USB_services
 
 /// Names starting with "libusb" were changed to "usb" to avoid collision with actual libusb if it's ever used.
@@ -255,3 +259,7 @@ Result usbDsEndpoint_PostBufferAsync(UsbDsEndpoint* endpoint, void* buffer, size
 Result usbDsEndpoint_GetReportData(UsbDsEndpoint* endpoint, UsbDsReportData* out);
 Result usbDsEndpoint_StallCtrl(UsbDsEndpoint* endpoint);
 Result usbDsEndpoint_SetZlt(UsbDsEndpoint* endpoint, bool zlt);
+
+#ifdef __cplusplus
+}
+#endif

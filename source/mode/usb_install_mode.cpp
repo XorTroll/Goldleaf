@@ -10,12 +10,17 @@ extern "C"
 
 #include <switch/kernel/svc.h>
 
+#include <exception>
+#include <sstream>
 #include <stdlib.h>
 #include <malloc.h>
 #include <threads.h>
 #include <unistd.h>
 #include "ui/framework/console_view.hpp"
+#include "ui/framework/console_checkbox_view.hpp"
+#include "util/usb_util.hpp"
 #include "nx/ipc/usb_comms_new.h"
+#include "nx/ipc/usb_new.h"
 #include "debug.h"
 #include "error.hpp"
 
@@ -33,27 +38,15 @@ namespace tin::ui
 
     void USBInstallMode::OnUnwound()
     {
-        usbCommsExit();
+
     }
 
-    bool g_exit = false;
-    size_t g_sizeBuffered = 0;
-
-    int USBSpeedFunc(void* in)
+    struct TUIHeader
     {
-        u8* tmp = (u8*)memalign(0x1000, 0x800000);
-
-        if (!tmp)
-            THROW_FORMAT("Failed to allocate buf\n");
-
-        while (!g_exit)
-        {
-            g_sizeBuffered += usbCommsRead(tmp, 0x800000);
-        }
-        
-        free(tmp);
-        return 0;
-    }
+        u32 magic; // TUI0 (Tinfoil Usb Install 0)
+        u32 nspListSize;
+        u64 padding;
+    } PACKED;
 
     void USBInstallMode::OnSelected()
     {
@@ -61,53 +54,95 @@ namespace tin::ui
         auto view = std::make_unique<tin::ui::ConsoleView>();
         view->m_onUnwound = std::bind(&USBInstallMode::OnUnwound, this);
         manager.PushView(std::move(view));
-    
-        ASSERT_OK(usbCommsInitialize(), "Failed to initialize usb comms!\n");
-        printf("USB comms initialized\nAwaiting input...\n");
 
-        thrd_t usbThread;
+        Result rc = 0;
+        printf("Waiting for USB to be ready...\n");
 
-        thrd_create(&usbThread, USBSpeedFunc, NULL);
-        u64 freq = armGetSystemTickFreq();
-        u64 startTime = armGetSystemTick();
-        
-        double speed = 0.0;
+        gfxFlushBuffers();
+        gfxSwapBuffers();
 
         while (true)
         {
             hidScanInput();
             
             if (hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)
-            {
-                g_exit = true;
                 break;
-            }
 
-            u64 newTime = armGetSystemTick();
+            rc = usbDsWaitReady(1000000);
 
-            if (newTime - startTime >= freq)
+            if (R_SUCCEEDED(rc)) break;
+            else if ((rc & 0x3FFFFF) != 0xEA01)
             {
-                double mbBuffered = (g_sizeBuffered / 0x100000);
-                double duration = ((double)(newTime - startTime) / (double)freq);
-                speed =  mbBuffered / duration;
-
-                startTime = newTime;
-                g_sizeBuffered = 0;
-
-                printf("%.2f MB/s\r", speed);
-            }
-
-            gfxFlushBuffers();
-            gfxSwapBuffers();
-            //svcSleepThread(5000000);
+                // Timeouts are okay, we just want to allow users to escape at this point
+                THROW_FORMAT("Failed to wait for USB to be ready\n"); 
+            }   
         }
+
+        printf("USB is ready. Waiting for header...\n");
         
-        thrd_join(usbThread, NULL);
+        gfxFlushBuffers();
+        gfxSwapBuffers();
 
-        //if (magic != 0x30495554)
-            //LOG_DEBUG("Incorrect magic!\n");
+        TUIHeader header;
+        tin::util::USBRead(&header, sizeof(TUIHeader));
 
-        //printBytes(nxlinkout, (u8*)&magic, sizeof(u32), true);
-        //LOG_DEBUG("Magic: 0x:%ux\n", magic);
+        if (header.magic != 0x30495554)
+            THROW_FORMAT("Incorrect TUI header magic!\n");
+
+        LOG_DEBUG("Valid header magic.\n");
+        LOG_DEBUG("NSP List Size: %u\n", header.nspListSize);
+
+        auto nspListBuf = std::make_unique<char[]>(header.nspListSize+1);
+        std::vector<std::string> nspNames;
+        memset(nspListBuf.get(), 0, header.nspListSize+1);
+
+        tin::util::USBRead(nspListBuf.get(), header.nspListSize);
+
+        // Split the string up into individual nsp names
+        std::stringstream nspNameStream(nspListBuf.get());
+        std::string segment;
+        std::string nspExt = ".nsp";
+
+        while (std::getline(nspNameStream, segment, '\n'))
+        {
+            if (segment.compare(segment.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
+                nspNames.push_back(segment);
+        }
+
+        auto selectView = std::make_unique<tin::ui::ConsoleCheckboxView>(std::bind(&USBInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
+        selectView->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        selectView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+        
+        for (auto& nspName : nspNames)
+        {
+            LOG_DEBUG("NSP Name: %s\n", nspName.c_str());
+            selectView->AddEntry(nspName, tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
+        }
+        manager.PushView(std::move(selectView));
+    }
+
+    void USBInstallMode::OnNSPSelected()
+    {
+        tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
+        ConsoleCheckboxView* prevView;
+
+        if (!(prevView = dynamic_cast<ConsoleCheckboxView*>(manager.GetCurrentView())))
+        {
+            throw std::runtime_error("Previous view must be a ConsoleCheckboxView!");
+        }
+
+        auto values = prevView->GetSelectedOptionValues();
+
+        /*for (auto& destStr : values)
+        {
+            m_urls.push_back(destStr->GetText());
+        }*/
+
+        auto view = std::make_unique<tin::ui::ConsoleOptionsView>(DEFAULT_TITLE);
+        view->AddEntry("Select Destination", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+        view->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+        //view->AddEntry("SD Card", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&NetworkInstallMode::OnDestinationSelected, this));
+        //view->AddEntry("NAND", tin::ui::ConsoleEntrySelectType::SELECT, std::bind(&NetworkInstallMode::OnDestinationSelected, this));
+        manager.PushView(std::move(view));
     }
 }

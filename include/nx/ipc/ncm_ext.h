@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/ncm.h>
 
 Result ncmextInitialize(void);
 void ncmextExit(void);
