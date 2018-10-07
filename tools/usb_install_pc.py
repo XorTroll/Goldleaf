@@ -23,7 +23,7 @@ CMD_ID_FILE_RANGE = 1
 CMD_TYPE_RESPONSE = 1
 
 def send_response_header(out_ep, cmd_id, data_size):
-    out_ep.write(b'TUC0') # Tinfoil USB List 0
+    out_ep.write(b'TUC0') # Tinfoil USB Command 0
     out_ep.write(struct.pack('<B', CMD_TYPE_RESPONSE))
     out_ep.write(b'\x00' * 3)
     out_ep.write(struct.pack('<I', cmd_id))
@@ -85,8 +85,8 @@ def send_nsp_list(nsp_dir, out_ep):
 
     # Add all files with the extension .nsp in the provided dir
     for nsp_path in [f for f in nsp_dir.iterdir() if f.is_file() and f.suffix == '.nsp']:
-        nsp_path_list.append(nsp_path.__str__())
-        nsp_path_list_len += len(nsp_path.__str__())
+        nsp_path_list.append(nsp_path.__str__() + '\n')
+        nsp_path_list_len += len(nsp_path.__str__()) + 1
 
     print('Sending header...')
 
