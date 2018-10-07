@@ -53,7 +53,7 @@ def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
                 read_size = end_off - curr_off
 
             buf = f.read(read_size)
-            out_ep.write(buf)
+            out_ep.write(data=buf, timeout=0)
             curr_off += read_size
 
 def poll_commands(nsp_dir, in_ep, out_ep):

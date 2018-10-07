@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <switch/types.h>
 #include <memory>
 
@@ -11,7 +12,7 @@ namespace tin::data
 
     struct BufferSegment
     {
-        bool isFinalized = false;
+        std::atomic_bool isFinalized = false;
         u64 writeOffset = 0;
         u8 data[BUFFER_SEGMENT_DATA_SIZE] = {0};
     };

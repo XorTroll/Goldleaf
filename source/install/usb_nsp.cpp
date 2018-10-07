@@ -8,6 +8,7 @@ extern "C"
 #include <switch/kernel/svc.h>
 }
 
+#include <algorithm>
 #include <malloc.h>
 #include <threads.h>
 #include "data/byte_buffer.hpp"
@@ -37,22 +38,17 @@ namespace tin::install::nsp
         USBFuncArgs* args = reinterpret_cast<USBFuncArgs*>(in);
         tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(args->nspName, args->pfs0Offset, args->ncaSize);
 
-        size_t sizeRemaining = header.dataSize;
+        u8* buf = (u8*)memalign(0x1000, 0x800000);
+        u64 sizeRemaining = header.dataSize;
         size_t tmpSizeRead = 0;
-
-        /*u8* buf = (u8*)memalign(0x1000, 0x800000);
-
-        if (!buf)
-        {
-            LOG_DEBUG("Failed to allocate NCA buffer!\n");
-            return 1;
-        }
 
         try
         {
             while (sizeRemaining)
             {
-                tmpSizeRead = usbCommsRead(buf, sizeRemaining);
+                tmpSizeRead = usbCommsRead(buf, std::min(sizeRemaining, (u64)0x800000));
+                //LOG_DEBUG("Read bytes\n")
+                //printBytes(nxlinkout, buf, tmpSizeRead, true);
                 sizeRemaining -= tmpSizeRead;
 
                 while (true)
@@ -70,12 +66,7 @@ namespace tin::install::nsp
             LOG_DEBUG("An error occurred:\n%s", e.what());
         }
 
-        free(buf);*/
-
-        while (true)
-        {
-            
-        }
+        free(buf);
 
         return 0;
     }
