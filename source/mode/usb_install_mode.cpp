@@ -16,6 +16,7 @@ extern "C"
 #include <malloc.h>
 #include <threads.h>
 #include <unistd.h>
+#include "data/byte_buffer.hpp"
 #include "ui/framework/console_view.hpp"
 #include "ui/framework/console_checkbox_view.hpp"
 #include "util/usb_util.hpp"
@@ -27,7 +28,7 @@ extern "C"
 namespace tin::ui
 {
     USBInstallMode::USBInstallMode() :
-        IMode("USB Install NSP")
+        IMode("USB Install NSP (NOT READY YET)")
     {
 
     }
@@ -172,7 +173,14 @@ namespace tin::ui
         {
             printf("Installing from %s\n", nspName.c_str());
 
-            tin::util::USBCmdManager::SendFileRangeCmd(nspName, 0, 20);
+            tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(nspName, 0, 100);
+            
+            LOG_DEBUG("Header: \n");
+            printBytes(nxlinkout, (u8*)&header, sizeof(tin::util::USBCmdHeader), true);
+
+            tin::data::ByteBuffer buf(header.dataSize);
+            tin::util::USBRead(buf.GetData(), header.dataSize);
+            buf.DebugPrintContents();
 
             /*tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, nspName);
 

@@ -20,6 +20,16 @@ from pathlib import Path
 CMD_ID_EXIT = 0
 CMD_ID_FILE_RANGE = 1
 
+CMD_TYPE_RESPONSE = 1
+
+def send_response_header(out_ep, cmd_id, data_size):
+    out_ep.write(b'TUC0') # Tinfoil USB List 0
+    out_ep.write(struct.pack('<B', CMD_TYPE_RESPONSE))
+    out_ep.write(b'\x00' * 3)
+    out_ep.write(struct.pack('<I', cmd_id))
+    out_ep.write(struct.pack('<Q', data_size))
+    out_ep.write(b'\x00' * 0xC)
+
 def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
     range_size = struct.unpack('<Q', in_ep.read(0x8))[0]
     range_offset = struct.unpack('<Q', in_ep.read(0x8))[0]
@@ -28,6 +38,24 @@ def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
     nsp_name = bytes(in_ep.read(nsp_name_len)).decode('utf-8')
 
     print('Range Size: {}, Range Offset: {}, Name len: {}, Name: {}'.format(range_size, range_offset, nsp_name_len, nsp_name))
+
+    send_response_header(out_ep, CMD_ID_FILE_RANGE, range_size)
+
+    with open(nsp_name, 'rb') as f:
+        f.seek(range_offset)
+
+        curr_off = 0x0
+        end_off = range_size
+        read_size = 0x8
+
+        while curr_off < end_off:
+            if curr_off + read_size >= end_off:
+                read_size = end_off - curr_off
+
+            buf = f.read(read_size)
+            print('{}'.format(hx(buf)))
+            out_ep.write(buf)
+            curr_off += read_size
 
 def poll_commands(nsp_dir, in_ep, out_ep):
     while True:

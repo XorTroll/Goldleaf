@@ -6,7 +6,7 @@
 
 namespace tin::util
 {
-    void USBCmdManager::SendCmdHeader(u32 cmdId, void* data, size_t dataSize)
+    void USBCmdManager::SendCmdHeader(u32 cmdId, size_t dataSize)
     {
         USBCmdHeader header;
         header.magic = 0x30435554; // TUC0 (Tinfoil USB Command 0)
@@ -15,20 +15,14 @@ namespace tin::util
         header.dataSize = dataSize;
 
         USBWrite(&header, sizeof(USBCmdHeader));
-
-        if (data && dataSize)
-        {
-            USBWrite(data, dataSize);
-        }
     }
 
     void USBCmdManager::SendExitCmd()
     {
-        USBCmdManager::SendCmd(0, NULL, 0);
+        USBCmdManager::SendCmdHeader(0, 0);
     }
 
-    // TODO: Add func ptr argument for response
-    void USBCmdManager::SendFileRangeCmd(std::string nspName, u64 offset, u64 size)
+    USBCmdHeader USBCmdManager::SendFileRangeCmd(std::string nspName, u64 offset, u64 size)
     {
         struct FileRangeCmdHeader
         {
@@ -43,14 +37,13 @@ namespace tin::util
         fRangeHeader.nspNameLen = nspName.size();
         fRangeHeader.padding = 0;
 
-        tin::data::ByteBuffer cmdData;
-        cmdData.Append<FileRangeCmdHeader>(fRangeHeader);
-        
-        u64 nameStartOff = cmdData.GetSize();
-        cmdData.Resize(cmdData.GetSize() + fRangeHeader.nspNameLen);
+        USBCmdManager::SendCmdHeader(1, sizeof(FileRangeCmdHeader) + fRangeHeader.nspNameLen);
+        USBWrite(&fRangeHeader, sizeof(FileRangeCmdHeader));
+        USBWrite(nspName.c_str(), fRangeHeader.nspNameLen);
 
-        strncpy((char*)cmdData.GetData() + nameStartOff, nspName.c_str(), fRangeHeader.nspNameLen);
-        USBCmdManager::SendCmd(1, cmdData.GetData(), cmdData.GetSize());
+        USBCmdHeader responseHeader;
+        USBRead(&responseHeader, sizeof(USBCmdHeader));
+        return responseHeader;
     }
 
     size_t USBRead(void* out, size_t len)

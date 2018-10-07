@@ -1,5 +1,6 @@
 #pragma once
 
+#include <switch/types.h>
 #include <string>
 #include "nx/ipc/usb_comms_new.h"
 
@@ -26,10 +27,10 @@ namespace tin::util
     class USBCmdManager
     {
         public:
-            static void SendCmd(u32 cmdId, void* data, size_t dataSize);
+            static void SendCmdHeader(u32 cmdId, size_t dataSize);
 
             static void SendExitCmd();
-            static void SendFileRangeCmd(std::string nspName, u64 offset, u64 size);
+            static USBCmdHeader SendFileRangeCmd(std::string nspName, u64 offset, u64 size);
     };
 
     size_t USBRead(void* out, size_t len);
