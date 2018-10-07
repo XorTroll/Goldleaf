@@ -1,8 +1,12 @@
 #pragma once
 
 #include <string>
+
+extern "C"
+{
 #include <switch/services/fs.h>
 #include <switch/services/ncm.h>
+}
 
 #include "nx/ipc/tin_ipc.h"
 

@@ -1,5 +1,6 @@
 #include "install/install.hpp"
 
+#include <switch.h>
 #include <cstring>
 #include <memory>
 #include "error.hpp"

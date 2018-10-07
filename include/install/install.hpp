@@ -1,6 +1,10 @@
 #pragma once
 
+extern "C"
+{
 #include <switch/services/fs.h>
+}
+
 #include <memory>
 #include <tuple>
 #include <vector>

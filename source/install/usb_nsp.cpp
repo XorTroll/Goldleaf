@@ -41,7 +41,7 @@ namespace tin::install::nsp
         return 0;
     }
 
-    int PlaceholderWriteFunc(void* in)
+    int USBPlaceholderWriteFunc(void* in)
     {
         StreamFuncArgs* args = reinterpret_cast<StreamFuncArgs*>(in);
 
