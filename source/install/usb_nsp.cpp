@@ -1,6 +1,16 @@
 #include "install/usb_nsp.hpp"
 
+extern "C"
+{
+#include <switch/services/hid.h>
+#include <switch/display/gfx.h>
+#include <switch/arm/counter.h>
+#include <switch/kernel/svc.h>
+}
+
+#include <malloc.h>
 #include <threads.h>
+#include "data/byte_buffer.hpp"
 #include "data/buffered_placeholder_writer.hpp"
 #include "util/usb_util.hpp"
 #include "error.hpp"
@@ -14,8 +24,9 @@ namespace tin::install::nsp
 
     }
 
-    struct StreamFuncArgs
+    struct USBFuncArgs
     {
+        std::string nspName;
         tin::data::BufferedPlaceholderWriter* bufferedPlaceholderWriter;
         u64 pfs0Offset;
         u64 ncaSize;
@@ -23,27 +34,55 @@ namespace tin::install::nsp
 
     int USBThreadFunc(void* in)
     {
-        StreamFuncArgs* args = reinterpret_cast<StreamFuncArgs*>(in);
+        USBFuncArgs* args = reinterpret_cast<USBFuncArgs*>(in);
+        tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(args->nspName, args->pfs0Offset, args->ncaSize);
 
-        auto streamFunc = [&](u8* streamBuf, size_t streamBufSize) -> size_t
+        size_t sizeRemaining = header.dataSize;
+        size_t tmpSizeRead = 0;
+
+        /*u8* buf = (u8*)memalign(0x1000, 0x800000);
+
+        if (!buf)
         {
-            while (true)
+            LOG_DEBUG("Failed to allocate NCA buffer!\n");
+            return 1;
+        }
+
+        try
+        {
+            while (sizeRemaining)
             {
-                if (args->bufferedPlaceholderWriter->CanAppendData(streamBufSize))
-                    break;
+                tmpSizeRead = usbCommsRead(buf, sizeRemaining);
+                sizeRemaining -= tmpSizeRead;
+
+                while (true)
+                {
+                    if (args->bufferedPlaceholderWriter->CanAppendData(tmpSizeRead))
+                        break;
+                }
+
+                args->bufferedPlaceholderWriter->AppendData(buf, tmpSizeRead);
             }
+        }
+        catch (std::exception& e)
+        {
+            printf("An error occurred:\n%s\n", e.what());
+            LOG_DEBUG("An error occurred:\n%s", e.what());
+        }
 
-            args->bufferedPlaceholderWriter->AppendData(streamBuf, streamBufSize);
-            return streamBufSize;
-        };
+        free(buf);*/
 
-        //args->download->StreamDataRange(args->pfs0Offset, args->ncaSize, streamFunc);
+        while (true)
+        {
+            
+        }
+
         return 0;
     }
 
     int USBPlaceholderWriteFunc(void* in)
     {
-        StreamFuncArgs* args = reinterpret_cast<StreamFuncArgs*>(in);
+        USBFuncArgs* args = reinterpret_cast<USBFuncArgs*>(in);
 
         while (!args->bufferedPlaceholderWriter->IsPlaceholderComplete())
         {
@@ -56,22 +95,23 @@ namespace tin::install::nsp
 
     void USBNSP::StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId)
     {
-        /*const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(placeholderId);
+        const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(placeholderId);
         std::string ncaFileName = this->GetFileEntryName(fileEntry);
 
         LOG_DEBUG("Retrieving %s\n", ncaFileName.c_str());
         size_t ncaSize = fileEntry->fileSize;
 
         tin::data::BufferedPlaceholderWriter bufferedPlaceholderWriter(&contentStorage, placeholderId, ncaSize);
-        StreamFuncArgs args;
+        USBFuncArgs args;
+        args.nspName = m_nspName;
         args.bufferedPlaceholderWriter = &bufferedPlaceholderWriter;
         args.pfs0Offset = this->GetDataOffset() + fileEntry->dataOffset;
         args.ncaSize = ncaSize;
-        thrd_t curlThread;
+        thrd_t usbThread;
         thrd_t writeThread;
 
-        thrd_create(&curlThread, CurlStreamFunc, &args);
-        thrd_create(&writeThread, PlaceholderWriteFunc, &args);
+        thrd_create(&usbThread, USBThreadFunc, &args);
+        thrd_create(&writeThread, USBPlaceholderWriteFunc, &args);
         
         u64 freq = armGetSystemTickFreq();
         u64 startTime = armGetSystemTick();
@@ -114,8 +154,8 @@ namespace tin::install::nsp
             gfxSwapBuffers();
         }
 
-        thrd_join(curlThread, NULL);
-        thrd_join(writeThread, NULL);*/
+        thrd_join(usbThread, NULL);
+        thrd_join(writeThread, NULL);
     }
 
     void USBNSP::BufferData(void* buf, off_t offset, size_t size)
