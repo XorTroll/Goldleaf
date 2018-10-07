@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <switch.h>
+#include <switch/services/fs.h>
 #include "mode/mode.hpp"
 
 namespace tin::ui

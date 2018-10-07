@@ -9,6 +9,7 @@
 #include <sstream>
 #include <curl/curl.h>
 
+#include <switch.h>
 #include "nx/ipc/tin_ipc.h"
 #include "ui/framework/console_view.hpp"
 #include "ui/framework/console_checkbox_view.hpp"

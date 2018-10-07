@@ -1,11 +1,10 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/fs.h>
 #include <memory>
 #include <tuple>
 #include <vector>
 
-#include "install/install.hpp"
 #include "install/simple_filesystem.hpp"
 #include "data/byte_buffer.hpp"
 

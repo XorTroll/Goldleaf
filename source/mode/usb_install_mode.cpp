@@ -8,8 +8,6 @@ extern "C"
 #include <switch/kernel/svc.h>
 }
 
-#include <switch/kernel/svc.h>
-
 #include <exception>
 #include <sstream>
 #include <stdlib.h>
@@ -17,6 +15,8 @@ extern "C"
 #include <threads.h>
 #include <unistd.h>
 #include "data/byte_buffer.hpp"
+#include "install/install_nsp_remote.hpp"
+#include "install/usb_nsp.hpp"
 #include "ui/framework/console_view.hpp"
 #include "ui/framework/console_checkbox_view.hpp"
 #include "util/usb_util.hpp"
@@ -171,27 +171,19 @@ namespace tin::ui
                     
         for (auto& nspName : m_nspNames)
         {
+            tin::install::nsp::USBNSP usbNSP(nspName);
+
             printf("Installing from %s\n", nspName.c_str());
-
-            tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(nspName, 0, 100);
-            
-            LOG_DEBUG("Header: \n");
-            printBytes(nxlinkout, (u8*)&header, sizeof(tin::util::USBCmdHeader), true);
-
-            tin::data::ByteBuffer buf(header.dataSize);
-            tin::util::USBRead(buf.GetData(), header.dataSize);
-            buf.DebugPrintContents();
-
-            /*tin::install::nsp::NetworkNSPInstallTask task(m_destStorageId, false, nspName);
+            tin::install::nsp::RemoteNSPInstall install(m_destStorageId, false, &usbNSP);
 
             printf("Preparing install...\n");
-            task.Prepare();
+            install.Prepare();
             LOG_DEBUG("Pre Install Records: \n");
-            task.DebugPrintInstallData();
-            task.Begin();
+            install.DebugPrintInstallData();
+            install.Begin();
             LOG_DEBUG("Post Install Records: \n");
-            task.DebugPrintInstallData();
-            printf("\n");*/
+            install.DebugPrintInstallData();
+            printf("\n");
         }
 
         tin::util::USBCmdManager::SendExitCmd();

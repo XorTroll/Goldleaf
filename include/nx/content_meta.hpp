@@ -1,6 +1,7 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/ncm.h>
+#include <switch/types.h>
 #include <vector>
 
 #include "data/byte_buffer.hpp"

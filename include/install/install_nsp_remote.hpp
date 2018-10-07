@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/ncm.h>
 #include <string>
 #include "install/install.hpp"
 #include "install/remote_nsp.hpp"

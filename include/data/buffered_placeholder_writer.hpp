@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/types.h>
 #include <memory>
 
 #include "nx/ncm.hpp"

@@ -3,7 +3,7 @@
 #include <functional>
 #include <vector>
 
-#include <switch.h>
+#include <switch/types.h>
 #include "install/pfs0.hpp"
 #include "nx/ncm.hpp"
 #include "util/network_util.hpp"

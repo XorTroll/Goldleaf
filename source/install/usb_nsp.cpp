@@ -1,29 +1,27 @@
-#include "install/http_nsp.hpp"
+#include "install/usb_nsp.hpp"
 
-#include <switch.h>
 #include <threads.h>
 #include "data/buffered_placeholder_writer.hpp"
-#include "util/title_util.hpp"
+#include "util/usb_util.hpp"
 #include "error.hpp"
 #include "debug.h"
 
 namespace tin::install::nsp
 {
-    HTTPNSP::HTTPNSP(std::string url) :
-        m_download(url)
+    USBNSP::USBNSP(std::string nspName) :
+        m_nspName(nspName)
     {
 
     }
 
     struct StreamFuncArgs
     {
-        tin::network::HTTPDownload* download;
         tin::data::BufferedPlaceholderWriter* bufferedPlaceholderWriter;
         u64 pfs0Offset;
         u64 ncaSize;
     };
 
-    int CurlStreamFunc(void* in)
+    int USBThreadFunc(void* in)
     {
         StreamFuncArgs* args = reinterpret_cast<StreamFuncArgs*>(in);
 
@@ -39,7 +37,7 @@ namespace tin::install::nsp
             return streamBufSize;
         };
 
-        args->download->StreamDataRange(args->pfs0Offset, args->ncaSize, streamFunc);
+        //args->download->StreamDataRange(args->pfs0Offset, args->ncaSize, streamFunc);
         return 0;
     }
 
@@ -56,9 +54,9 @@ namespace tin::install::nsp
         return 0;
     }
 
-    void HTTPNSP::StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId)
+    void USBNSP::StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId)
     {
-        const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(placeholderId);
+        /*const PFS0FileEntry* fileEntry = this->GetFileEntryByNcaId(placeholderId);
         std::string ncaFileName = this->GetFileEntryName(fileEntry);
 
         LOG_DEBUG("Retrieving %s\n", ncaFileName.c_str());
@@ -66,7 +64,6 @@ namespace tin::install::nsp
 
         tin::data::BufferedPlaceholderWriter bufferedPlaceholderWriter(&contentStorage, placeholderId, ncaSize);
         StreamFuncArgs args;
-        args.download = &m_download;
         args.bufferedPlaceholderWriter = &bufferedPlaceholderWriter;
         args.pfs0Offset = this->GetDataOffset() + fileEntry->dataOffset;
         args.ncaSize = ncaSize;
@@ -118,11 +115,12 @@ namespace tin::install::nsp
         }
 
         thrd_join(curlThread, NULL);
-        thrd_join(writeThread, NULL);
+        thrd_join(writeThread, NULL);*/
     }
 
-    void HTTPNSP::BufferData(void* buf, off_t offset, size_t size)
+    void USBNSP::BufferData(void* buf, off_t offset, size_t size)
     {
-        m_download.BufferDataRange(buf, offset, size, nullptr);
+        tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(m_nspName, offset, size);
+        tin::util::USBRead(buf, header.dataSize);
     }
 }
