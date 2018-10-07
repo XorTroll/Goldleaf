@@ -28,7 +28,7 @@ extern "C"
 namespace tin::ui
 {
     USBInstallMode::USBInstallMode() :
-        IMode("USB Install NSP (NOT READY YET)")
+        IMode("USB Install NSP")
     {
 
     }
