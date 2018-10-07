@@ -1,9 +1,9 @@
 #include "ui/install_view.hpp"
 
 #include <memory>
+#include "asset/image.hpp"
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/box_element.hpp"
-#include "ui/framework/image.hpp"
 #include "ui/framework/list_element.hpp"
 #include "ui/framework/text_element.hpp"
 #include "ui/framework/font_renderer.hpp"

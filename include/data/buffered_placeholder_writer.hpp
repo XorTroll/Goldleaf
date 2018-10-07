@@ -26,8 +26,10 @@ namespace tin::data
 
             // The current segment to which further data will be appended
             u64 m_currentFreeSegment = 0;
-            // THe current segment that will be written to the placeholder
+            BufferSegment* m_currentFreeSegmentPtr = NULL;
+            // The current segment that will be written to the placeholder
             u64 m_currentSegmentToWrite = 0;
+            BufferSegment* m_currentSegmentToWritePtr = NULL;
 
             std::unique_ptr<BufferSegment[]> m_bufferSegments;
 

@@ -7,7 +7,7 @@
 #include "ui/framework/canvas.hpp"
 #include "ui/framework/layout.hpp"
 
-namespace tin::ui
+namespace tin::asset
 {
     enum class ImageType
     {
@@ -18,7 +18,7 @@ namespace tin::ui
     {
         private:
             tin::data::ByteBuffer m_abgrBuffer;
-            Dimensions m_dimensions;
+            tin::ui::Dimensions m_dimensions;
 
             static void ReadPNGData(png_structp pngReadStructPtr, png_bytep bytesOut, png_size_t length);
             void ParsePNG(tin::data::ByteBuffer& bufIn);
@@ -27,7 +27,7 @@ namespace tin::ui
             Image();
             Image(tin::data::ByteBuffer& buffer, ImageType type);
 
-            void DrawImage(Canvas canvas, Position pos);
-            void ScaleImage(Dimensions scaledDimensions);
+            void DrawImage(tin::ui::Canvas canvas, tin::ui::Position pos);
+            void ScaleImage(tin::ui::Dimensions scaledDimensions);
     };
 }

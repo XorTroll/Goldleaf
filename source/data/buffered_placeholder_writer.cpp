@@ -13,6 +13,12 @@ namespace tin::data
     {
         // Though currently the number of segments is fixed, we want them allocated on the heap, not the stack
         m_bufferSegments = std::make_unique<BufferSegment[]>(NUM_BUFFER_SEGMENTS);
+
+        if (m_bufferSegments == nullptr)
+            THROW_FORMAT("Failed to allocated buffer segments!\n");
+
+        m_currentFreeSegmentPtr = &m_bufferSegments[m_currentFreeSegment];
+        m_currentSegmentToWritePtr = &m_bufferSegments[m_currentSegmentToWrite];
     }
 
     void BufferedPlaceholderWriter::AppendData(void* source, size_t length)
@@ -25,28 +31,28 @@ namespace tin::data
 
         while (dataSizeRemaining > 0)
         {
-            BufferSegment* currentBufferSegment = &m_bufferSegments[m_currentFreeSegment];
-            size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - currentBufferSegment->writeOffset;
+            size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - m_currentFreeSegmentPtr->writeOffset;
 
-            if (currentBufferSegment->isFinalized)
+            if (m_currentFreeSegmentPtr->isFinalized)
                 THROW_FORMAT("Current buffer segment is already finalized!\n");
 
             if (dataSizeRemaining < bufferSegmentSizeRemaining)
             {
-                memcpy(currentBufferSegment->data + currentBufferSegment->writeOffset, (u8*)source + sourceOffset, dataSizeRemaining);
+                memcpy(m_currentFreeSegmentPtr->data + m_currentFreeSegmentPtr->writeOffset, (u8*)source + sourceOffset, dataSizeRemaining);
                 sourceOffset += dataSizeRemaining;
-                currentBufferSegment->writeOffset += dataSizeRemaining;
+                m_currentFreeSegmentPtr->writeOffset += dataSizeRemaining;
                 dataSizeRemaining = 0;
             }
             else
             {
-                memcpy(currentBufferSegment->data + currentBufferSegment->writeOffset, (u8*)source + sourceOffset, bufferSegmentSizeRemaining);
+                memcpy(m_currentFreeSegmentPtr->data + m_currentFreeSegmentPtr->writeOffset, (u8*)source + sourceOffset, bufferSegmentSizeRemaining);
                 dataSizeRemaining -= bufferSegmentSizeRemaining;
                 sourceOffset += bufferSegmentSizeRemaining;
-                currentBufferSegment->writeOffset += bufferSegmentSizeRemaining;
-                currentBufferSegment->isFinalized = true;
+                m_currentFreeSegmentPtr->writeOffset += bufferSegmentSizeRemaining;
+                m_currentFreeSegmentPtr->isFinalized = true;
                 
                 m_currentFreeSegment = (m_currentFreeSegment + 1) % NUM_BUFFER_SEGMENTS;
+                m_currentFreeSegmentPtr = &m_bufferSegments[m_currentFreeSegment];
             }
         }
 
@@ -54,14 +60,7 @@ namespace tin::data
 
         if (m_sizeBuffered == m_totalDataSize)
         {
-            BufferSegment* currentBufferSegment = &m_bufferSegments[m_currentFreeSegment];
-
-            if (currentBufferSegment->isFinalized)
-                THROW_FORMAT("Final buffer segment is unexpectedly finalized!\n");
-
-            size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - currentBufferSegment->writeOffset;
-            memset(currentBufferSegment->data + currentBufferSegment->writeOffset, 0, bufferSegmentSizeRemaining);
-            currentBufferSegment->isFinalized = true;
+            m_currentFreeSegmentPtr->isFinalized = true;
         }
     }
 
@@ -81,17 +80,18 @@ namespace tin::data
         if (m_sizeWrittenToPlaceholder >= m_totalDataSize)
             THROW_FORMAT("Cannot write segment as end of data has already been reached!\n");
 
-        BufferSegment* currentBufferSegment = &m_bufferSegments[m_currentSegmentToWrite];
-
-        if (!currentBufferSegment->isFinalized)
+        if (!m_currentSegmentToWritePtr->isFinalized)
             THROW_FORMAT("Cannot write segment as it hasn't been finalized!\n");
 
+        // NOTE: The final segment will have leftover data from previous writes, however
+        // this will be accounted for by this size
         size_t sizeToWriteToPlaceholder = std::min(m_totalDataSize - m_sizeWrittenToPlaceholder, BUFFER_SEGMENT_DATA_SIZE);
-        m_contentStorage->WritePlaceholder(m_ncaId, m_sizeWrittenToPlaceholder, currentBufferSegment->data, sizeToWriteToPlaceholder);
+        m_contentStorage->WritePlaceholder(m_ncaId, m_sizeWrittenToPlaceholder, m_currentSegmentToWritePtr->data, sizeToWriteToPlaceholder);
 
-        currentBufferSegment->isFinalized = false;
-        currentBufferSegment->writeOffset = 0;
+        m_currentSegmentToWritePtr->isFinalized = false;
+        m_currentSegmentToWritePtr->writeOffset = 0;
         m_currentSegmentToWrite = (m_currentSegmentToWrite + 1) % NUM_BUFFER_SEGMENTS;
+        m_currentSegmentToWritePtr = &m_bufferSegments[m_currentSegmentToWrite];
         m_sizeWrittenToPlaceholder += sizeToWriteToPlaceholder;
     }
 
@@ -100,9 +100,7 @@ namespace tin::data
         if (m_sizeWrittenToPlaceholder >= m_totalDataSize)
             return false;
 
-        BufferSegment* currentBufferSegment = &m_bufferSegments[m_currentSegmentToWrite];
-
-        if (!currentBufferSegment->isFinalized)
+        if (!m_currentSegmentToWritePtr->isFinalized)
             return false;
 
         return true;
@@ -110,14 +108,12 @@ namespace tin::data
 
     u32 BufferedPlaceholderWriter::CalcNumSegmentsRequired(size_t size)
     {
-        BufferSegment* currentBufferSegment = &m_bufferSegments[m_currentFreeSegment];
-
         //LOG_DEBUG("Size: %lu\n", size);
 
-        if (currentBufferSegment->isFinalized)
+        if (m_currentFreeSegmentPtr->isFinalized)
             THROW_FORMAT("Current buffer segment is already finalized!\n");
 
-        size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - currentBufferSegment->writeOffset;
+        size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - m_currentFreeSegmentPtr->writeOffset;
 
         //LOG_DEBUG("Buffer segment size remaining: %lu\n", bufferSegmentSizeRemaining);
 

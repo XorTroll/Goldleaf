@@ -1,9 +1,9 @@
-#include "ui/framework/image.hpp"
+#include "asset/image.hpp"
 
 #include "data/byte_stream.hpp"
 #include "error.hpp"
 
-namespace tin::ui
+namespace tin::asset
 {
     Image::Image() :
         m_dimensions(0, 0)
@@ -106,7 +106,7 @@ namespace tin::ui
         png_destroy_read_struct(&pngReadStructPtr, &pngInfoStructPtr, NULL);
     }
 
-    void Image::DrawImage(Canvas canvas, Position pos)
+    void Image::DrawImage(tin::ui::Canvas canvas, tin::ui::Position pos)
     {
         for (unsigned int x = 0; x < m_dimensions.width; x++)
         {
@@ -120,7 +120,7 @@ namespace tin::ui
     }
 
     // Adapted from hb-menu. I mean, I did write it in the first place after all :P
-    void Image::ScaleImage(Dimensions scaledDimensions)
+    void Image::ScaleImage(tin::ui::Dimensions scaledDimensions)
     {
         tin::data::ByteBuffer newImgBuf(scaledDimensions.width * scaledDimensions.height * 4);
         const uint8_t* image = m_abgrBuffer.GetData();
