@@ -6,7 +6,7 @@
 
 namespace tin::util
 {
-    void USBCmdManager::SendCmd(u32 cmdId, void* data, size_t dataSize)
+    void USBCmdManager::SendCmdHeader(u32 cmdId, void* data, size_t dataSize)
     {
         USBCmdHeader header;
         header.magic = 0x30435554; // TUC0 (Tinfoil USB Command 0)
