@@ -10,6 +10,20 @@
 # 3. Choose libusbK from the driver list and click the "Replace Driver" button.
 # 4. Run this script
 
+# macOS Instructions:
+# 1. Install Homebrew https://brew.sh
+# 2. Install Python 3
+#      sudo mkdir /usr/local/Frameworks
+#      sudo chown $(whoami) /usr/local/Frameworks
+#      brew install python
+# 3. Install PyUSB 
+#      pip3 install pyusb
+# 4. Install libusb
+#      brew install libusb
+# 5. Plug in your Switch and go to Tinfoil > Title Management > USB Install NSP
+# 6. Run this script
+#      python3 usb_install_pc.py <path/to/nsp_folder>
+
 import usb.core
 import usb.util
 import struct
