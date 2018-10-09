@@ -96,7 +96,7 @@ namespace nx::fs
         rc = fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str());
 
         if (rc == 0x236e02)
-            errorMsg = "File " + path + " is unreadable! You may have a bad dump, fs_mitm may need to be removed, or your firmware version may be too low to decrypt.";
+            errorMsg = "File " + path + " is unreadable! You may have a bad dump, fs_mitm may need to be removed, or your firmware version may be too low to decrypt it.";
 
         ASSERT_OK(rc, errorMsg.c_str());
     }
