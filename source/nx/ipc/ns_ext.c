@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <switch.h>
 #include <switch/arm/atomics.h>
 
 static Service g_nsAppManSrv, g_nsGetterSrv;

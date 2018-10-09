@@ -1,7 +1,6 @@
 #include "nx/fs.hpp"
 
 #include <cstring>
-#include "nx/ipc/tin_ipc.h"
 #include "error.hpp"
 
 namespace nx::fs

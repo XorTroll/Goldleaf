@@ -1,24 +1,24 @@
 #pragma once
 
 #include <string>
-#include <switch/services/fs.h>
 #include "mode/mode.hpp"
+#include <switch/services/fs.h>
 
 namespace tin::ui
 {
-    class InstallNSPMode : public IMode
+    class USBInstallMode : public IMode
     {
         private:
-            std::string m_name;
+            std::vector<std::string> m_nspNames;
             FsStorageId m_destStorageId = FsStorageId_SdCard;
-            bool m_ignoreReqFirmVersion = false;
 
         public:
-            InstallNSPMode();
+            USBInstallMode();
+            ~USBInstallMode();
 
+            void OnUnwound();
             void OnSelected() override;
             void OnNSPSelected();
             void OnDestinationSelected();
-            void OnIgnoreReqFirmVersionSelected();
     };
 }

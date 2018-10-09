@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/fs.h>
 
 typedef enum
 {

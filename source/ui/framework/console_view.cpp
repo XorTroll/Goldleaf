@@ -1,5 +1,7 @@
 #include "ui/framework/console_view.hpp"
 
+#include <switch.h>
+
 namespace tin::ui
 {
     ConsoleView::ConsoleView(unsigned int unwindDistance) :

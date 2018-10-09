@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/types.h>
 
 namespace tin::install
 {

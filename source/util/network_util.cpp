@@ -1,5 +1,6 @@
 #include "util/network_util.hpp"
 
+#include <switch.h>
 #include <curl/curl.h>
 #include <algorithm>
 #include <cstring>

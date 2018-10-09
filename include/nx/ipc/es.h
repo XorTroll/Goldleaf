@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/ncm.h>
 
 typedef struct {
     u8 c[0x10];
