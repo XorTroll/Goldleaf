@@ -84,7 +84,7 @@ def poll_commands(nsp_dir, in_ep, out_ep):
         cmd_id = struct.unpack('<I', cmd_header[8:12])[0]
         data_size = struct.unpack('<Q', cmd_header[12:20])[0]
 
-        print('Cmd Tye: {}, Command id: {}, Data size: {}'.format(cmd_type, cmd_id, data_size), flush=True)
+        print('Cmd Type: {}, Command id: {}, Data size: {}'.format(cmd_type, cmd_id, data_size), flush=True)
 
         if cmd_id == CMD_ID_EXIT:
             print('Exiting...')
