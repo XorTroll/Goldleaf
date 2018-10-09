@@ -31,14 +31,15 @@ def send_response_header(out_ep, cmd_id, data_size):
     out_ep.write(b'\x00' * 0xC)
 
 def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
-    range_size = struct.unpack('<Q', in_ep.read(0x8))[0]
-    range_offset = struct.unpack('<Q', in_ep.read(0x8))[0]
-    nsp_name_len = struct.unpack('<Q', in_ep.read(0x8))[0]
-    in_ep.read(0x8) # Reserved
+    file_range_header = in_ep.read(0x20)
+
+    range_size = struct.unpack('<Q', file_range_header[:8])[0]
+    range_offset = struct.unpack('<Q', file_range_header[8:16])[0]
+    nsp_name_len = struct.unpack('<Q', file_range_header[16:24])[0]
+    #in_ep.read(0x8) # Reserved
     nsp_name = bytes(in_ep.read(nsp_name_len)).decode('utf-8')
 
     print('Range Size: {}, Range Offset: {}, Name len: {}, Name: {}'.format(range_size, range_offset, nsp_name_len, nsp_name))
-
     send_response_header(out_ep, CMD_ID_FILE_RANGE, range_size)
 
     with open(nsp_name, 'rb') as f:
@@ -58,18 +59,16 @@ def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
 
 def poll_commands(nsp_dir, in_ep, out_ep):
     while True:
-        magic = bytes(in_ep.read(0x4, timeout=0))
-
+        cmd_header = bytes(in_ep.read(0x20, timeout=0))
+        magic = cmd_header[:4]
         print('Magic: {}'.format(magic), flush=True)
 
         if magic != b'TUC0': # Tinfoil USB Command 0
             continue
 
-        cmd_type = struct.unpack('<B', in_ep.read(0x1))[0]
-        in_ep.read(0x3)
-        cmd_id = struct.unpack('<I', in_ep.read(0x4))[0]
-        data_size = struct.unpack('<Q', in_ep.read(0x8))[0]
-        in_ep.read(0xC) # Reserved
+        cmd_type = struct.unpack('<B', cmd_header[4:5])[0]
+        cmd_id = struct.unpack('<I', cmd_header[8:12])[0]
+        data_size = struct.unpack('<Q', cmd_header[12:20])[0]
 
         print('Cmd Tye: {}, Command id: {}, Data size: {}'.format(cmd_type, cmd_id, data_size), flush=True)
 
