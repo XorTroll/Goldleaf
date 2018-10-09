@@ -1,7 +1,13 @@
 #pragma once
 
 #include <string>
-#include <switch.h>
+
+extern "C"
+{
+#include <switch/types.h>
+#include <switch/services/fs.h>
+}
+
 #include "nx/ipc/tin_ipc.h"
 
 namespace nx::fs

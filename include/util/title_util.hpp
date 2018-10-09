@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/types.h>
 #include <string>
 #include "nx/content_meta.hpp"
 #include "nx/ipc/tin_ipc.h"

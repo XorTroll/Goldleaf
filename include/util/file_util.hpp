@@ -1,7 +1,5 @@
 #pragma once
 
-#include <switch.h>
-
 #include <string>
 #include <tuple>
 #include <vector>

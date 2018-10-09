@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 
+#include <switch.h>
 #include "install/simple_filesystem.hpp"
 #include "install/verify_nsp.hpp"
 #include "nx/fs.hpp"

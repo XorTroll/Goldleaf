@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <switch.h>
+#include <switch/types.h>
 
 #include "console_options_view.hpp"
 

@@ -15,6 +15,7 @@
 #include "mode/delete_common_ticket_mode.hpp"
 #include "mode/delete_personalized_ticket_mode.hpp"
 #include "mode/network_install_mode.hpp"
+#include "mode/usb_install_mode.hpp"
 #include "mode/verify_nsp_mode.hpp"
 #include "ui/framework/view.hpp"
 #include "ui/framework/console_options_view.hpp"
@@ -75,6 +76,9 @@ void userAppInit(void)
     if (R_FAILED(romfsInit()))
         fatalSimple(0xBEE9);
 
+    if (R_FAILED(usbCommsInitialize()))
+        fatalSimple(0xBEEA);
+
     // We initialize this inside ui_networkinstall_mode for normal users.
     #ifdef NXLINK_DEBUG
     socketInitializeDefault();
@@ -91,6 +95,7 @@ void userAppExit(void)
     socketExit();
     #endif
 
+    usbCommsExit();
     romfsExit();
     plExit();
     setExit();
@@ -131,6 +136,7 @@ int main(int argc, char **argv)
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::VerifyNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
+        titleManCat.AddMode(std::move(std::make_unique<tin::ui::USBInstallMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::NetworkInstallMode>()));
         // TODO: Add uninstall and dump nsp
 

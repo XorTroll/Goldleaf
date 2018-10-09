@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/errno.h>
