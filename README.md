@@ -1,4 +1,7 @@
 # Tinfoil
+
+### [XorTroll] Get ready for new stuff! I'm already working on a new, experimental Tinfoil!
+
 A homebrew application for the Nintendo Switch used to manage titles.
 
 DISCLAIMER: I take zero responsibility for any bans, damage, nuclear explosions, or anything else the use of Tinfoil may cause. Proceed with caution!
