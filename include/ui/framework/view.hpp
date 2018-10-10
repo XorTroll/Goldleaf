@@ -1,8 +1,17 @@
 #pragma once
 
-#include <switch.h>
-#include <functional>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include <switch/types.h>
+#include <switch/runtime/devices/console.h>
+
+#ifdef __cplusplus
+}
+#endif
+
+#include <functional>
 #include <memory>
 #include <stack>
 

@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-
-#include <switch.h>
+#include <switch/types.h>
 
 extern FILE *nxlinkout;
 

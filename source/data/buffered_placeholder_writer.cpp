@@ -1,5 +1,6 @@
 #include "data/buffered_placeholder_writer.hpp"
 
+#include <climits>
 #include <math.h>
 #include <algorithm>
 #include <exception>
@@ -111,7 +112,7 @@ namespace tin::data
         //LOG_DEBUG("Size: %lu\n", size);
 
         if (m_currentFreeSegmentPtr->isFinalized)
-            THROW_FORMAT("Current buffer segment is already finalized!\n");
+            return INT_MAX;
 
         size_t bufferSegmentSizeRemaining = BUFFER_SEGMENT_DATA_SIZE - m_currentFreeSegmentPtr->writeOffset;
 

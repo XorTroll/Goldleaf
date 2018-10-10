@@ -1,16 +1,16 @@
 #pragma once
 
-#include <switch.h>
+#include <switch/services/ncm.h>
 #include <string>
 #include "install/install.hpp"
 #include "install/remote_nsp.hpp"
 
 namespace tin::install::nsp
 {
-    class NetworkNSPInstallTask : public Install
+    class RemoteNSPInstall : public Install
     {
         private:
-            RemoteNSP m_remoteNSP;
+            RemoteNSP* m_remoteNSP;
 
         protected:
             std::tuple<nx::ncm::ContentMeta, nx::ncm::ContentRecord> ReadCNMT() override;
@@ -18,6 +18,6 @@ namespace tin::install::nsp
             void InstallTicketCert() override;
 
         public:
-            NetworkNSPInstallTask(FsStorageId destStorageId, bool ignoreReqFirmVersion, std::string url);
+            RemoteNSPInstall(FsStorageId destStorageId, bool ignoreReqFirmVersion, RemoteNSP* remoteNSP);
     };
 }

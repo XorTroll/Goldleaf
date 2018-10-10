@@ -1,5 +1,6 @@
 #include "mode/verify_nsp_mode.hpp"
 
+#include <switch.h>
 #include "install/verify_nsp.hpp"
 #include "ui/framework/console_options_view.hpp"
 #include "util/file_util.hpp"

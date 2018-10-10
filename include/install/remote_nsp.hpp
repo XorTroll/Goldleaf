@@ -3,7 +3,7 @@
 #include <functional>
 #include <vector>
 
-#include <switch.h>
+#include <switch/types.h>
 #include "install/pfs0.hpp"
 #include "nx/ncm.hpp"
 #include "util/network_util.hpp"
@@ -12,25 +12,24 @@ namespace tin::install::nsp
 {
     class RemoteNSP
     {
-        private:
+        protected:
             std::vector<u8> m_headerBytes;
 
+            RemoteNSP();
+
         public:
-            tin::network::HTTPDownload m_download;
+            virtual void StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId) = 0;
+            virtual void BufferData(void* buf, off_t offset, size_t size) = 0;
 
-            RemoteNSP(std::string url);
+            virtual void RetrieveHeader();
+            virtual const PFS0BaseHeader* GetBaseHeader();
+            virtual u64 GetDataOffset();
 
-            void RetrieveHeader();
-            void StreamToPlaceholder(nx::ncm::ContentStorage& contentStorage, NcmNcaId placeholderId);
-    
-            const PFS0BaseHeader* GetBaseHeader();
-            u64 GetDataOffset();
+            virtual const PFS0FileEntry* GetFileEntry(unsigned int index);
+            virtual const PFS0FileEntry* GetFileEntryByName(std::string name);
+            virtual const PFS0FileEntry* GetFileEntryByNcaId(const NcmNcaId& ncaId);
+            virtual const PFS0FileEntry* GetFileEntryByExtension(std::string extension);
 
-            const PFS0FileEntry* GetFileEntry(unsigned int index);
-            const PFS0FileEntry* GetFileEntryByName(std::string name);
-            const PFS0FileEntry* GetFileEntryByNcaId(const NcmNcaId& ncaId);
-            const PFS0FileEntry* GetFileEntryByExtension(std::string extension);
-
-            const char* GetFileEntryName(const PFS0FileEntry* fileEntry);
+            virtual const char* GetFileEntryName(const PFS0FileEntry* fileEntry);
     };
 }
