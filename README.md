@@ -14,7 +14,7 @@ Courtesy of [LavaTech](https://discord.gg/VjyDSuu), builds are made automaticall
 https://bsnx.lavatech.top/tinfoil/
 
 When ready, full releases will be located at:
-https://github.com/Adubbz/Tinfoil/releases/latest
+https://github.com/XorTroll/Tinfoil/releases/latest
 
 ## Usage
 1. Place NSPs in ``/tinfoil/nsp`` or extracted NSPs in ``/tinfoil/extracted``.
@@ -22,7 +22,7 @@ https://github.com/Adubbz/Tinfoil/releases/latest
 
 ## Network Install Instructions
 1. Download and install Python 3.6.6 from https://www.python.org/downloads/
-2. Download remote_install_pc.py from https://github.com/Adubbz/Tinfoil/blob/master/tools/remote_install_pc.py by right clicking on Raw and clicking "Save link as..."
+2. Download remote_install_pc.py from https://github.com/XorTroll/Tinfoil/blob/master/tools/remote_install_pc.py by right clicking on Raw and clicking "Save link as..."
 3. Open the Network Install menu in Tinfoil
 4. Run ``remote_install_pc.py`` on your PC on the same network as your Switch with python ``remote_install_pc.py <switch ip> <nsp directory>``, or alternatively with no arguments for interactive mode.
 5. ???
