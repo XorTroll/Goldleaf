@@ -113,7 +113,6 @@ void markForExit(void)
 
 int main(int argc, char **argv)
 {
-    appletLockExit();
     try
     {
         Result rc = 0;
@@ -210,6 +209,5 @@ int main(int argc, char **argv)
     }
 
     gfxExit();
-    appletUnlockExit();
     return 0;
 }
