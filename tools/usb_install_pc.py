@@ -61,7 +61,7 @@ def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
 
         curr_off = 0x0
         end_off = range_size
-        read_size = 0x800000
+        read_size = 0x100000
 
         while curr_off < end_off:
             if curr_off + read_size >= end_off:
