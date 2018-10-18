@@ -41,14 +41,6 @@ Result createTinfoilDirs(void)
 
     rc = 0;
 
-    if (R_FAILED(rc = fsFsCreateDirectory(&sdFs, "/tinfoil/ticket")) && rc != 0x402)
-    {
-        printf("createTinfoilDirs: Failed to create /tinfoil/ticket. Error code: 0x%08x\n", rc);
-        goto CLEANUP;
-    }
-
-    rc = 0;
-
     CLEANUP:
     fsFsClose(&sdFs);
     return rc;
