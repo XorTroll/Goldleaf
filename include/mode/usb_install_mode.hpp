@@ -11,6 +11,7 @@ namespace tin::ui
         private:
             std::vector<std::string> m_nspNames;
             FsStorageId m_destStorageId = FsStorageId_SdCard;
+            bool m_ignoreReqFirmVersion = false;
 
         public:
             USBInstallMode();
@@ -20,5 +21,6 @@ namespace tin::ui
             void OnSelected() override;
             void OnNSPSelected();
             void OnDestinationSelected();
+            void OnIgnoreReqFirmVersionSelected();
     };
 }

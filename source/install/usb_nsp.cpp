@@ -38,7 +38,7 @@ namespace tin::install::nsp
         USBFuncArgs* args = reinterpret_cast<USBFuncArgs*>(in);
         tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(args->nspName, args->pfs0Offset, args->ncaSize);
 
-        u8* buf = (u8*)memalign(0x1000, 0x800000);
+        u8* buf = (u8*)memalign(0x1000, 0x100000);
         u64 sizeRemaining = header.dataSize;
         size_t tmpSizeRead = 0;
 
@@ -46,7 +46,7 @@ namespace tin::install::nsp
         {
             while (sizeRemaining)
             {
-                tmpSizeRead = usbCommsRead(buf, std::min(sizeRemaining, (u64)0x800000));
+                tmpSizeRead = usbCommsRead(buf, std::min(sizeRemaining, (u64)0x100000));
                 //LOG_DEBUG("Read bytes\n")
                 //printBytes(nxlinkout, buf, tmpSizeRead, true);
                 sizeRemaining -= tmpSizeRead;
