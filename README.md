@@ -31,6 +31,14 @@ https://github.com/XorTroll/Tinfoil/releases/latest
 5. ???
 6. Profit
 
+## Usb Install Instructions
+1. Download and install Python 3.6.6 from https://www.python.org/downloads/
+2. Download usb_install_pc.py from https://github.com/XorTroll/Tinfoil/blob/master/tools/usb_install_pc.py by right clicking on Raw and clicking "Save link as..."
+3. Open the Usb Install menu in Tinfoil
+4. Run ``usb_install_pc.py`` on your PC on the same network as your Switch with python ``usb_install_pc.py <nsp directory>``.
+5. ???
+6. Profit
+
 ## Donate
 If you enjoy my work any and all donations are much appreciated :)
 
