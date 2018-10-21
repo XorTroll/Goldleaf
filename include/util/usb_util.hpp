@@ -30,7 +30,7 @@ namespace tin::util
             static void SendCmdHeader(u32 cmdId, size_t dataSize);
 
             static void SendExitCmd();
-            static USBCmdHeader SendFileRangeCmd(std::string nspName, u64 offset, u64 size);
+            static USBCmdHeader SendFileRangeCmd(u32 cmdId, std::string nspName, u64 offset, u64 size);
     };
 
     size_t USBRead(void* out, size_t len);
