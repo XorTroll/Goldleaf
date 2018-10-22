@@ -8,6 +8,7 @@
 #include <switch.h>
 
 #include "nx/ipc/tin_ipc.h"
+#include "nx/setsys.hpp"
 
 #include "mode/mode.hpp"
 #include "mode/install_extracted_mode.hpp"
@@ -46,6 +47,7 @@ u32 g_framebufWidth;
 u32 g_framebufHeight;
 
 bool g_shouldExit = false;
+int firmwareMajorVersion;
 
 void userAppInit(void)
 {
@@ -76,8 +78,10 @@ void userAppInit(void)
     if (R_FAILED(romfsInit()))
         fatalSimple(0xBEE9);
 
-    if (R_FAILED(usbCommsInitialize()))
-        fatalSimple(0xBEEA);
+    if (firmwareMajorVersion > 4) {
+        if (R_FAILED(usbCommsInitialize()))
+            fatalSimple(0xBEEA);
+    }
 
     // We initialize this inside ui_networkinstall_mode for normal users.
     #ifdef NXLINK_DEBUG
@@ -95,7 +99,10 @@ void userAppExit(void)
     socketExit();
     #endif
 
-    usbCommsExit();
+    if (firmwareMajorVersion > 4) {
+        usbCommsExit();
+    }
+
     romfsExit();
     plExit();
     setExit();
@@ -111,10 +118,31 @@ void markForExit(void)
     g_shouldExit = true;
 }
 
+// Below function copied from SwitchIdent (https://github.com/joel16/SwitchIdent)
+void getFirmwareVersion() {
+    Service setsys_service;
+    if (R_FAILED(setsysInitialize()))
+		fatalSimple(0xBEEB);
+
+	if (R_FAILED(smGetService(&setsys_service, "set:sys")))
+        fatalSimple(0xBEEC);
+
+    SetSysFirmwareVersion ver;
+	if (R_FAILED(setsysGetFirmwareVersion(&setsys_service, &ver)))
+	 	fatalSimple(0xBEED);
+
+    firmwareMajorVersion = (int) ver.version_long[28] - '0';
+
+    serviceClose(&setsys_service);
+    setsysExit();
+}
+
 int main(int argc, char **argv)
 {
     try
     {
+        getFirmwareVersion();
+
         Result rc = 0;
         tin::ui::ViewManager& manager = tin::ui::ViewManager::Instance();
 
@@ -136,7 +164,9 @@ int main(int argc, char **argv)
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::VerifyNSPMode>()));
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::InstallExtractedNSPMode>()));
-        titleManCat.AddMode(std::move(std::make_unique<tin::ui::USBInstallMode>()));
+        if (firmwareMajorVersion > 4) {
+            titleManCat.AddMode(std::move(std::make_unique<tin::ui::USBInstallMode>()));
+        }
         titleManCat.AddMode(std::move(std::make_unique<tin::ui::NetworkInstallMode>()));
         // TODO: Add uninstall and dump nsp
 
