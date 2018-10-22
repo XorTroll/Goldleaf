@@ -53,7 +53,7 @@ ifeq ($(NXLINK_DEBUG),1)
 DEFINES +=	-DNXLINK_DEBUG
 endif
 
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE -fpermissive
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES) $(CFLAGS)
