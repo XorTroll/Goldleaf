@@ -13,12 +13,9 @@ static Result GetFirmwareVersion(Service *srv, SetSysFirmwareVersion *ver) {
     ipcInitialize(&c);
     ipcAddRecvStatic(&c, buffer, size, 0);
 
-    struct {
-        u64 magic;
-        u64 cmd_id;
-    } *raw;
+    cmd_t *raw;
 
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    raw = (cmd_t*)ipcPrepareHeader(&c, sizeof(*raw));
 
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 3;
@@ -29,10 +26,7 @@ static Result GetFirmwareVersion(Service *srv, SetSysFirmwareVersion *ver) {
         IpcParsedCommand r;
         ipcParse(&r);
 
-        struct {
-            u64 magic;
-            u64 result;
-        }* resp = r.Raw;
+        result_t *resp = (result_t*)r.Raw;
         rc = resp->result;
 
         if (R_SUCCEEDED(rc)){
@@ -52,12 +46,9 @@ static Result GetFirmwareVersion2(Service *srv, SetSysFirmwareVersion *ver) {
     ipcInitialize(&c);
     ipcAddRecvStatic(&c, buffer, size, 0);
 
-    struct {
-        u64 magic;
-        u64 cmd_id;
-    } *raw;
+    cmd_t *raw;
 
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    raw = (cmd_t*)ipcPrepareHeader(&c, sizeof(*raw));
 
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 4;
@@ -68,10 +59,7 @@ static Result GetFirmwareVersion2(Service *srv, SetSysFirmwareVersion *ver) {
         IpcParsedCommand r;
         ipcParse(&r);
 
-        struct {
-            u64 magic;
-            u64 result;
-        }* resp = r.Raw;
+        result_t *resp = (result_t*)r.Raw;
         rc = resp->result;
 
         if (R_SUCCEEDED(rc)){

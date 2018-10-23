@@ -12,4 +12,14 @@ typedef struct {
     char version_long[128];
 } SetSysFirmwareVersion;
 
+struct cmd_t{
+    u64 magic;
+    u64 cmd_id;
+};
+
+struct result_t{
+    u64 magic;
+    u64 result;
+};
+
 Result setsysGetFirmwareVersion(Service *srv, SetSysFirmwareVersion *ver);
