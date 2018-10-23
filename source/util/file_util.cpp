@@ -84,7 +84,7 @@ namespace tin::util
             std::string dirEntryName(dirEntry.name);
             std::string ext = ".nsp";
 
-            if (dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
+            if (dirEntry.name[0] == '.' || dirEntry.type != ENTRYTYPE_FILE || dirEntryName.compare(dirEntryName.size() - ext.size(), ext.size(), ext) != 0)
                 continue;
 
             nspList.push_back(dirEntry.name);
