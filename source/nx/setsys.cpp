@@ -4,6 +4,16 @@
 
 #include "nx/setsys.hpp"
 
+typedef struct {
+    u64 magic;
+    u64 cmd_id;
+} IpcCommandHeader;
+
+typedef struct {
+    u64 magic;
+    u64 result;
+} IpcVersionResponse;
+
 static Result GetFirmwareVersion(Service *srv, SetSysFirmwareVersion *ver) {
     char buffer[0x100];
     size_t size = sizeof(buffer);
@@ -13,12 +23,9 @@ static Result GetFirmwareVersion(Service *srv, SetSysFirmwareVersion *ver) {
     ipcInitialize(&c);
     ipcAddRecvStatic(&c, buffer, size, 0);
 
-    struct {
-        u64 magic;
-        u64 cmd_id;
-    } *raw;
+    IpcCommandHeader * raw;
 
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    raw = (IpcCommandHeader *) ipcPrepareHeader(&c, sizeof(*raw));
 
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 3;
@@ -29,10 +36,7 @@ static Result GetFirmwareVersion(Service *srv, SetSysFirmwareVersion *ver) {
         IpcParsedCommand r;
         ipcParse(&r);
 
-        struct {
-            u64 magic;
-            u64 result;
-        }* resp = r.Raw;
+        IpcVersionResponse * resp = (IpcVersionResponse *) r.Raw;
         rc = resp->result;
 
         if (R_SUCCEEDED(rc)){
@@ -52,12 +56,9 @@ static Result GetFirmwareVersion2(Service *srv, SetSysFirmwareVersion *ver) {
     ipcInitialize(&c);
     ipcAddRecvStatic(&c, buffer, size, 0);
 
-    struct {
-        u64 magic;
-        u64 cmd_id;
-    } *raw;
+    IpcCommandHeader * raw;
 
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
+    raw = (IpcCommandHeader *) ipcPrepareHeader(&c, sizeof(*raw));
 
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 4;
@@ -68,10 +69,7 @@ static Result GetFirmwareVersion2(Service *srv, SetSysFirmwareVersion *ver) {
         IpcParsedCommand r;
         ipcParse(&r);
 
-        struct {
-            u64 magic;
-            u64 result;
-        }* resp = r.Raw;
+        IpcVersionResponse * resp = (IpcVersionResponse *) r.Raw;
         rc = resp->result;
 
         if (R_SUCCEEDED(rc)){
