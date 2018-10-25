@@ -13,6 +13,7 @@ namespace tin::ui
             std::vector<std::string> m_urls;
             FsStorageId m_destStorageId = FsStorageId_SdCard;
             void InitializeServerSocket();
+    		void CloseServerSocket();
 
         public:
             NetworkInstallMode();
