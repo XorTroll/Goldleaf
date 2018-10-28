@@ -33,8 +33,12 @@ from pathlib import Path
 
 CMD_ID_EXIT = 0
 CMD_ID_FILE_RANGE = 1
+CMD_ID_FILE_RANGE_PADDED = 2
 
 CMD_TYPE_RESPONSE = 1
+
+BUFFER_SEGMENT_DATA_SIZE = 0x100000
+PADDING_SIZE = 0x1000
 
 def send_response_header(out_ep, cmd_id, data_size):
     out_ep.write(b'TUC0') # Tinfoil USB Command 0
@@ -44,7 +48,7 @@ def send_response_header(out_ep, cmd_id, data_size):
     out_ep.write(struct.pack('<Q', data_size))
     out_ep.write(b'\x00' * 0xC)
 
-def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
+def file_range_cmd(nsp_dir, in_ep, out_ep, data_size, padding=False):
     file_range_header = in_ep.read(0x20)
 
     range_size = struct.unpack('<Q', file_range_header[:8])[0]
@@ -54,20 +58,27 @@ def file_range_cmd(nsp_dir, in_ep, out_ep, data_size):
     nsp_name = bytes(in_ep.read(nsp_name_len)).decode('utf-8')
 
     print('Range Size: {}, Range Offset: {}, Name len: {}, Name: {}'.format(range_size, range_offset, nsp_name_len, nsp_name))
-    send_response_header(out_ep, CMD_ID_FILE_RANGE, range_size)
+    cmd_id = CMD_ID_FILE_RANGE
+    if padding:
+        cmd_id = CMD_ID_FILE_RANGE_PADDED
+    send_response_header(out_ep, cmd_id, range_size)
 
     with open(nsp_name, 'rb') as f:
         f.seek(range_offset)
 
         curr_off = 0x0
         end_off = range_size
-        read_size = 0x100000
+        read_size = BUFFER_SEGMENT_DATA_SIZE
+        if (padding):
+            read_size -= PADDING_SIZE
 
         while curr_off < end_off:
             if curr_off + read_size >= end_off:
                 read_size = end_off - curr_off
 
             buf = f.read(read_size)
+            if (padding):
+                buf = b'\x00' * PADDING_SIZE + buf
             out_ep.write(data=buf, timeout=0)
             curr_off += read_size
 
@@ -91,6 +102,8 @@ def poll_commands(nsp_dir, in_ep, out_ep):
             break
         elif cmd_id == CMD_ID_FILE_RANGE:
             file_range_cmd(nsp_dir, in_ep, out_ep, data_size)
+        elif cmd_id == CMD_ID_FILE_RANGE_PADDED:
+            file_range_cmd(nsp_dir, in_ep, out_ep, data_size, padding=True)
 
 def send_nsp_list(nsp_dir, out_ep):
     nsp_path_list = list()

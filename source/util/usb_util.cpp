@@ -22,7 +22,7 @@ namespace tin::util
         USBCmdManager::SendCmdHeader(0, 0);
     }
 
-    USBCmdHeader USBCmdManager::SendFileRangeCmd(std::string nspName, u64 offset, u64 size)
+    USBCmdHeader USBCmdManager::SendFileRangeCmd(u32 cmdId, std::string nspName, u64 offset, u64 size)
     {
         struct FileRangeCmdHeader
         {
@@ -37,7 +37,7 @@ namespace tin::util
         fRangeHeader.nspNameLen = nspName.size();
         fRangeHeader.padding = 0;
 
-        USBCmdManager::SendCmdHeader(1, sizeof(FileRangeCmdHeader) + fRangeHeader.nspNameLen);
+        USBCmdManager::SendCmdHeader(cmdId, sizeof(FileRangeCmdHeader) + fRangeHeader.nspNameLen);
         USBWrite(&fRangeHeader, sizeof(FileRangeCmdHeader));
         USBWrite(nspName.c_str(), fRangeHeader.nspNameLen);
 
