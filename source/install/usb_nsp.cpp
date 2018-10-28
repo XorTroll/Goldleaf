@@ -36,9 +36,9 @@ namespace tin::install::nsp
     int USBThreadFunc(void* in)
     {
         USBFuncArgs* args = reinterpret_cast<USBFuncArgs*>(in);
-        tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(args->nspName, args->pfs0Offset, args->ncaSize);
+        tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(CMD_ID_FILE_RANGE_PADDED, args->nspName, args->pfs0Offset, args->ncaSize);
 
-        u8* buf = (u8*)memalign(0x1000, 0x100000);
+        u8* buf = (u8*)memalign(0x1000, tin::data::BUFFER_SEGMENT_DATA_SIZE);
         u64 sizeRemaining = header.dataSize;
         size_t tmpSizeRead = 0;
 
@@ -46,7 +46,12 @@ namespace tin::install::nsp
         {
             while (sizeRemaining)
             {
-                tmpSizeRead = usbCommsRead(buf, std::min(sizeRemaining, (u64)0x100000));
+                size_t padding = 0;
+                if (header.cmdId == CMD_ID_FILE_RANGE_PADDED) {
+                    padding = PADDING_SIZE;
+                }
+                
+                tmpSizeRead = usbCommsRead(buf, std::min(sizeRemaining + padding, tin::data::BUFFER_SEGMENT_DATA_SIZE)) - padding;
                 //LOG_DEBUG("Read bytes\n")
                 //printBytes(nxlinkout, buf, tmpSizeRead, true);
                 sizeRemaining -= tmpSizeRead;
@@ -57,7 +62,7 @@ namespace tin::install::nsp
                         break;
                 }
 
-                args->bufferedPlaceholderWriter->AppendData(buf, tmpSizeRead);
+                args->bufferedPlaceholderWriter->AppendData(buf + padding, tmpSizeRead);
             }
         }
         catch (std::exception& e)
@@ -151,7 +156,7 @@ namespace tin::install::nsp
 
     void USBNSP::BufferData(void* buf, off_t offset, size_t size)
     {
-        tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(m_nspName, offset, size);
+        tin::util::USBCmdHeader header = tin::util::USBCmdManager::SendFileRangeCmd(CMD_ID_FILE_RANGE, m_nspName, offset, size);
         tin::util::USBRead(buf, header.dataSize);
     }
 }

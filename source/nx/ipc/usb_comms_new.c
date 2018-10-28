@@ -27,13 +27,21 @@ static usbCommsInterface g_usbCommsInterfaces[TOTAL_INTERFACES];
 
 static RwLock g_usbCommsLock;
 
-static Result _usbCommsInterfaceInit1x(u32 intf_ind);
-static Result _usbCommsInterfaceInit5x(u32 intf_ind);
-static Result _usbCommsInterfaceInit(u32 intf_ind);
+static Result _usbCommsInterfaceInit1x(u32 intf_ind, const UsbCommsInterfaceInfo *info);
+static Result _usbCommsInterfaceInit5x(u32 intf_ind, const UsbCommsInterfaceInfo *info);
+static Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info);
 
 static Result _usbCommsWrite(usbCommsInterface *interface, const void* buffer, size_t size, size_t *transferredSize);
 
-Result usbCommsInitializeEx(u32 num_interfaces)
+static void _usbCommsUpdateInterfaceDescriptor(struct usb_interface_descriptor *desc, const UsbCommsInterfaceInfo *info) {
+    if (info != NULL) {
+        desc->bInterfaceClass = info->bInterfaceClass;
+        desc->bInterfaceSubClass = info->bInterfaceSubClass;
+        desc->bInterfaceProtocol = info->bInterfaceProtocol;
+    }
+}
+
+Result usbCommsInitializeEx(u32 num_interfaces, const UsbCommsInterfaceInfo *infos)
 {
     Result rc = 0;
     rwlockWriteLock(&g_usbCommsLock);
@@ -46,16 +54,15 @@ Result usbCommsInitializeEx(u32 num_interfaces)
         rc = usbDsInitialize();
         
         if (R_SUCCEEDED(rc)) {
-            
             if (kernelAbove500()) {
                 u8 iManufacturer, iProduct, iSerialNumber;
                 static const u16 supported_langs[1] = {0x0409};
                 // Send language descriptor
                 rc = usbDsAddUsbLanguageStringDescriptor(NULL, supported_langs, sizeof(supported_langs)/sizeof(u16));
                 // Send manufacturer
-                if (R_SUCCEEDED(rc)) rc = usbDsAddUsbStringDescriptor(&iManufacturer, "Switchbrew");
+                if (R_SUCCEEDED(rc)) rc = usbDsAddUsbStringDescriptor(&iManufacturer, "Nintendo");
                 // Send product
-                if (R_SUCCEEDED(rc)) rc = usbDsAddUsbStringDescriptor(&iProduct, "libnx USB comms");
+                if (R_SUCCEEDED(rc)) rc = usbDsAddUsbStringDescriptor(&iProduct, "Nintendo Switch");
                 // Send serial number
                 if (R_SUCCEEDED(rc)) rc = usbDsAddUsbStringDescriptor(&iSerialNumber, "SerialNumber");
                 
@@ -76,6 +83,7 @@ Result usbCommsInitializeEx(u32 num_interfaces)
                     .iSerialNumber = iSerialNumber,
                     .bNumConfigurations = 0x01
                 };
+                // Full Speed is USB 1.1
                 if (R_SUCCEEDED(rc)) rc = usbDsSetUsbDeviceDescriptor(UsbDeviceSpeed_Full, &device_descriptor);
                 
                 // High Speed is USB 2.0
@@ -116,7 +124,7 @@ Result usbCommsInitializeEx(u32 num_interfaces)
                     rwlockWriteLock(&intf->lock);
                     rwlockWriteLock(&intf->lock_in);
                     rwlockWriteLock(&intf->lock_out);
-                    rc = _usbCommsInterfaceInit(i);
+                    rc = _usbCommsInterfaceInit(i, infos == NULL ? NULL : infos + i);
                     rwlockWriteUnlock(&intf->lock_out);
                     rwlockWriteUnlock(&intf->lock_in);
                     rwlockWriteUnlock(&intf->lock);
@@ -144,7 +152,7 @@ Result usbCommsInitializeEx(u32 num_interfaces)
 
 Result usbCommsInitialize(void)
 {
-    return usbCommsInitializeEx(1);
+    return usbCommsInitializeEx(1, NULL);
 }
 
 static void _usbCommsInterfaceFree(usbCommsInterface *interface)
@@ -193,35 +201,35 @@ void usbCommsExit(void)
     }
 }
 
-static Result _usbCommsInterfaceInit(u32 intf_ind)
+static Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info)
 {
     if (kernelAbove500()) {
-        return _usbCommsInterfaceInit5x(intf_ind);
+        return _usbCommsInterfaceInit5x(intf_ind, info);
     } else {
-        return _usbCommsInterfaceInit1x(intf_ind);
+        return _usbCommsInterfaceInit1x(intf_ind, info);
     }
 }
 
-static Result _usbCommsInterfaceInit5x(u32 intf_ind)
+static Result _usbCommsInterfaceInit5x(u32 intf_ind, const UsbCommsInterfaceInfo *info)
 {
     Result rc = 0;
-    u32 ep_num = intf_ind + 1;
     usbCommsInterface *interface = &g_usbCommsInterfaces[intf_ind];
     
     struct usb_interface_descriptor interface_descriptor = {
         .bLength = USB_DT_INTERFACE_SIZE,
         .bDescriptorType = USB_DT_INTERFACE,
-        .bInterfaceNumber = intf_ind,
+        .bInterfaceNumber = 4,
         .bNumEndpoints = 2,
-        .bInterfaceClass = 0xFF,
-        .bInterfaceSubClass = 0xFF,
-        .bInterfaceProtocol = 0xFF,
+        .bInterfaceClass = USB_CLASS_VENDOR_SPEC,
+        .bInterfaceSubClass = USB_CLASS_VENDOR_SPEC,
+        .bInterfaceProtocol = USB_CLASS_VENDOR_SPEC,
     };
+    _usbCommsUpdateInterfaceDescriptor(&interface_descriptor, info);
 
     struct usb_endpoint_descriptor endpoint_descriptor_in = {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = USB_ENDPOINT_IN + ep_num,
+        .bEndpointAddress = USB_ENDPOINT_IN,
         .bmAttributes = USB_TRANSFER_TYPE_BULK,
         .wMaxPacketSize = 0x40,
     };
@@ -229,7 +237,7 @@ static Result _usbCommsInterfaceInit5x(u32 intf_ind)
     struct usb_endpoint_descriptor endpoint_descriptor_out = {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = USB_ENDPOINT_OUT + ep_num,
+        .bEndpointAddress = USB_ENDPOINT_OUT,
         .bmAttributes = USB_TRANSFER_TYPE_BULK,
         .wMaxPacketSize = 0x40,
     };
@@ -260,8 +268,12 @@ static Result _usbCommsInterfaceInit5x(u32 intf_ind)
 
     if (R_FAILED(rc)) return rc;
     
-    rc = usbDsRegisterInterface(&interface->interface, interface_descriptor.bInterfaceNumber);
+    rc = usbDsRegisterInterface(&interface->interface);
     if (R_FAILED(rc)) return rc;
+    
+    interface_descriptor.bInterfaceNumber = interface->interface->interface_index;
+    endpoint_descriptor_in.bEndpointAddress += interface_descriptor.bInterfaceNumber + 1;
+    endpoint_descriptor_out.bEndpointAddress += interface_descriptor.bInterfaceNumber + 1;
     
     // Full Speed Config
     rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Full, &interface_descriptor, USB_DT_INTERFACE_SIZE);
@@ -309,25 +321,25 @@ static Result _usbCommsInterfaceInit5x(u32 intf_ind)
 }
 
 
-static Result _usbCommsInterfaceInit1x(u32 intf_ind)
+static Result _usbCommsInterfaceInit1x(u32 intf_ind, const UsbCommsInterfaceInfo *info)
 {
     Result rc = 0;
-    u32 ep_num = intf_ind + 1;
     usbCommsInterface *interface = &g_usbCommsInterfaces[intf_ind];
 
     struct usb_interface_descriptor interface_descriptor = {
         .bLength = USB_DT_INTERFACE_SIZE,
         .bDescriptorType = USB_DT_INTERFACE,
         .bInterfaceNumber = intf_ind,
-        .bInterfaceClass = 0xFF,
-        .bInterfaceSubClass = 0xFF,
-        .bInterfaceProtocol = 0xFF,
+        .bInterfaceClass = USB_CLASS_VENDOR_SPEC,
+        .bInterfaceSubClass = USB_CLASS_VENDOR_SPEC,
+        .bInterfaceProtocol = USB_CLASS_VENDOR_SPEC,
     };
+    _usbCommsUpdateInterfaceDescriptor(&interface_descriptor, info);
 
     struct usb_endpoint_descriptor endpoint_descriptor_in = {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = USB_ENDPOINT_IN + ep_num,
+        .bEndpointAddress = USB_ENDPOINT_IN,
         .bmAttributes = USB_TRANSFER_TYPE_BULK,
         .wMaxPacketSize = 0x200,
     };
@@ -335,7 +347,7 @@ static Result _usbCommsInterfaceInit1x(u32 intf_ind)
     struct usb_endpoint_descriptor endpoint_descriptor_out = {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = USB_ENDPOINT_OUT + ep_num,
+        .bEndpointAddress = USB_ENDPOINT_OUT,
         .bmAttributes = USB_TRANSFER_TYPE_BULK,
         .wMaxPacketSize = 0x200,
     };

@@ -43,9 +43,9 @@ Result usbDsInitialize(void)
     // GetStateChangeEvent
     if (R_SUCCEEDED(rc))
         rc = _usbDsGetEvent(&g_usbDsSrv, &g_usbDsStateChangeEvent, 3);
-    
+
     // Result code doesn't matter here, users can call themselves later, too. This prevents foot shooting.
-    if (R_SUCCEEDED(rc))
+    if (R_SUCCEEDED(rc) && kernelAbove500())
         usbDsClearDeviceData();
 
     if (R_FAILED(rc))
@@ -87,24 +87,6 @@ static UsbDsInterface* _usbDsTryAllocateInterface(u32 num) {
     ptr->initialized = true;
     ptr->interface_index = num;
     return ptr;
-}
-
-static UsbDsInterface* _usbDsAllocateInterface(void)
-{
-    u32 pos;
-    UsbDsInterface* ptr = NULL;
-
-    for(pos=0; pos<TOTAL_INTERFACES; pos++)
-    {
-        ptr = &g_usbDsInterfaceTable[pos];
-        if(ptr->initialized)continue;
-        memset(ptr, 0, sizeof(UsbDsInterface));
-        ptr->initialized = true;
-        ptr->interface_index = pos;
-        return ptr;
-    }
-
-    return NULL;
 }
 
 static UsbDsEndpoint* _usbDsAllocateEndpoint(UsbDsInterface* interface)
@@ -541,13 +523,30 @@ static Result _usbDsGetReport(Service* srv, u64 cmd_id, UsbDsReportData *out) {
     return rc;
 }
 
-Result usbDsGetDsInterface(UsbDsInterface** interface, struct usb_interface_descriptor* descriptor, const char *interface_name)
-{
-    UsbDsInterface* ptr = _usbDsAllocateInterface();
-    if(ptr == NULL)
+Result usbDsGetDsInterface(UsbDsInterface** interface, struct usb_interface_descriptor* _descriptor, const char *interface_name)
+{    
+    struct usb_interface_descriptor send_desc = *_descriptor;
+    Service srv;
+    Result rc;
+    for (unsigned int i = 0; i < TOTAL_INTERFACES; i++) {
+        send_desc.bInterfaceNumber = i;
+        rc = _usbDsGetSession(&g_usbDsSrv, &srv, 2, &send_desc, USB_DT_INTERFACE_SIZE, interface_name, strlen(interface_name)+1);
+        if (R_SUCCEEDED(rc)) {
+            break;
+        }
+    }
+    
+    if (R_FAILED(rc)) {
+        return rc;
+    }
+    
+    UsbDsInterface* ptr = _usbDsTryAllocateInterface(send_desc.bInterfaceNumber);
+    if(ptr == NULL) {
+        serviceClose(&srv);
         return MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
-
-    Result rc = _usbDsGetSession(&g_usbDsSrv, &ptr->h, 2, descriptor, sizeof(struct usb_interface_descriptor), interface_name, strlen(interface_name)+1);
+    }
+    
+    ptr->h = srv;
 
     // GetSetupEvent
     if (R_SUCCEEDED(rc))
@@ -568,7 +567,79 @@ Result usbDsGetDsInterface(UsbDsInterface** interface, struct usb_interface_desc
     return rc;
 }
 
-Result usbDsRegisterInterface(UsbDsInterface** interface, u32 intf_num)
+Result usbDsRegisterInterface(UsbDsInterface** interface)
+{
+    Service srv;
+    Result rc;
+    u32 intf_num;
+    for (intf_num = 0; intf_num < TOTAL_INTERFACES; intf_num++) {
+        IpcCommand c;
+        ipcInitialize(&c);
+
+        struct {
+            u64 magic;
+            u64 cmd_id;
+            u32 intf_num;
+        } *raw;
+
+        raw = ipcPrepareHeader(&c, sizeof(*raw));
+
+        raw->magic = SFCI_MAGIC;
+        raw->cmd_id = 2;
+        raw->intf_num = intf_num;
+
+        rc = serviceIpcDispatch(&g_usbDsSrv);
+
+        if (R_SUCCEEDED(rc)) {
+            IpcParsedCommand r;
+            ipcParse(&r);
+
+            struct {
+                u64 magic;
+                u64 result;
+            } *resp = r.Raw;
+
+            rc = resp->result;
+
+            if (R_SUCCEEDED(rc)) {
+                serviceCreate(&srv, r.Handles[0]);
+                break;
+            }
+        }
+    }
+    
+    if (R_FAILED(rc)) {
+        return rc;
+    }
+    
+    UsbDsInterface* ptr = _usbDsTryAllocateInterface(intf_num);
+    if(ptr == NULL) {
+        serviceClose(&srv);
+        return MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
+    }
+    
+    ptr->h = srv;
+
+    // GetSetupEvent
+    if (R_SUCCEEDED(rc))
+        rc = _usbDsGetEvent(&ptr->h, &ptr->SetupEvent, 1);
+    // GetCtrlInCompletionEvent
+    if (R_SUCCEEDED(rc))
+        rc = _usbDsGetEvent(&ptr->h, &ptr->CtrlInCompletionEvent, 7);
+    // GetCtrlOutCompletionEvent
+    if (R_SUCCEEDED(rc))
+        rc = _usbDsGetEvent(&ptr->h, &ptr->CtrlOutCompletionEvent, 9);
+
+    if (R_FAILED(rc))
+        _usbDsFreeInterface(ptr);
+
+    if (R_SUCCEEDED(rc))
+        *interface = ptr;
+
+    return rc;
+}
+
+Result usbDsRegisterInterfaceEx(UsbDsInterface** interface, u32 intf_num)
 {
     UsbDsInterface* ptr = _usbDsTryAllocateInterface(intf_num);
     if(ptr == NULL)

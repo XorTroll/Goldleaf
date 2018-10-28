@@ -34,6 +34,11 @@ namespace tin::ui
 
     NetworkInstallMode::~NetworkInstallMode()
     {
+		CloseServerSocket();
+    }
+
+    void NetworkInstallMode::CloseServerSocket()
+    {
         if (m_serverSocket != 0)
         {
             close(m_serverSocket);
@@ -207,6 +212,8 @@ namespace tin::ui
             }
             else
                 manager.Unwind(1);
+            // Close socket
+            //this->CloseServerSocket();
         }
         catch (std::runtime_error& e)
         {

@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-/// usb:ds Switch-as-device<>host USB comms, see also here: http://switchbrew.org/index.php?title=USB_services
+/// usb:ds Switch-as-device<>host USB comms, see also here: https://switchbrew.org/wiki/USB_services
 
 /// Names starting with "libusb" were changed to "usb" to avoid collision with actual libusb if it's ever used.
 
@@ -29,8 +29,8 @@ extern "C" {
 /// Imported from libusb, with some adjustments.
 struct usb_endpoint_descriptor {
     uint8_t  bLength;
-    uint8_t  bDescriptorType; /// Must match USB_DT_ENDPOINT.
-    uint8_t  bEndpointAddress; /// Should be one of the usb_endpoint_direction values, the endpoint-number is automatically allocated.
+    uint8_t  bDescriptorType; ///< Must match USB_DT_ENDPOINT.
+    uint8_t  bEndpointAddress; ///< Should be one of the usb_endpoint_direction values, the endpoint-number is automatically allocated.
     uint8_t  bmAttributes;
     uint16_t wMaxPacketSize;
     uint8_t  bInterval;
@@ -39,20 +39,20 @@ struct usb_endpoint_descriptor {
 /// Imported from libusb, with some adjustments.
 struct usb_interface_descriptor {
     uint8_t  bLength;
-    uint8_t  bDescriptorType; /// Must match USB_DT_INTERFACE.
-    uint8_t  bInterfaceNumber; /// See also USBDS_DEFAULT_InterfaceNumber.
-    uint8_t  bAlternateSetting; /// Must match 0.
+    uint8_t  bDescriptorType; ///< Must match USB_DT_INTERFACE.
+    uint8_t  bInterfaceNumber; ///< See also USBDS_DEFAULT_InterfaceNumber.
+    uint8_t  bAlternateSetting; ///< Must match 0.
     uint8_t  bNumEndpoints;
     uint8_t  bInterfaceClass;
     uint8_t  bInterfaceSubClass;
     uint8_t  bInterfaceProtocol;
-    uint8_t  iInterface; /// Ignored.
+    uint8_t  iInterface; ///< Ignored.
 };
 
 /// Imported from libusb, with some adjustments.
 struct usb_device_descriptor {
     uint8_t  bLength;
-    uint8_t  bDescriptorType; /// Must match USB_DT_Device.
+    uint8_t  bDescriptorType; ///< Must match USB_DT_Device.
     uint16_t bcdUSB;
     uint8_t  bDeviceClass;
     uint8_t  bDeviceSubClass;
@@ -70,7 +70,7 @@ struct usb_device_descriptor {
 /// Imported from libusb, with some adjustments.
 struct usb_ss_endpoint_companion_descriptor {
     uint8_t  bLength;
-    uint8_t  bDescriptorType; /// Must match USB_DT_SS_ENDPOINT_COMPANION.
+    uint8_t  bDescriptorType; ///< Must match USB_DT_SS_ENDPOINT_COMPANION.
     uint8_t  bMaxBurst;
     uint8_t  bmAttributes;
     uint16_t wBytesPerInterval;
@@ -79,13 +79,13 @@ struct usb_ss_endpoint_companion_descriptor {
 /// Imported from libusb, with some adjustments.
 struct usb_string_descriptor {
     uint8_t bLength;
-    uint8_t bDescriptorType; /// Must match USB_DT_STRING.
+    uint8_t bDescriptorType; ///< Must match USB_DT_STRING.
     uint16_t wData[0x40];
 };
 
 typedef struct {
-    u16 idVendor; /// VID
-    u16 idProduct; /// PID
+    u16 idVendor; ///< VID
+    u16 idProduct; ///< PID
     u16 bcdDevice;
     char Manufacturer[0x20];
     char Product[0x20];
@@ -93,7 +93,7 @@ typedef struct {
 } UsbDsDeviceInfo;
 
 typedef struct {
-    u32 id; /// urbId from post-buffer cmds
+    u32 id; ///< urbId from post-buffer cmds
     u32 requestedSize;
     u32 transferredSize;
     u32 urb_status;
@@ -125,9 +125,9 @@ typedef enum {
 } UsbComplexId;
 
 typedef enum {
-    UsbDeviceSpeed_Full = 0x2,
-    UsbDeviceSpeed_High = 0x3,
-    UsbDeviceSpeed_Super = 0x4,
+    UsbDeviceSpeed_Full = 0x2,  ///< USB 1.1 Full Speed
+    UsbDeviceSpeed_High = 0x3,  ///< USB 2.0 High Speed
+    UsbDeviceSpeed_Super = 0x4, ///< USB 3.0 Super Speed
 } UsbDeviceSpeed;
 
 /// Imported from libusb, with changed names.
@@ -210,9 +210,6 @@ Result usbDsWaitReady(u64 timeout);
 Result usbDsParseReportData(UsbDsReportData *reportdata, u32 urbId, u32 *requestedSize, u32 *transferredSize);
 
 /// IDsService
-// Do not provide API access to these functions, as they're handled by usbDsInitialize().
-// Result usbDsBindDevice(UsbComplexId complexId);
-// Result usbDsBindClientProcess(Handle prochandle);
 Event* usbDsGetStateChangeEvent(void);
 Result usbDsGetState(u32* out);
 
@@ -221,7 +218,8 @@ Result usbDsGetDsInterface(UsbDsInterface** out, struct usb_interface_descriptor
 Result usbDsSetVidPidBcd(const UsbDsDeviceInfo* deviceinfo);
 
 /// Added in 5.0.0
-Result usbDsRegisterInterface(UsbDsInterface** out, u32 intf_num);
+Result usbDsRegisterInterface(UsbDsInterface** out);
+Result usbDsRegisterInterfaceEx(UsbDsInterface** out, u32 intf_num);
 Result usbDsClearDeviceData(void);
 Result usbDsAddUsbStringDescriptor(u8* out_index, const char* string);
 Result usbDsAddUsbLanguageStringDescriptor(u8* out_index, const u16* lang_ids, u16 num_langs);
@@ -258,7 +256,7 @@ Result usbDsEndpoint_Cancel(UsbDsEndpoint* endpoint);
 Result usbDsEndpoint_PostBufferAsync(UsbDsEndpoint* endpoint, void* buffer, size_t size, u32* urbId);
 Result usbDsEndpoint_GetReportData(UsbDsEndpoint* endpoint, UsbDsReportData* out);
 Result usbDsEndpoint_StallCtrl(UsbDsEndpoint* endpoint);
-Result usbDsEndpoint_SetZlt(UsbDsEndpoint* endpoint, bool zlt);
+Result usbDsEndpoint_SetZlt(UsbDsEndpoint* endpoint, bool zlt); // Sets Zero Length Termination for endpoint
 
 #ifdef __cplusplus
 }
