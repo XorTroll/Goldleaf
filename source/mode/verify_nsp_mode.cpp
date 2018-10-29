@@ -5,6 +5,8 @@
 #include "ui/framework/console_options_view.hpp"
 #include "util/file_util.hpp"
 
+const uint8_t MAX_NSP_ENTRY = 37;
+
 namespace tin::ui
 {
     VerifyNSPMode::VerifyNSPMode() :
@@ -22,7 +24,7 @@ namespace tin::ui
 
         auto nspList = tin::util::GetNSPList();
 
-        if (nspList.size() > 0)
+        if (nspList.size() > 0 && nspList.size() <= MAX_NSP_ENTRY)
         {
             for (unsigned int i = 0; i < nspList.size(); i++)
             {
@@ -31,6 +33,9 @@ namespace tin::ui
         }
 
         manager.PushView(std::move(view));
+
+		if (nspList.size() > MAX_NSP_ENTRY)
+			printf("Error : Cannot list more than %d .nsp in the same folder !\nPress B to return\n", MAX_NSP_ENTRY);
     }
 
     void VerifyNSPMode::OnNSPSelected()

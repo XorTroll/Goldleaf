@@ -10,6 +10,8 @@
 #include "util/graphics_util.hpp"
 #include "error.hpp"
 
+const uint8_t MAX_NSP_ENTRY = 37;
+
 namespace tin::ui
 {
     InstallNSPMode::InstallNSPMode() :
@@ -27,7 +29,7 @@ namespace tin::ui
 
         auto nspList = tin::util::GetNSPList();
 
-        if (nspList.size() > 0)
+        if (nspList.size() > 0 && nspList.size() <= MAX_NSP_ENTRY)
         {
             view->AddEntry("Install All", ConsoleEntrySelectType::SELECT, std::bind(&InstallNSPMode::OnNSPSelected, this));
 
@@ -38,6 +40,9 @@ namespace tin::ui
         }
 
         manager.PushView(std::move(view));
+
+		if (nspList.size() > MAX_NSP_ENTRY)
+			printf("Error : Cannot list more than %d .nsp in the same folder !\nPress B to return\n", MAX_NSP_ENTRY);
     }
 
     void InstallNSPMode::OnNSPSelected()

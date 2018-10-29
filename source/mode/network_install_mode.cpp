@@ -26,6 +26,7 @@ namespace tin::ui
     const int REMOTE_INSTALL_PORT = 2000;
     static int m_serverSocket = 0;
     static int m_clientSocket = 0;
+    const uint8_t MAX_NSP_ENTRY = 37;
 
     NetworkInstallMode::NetworkInstallMode() :
         IMode("Network Install NSP")
@@ -198,7 +199,9 @@ namespace tin::ui
                 }
             }
 
-            if (!canceled)
+			if (urls.size() > MAX_NSP_ENTRY)
+				printf("Error : Cannot list more than %d .nsp in the same folder !\nPress B to return\n", MAX_NSP_ENTRY);
+            else if (!canceled)
             {
                 auto view = std::make_unique<tin::ui::ConsoleCheckboxView>(std::bind(&NetworkInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
                 view->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
@@ -213,7 +216,7 @@ namespace tin::ui
             else
                 manager.Unwind(1);
             // Close socket
-            //this->CloseServerSocket();
+            this->CloseServerSocket();
         }
         catch (std::runtime_error& e)
         {

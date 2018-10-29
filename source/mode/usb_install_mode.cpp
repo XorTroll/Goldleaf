@@ -25,6 +25,8 @@ extern "C"
 #include "debug.h"
 #include "error.hpp"
 
+const uint8_t MAX_NSP_ENTRY = 37;
+
 namespace tin::ui
 {
     USBInstallMode::USBInstallMode() :
@@ -109,17 +111,21 @@ namespace tin::ui
             if (segment.compare(segment.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
                 nspNames.push_back(segment);
         }
-
-        auto selectView = std::make_unique<tin::ui::ConsoleCheckboxView>(std::bind(&USBInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
-        selectView->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
-        selectView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
-        
-        for (auto& nspName : nspNames)
-        {
-            LOG_DEBUG("NSP Name: %s\n", nspName.c_str());
-            selectView->AddEntry(nspName, tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
-        }
-        manager.PushView(std::move(selectView));
+		if (nspNames.size() > MAX_NSP_ENTRY)
+			printf("Error : Cannot list more than %d .nsp in the same folder !\nPress B to return\n", MAX_NSP_ENTRY);
+		else
+		{
+            auto selectView = std::make_unique<tin::ui::ConsoleCheckboxView>(std::bind(&USBInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
+            selectView->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
+            selectView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
+            
+            for (auto& nspName : nspNames)
+            {
+                LOG_DEBUG("NSP Name: %s\n", nspName.c_str());
+                selectView->AddEntry(nspName, tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
+            }
+            manager.PushView(std::move(selectView));
+		}
     }
 
     void USBInstallMode::OnNSPSelected()
