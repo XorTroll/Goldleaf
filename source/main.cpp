@@ -8,7 +8,6 @@
 #include <switch.h>
 
 #include "nx/ipc/tin_ipc.h"
-#include "nx/setsys.hpp"
 
 #include "mode/mode.hpp"
 #include "mode/install_extracted_mode.hpp"
@@ -47,24 +46,18 @@ u32 g_framebufWidth;
 u32 g_framebufHeight;
 
 bool g_shouldExit = false;
-int firmwareMajorVersion;
+u8 firmwareMajorVersion;
 
 // Below function copied from SwitchIdent (https://github.com/joel16/SwitchIdent)
 void getFirmwareVersion() {
-    Service setsys_service;
     if (R_FAILED(setsysInitialize()))
-		fatalSimple(0xBEEB);
-
-	if (R_FAILED(smGetService(&setsys_service, "set:sys")))
-        fatalSimple(0xBEEC);
+        fatalSimple(0xBEEB);
 
     SetSysFirmwareVersion ver;
-	if (R_FAILED(setsysGetFirmwareVersion(&setsys_service, &ver)))
-	 	fatalSimple(0xBEED);
+    if (R_FAILED(setsysGetFirmwareVersion(&ver)))
+        fatalSimple(0xBEEC);
 
-    firmwareMajorVersion = (int) ver.version_long[28] - '0';
-
-    serviceClose(&setsys_service);
+    firmwareMajorVersion = ver.major;
     setsysExit();
 }
 
