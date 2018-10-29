@@ -67,7 +67,7 @@ namespace tin::ui
         while (true)
         {
             hidScanInput();
-            
+
             if (hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)
                 break;
 
@@ -82,7 +82,7 @@ namespace tin::ui
         }
 
         printf("USB is ready. Waiting for header...\n");
-        
+
         gfxFlushBuffers();
         gfxSwapBuffers();
 
@@ -111,21 +111,21 @@ namespace tin::ui
             if (segment.compare(segment.size() - nspExt.size(), nspExt.size(), nspExt) == 0)
                 nspNames.push_back(segment);
         }
-		if (nspNames.size() > MAX_NSP_ENTRY)
-			printf("Error : Cannot list more than %d .nsp in the same folder !\nPress B to return\n", MAX_NSP_ENTRY);
-		else
-		{
+        if (nspNames.size() > MAX_NSP_ENTRY)
+            printf("Error : Cannot list more than %d .nsp in the same folder !\nPress B to return\n", MAX_NSP_ENTRY);
+        else
+        {
             auto selectView = std::make_unique<tin::ui::ConsoleCheckboxView>(std::bind(&USBInstallMode::OnNSPSelected, this), DEFAULT_TITLE, 2);
             selectView->AddEntry("Select NSP to install", tin::ui::ConsoleEntrySelectType::HEADING, nullptr);
             selectView->AddEntry("", tin::ui::ConsoleEntrySelectType::NONE, nullptr);
-            
+
             for (auto& nspName : nspNames)
             {
                 LOG_DEBUG("NSP Name: %s\n", nspName.c_str());
                 selectView->AddEntry(nspName, tin::ui::ConsoleEntrySelectType::SELECT, nullptr);
             }
             manager.PushView(std::move(selectView));
-		}
+        }
     }
 
     void USBInstallMode::OnNSPSelected()
@@ -202,7 +202,7 @@ namespace tin::ui
         // Push a blank view ready for installation
         auto view = std::make_unique<tin::ui::ConsoleView>(5);
         manager.PushView(std::move(view));
-                    
+
         for (auto& nspName : m_nspNames)
         {
             tin::install::nsp::USBNSP usbNSP(nspName);
