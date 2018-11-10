@@ -12,7 +12,11 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
+<<<<<<< HEAD
 # SOURCES is a list of directories containing Source code
+=======
+# SOURCES is a list of directories containing source code
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
@@ -30,6 +34,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
+<<<<<<< HEAD
 
 APP_TITLE   := Goldleaf - Nintendo Switch title manager homebrew
 APP_AUTHOR  := XorTroll
@@ -45,24 +50,57 @@ DATA        := Data
 INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
 EXEFS_SRC   := ExeFS
 ROMFS       := RomFS
+=======
+TARGET      := $(notdir $(CURDIR))
+BUILD       := build
+SOURCES     := source source/install source/ipc source/lib source/asset source/data source/ui source/ui/framework source/nx source/nx/ipc source/util source/mode
+DATA        := data
+INCLUDES    := include
+EXEFS_SRC   := exefs_src
+ROMFS       := romfs
+APP_TITLE   := Tinfoil
+APP_AUTHOR  := Adubbz
+APP_VERSION := 0.2.1
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections -fpermissive \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+=======
+# NOTE: I currently compile with
+# export NXLINK_DEBUG=1 && make && nxlink -a ip --server ./Tinfoil.nro
+# If changing from NXLINK_DEBUG=0 to 1, make sure to use make clean first.
+
+ifeq ($(NXLINK_DEBUG),1)
+DEFINES +=	-DNXLINK_DEBUG
+endif
+
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+
+CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+			$(ARCH) $(DEFINES) $(CFLAGS)
+
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 
 CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
+<<<<<<< HEAD
 LIBS	:=  -lnx
+=======
+LIBS	:= `freetype-config --libs` -lcurl -lz -lnx
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 
 
 
@@ -80,7 +118,11 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 export OUTPUT	:=	$(CURDIR)/Output/$(TARGET)
+=======
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -138,7 +180,11 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
+<<<<<<< HEAD
 	export NROFLAGS += --nacp=$(OUTPUT).nacp
+=======
+	export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 endif
 
 ifneq ($(APP_TITLEID),)
@@ -161,7 +207,11 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+<<<<<<< HEAD
 	@rm -fr $(BUILD) $(OUTPUT).pfs0 $(OUTPUT).nso $(OUTPUT).nro $(OUTPUT).nacp $(OUTPUT).elf
+=======
+	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+>>>>>>> 550df97279543b82143cbec4675242d58a6a893e
 
 
 #---------------------------------------------------------------------------------
