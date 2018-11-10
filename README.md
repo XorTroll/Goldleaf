@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Goldleaf - Nintendo Switch title manager homebrew (open-source)
 
 ### This is the project Tinfoil is going to become
