@@ -1,6 +1,6 @@
 # Tinfoil
 
-### [XorTroll] Get ready for new stuff! I'm already working on a new, experimental Tinfoil!
+### [XorTroll] This project is about to become Goldleaf
 
 A homebrew application for the Nintendo Switch used to manage titles.
 
