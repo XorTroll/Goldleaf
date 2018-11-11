@@ -12,7 +12,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
-# SOURCES is a list of directories containing Source code
+# SOURCES is a list of directories containing source code
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
@@ -30,39 +30,42 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-
-APP_TITLE   := Goldleaf - Nintendo Switch title manager homebrew
-APP_AUTHOR  := XorTroll
-APP_VERSION := 0.1 [beta]
-APP_TITLEID	:= 010032A5CF120000
-
-TARGET      := Goldleaf
-ICON		:= Icon.jpg
-
-BUILD       := Build
-SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/horizon
-DATA        := Data
-INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
-EXEFS_SRC   := ExeFS
-ROMFS       := RomFS
+TARGET      := $(notdir $(CURDIR))
+BUILD       := build
+SOURCES     := source source/install source/ipc source/lib source/asset source/data source/ui source/ui/framework source/nx source/nx/ipc source/util source/mode
+DATA        := data
+INCLUDES    := include
+EXEFS_SRC   := exefs_src
+ROMFS       := romfs
+APP_TITLE   := Tinfoil
+APP_AUTHOR  := Adubbz
+APP_VERSION := 0.2.1
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
 
+# NOTE: I currently compile with
+# export NXLINK_DEBUG=1 && make && nxlink -a ip --server ./Tinfoil.nro
+# If changing from NXLINK_DEBUG=0 to 1, make sure to use make clean first.
+
+ifeq ($(NXLINK_DEBUG),1)
+DEFINES +=	-DNXLINK_DEBUG
+endif
+
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections -fpermissive \
+CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
 
 CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lnx
+LIBS	:= `freetype-config --libs` -lcurl -lz -lnx
 
 
 
@@ -80,7 +83,7 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/Output/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -138,7 +141,7 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(OUTPUT).nacp
+	export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
 endif
 
 ifneq ($(APP_TITLEID),)
@@ -161,7 +164,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(OUTPUT).pfs0 $(OUTPUT).nso $(OUTPUT).nro $(OUTPUT).nacp $(OUTPUT).elf
+	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
 
 #---------------------------------------------------------------------------------
