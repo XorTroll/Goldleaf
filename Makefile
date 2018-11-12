@@ -44,7 +44,6 @@ SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/
 DATA        := Data
 INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
 EXEFS_SRC   := ExeFS
-ROMFS       := RomFS
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -80,7 +79,7 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/Output/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
