@@ -44,7 +44,9 @@ SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/
 DATA        := Data
 INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
 EXEFS_SRC   := ExeFS
-ROMFS       := RomFS
+
+# - Goldleaf WILL have RomFS very likely, but it's not currently added, so commenting this
+# ROMFS       := RomFS
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -155,7 +157,7 @@ endif
 all: $(BUILD)
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
+	@[ -d $@ ] || mkdir -p $@ $(CURDIR)/Output
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------

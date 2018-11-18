@@ -9,6 +9,16 @@
 */
 
 #pragma once
-#include <gleaf/horizon/Misc.hpp>
-#include <gleaf/horizon/NCAId.hpp>
-#include <gleaf/horizon/Title.hpp>
+#include <switch.h>
+#include <string>
+#include <ctime>
+#include <cstdio>
+
+namespace gleaf::horizon
+{
+    u32 GetBatteryLevel();
+    bool IsCharging();
+    std::string GetOpenedUserName();
+    bool IsUserSelected();
+    std::string GetCurrentTime();
+}
