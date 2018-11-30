@@ -1,4 +1,5 @@
 #include <gleaf/horizon/Misc.hpp>
+#include <curl/curl.h>
 
 namespace gleaf::horizon
 {
@@ -79,5 +80,49 @@ namespace gleaf::horizon
         char timestr[9];
         sprintf(timestr, "%02d:%02d:%02d", h, min, s);
         return std::string(timestr);
+    }
+
+    bool HasInternetConnection()
+    {
+        CURLcode res = CURLE_OK;
+        CURL *curl = curl_easy_init();
+        if(curl)
+        {
+            curl_easy_setopt(curl, CURLOPT_URL, "http://google.es");
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [&](void *ptr, size_t size, size_t nmemb, FILE *stream)
+            {
+                size_t written = fwrite(ptr, size, nmemb, stream);
+                return written;
+            });
+            res = curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+        }
+        else return false;
+        return (res == CURLE_OK);
+    }
+
+    FwVersion GetFwVersion()
+    {
+        FwVersion pfw = { 0, 0, 0, "" };
+        Result rc = setsysInitialize();
+        if(rc != 0) return pfw;
+        SetSysFirmwareVersion fw;
+        rc = setsysGetFirmwareVersion(&fw);
+        if(rc != 0)
+        {
+            setsysExit();
+            return pfw;
+        }
+        pfw.Major = fw.major;
+        pfw.Minor = fw.minor;
+        pfw.Micro = fw.micro;
+        pfw.DisplayName = std::string(fw.display_title);
+        setsysExit();
+        return pfw;
+    }
+
+    std::string FwVersion::ToString()
+    {
+        return (std::to_string(this->Major) + "." + std::to_string(this->Minor) + "." + std::to_string(this->Micro));
     }
 }

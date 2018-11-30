@@ -1,14 +1,14 @@
 #include <gleaf/ncm/NCM.hpp>
 
-Service ncmsrv;
-u64 ncmcnt = 0;
+static Service ncmsrv;
+static u64 ncmcnt;
 
 namespace gleaf::ncm
 {
     Result Initialize()
     {
-        atomicIncrement64(&ncmcnt);
         Result rc = 0;
+        atomicIncrement64(&ncmcnt);
         if(!serviceIsActive(&ncmsrv))
         {
             rc = smGetService(&ncmsrv, "ncm");

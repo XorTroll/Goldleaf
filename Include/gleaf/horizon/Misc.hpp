@@ -16,9 +16,20 @@
 
 namespace gleaf::horizon
 {
+    struct FwVersion
+    {
+        u8 Major;
+        u8 Minor;
+        u8 Micro;
+        std::string DisplayName;
+        std::string ToString();
+    };
+
     u32 GetBatteryLevel();
     bool IsCharging();
     std::string GetOpenedUserName();
     bool IsUserSelected();
     std::string GetCurrentTime();
+    bool HasInternetConnection();
+    FwVersion GetFwVersion();
 }

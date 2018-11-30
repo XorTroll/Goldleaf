@@ -45,8 +45,8 @@ DATA        := Data
 INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
 EXEFS_SRC   := ExeFS
 
-# - Goldleaf WILL have RomFS very likely, but it's not currently added, so commenting this
-# ROMFS       := RomFS
+# - Goldleaf WILL have RomFs, but it's not currently added, so commenting this
+# ROMFS       := RomFs
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -64,7 +64,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lnx
+LIBS	:=  -lcurl -lz -lnx
 
 
 

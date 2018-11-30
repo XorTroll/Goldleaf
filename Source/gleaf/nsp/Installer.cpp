@@ -4,7 +4,7 @@ namespace gleaf::nsp
 {
     Installer::Installer(Destination Location, std::string Input, bool IgnoreVersion)
     {
-        stid = FsStorageId_SdCard;
+        stid = ((Location == Destination::NAND) ? FsStorageId_NandUser : FsStorageId_SdCard);
         input = Input;
         Input.reserve(FS_MAX_PATH);
         Result rc = fsOpenFileSystemWithId(&idfs, 0, FsFileSystemType_ApplicationPackage, Input.c_str());
@@ -53,7 +53,7 @@ namespace gleaf::nsp
 
     Installer::~Installer()
     {
-        fsFsClose(&idfs);
+        if(serviceIsActive(&idfs.s)) fsFsClose(&idfs);
     }
 
     void Installer::InitializeRecords()
