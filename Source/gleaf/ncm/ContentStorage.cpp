@@ -4,10 +4,8 @@ namespace gleaf::ncm
 {
     ContentStorage::ContentStorage(FsStorageId StorageId)
     {
-        NcmContentStorage st;
-        Result rc = ncmOpenContentStorage(StorageId, &st);
-        if(rc != 0) ThrowError("Failed to open content storage: " + std::to_string(rc));
-        this->storage = st;
+        Result rc = ncmOpenContentStorage(StorageId, &this->storage);
+        if(rc != 0) ThrowError("Failed to open content storage.");
     }
 
     ContentStorage::~ContentStorage()

@@ -1,21 +1,57 @@
 #include <gleaf/nsp/Installer.hpp>
+#include <sys/stat.h>
+#include <dirent.h>
 
 namespace gleaf::nsp
 {
+    bool InstallerResult::IsSuccess()
+    {
+        return R_SUCCEEDED(this->Error);
+    }
+
     Installer::Installer(Destination Location, std::string Input, bool IgnoreVersion)
     {
-        stid = ((Location == Destination::NAND) ? FsStorageId_NandUser : FsStorageId_SdCard);
-        input = Input;
+        switch(Location)
+        {
+            case Destination::NAND:
+                this->stid = FsStorageId_NandUser;
+                break;
+            case Destination::SdCard:
+                this->stid = FsStorageId_SdCard;
+                break;
+        }
+        this->icnmt = false;
+        this->tik = false;
+        this->irc = { 0, InstallerError::Success };
+        this->basetid = 0;
         Input.reserve(FS_MAX_PATH);
-        Result rc = fsOpenFileSystemWithId(&idfs, 0, FsFileSystemType_ApplicationPackage, Input.c_str());
-        if(rc == 0x236e02) ThrowError("Failed to read / open the NSP file.");
-        else if(rc != 0) ThrowError("Failed to open file system via NSP file: " + Input);
+        Result rc = fsOpenFileSystemWithId(&this->idfs, 0, FsFileSystemType_ApplicationPackage, Input.c_str());
+        if(rc == 0x236e02)
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::BadNSP;
+            this->Finalize();
+            return;
+        }
+        else if(rc != 0)
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::NSPOpen;
+            this->Finalize();
+            return;
+        }
         ByteBuffer cnmt;
-        std::string cnmtname = fs::SearchForFile(idfs, "", "cnmt.nca");
-        if(cnmtname == "") ThrowError("Error trying to find CNMT NCA.");
+        std::string cnmtname = fs::SearchForFile(this->idfs, "", "cnmt.nca");
+        if(cnmtname == "")
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::BadCNMTNCA;
+            this->Finalize();
+            return;
+        }
         FsFile cnmtfile;
         cnmtname.reserve(FS_MAX_PATH);
-        fsFsOpenFile(&idfs, cnmtname.c_str(), FS_OPEN_READ, &cnmtfile);
+        fsFsOpenFile(&this->idfs, cnmtname.c_str(), FS_OPEN_READ, &cnmtfile);
         u64 cnmtsize = 0;
         fsFileGetSize(&cnmtfile, &cnmtsize);
         std::string cnmtabs = Input + "/" + cnmtname;
@@ -27,36 +63,91 @@ namespace gleaf::nsp
         FsFileSystem cnmtfs;
         cnmtabs.reserve(FS_MAX_PATH);
         rc = fsOpenFileSystemWithId(&cnmtfs, 0, FsFileSystemType_ContentMeta, cnmtabs.c_str());
-        if(rc != 0) ThrowError("Error opening CNMT NCA file system.");
+        if(rc != 0)
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::CNMTMCAOpen;
+            this->Finalize();
+            return;
+        }
         std::string fcnmtname = fs::SearchForFile(cnmtfs, "", "cnmt");
-        if(fcnmtname == "") ThrowError("CNMT file not found.");
+        if(fcnmtname == "")
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::BadCNMT;
+            this->Finalize();
+            return;
+        }
         FsFile fcnmtfile;
         fcnmtname.reserve(FS_MAX_PATH);
         rc = fsFsOpenFile(&cnmtfs, ("/" + fcnmtname).c_str(), FS_OPEN_READ, &fcnmtfile);
-        if(rc != 0) ThrowError("Error opening CNMT file.");
+        if(rc != 0)
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::CNMTOpen;
+            this->Finalize();
+        }
         u64 fcnmtsize = 0;
-        rc = fsFileGetSize(&fcnmtfile, &fcnmtsize);
-        if(rc != 0) ThrowError("Error getting size of CNMT file.");
+        fsFileGetSize(&fcnmtfile, &fcnmtsize);
         ByteBuffer fcnmt;
         fcnmt.Resize(fcnmtsize);
         size_t rout = 0;
         fsFileRead(&fcnmtfile, 0, fcnmt.GetData(), fcnmt.GetSize(), &rout);
         cmeta = ncm::ContentMeta(fcnmt.GetData(), fcnmt.GetSize());
         ncm::ContentStorage cnmts(stid);
-        if(!cnmts.Has(record.NCAId)) ncas.push_back(record);
-        else { /* CNMT already installed */ }
+        if(!cnmts.Has(record.NCAId)) this->ncas.push_back(record);
+        else this->icnmt = true;
         cmeta.GetInstallContentMeta(cnmtbuf, record, IgnoreVersion);
-        for(auto &record : cmeta.GetContentRecords()) ncas.push_back(record);
+        for(auto &record : cmeta.GetContentRecords())
+        {
+            this->ncas.push_back(record);
+            if(record.Type == ncm::ContentType::Control)
+            {
+                std::string ncaname = Input + "/" + horizon::GetStringFromNCAId(record.NCAId) + ".nca";
+                ncaname.reserve(FS_MAX_PATH);
+                FsFileSystem controlfs;
+                rc = fsOpenFileSystemWithId(&controlfs, cmeta.GetContentMetaKey().titleId, FsFileSystemType_ContentControl, ncaname.c_str());
+                if(rc != 0) continue;
+                fsdevMountDevice("controlfs", controlfs);
+                DIR *d = opendir("controlfs:/");
+                dirent *dent;
+                std::string icon;
+                while(true)
+                {
+                    dent = readdir(d);
+                    if(dent == NULL) break;
+                    std::string fle = std::string(dent->d_name);
+                    if(fle.substr(fle.length() - 3) == "dat")
+                    {
+                        icon = "controlfs:/" + fle;
+                        break;
+                    }
+                }
+                closedir(d);
+                std::ifstream dat(icon);
+                this->icn = ("sdmc:/switch/.gleaf/meta/" + horizon::GetStringFromNCAId(record.NCAId) + ".jpg");
+                remove(this->icn.c_str());
+                std::ofstream out(this->icn);
+                out << dat.rdbuf();
+                out.close();
+                dat.close();
+                FILE *f = fopen("controlfs:/control.nacp", "rb");
+                this->nacps = (NacpStruct*)malloc(sizeof(NacpStruct));
+                fread(this->nacps, sizeof(NacpStruct), 1, f);
+                fclose(f);
+                fsdevUnmountDevice("controlfs");
+            }
+        }
         fsFileClose(&fcnmtfile);
         fsFsClose(&cnmtfs);
     }
 
     Installer::~Installer()
     {
-        if(serviceIsActive(&idfs.s)) fsFsClose(&idfs);
+        if(serviceIsActive(&this->idfs.s)) fsFsClose(&this->idfs);
     }
 
-    void Installer::InitializeRecords()
+    InstallerResult Installer::ProcessRecords()
     {
         Result rc = 0;
         NcmContentMetaDatabase metadb;
@@ -64,27 +155,39 @@ namespace gleaf::nsp
         rc = ncmOpenContentMetaDatabase(stid, &metadb);
         if(rc != 0)
         {
-            ThrowError("Error opening meta database.");
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::MetaDatabaseOpen;
             serviceClose(&metadb.s);
+            return this->irc;
         }
         rc = ncmContentMetaDatabaseSet(&metadb, &metakey, cnmtbuf.GetSize(), (NcmContentMetaRecordsHeader*)cnmtbuf.GetData());
         if(rc != 0)
         {
-            ThrowError("Error setting content records");
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::MetaDatabaseSet;
             serviceClose(&metadb.s);
+            return this->irc;
         }
         rc = ncmContentMetaDatabaseCommit(&metadb);
         if(rc != 0)
         {
-            ThrowError("Error committing content records.");
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::MetaDatabaseCommit;
             serviceClose(&metadb.s);
+            return this->irc;
         }
         std::vector<ns::ContentStorageRecord> records;
         basetid = horizon::GetBaseApplicationId(metakey.titleId, static_cast<ncm::ContentMetaType>(metakey.type));
         std::tuple<Result, u32> nst = ns::CountApplicationContentMeta(basetid);
         rc = std::get<0>(nst);
         u32 cmetacount = std::get<1>(nst);
-        if((rc != 0) && (rc != 0x410)) ThrowError("Error counting application content meta.");
+        if((rc != 0) && (rc != 0x410))
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::ContentMetaCount;
+            this->Finalize();
+            return this->irc;
+        }
         if(cmetacount > 0)
         {
             records.resize(cmetacount);
@@ -92,10 +195,14 @@ namespace gleaf::nsp
             ns::ContentStorageRecord *csbuf = (ns::ContentStorageRecord*)malloc(csbufs);
             std::tuple<Result, u32, void*> listt = ns::ListApplicationRecordContentMeta(0, basetid, csbufs);
             rc = std::get<0>(listt);
-            u32 entread = std::get<1>(listt);
             csbuf = (ns::ContentStorageRecord*)std::get<2>(listt);
-            if(rc != 0) ThrowError("Failed to list application record content meta.");
-            if(entread != cmetacount) ThrowError("Mismatch between application record content meta counts.");
+            if(rc != 0)
+            {
+                this->irc.Error = rc;
+                this->irc.Type = InstallerError::ContentMetaList;
+                this->Finalize();
+                return this->irc;
+            }
             memcpy(records.data(), csbuf, csbufs);
         }
         ns::ContentStorageRecord csrecord;
@@ -104,11 +211,21 @@ namespace gleaf::nsp
         records.push_back(csrecord);
         rc = ns::DeleteApplicationRecord(basetid);
         rc = ns::PushApplicationRecord(basetid, 0x3, records.data(), records.size() * sizeof(ns::ContentStorageRecord));
-        if(rc != 0) ThrowError("Error pushing application records.");
-        std::string tikname = fs::SearchForFile(idfs, "", "tik");
+        if(rc != 0)
+        {
+            this->irc.Error = rc;
+            this->irc.Type = InstallerError::RecordPush;
+            return this->irc;
+        }
+        std::string tikname = fs::SearchForFile(this->idfs, "", "tik");
+        if(tikname == "")
+        {
+            this->tik = false;
+            return this->irc;
+        }
         FsFile tikfile;
         tikname.reserve(FS_MAX_PATH);
-        rc = fsFsOpenFile(&idfs, tikname.c_str(), FS_OPEN_READ, &tikfile);
+        rc = fsFsOpenFile(&this->idfs, tikname.c_str(), FS_OPEN_READ, &tikfile);
         if(rc == 0)
         {
             u64 tiksize = 0;
@@ -116,7 +233,7 @@ namespace gleaf::nsp
             if(rc != 0)
             {
                 fsFileClose(&tikfile);
-                return;
+                return this->irc;
             }
             auto tik = std::make_unique<u8[]>(tiksize);
             size_t otiksize = 0;
@@ -124,12 +241,18 @@ namespace gleaf::nsp
             if(rc != 0)
             {
                 fsFileClose(&tikfile);
-                return;
+                return this->irc;
             }
-            std::string certname = fs::SearchForFile(idfs, "", "cert");
+            std::string certname = fs::SearchForFile(this->idfs, "", "cert");
+            if(certname == "")
+            {
+                this->tik = false;
+                fsFileClose(&tikfile);
+                return this->irc;
+            }
             FsFile certfile;
             certname.reserve(FS_MAX_PATH);
-            rc = fsFsOpenFile(&idfs, certname.c_str(), FS_OPEN_READ, &certfile);
+            rc = fsFsOpenFile(&this->idfs, certname.c_str(), FS_OPEN_READ, &certfile);
             if(rc == 0)
             {
                 u64 certsize = 0;
@@ -137,7 +260,7 @@ namespace gleaf::nsp
                 if(rc != 0)
                 {
                     fsFileClose(&certfile);
-                    return;
+                    return this->irc;
                 }
                 auto cert = std::make_unique<u8[]>(certsize);
                 size_t ocertsize = 0;
@@ -145,25 +268,29 @@ namespace gleaf::nsp
                 if(rc != 0)
                 {
                     fsFileClose(&certfile);
-                    return;
+                    return this->irc;
                 }
                 rc = es::ImportTicket(tik.get(), tiksize, cert.get(), certsize);
+                this->tik = true;
+                fsFileClose(&tikfile);
+                fsFileClose(&certfile);
             }
         }
+        return this->irc;
     }
 
-    void Installer::InstallNCAs(std::function<void(ncm::ContentRecord, u32, u32, int)> OnChunk)
+    InstallerResult Installer::WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback)
     {
-        if(!ncas.empty()) for(u32 i = 0; i < ncas.size(); i++)
+        if(!this->ncas.empty()) for(u32 i = 0; i < this->ncas.size(); i++)
         {
-            NcmNcaId curid = ncas[i].NCAId;
+            NcmNcaId curid = this->ncas[i].NCAId;
             std::string ncaname = horizon::GetStringFromNCAId(curid);
             bool nca = false;
             bool cnmt = false;
             FsFile ncafile;
             std::string fncaname = "/" + ncaname + ".nca";
             fncaname.reserve(FS_MAX_PATH);
-            Result rc = fsFsOpenFile(&idfs, fncaname.c_str(), FS_OPEN_READ, &ncafile);
+            Result rc = fsFsOpenFile(&this->idfs, fncaname.c_str(), FS_OPEN_READ, &ncafile);
             if(rc == 0)
             {
                 nca = true;
@@ -173,29 +300,38 @@ namespace gleaf::nsp
             {
                 fncaname = "/" + ncaname + ".cnmt.nca";
                 fncaname.reserve(FS_MAX_PATH);
-                rc = fsFsOpenFile(&idfs, fncaname.c_str(), FS_OPEN_READ, &ncafile);
+                rc = fsFsOpenFile(&this->idfs, fncaname.c_str(), FS_OPEN_READ, &ncafile);
                 if(rc == 0)
                 {
                     ncaname += ".cnmt.nca";
                     cnmt = true;
                 }
             }
-            if(!nca) if(!cnmt) ThrowError("NCA file not found, or error opening it. NCA Id: " + ncaname);
+            if(!nca) if(!cnmt)
+            {
+                this->irc.Error = rc;
+                this->irc.Type = InstallerError::InstallBadNCA;
+                continue;
+            }
             ncm::ContentStorage cstorage(stid);
             cstorage.DeletePlaceHolder(curid);
             u64 ncasize = 0;
             rc = fsFileGetSize(&ncafile, &ncasize);
-            if(rc != 0) ThrowError("Error getting NCA file size.");
+            if(rc != 0)
+            {
+                this->irc.Error = rc;
+                this->irc.Type = InstallerError::InstallBadNCA;
+                return this->irc;
+            }
             u64 noff = 0;
             size_t reads = 0x100000;
             auto readbuf = std::make_unique<u8[]>(reads);
-            if(readbuf == NULL) ThrowError("Error allocating memory.");
             cstorage.CreatePlaceHolder(curid, curid, ncasize);
             float progress = 0.0f;
             while(noff < ncasize)
             {
                 progress = (float)noff / (float)ncasize;
-                OnChunk(ncas[i], i, ncas.size(), (int)(progress * 100.0));
+                Callback(this->ncas[i], i, this->ncas.size(), (int)(progress * 100.0));
                 if((noff + reads) >= ncasize) reads = (ncasize - noff);
                 size_t rout = 0;
                 fsFileRead(&ncafile, noff, readbuf.get(), reads, &rout);
@@ -206,11 +342,12 @@ namespace gleaf::nsp
             cstorage.DeletePlaceHolder(curid);
             fsFileClose(&ncafile);
         }
+        return this->irc;
     }
 
-    void Installer::Finish()
+    NacpStruct *Installer::GetNACP()
     {
-        fsFsClose(&idfs);
+        return this->nacps;
     }
 
     u64 Installer::GetApplicationId()
@@ -223,8 +360,39 @@ namespace gleaf::nsp
         return static_cast<ncm::ContentMetaType>(cmeta.GetContentMetaKey().type);
     }
 
-    std::vector<ncm::ContentRecord> Installer::GetNCAList()
+    std::vector<ncm::ContentRecord> Installer::GetRecords()
     {
-        return ncas;
+        return this->ncas;
+    }
+
+    std::string Installer::GetExportedIconPath()
+    {
+        return this->icn;
+    }
+
+    bool Installer::HasContent(ncm::ContentType Type)
+    {
+        bool has = false;
+        if(!this->ncas.empty()) for(u32 i = 0; i < this->ncas.size(); i++) if(this->ncas[i].Type == Type)
+        {
+            has = true;
+            break;
+        }
+        return has;
+    }
+
+    bool Installer::HasTicketAndCert()
+    {
+        return this->tik;
+    }
+
+    bool Installer::IsCNMTAlreadyInstalled()
+    {
+        return this->icnmt;
+    }
+
+    void Installer::Finalize()
+    {
+        fsFsClose(&this->idfs);
     }
 }

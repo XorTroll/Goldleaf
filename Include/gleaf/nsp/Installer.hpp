@@ -17,29 +17,62 @@
 #include <gleaf/es/ES.hpp>
 #include <gleaf/ns/NS.hpp>
 #include <gleaf/fs/FS.hpp>
-#include <gleaf/horizon/Title.hpp>
-#include <gleaf/horizon/NCAId.hpp>
-#include <gleaf/ncm/Content.hpp>
-#include <gleaf/ncm/ContentMeta.hpp>
-#include <gleaf/ncm/ContentStorage.hpp>
+#include <gleaf/horizon.hpp>
+#include <gleaf/ncm.hpp>
 
 namespace gleaf::nsp
 {
+    enum class InstallerError
+    {
+        Success,
+        BadNSP,
+        NSPOpen,
+        BadCNMTNCA,
+        CNMTMCAOpen,
+        BadCNMT,
+        CNMTOpen,
+        BadControlNCA,
+        MetaDatabaseOpen,
+        MetaDatabaseSet,
+        MetaDatabaseCommit,
+        ContentMetaCount,
+        ContentMetaList,
+        RecordPush,
+        InstallBadNCA,
+    };
+
+    struct InstallerResult
+    {
+        Result Error;
+        InstallerError Type;
+
+        bool IsSuccess();
+    };
+
     class Installer
     {
         public:
             Installer(Destination Location, std::string Input, bool IgnoreVersion);
             ~Installer();
-            void InitializeRecords();
-            void InstallNCAs(std::function<void(ncm::ContentRecord, u32, u32, int)> OnChunk);
-            void Finish();
+            InstallerResult ProcessRecords();
+            InstallerResult WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback);
+            NacpStruct *GetNACP();
             u64 GetApplicationId();
             ncm::ContentMetaType GetContentType();
-            std::vector<ncm::ContentRecord> GetNCAList();
+            std::vector<ncm::ContentRecord> GetRecords();
+            std::string GetExportedIconPath();
+            bool HasContent(ncm::ContentType Type);
+            bool HasTicketAndCert();
+            bool IsCNMTAlreadyInstalled();
+            void Finalize();
         private:
+            bool icnmt;
+            bool tik;
+            std::string icn;
+            NacpStruct *nacps;
+            InstallerResult irc;
             FsStorageId stid;
             u64 basetid;
-            std::string input;
             std::vector<ncm::ContentRecord> ncas;
             FsFileSystem idfs;
             ByteBuffer cnmtbuf;

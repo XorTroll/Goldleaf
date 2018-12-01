@@ -1,4 +1,5 @@
 #include <gleaf/gleaf.hpp>
+#include <sys/stat.h>
 
 namespace gleaf
 {
@@ -14,6 +15,9 @@ namespace gleaf
         // if(R_FAILED(plInitialize())) ThrowError("Failed to initialize service: PL / 'pl:u'");
         // if(R_FAILED(romfsInit())) ThrowError("Failed to initialize RomFS");
         // if(R_FAILED(usbCommsInitialize())) ThrowError("Failed to initialize service: USB / 'usb:ds'");
+        mkdir("sdmc:/switch", 777);
+        mkdir("sdmc:/switch/.gleaf", 777);
+        mkdir("sdmc:/switch/.gleaf/meta", 777);
     }
 
     void Finalize()

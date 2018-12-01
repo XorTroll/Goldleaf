@@ -1,28 +1,26 @@
-# Goldleaf - Nintendo Switch title manager homebrew (open-source)
+# Goldleaf - Nintendo Switch title manager homebrew
 
-### This is the project Tinfoil is going to become
+### Work-in-progress easy-to-use title installer & manager!
 
-![Goldleaf](Icon.jpg)
+<img src="Icon.jpg" width="200">
 
 ## Current state (this will be removed when it gets released)
 
-- Goldleaf is still NOT released. It can be built and tested, but it's kinda complex.
+- Goldleaf is still NOT released. It can be built and tested, but it can complex and unstable.
 
 - It is NOT recommended to try to build this project. It's easy to get messed up building it.
 
-- A hypothetical UI for Goldleaf (a very WIP mockup):
-
-  ![Mockup](Mockup.png)
-
 ## What is Goldleaf?
 
-- If you know what FBI is (related to 3DS homebrew), this is a similar project for the Switch.
+- If you know what FBI is (related to 3DS homebrew), this is a similar project, for Nintendo Switch.
 
-- You can easily manage title-related stuff, like install titles via NSP packages or uninstall them.
+- Goldleaf is a multipurpose tool, specialized on title installing from NSP packages, but with other utilities, such as NAND/SD browsing, 
+
+- You can easily manage title-related stuff, like install titles via NSP packages or uninstall already installed titles.
 
 ## What can Goldleaf do?
 
-- Install NSP packages, browsing the SD card for the package (needs to be a *.nsp file).
+- Install NSP packages, browsing the SD card for the package (needs to be a `*.nsp` file).
 
 - Force uninstall titles (this won't delete the save data of the titles).
 
@@ -32,12 +30,12 @@
 
 ## Credits
 
-- Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing
+- Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing and all the RE done with DevMenu.
 
-  (more people needs to be added here) 
+- C4Phoenix, for his awesome work doing this project's logo.
 
-## Donations
+(more people should be here)
 
-If you enjoy all the work I've done or will do, then buy me a sandwich!
+## Patreon
 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://patreon.com/xortroll)
+[If you like my work, check my Patreon page!](https://patreon.com/xortroll)

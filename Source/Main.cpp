@@ -19,16 +19,15 @@ void update()
 
 int main()
 {
-    gleaf::Initialize();
     consoleInit(NULL);
-    update();
-    while(appletMainLoop())
-    {
-        hidScanInput();
-        if(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_A) update();
-        consoleUpdate(NULL);
-    }
-    consoleExit(NULL);
+    gleaf::Initialize();
+    gleaf::nsp::Installer inst(gleaf::Destination::SdCard, "@Sdcard://Test.nsp", true);
+    NacpStruct *nacp = inst.GetNACP();
+    std::cout << "Title name[0]: " << nacp->lang[0].name <<std::endl;
+    std::cout << "Title author[0]: " << nacp->lang[0].author <<std::endl;
+    std::cout << "Title version: " << nacp->version <<std::endl;
+    while(appletMainLoop()) consoleUpdate(NULL);
     gleaf::Finalize();
+    consoleExit(NULL);
     return 0;
 }
