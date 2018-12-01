@@ -18,7 +18,7 @@
 #include <gleaf/ns/NS.hpp>
 #include <gleaf/fs/FS.hpp>
 #include <gleaf/horizon/Title.hpp>
-#include <gleaf/horizon/NCAID.hpp>
+#include <gleaf/horizon/NCAId.hpp>
 #include <gleaf/ncm/Content.hpp>
 #include <gleaf/ncm/ContentMeta.hpp>
 #include <gleaf/ncm/ContentStorage.hpp>

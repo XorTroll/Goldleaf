@@ -124,7 +124,7 @@ namespace gleaf::ns
     std::tuple<Result, u32, void*> ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, size_t OutBufferSize)
     {
         u32 OutCount = 0;
-        void *OutBuffer = NULL;
+        void *OutBuffer = malloc(OutBufferSize);
         IpcCommand c;
         ipcInitialize(&c);
         ipcAddRecvBuffer(&c, OutBuffer, OutBufferSize, BufferType_Normal);

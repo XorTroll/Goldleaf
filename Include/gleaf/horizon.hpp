@@ -9,5 +9,6 @@
 */
 
 #pragma once
+#include <gleaf/horizon/Misc.hpp>
 #include <gleaf/horizon/NCAId.hpp>
 #include <gleaf/horizon/Title.hpp>
