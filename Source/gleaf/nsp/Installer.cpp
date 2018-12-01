@@ -1,5 +1,6 @@
 #include <gleaf/nsp/Installer.hpp>
 #include <sys/stat.h>
+#include <fstream>
 #include <dirent.h>
 
 namespace gleaf::nsp

@@ -33,7 +33,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 APP_TITLE   := Goldleaf - Nintendo Switch title manager homebrew
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.1 [beta]
+APP_VERSION := 0.1
 APP_TITLEID	:= 050032A5CF120000
 
 TARGET      := Goldleaf
@@ -45,8 +45,7 @@ DATA        := Data
 INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
 EXEFS_SRC   := ExeFs
 
-# - Goldleaf WILL have RomFs, but it's not currently added, so commenting it for the moment
-# ROMFS       := RomFs
+ROMFS       := RomFs
 
 #---------------------------------------------------------------------------------
 # options for code generation

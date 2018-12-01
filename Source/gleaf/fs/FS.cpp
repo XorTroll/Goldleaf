@@ -1,4 +1,9 @@
 #include <gleaf/fs/FS.hpp>
+#include <fstream>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <sys/stat.h>
 
 namespace gleaf::fs
 {
@@ -8,6 +13,22 @@ namespace gleaf::fs
         bool ex = ifs.good();
         ifs.close();
         return ex;
+    }
+
+    bool IsFile(std::string Path)
+    {
+        bool is = false;
+        struct stat st;
+        if(stat(Path.c_str(), &st) == 0) if(st.st_mode & S_IFREG) is = true;
+        return is;
+    }
+
+    bool IsDirectory(std::string Path)
+    {
+        bool is = false;
+        struct stat st;
+        if(stat(Path.c_str(), &st) == 0) if(st.st_mode & S_IFDIR) is = true;
+        return is;
     }
 
     void CreateFile(std::string Path)
