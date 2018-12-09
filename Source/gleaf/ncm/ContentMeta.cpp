@@ -9,7 +9,6 @@ namespace gleaf::ncm
 
     ContentMeta::ContentMeta(u8* Data, size_t Size) : buf(Size)
     {
-        if(Size < sizeof(ContentMetaHeader)) ThrowError("Content meta data size is too small: " + std::to_string(Size));
         buf.Resize(Size);
         memcpy(buf.GetData(), Data, Size);
     }

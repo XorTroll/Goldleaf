@@ -7,24 +7,16 @@
 
 */
 
-#include <switch.h>
-#include <string>
 #include <vector>
+#include <gleaf/fs/FS.hpp>
 
 namespace gleaf::fs
 {
-    enum class Partition
-    {
-        NANDSafe,
-        NANDSystem,
-        NANDUser,
-        SdCard,
-    };
-
     class Explorer
     {
         public:
             Explorer(Partition Base);
+            Explorer(FsFileSystem IFS);
             ~Explorer();
             bool NavigateBack();
             bool NavigateForward(std::string Path);
@@ -32,10 +24,16 @@ namespace gleaf::fs
             std::vector<std::string> GetFiles();
             std::vector<std::string> GetContents();
             std::string GetCwd();
+            Partition GetPartition();
             void MovePartition(Partition NewBase);
             std::string FullPathFor(std::string Path);
+            u64 GetTotalSpaceForPath(std::string Path);
+            u64 GetFreeSpaceForPath(std::string Path);
+            u64 GetTotalSpace();
+            u64 GetFreeSpace();
             void Close();
         private:
+            bool customifs;
             Partition part;
             FsFileSystem ifs;
             std::string ecwd;

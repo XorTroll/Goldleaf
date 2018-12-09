@@ -26,7 +26,7 @@ namespace gleaf::es
     std::tuple<Result, u8*, size_t> GetTitleKey(const RightsId *RId);
     std::tuple<Result, u8> CountCommonTicket();
     std::tuple<Result, u8> CountPersonalizedTicket();
-    std::tuple<Result, u32, RightsId*, size_t> ListCommonTicket();
-    std::tuple<Result, u32, RightsId*, size_t> ListPersonalizedTicket();
+    std::tuple<Result, u32, RightsId*> ListCommonTicket(size_t Size);
+    std::tuple<Result, u32, RightsId*> ListPersonalizedTicket(size_t Size);
     std::tuple<Result, u64, void*, size_t> GetCommonTicketData(const RightsId *RId);
 }

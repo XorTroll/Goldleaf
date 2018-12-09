@@ -11,13 +11,15 @@
 #pragma once
 #include <gleaf/es.hpp>
 #include <gleaf/fs.hpp>
+#include <gleaf/horizon.hpp>
 #include <gleaf/ncm.hpp>
 #include <gleaf/ns.hpp>
 #include <gleaf/nsp.hpp>
-#include <gleaf/horizon.hpp>
+#include <gleaf/ui.hpp>
 
 namespace gleaf
 {
     void Initialize();
     void Finalize();
+    bool IsApplication();
 }

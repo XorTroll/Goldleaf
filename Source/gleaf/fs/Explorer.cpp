@@ -7,22 +7,23 @@ namespace gleaf::fs
 {
     Explorer::Explorer(Partition Base)
     {
+        this->customifs = false;
         switch(Base)
         {
             case Partition::NANDSafe:
-                this->ecwd = "gnand:/";
+                this->ecwd = "glfs:/";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
-                fsdevMountDevice("gnand", this->ifs);
+                fsdevMountDevice("glfs", this->ifs);
                 break;
             case Partition::NANDSystem:
-                this->ecwd = "gnand:/";
+                this->ecwd = "glfs:/";
                 fsOpenBisFileSystem(&this->ifs, 30, "");
-                fsdevMountDevice("gnand", this->ifs);
+                fsdevMountDevice("glfs", this->ifs);
                 break;
             case Partition::NANDUser:
-                this->ecwd = "gnand:/";
+                this->ecwd = "glfs:/";
                 fsOpenBisFileSystem(&this->ifs, 31, "");
-                fsdevMountDevice("gnand", this->ifs);
+                fsdevMountDevice("glfs", this->ifs);
                 break;
             case Partition::SdCard:
                 this->ecwd = "sdmc:/";
@@ -32,6 +33,13 @@ namespace gleaf::fs
         this->part = Base;
     }
 
+    Explorer::Explorer(FsFileSystem IFS)
+    {
+        this->customifs = true;
+        this->ifs = IFS;
+        fsdevMountDevice("glfs", IFS);
+    }
+
     Explorer::~Explorer()
     {
         this->Close();
@@ -39,7 +47,7 @@ namespace gleaf::fs
 
     bool Explorer::NavigateBack()
     {
-        if((this->ecwd == "sdmc:/") || (this->ecwd == "gnand:/")) return false;
+        if((this->ecwd == "sdmc:/") || (this->ecwd == "glfs:/")) return false;
         std::string parent = this->ecwd.substr(0, this->ecwd.find_last_of("/\\"));
         DIR *check = opendir(parent.c_str());
         bool ok = (check != NULL);
@@ -115,26 +123,31 @@ namespace gleaf::fs
         return this->ecwd;
     }
 
+    Partition Explorer::GetPartition()
+    {
+        return this->part;
+    }
+
     void Explorer::MovePartition(Partition NewBase)
     {
         if(this->part == NewBase) return;
-        if(this->part != Partition::SdCard) fsdevUnmountDevice("gnand");
+        this->Close();
         switch(NewBase)
         {
             case Partition::NANDSafe:
-                this->ecwd = "gnand:/";
+                this->ecwd = "glfs:/";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
-                fsdevMountDevice("gnand", this->ifs);
+                fsdevMountDevice("glfs", this->ifs);
                 break;
             case Partition::NANDSystem:
-                this->ecwd = "gnand:/";
+                this->ecwd = "glfs:/";
                 fsOpenBisFileSystem(&this->ifs, 30, "");
-                fsdevMountDevice("gnand", this->ifs);
+                fsdevMountDevice("glfs", this->ifs);
                 break;
             case Partition::NANDUser:
-                this->ecwd = "gnand:/";
+                this->ecwd = "glfs:/";
                 fsOpenBisFileSystem(&this->ifs, 31, "");
-                fsdevMountDevice("gnand", this->ifs);
+                fsdevMountDevice("glfs", this->ifs);
                 break;
             case Partition::SdCard:
                 this->ecwd = "sdmc:/";
@@ -149,8 +162,36 @@ namespace gleaf::fs
         return (this->ecwd + "/" + Path);
     }
 
+    u64 Explorer::GetTotalSpaceForPath(std::string Path)
+    {
+        u64 space = 0;
+        fsFsGetTotalSpace(&this->ifs, Path.c_str(), &space);
+        return space;
+    }
+
+    u64 Explorer::GetFreeSpaceForPath(std::string Path)
+    {
+        u64 space = 0;
+        fsFsGetFreeSpace(&this->ifs, Path.c_str(), &space);
+        return space;
+    }
+
+    u64 Explorer::GetTotalSpace()
+    {
+        u64 space = 0;
+        fsFsGetTotalSpace(&this->ifs, "", &space);
+        return space;
+    }
+
+    u64 Explorer::GetFreeSpace()
+    {
+        u64 space = 0;
+        fsFsGetFreeSpace(&this->ifs, "", &space);
+        return space;
+    }
+
     void Explorer::Close()
     {
-        if(this->part != Partition::SdCard) fsFsClose(&this->ifs);
+        if((this->customifs) || (this->part != Partition::SdCard)) fsdevUnmountDevice("glfs");
     }
 }

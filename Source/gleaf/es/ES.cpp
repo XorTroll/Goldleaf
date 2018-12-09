@@ -174,14 +174,13 @@ namespace gleaf::es
         return std::make_tuple(rc, OutCount);
     }
 
-    std::tuple<Result, u32, RightsId*, size_t> ListCommonTicket()
+    std::tuple<Result, u32, RightsId*> ListCommonTicket(size_t Size)
     {
         u32 OutWrittenRIds = 0;
-        RightsId *OutRIds = NULL;
-        size_t OutSize = 0;
+        RightsId *OutRIds = (RightsId*)malloc(Size);
         IpcCommand c;
         ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, OutRIds, OutSize, BufferType_Normal);
+        ipcAddRecvBuffer(&c, OutRIds, Size, BufferType_Normal);
         struct Raw
         {
             u64 Magic;
@@ -204,17 +203,16 @@ namespace gleaf::es
             rc = resp->Result;
             if(R_SUCCEEDED(rc)) OutWrittenRIds = resp->Written;
         }
-        return std::make_tuple(rc, OutWrittenRIds, OutRIds, OutSize);
+        return std::make_tuple(rc, OutWrittenRIds, OutRIds);
     }
 
-    std::tuple<Result, u32, RightsId*, size_t> ListPersonalizedTicket()
+    std::tuple<Result, u32, RightsId*> ListPersonalizedTicket(size_t Size)
     {
         u32 OutWrittenRIds = 0;
-        RightsId *OutRIds = NULL;
-        size_t OutSize = 0;
+        RightsId *OutRIds = (RightsId*)malloc(Size);
         IpcCommand c;
         ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, OutRIds, OutSize, BufferType_Normal);
+        ipcAddRecvBuffer(&c, OutRIds, Size, BufferType_Normal);
         struct Raw
         {
             u64 Magic;
@@ -237,7 +235,7 @@ namespace gleaf::es
             rc = resp->Result;
             if(R_SUCCEEDED(rc)) OutWrittenRIds = resp->Written;
         }
-        return std::make_tuple(rc, OutWrittenRIds, OutRIds, OutSize);
+        return std::make_tuple(rc, OutWrittenRIds, OutRIds);
     }
 
     std::tuple<Result, u64, void*, size_t> GetCommonTicketData(const RightsId *RId)

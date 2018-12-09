@@ -1,32 +1,36 @@
-# Goldleaf - Nintendo Switch title manager homebrew
+# Goldleaf
 
-### Work-in-progress easy-to-use title installer & manager!
+## Easy-to-use title installer & manager for Nintendo Switch
 
-<img src="Icon.jpg" width="200">
-
-## Current state (this will be removed when it gets released)
-
-- Goldleaf is still NOT released. It can be built and tested, but it can complex and unstable.
-
-- It is NOT recommended to try to build this project. It's easy to get messed up building it.
+<img src="Logo.png" width="150"/>
 
 ## What is Goldleaf?
-
-- If you know what FBI is (related to 3DS homebrew), this is a similar project, for Nintendo Switch.
 
 - Goldleaf is a multipurpose tool, specialized on title installing from NSP packages, but with other utilities, such as NAND/SD browsing, 
 
 - You can easily manage title-related stuff, like install titles via NSP packages or uninstall already installed titles.
 
+- If you know what FBI is (related to 3DS homebrew), this is a similar project for Nintendo Switch.
+
 ## What can Goldleaf do?
 
-- Install NSP packages, browsing the SD card for the package (needs to be a `*.nsp` file).
+- Browse SD card's files and directories. You can install NSPs from there (`*.nsp` format).
 
-- Force uninstall titles (this won't delete the save data of the titles).
+- Browse NAND partitions (SAFE, USER and SYSTEM). You can export files from any of those partitions (directories still not, support will be added soon!).
 
-- Browse currently installed tickets, and the option to delete them
+- Install NSPs from a remote PC, via USB communication.
 
-- Browse NAND partitions, being able to copy files and paste them to the SD card (no delete/paste permissions on NAND)
+- Manage currently installed titles, being able to see where are they installed, or uninstalling them.
+
+- Manage currently installed tickets, being able to see the application they belong to, or removing them.
+
+- Show SD card's space, NAND partitions' space and firmware version of the current console.
+
+## Planned support
+
+- Savedata mounting and exploring
+
+- USB-HDD support
 
 ## Credits
 
@@ -34,7 +38,9 @@
 
 - C4Phoenix, for his awesome work doing this project's logo.
 
-(more people should be here)
+- All the icons except Goldleaf's one (see credit above) were grabbed from [Icons8](https://icons8.com).
+
+- All the testers, for reporting bugs and helping with determining the project's stability.
 
 ## Patreon
 
