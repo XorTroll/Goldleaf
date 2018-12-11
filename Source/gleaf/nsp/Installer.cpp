@@ -177,7 +177,7 @@ namespace gleaf::nsp
             serviceClose(&metadb.s);
             return this->irc;
         }
-		serviceClose(&metadb.s);
+        serviceClose(&metadb.s);
         std::vector<ns::ContentStorageRecord> records;
         basetid = horizon::GetBaseApplicationId(metakey.titleId, static_cast<ncm::ContentMetaType>(metakey.type));
         std::tuple<Result, u32> nst = ns::CountApplicationContentMeta(basetid);
