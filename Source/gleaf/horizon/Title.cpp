@@ -147,20 +147,14 @@ namespace gleaf::horizon
     {
         std::vector<Ticket> tickets;
         std::tuple<Result, u8> t1 = es::CountCommonTicket();
-        Result rc = std::get<0>(t1);
         u8 cc = std::get<1>(t1);
         std::tuple<Result, u32, es::RightsId*> t2 = es::ListCommonTicket(cc * sizeof(es::RightsId));
-        rc = std::get<0>(t2);
-        u32 written = std::get<1>(t2);
         es::RightsId *crids = std::get<2>(t2);
         std::vector<es::RightsId> vcrids;
         if(cc > 0) vcrids = std::vector<es::RightsId>(crids, crids + cc);
         t1 = es::CountPersonalizedTicket();
-        rc = std::get<0>(t1);
         u8 pc = std::get<1>(t1);
         t2 = es::ListPersonalizedTicket(pc * sizeof(es::RightsId));
-        rc = std::get<0>(t2);
-        written = std::get<1>(t2);
         es::RightsId *prids = std::get<2>(t2);
         std::vector<es::RightsId> vprids;
         if(pc > 0) vprids = std::vector<es::RightsId>(prids, prids + pc); 

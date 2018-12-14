@@ -16,6 +16,7 @@
 #include <gleaf/ns.hpp>
 #include <gleaf/nsp.hpp>
 #include <gleaf/ui.hpp>
+#include <gleaf/usb.hpp>
 
 namespace gleaf
 {

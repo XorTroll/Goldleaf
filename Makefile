@@ -34,15 +34,15 @@ include $(DEVKITPRO)/libnx/switch_rules
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 APP_VERSION := 0.1
-APP_TITLEID	:= 050032A5CF120000
+APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
 ICON		:= Icon.jpg
 
 BUILD       := Build
-SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/horizon Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/ui
+SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/horizon Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/ui Source/gleaf/usb
 DATA        := Data
-INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/horizon Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/ui
+INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/horizon Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/ui Include/gleaf/usb
 EXEFS_SRC   := ExeFs
 ROMFS       := RomFs
 
