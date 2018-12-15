@@ -32,6 +32,14 @@
 
 - USB-HDD support
 
+## Building
+
+Install [devkitPro](https://github.com/devkitPro/installer/releases) With Switch Development.
+
+Clone this repo to your PC and open CMD in the Generated folder.
+
+run `make`
+
 ## Credits
 
 - Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing and all the RE done with DevMenu.
