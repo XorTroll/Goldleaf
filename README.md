@@ -36,9 +36,9 @@
 
 Install [devkitPro](https://github.com/devkitPro/installer/releases) With Switch Development.
 
-Clone this repo to your PC and open CMD in the Generated folder.
+Clone this repo to your PC and open CMD in the folder.
 
-run `make`
+Run `make`
 
 ## Credits
 
