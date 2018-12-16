@@ -44,4 +44,4 @@
 
 ## Patreon
 
-If you like my work, check my [Patreon page](https://patreon.com/xortroll)!
+If you like my work, you should take a look at my [Patreon](https://patreon.com/xortroll)!
