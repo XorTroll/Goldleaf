@@ -23,7 +23,7 @@ namespace gleaf::ncm
         Application = 0x80,
         Patch = 0x81,
         AddOnContent = 0x82,
-        Delta = 0x83
+        Delta = 0x83,
     };
 
     enum class ContentType : u8
@@ -34,7 +34,7 @@ namespace gleaf::ncm
         Control = 0x3, 
         OfflineHTML = 0x4, 
         LegalInformation = 0x5, 
-        DeltaFragment = 0x6
+        DeltaFragment = 0x6,
     };
 
     struct ContentMetaHeader

@@ -1,43 +1,47 @@
-# Goldleaf - Nintendo Switch title manager homebrew (open-source)
+# Goldleaf
 
-### This is the project Tinfoil is going to become
+## Easy-to-use title installer & manager for Nintendo Switch
 
-![Goldleaf](Icon.jpg)
-
-## Current state (this will be removed when it gets released)
-
-- Goldleaf is still NOT released. It can be built and tested, but it's kinda complex.
-
-- It is NOT recommended to try to build this project. It's easy to get messed up building it.
-
-- A hypothetical UI for Goldleaf (a very WIP mockup):
-
-  ![Mockup](Mockup.png)
+<img src="Logo.png" width="150"/>
 
 ## What is Goldleaf?
 
-- If you know what FBI is (related to 3DS homebrew), this is a similar project for the Switch.
+- Goldleaf is a multipurpose tool, specialized on title installing from NSP packages, but with other utilities, such as NAND/SD browsing, 
 
-- You can easily manage title-related stuff, like install titles via NSP packages or uninstall them.
+- You can easily manage title-related stuff, like install titles via NSP packages or uninstall already installed titles.
+
+- If you know what FBI is (related to 3DS homebrew), this is a similar project for Nintendo Switch.
 
 ## What can Goldleaf do?
 
-- Install NSP packages, browsing the SD card for the package (needs to be a *.nsp file).
+- Browse SD card's files and directories. You can install NSPs from there (`*.nsp` format).
 
-- Force uninstall titles (this won't delete the save data of the titles).
+- Browse NAND partitions (SAFE, USER and SYSTEM). You can export files from any of those partitions (directories still not, support will be added soon!).
 
-- Browse currently installed tickets, and the option to delete them
+- Install NSPs from a remote PC, via USB communication.
 
-- Browse NAND partitions, being able to copy files and paste them to the SD card (no delete/paste permissions on NAND)
+- Manage currently installed titles, being able to see where are they installed, or uninstalling them.
+
+- Manage currently installed tickets, being able to see the application they belong to, or removing them.
+
+- Show SD card's space, NAND partitions' space and firmware version of the current console.
+
+## Planned support
+
+- Savedata mounting and exploring
+
+- USB-HDD support
 
 ## Credits
 
-- Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing
+- Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing and all the RE done with DevMenu.
 
-  (more people needs to be added here) 
+- C4Phoenix, for his awesome work doing this project's logo.
 
-## Donations
+- All the icons except Goldleaf's one (see credit above) were grabbed from [Icons8](https://icons8.com).
 
-If you enjoy all the work I've done or will do, then buy me a sandwich!
+- All the testers, for reporting bugs and helping with determining the project's stability.
 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://patreon.com/xortroll)
+## Patreon
+
+If you like my work, you should take a look at my [Patreon](https://patreon.com/xortroll)!

@@ -4,10 +4,7 @@ namespace gleaf::ncm
 {
     ContentStorage::ContentStorage(FsStorageId StorageId)
     {
-        NcmContentStorage st;
-        Result rc = ncmOpenContentStorage(StorageId, &st);
-        if(rc != 0) ThrowError("Failed to open content storage: " + std::to_string(rc));
-        this->storage = st;
+        ncmOpenContentStorage(StorageId, &this->storage);
     }
 
     ContentStorage::~ContentStorage()
@@ -43,16 +40,14 @@ namespace gleaf::ncm
     bool ContentStorage::Has(const NcmNcaId &RegisteredId)
     {
         bool has = false;
-        Result rc = ncmContentStorageHas(&this->storage, &RegisteredId, &has);
-        if(rc != 0) ThrowError("Failed to get whether the storage contains a NCA Id.");
+        ncmContentStorageHas(&this->storage, &RegisteredId, &has);
         return has;
     }
 
     std::string ContentStorage::GetPath(const NcmNcaId &RegisteredId)
     {
         char npath[FS_MAX_PATH] = { 0 };
-        Result rc = ncmContentStorageGetPath(&this->storage, &RegisteredId, npath, FS_MAX_PATH);
-        if(rc != 0) ThrowError("Failed to get NCA Id path.");
+        ncmContentStorageGetPath(&this->storage, &RegisteredId, npath, FS_MAX_PATH);
         return std::string(npath);
     }
 }

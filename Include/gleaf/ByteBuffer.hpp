@@ -21,27 +21,15 @@ namespace gleaf
             size_t GetSize();
             u8 *GetData();
             void Resize(size_t Size);
-            template<typename T>
-            T Read(u64 Offset)
-            {
-                if(Offset + sizeof(T) <= buffer.size()) return *((T*)&buffer.data()[Offset]);
-                T def;
-                memset(&def, 0, sizeof(T));
-                return def;
-            }
-            template<typename T>
-            void Write(T Data, u64 Offset)
-            {
-                size_t requiredSize = Offset + sizeof(T);
-                if(requiredSize > buffer.size()) buffer.resize(requiredSize, 0);
-                memcpy(buffer.data() + Offset, &Data, sizeof(T));
-            }
-            template<typename T>
-            void Append(T Data)
-            {
-                this->Write(Data, this->GetSize());
-            }
+            template<typename Type>
+            Type Read(u64 Offset);
+            template<typename Type>
+            void Write(Type Data, u64 Offset);
+            template<typename Type>
+            void Append(Type Data);
         private:
             std::vector<u8> buffer;
     };
 }
+
+#include <gleaf/ByteBuffer.ipp>

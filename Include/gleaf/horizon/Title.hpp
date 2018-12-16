@@ -13,28 +13,41 @@
 #include <string>
 #include <vector>
 #include <gleaf/Types.hpp>
-#include <gleaf/ncm/Content.hpp>
+#include <gleaf/ncm.hpp>
+#include <gleaf/es.hpp>
 
 namespace gleaf::horizon
 {
+    enum class TicketType
+    {
+        Common,
+        Personalized,
+    };
+
     struct Title
     {
         u64 ApplicationId;
         Storage Location;
-    };
-
-    struct ExtendedTitle
-    {
-        Title Base;
         std::string Name;
         std::string Author;
         std::string Version;
-        u8 *Icon;
         NacpStruct NACP;
-        void DumpIconAndNACP(std::string IconPath, std::string NACPPath);
+
+        std::string GetExportedIconPath();
     };
 
+    struct Ticket
+    {
+        es::RightsId RId;
+        TicketType Type;
+
+        u64 GetApplicationId();
+        u64 GetKeyGeneration();
+        std::string ToString();
+    };
+
+    std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> GetAllSystemTitles();
-    ExtendedTitle LoadExtendedData(Title BaseTitle);
+    std::vector<Ticket> GetAllSystemTickets();
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
 }

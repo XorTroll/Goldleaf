@@ -31,22 +31,20 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 
-APP_TITLE   := Goldleaf - Nintendo Switch title manager homebrew
+APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.1 [beta]
-APP_TITLEID	:= 010032A5CF120000
+APP_VERSION := 0.1
+APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
 ICON		:= Icon.jpg
 
 BUILD       := Build
-SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/horizon
+SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/horizon Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/ui Source/gleaf/usb
 DATA        := Data
-INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/horizon
-EXEFS_SRC   := ExeFS
-
-# - Goldleaf WILL have RomFs, but it's not currently added, so commenting this
-# ROMFS       := RomFs
+INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/horizon Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/ui Include/gleaf/usb
+EXEFS_SRC   := ExeFs
+ROMFS       := RomFs
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -64,7 +62,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lcurl -lz -lnx
+LIBS	:=  -lpu -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs` -lcurl -lz -lnx
 
 
 
@@ -72,7 +70,7 @@ LIBS	:=  -lcurl -lz -lnx
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX)
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/Output
 
 
 #---------------------------------------------------------------------------------

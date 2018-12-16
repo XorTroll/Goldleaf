@@ -8,23 +8,5 @@
 
 */
 
-#pragma once
-#include <string>
-#include <iostream>
-#include <switch.h>
-
-namespace gleaf
-{
-    enum class Destination
-    {
-        NAND,
-        SdCard,
-    };
-
-    enum class Storage
-    {
-        SdCard,
-        NAND,
-        GameCart,
-    };
-}
+#include <gleaf/usb/Communications.hpp>
+#include <gleaf/usb/USBInstaller.hpp>

@@ -10,17 +10,27 @@
 
 #pragma once
 #include <string>
-#include <fstream>
-#include <cstdlib>
-#include <cstdio>
-#include <memory>
-#include <sys/stat.h>
 #include <switch.h>
 
 namespace gleaf::fs
 {
+    enum class Partition
+    {
+        NANDSafe,
+        NANDSystem,
+        NANDUser,
+        SdCard,
+    };
+
     bool Exists(std::string Path);
+    bool IsFile(std::string Path);
+    bool IsDirectory(std::string Path);
     void CreateFile(std::string Path);
     void CreateDirectory(std::string Path);
+    std::string GetFileName(std::string Path);
+    std::string GetExtension(std::string Path);
+    u64 GetTotalSpaceForPartition(Partition Partition);
+    u64 GetFreeSpaceForPartition(Partition Partition);
+    std::string FormatSize(u64 Bytes);
     std::string SearchForFile(FsFileSystem FS, std::string Path, std::string Extension, std::string Root = "");
 }
