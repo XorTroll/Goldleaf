@@ -59,17 +59,17 @@ namespace gleaf::ui
 
     void MainMenuLayout::nandMenuItem_Click()
     {
-        pu::element::Dialog *dlg = new pu::element::Dialog("Select NAND partition", "Select NAND partition to explore via Goldleaf.", pu::draw::Font::NintendoStandard);
-        pu::element::DialogOption *optsf = new pu::element::DialogOption("Safe", pu::element::DialogResult::Ok);
-        pu::element::DialogOption *optss = new pu::element::DialogOption("System", pu::element::DialogResult::Ok);
-        pu::element::DialogOption *optus = new pu::element::DialogOption("User", pu::element::DialogResult::Ok);
-        pu::element::DialogOption *optc = new pu::element::DialogOption("Cancel", pu::element::DialogResult::Cancel);
+        pu::Dialog *dlg = new pu::Dialog("Select NAND partition", "Select NAND partition to explore via Goldleaf.", pu::draw::Font::NintendoStandard);
+        pu::DialogOption *optsf = new pu::DialogOption("Safe", pu::DialogResult::Ok);
+        pu::DialogOption *optss = new pu::DialogOption("System", pu::DialogResult::Ok);
+        pu::DialogOption *optus = new pu::DialogOption("User", pu::DialogResult::Ok);
+        pu::DialogOption *optc = new pu::DialogOption("Cancel", pu::DialogResult::Cancel);
         dlg->AddOption(optsf);
         dlg->AddOption(optss);
         dlg->AddOption(optus);
         dlg->AddOption(optc);
         mainapp->ShowDialog(dlg);
-        pu::element::DialogOption *sopt = dlg->GetSelectedOption();
+        pu::DialogOption *sopt = dlg->GetSelectedOption();
         if(sopt == optc) return;
         else if(sopt == optsf) mainapp->GetNANDBrowserLayout()->ChangePartition(gleaf::fs::Partition::NANDSafe);
         else if(sopt == optss) mainapp->GetNANDBrowserLayout()->ChangePartition(gleaf::fs::Partition::NANDSystem);
@@ -87,8 +87,8 @@ namespace gleaf::ui
     {
         mainapp->GetTicketManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
-        pu::element::Dialog *dlg = new pu::element::Dialog("Removing tickets", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.", pu::draw::Font::NintendoStandard);
-        pu::element::DialogOption *optok = new pu::element::DialogOption("Ok", pu::element::DialogResult::Cancel);
+        pu::Dialog *dlg = new pu::Dialog("Removing tickets", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.", pu::draw::Font::NintendoStandard);
+        pu::DialogOption *optok = new pu::DialogOption("Ok", pu::DialogResult::Cancel);
         dlg->AddOption(optok);
         mainapp->ShowDialog(dlg);
     }
@@ -162,19 +162,19 @@ namespace gleaf::ui
             {
                 if(ext == "nsp")
                 {
-                    pu::element::Dialog *dlg = new pu::element::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
-                    pu::element::DialogOption *optsd = new pu::element::DialogOption("SD card", pu::element::DialogResult::Ok);
-                    pu::element::DialogOption *optnand = new pu::element::DialogOption("NAND (system memory)", pu::element::DialogResult::Ok);
-                    pu::element::DialogOption *optc = new pu::element::DialogOption("Cancel", pu::element::DialogResult::Cancel);
+                    pu::Dialog *dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
+                    pu::DialogOption *optsd = new pu::DialogOption("SD card", pu::DialogResult::Ok);
+                    pu::DialogOption *optnand = new pu::DialogOption("NAND (system memory)", pu::DialogResult::Ok);
+                    pu::DialogOption *optc = new pu::DialogOption("Cancel", pu::DialogResult::Cancel);
                     dlg->AddOption(optsd);
                     dlg->AddOption(optnand);
                     dlg->AddOption(optc);
                     mainapp->ShowDialog(dlg);
-                    pu::element::DialogOption *sopt = dlg->GetSelectedOption();
+                    pu::DialogOption *sopt = dlg->GetSelectedOption();
                     if(sopt == optc) return;
-                    dlg = new pu::element::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?", pu::draw::Font::NintendoStandard);
-                    pu::element::DialogOption *opty = new pu::element::DialogOption("Yes", pu::element::DialogResult::Ok);
-                    pu::element::DialogOption *optn = new pu::element::DialogOption("No", pu::element::DialogResult::Ok);
+                    dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?", pu::draw::Font::NintendoStandard);
+                    pu::DialogOption *opty = new pu::DialogOption("Yes", pu::DialogResult::Ok);
+                    pu::DialogOption *optn = new pu::DialogOption("No", pu::DialogResult::Ok);
                     dlg->AddOption(opty);
                     dlg->AddOption(optn);
                     dlg->AddOption(optc);
@@ -235,13 +235,13 @@ namespace gleaf::ui
                     info += "\n\n";
                     if(inst.HasTicketAndCert()) info += "This NSP has a ticket and it will be installed. (otherwise, the title wouldn't work)";
                     else info += "This NSP doesn't have a ticket. It seems to only have standard crypto.";
-                    dlg = new pu::element::Dialog("Ready to start installing?", info, pu::draw::Font::NintendoStandard);
+                    dlg = new pu::Dialog("Ready to start installing?", info, pu::draw::Font::NintendoStandard);
                     if(hasnacp)
                     {
                         pu::element::Image *img = new pu::element::Image(994, 30, inst.GetExportedIconPath());
                         dlg->SetIcon(img);
                     }
-                    pu::element::DialogOption *opti = new pu::element::DialogOption("Install", pu::element::DialogResult::Ok);
+                    pu::DialogOption *opti = new pu::DialogOption("Install", pu::DialogResult::Ok);
                     dlg->AddOption(opti);
                     dlg->AddOption(optc);
                     mainapp->ShowDialog(dlg);
@@ -254,13 +254,13 @@ namespace gleaf::ui
                 }
                 else if(ext == "nro")
                 {
-                    pu::element::Dialog *dlg = new pu::element::Dialog("Launch selected NRO binary", "Would you like to launch the selected NRO binary?\n(Goldleaf will be closed and the NRO will be executed)", pu::draw::Font::NintendoStandard);
-                    pu::element::DialogOption *opty = new pu::element::DialogOption("Yes", pu::element::DialogResult::Ok);
-                    pu::element::DialogOption *optc = new pu::element::DialogOption("Cancel", pu::element::DialogResult::Cancel);
+                    pu::Dialog *dlg = new pu::Dialog("Launch selected NRO binary", "Would you like to launch the selected NRO binary?\n(Goldleaf will be closed and the NRO will be executed)", pu::draw::Font::NintendoStandard);
+                    pu::DialogOption *opty = new pu::DialogOption("Yes", pu::DialogResult::Ok);
+                    pu::DialogOption *optc = new pu::DialogOption("Cancel", pu::DialogResult::Cancel);
                     dlg->AddOption(opty);
                     dlg->AddOption(optc);
                     mainapp->ShowDialog(dlg);
-                    pu::element::DialogOption *sopt = dlg->GetSelectedOption();
+                    pu::DialogOption *sopt = dlg->GetSelectedOption();
                     if(sopt == optc) return;
                     std::string fullitm = this->gexp->FullPathFor(itm);
                     envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
@@ -272,13 +272,13 @@ namespace gleaf::ui
                 std::string fullitm = this->gexp->FullPathFor(itm);
                 if(gleaf::fs::IsFile(fullitm))
                 {
-                    pu::element::Dialog *dlg = new pu::element::Dialog("Export NAND file", "Do you want to export this file to the SD card?", pu::draw::Font::NintendoStandard);
-                    pu::element::DialogOption *opty = new pu::element::DialogOption("Yes", pu::element::DialogResult::Ok);
-                    pu::element::DialogOption *optc = new pu::element::DialogOption("Cancel", pu::element::DialogResult::Cancel);
+                    pu::Dialog *dlg = new pu::Dialog("Export NAND file", "Do you want to export this file to the SD card?", pu::draw::Font::NintendoStandard);
+                    pu::DialogOption *opty = new pu::DialogOption("Yes", pu::DialogResult::Ok);
+                    pu::DialogOption *optc = new pu::DialogOption("Cancel", pu::DialogResult::Cancel);
                     dlg->AddOption(opty);
                     dlg->AddOption(optc);
                     mainapp->ShowDialog(dlg);
-                    pu::element::DialogOption *sopt = dlg->GetSelectedOption();
+                    pu::DialogOption *sopt = dlg->GetSelectedOption();
                     if(sopt == optc) return;
                     std::ifstream ifs(fullitm);
                     std::string outitm = "sdmc:/switch/.gleaf/out/" + gleaf::fs::GetFileName(fullitm);
@@ -293,8 +293,8 @@ namespace gleaf::ui
                     ofs.close();
                     std::string info = "File was successfully exported to \'" + outitm + "\'.";
                     if(!ok) info = "An error ocurred attempting to export the file.";
-                    dlg = new pu::element::Dialog("File export information", info, pu::draw::Font::NintendoStandard);
-                    optc = new pu::element::DialogOption("Ok", pu::element::DialogResult::Ok);
+                    dlg = new pu::Dialog("File export information", info, pu::draw::Font::NintendoStandard);
+                    optc = new pu::DialogOption("Ok", pu::DialogResult::Ok);
                     dlg->AddOption(optc);
                     mainapp->ShowDialog(dlg);
                 }
@@ -332,8 +332,8 @@ namespace gleaf::ui
         Inst->Finalize();
         if(rc.IsSuccess())
         {
-            pu::element::Dialog *dlg = new pu::element::Dialog("NSP installation finished", "The NSP was successfully installed.\nYou can close this application and the title (should) appear on Home Menu. Enjoy!", pu::draw::Font::NintendoStandard);
-            pu::element::DialogOption *optok = new pu::element::DialogOption("Ok", pu::element::DialogResult::Cancel);
+            pu::Dialog *dlg = new pu::Dialog("NSP installation finished", "The NSP was successfully installed.\nYou can close this application and the title (should) appear on Home Menu. Enjoy!", pu::draw::Font::NintendoStandard);
+            pu::DialogOption *optok = new pu::DialogOption("Ok", pu::DialogResult::Cancel);
             dlg->AddOption(optok);
             mainapp->ShowDialog(dlg);
             mainapp->UpdateFooter("The NSP was successfully installed.");
@@ -398,8 +398,8 @@ namespace gleaf::ui
                     break;
             }
             err += " (error code " + std::to_string(Res.Error) + ")";
-            pu::element::Dialog *dlg = new pu::element::Dialog("NSP installation error", err, pu::draw::Font::NintendoStandard);
-            pu::element::DialogOption *optok = new pu::element::DialogOption("Ok", pu::element::DialogResult::Cancel);
+            pu::Dialog *dlg = new pu::Dialog("NSP installation error", err, pu::draw::Font::NintendoStandard);
+            pu::DialogOption *optok = new pu::DialogOption("Ok", pu::DialogResult::Cancel);
             dlg->AddOption(optok);
             mainapp->ShowDialog(dlg);
         }
@@ -472,21 +472,21 @@ namespace gleaf::ui
                 break;
         }
         info += "\n\nApplication Id: " + gleaf::horizon::FormatApplicationId(seltit.ApplicationId);
-        pu::element::Dialog *dlg = new pu::element::Dialog("Installed title information", info, pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog("Installed title information", info, pu::draw::Font::NintendoStandard);
         pu::element::Image *img = new pu::element::Image(994, 30, seltit.GetExportedIconPath());
         dlg->SetIcon(img);
-        pu::element::DialogOption *opty = new pu::element::DialogOption("Uninstall title", pu::element::DialogResult::Ok);
-        pu::element::DialogOption *optn = new pu::element::DialogOption("Back", pu::element::DialogResult::Cancel);
+        pu::DialogOption *opty = new pu::DialogOption("Uninstall title", pu::DialogResult::Ok);
+        pu::DialogOption *optn = new pu::DialogOption("Back", pu::DialogResult::Cancel);
         dlg->AddOption(opty);
         dlg->AddOption(optn);
         mainapp->ShowDialog(dlg);
-        pu::element::DialogOption *sopt = dlg->GetSelectedOption();
+        pu::DialogOption *sopt = dlg->GetSelectedOption();
         if(sopt == optn) return;
         else
         {
-            dlg = new pu::element::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?", pu::draw::Font::NintendoStandard);
-            opty = new pu::element::DialogOption("Yes", pu::element::DialogResult::Ok);
-            optn = new pu::element::DialogOption("Cancel", pu::element::DialogResult::Cancel);
+            dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?", pu::draw::Font::NintendoStandard);
+            opty = new pu::DialogOption("Yes", pu::DialogResult::Ok);
+            optn = new pu::DialogOption("Cancel", pu::DialogResult::Cancel);
             dlg->AddOption(opty);
             dlg->AddOption(optn);
             mainapp->ShowDialog(dlg);
@@ -497,8 +497,8 @@ namespace gleaf::ui
                 Result rc = gleaf::ns::DeleteApplicationCompletely(seltit.ApplicationId);
                 std::string resstr = "The title was successfully uninstalled from this console.";
                 if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
-                dlg = new pu::element::Dialog("Title uninstall", resstr, pu::draw::Font::NintendoStandard);
-                optn = new pu::element::DialogOption("Ok", pu::element::DialogResult::Ok);
+                dlg = new pu::Dialog("Title uninstall", resstr, pu::draw::Font::NintendoStandard);
+                optn = new pu::DialogOption("Ok", pu::DialogResult::Ok);
                 dlg->AddOption(optn);
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
@@ -559,19 +559,19 @@ namespace gleaf::ui
         std::string info = "Information about selected ticket:\n\n\n";
         info += "Application Id: " + gleaf::horizon::FormatApplicationId(seltick.GetApplicationId());
         info += "\nKey generation: " + std::to_string(seltick.GetKeyGeneration());
-        pu::element::Dialog *dlg = new pu::element::Dialog("Installed ticket information", info, pu::draw::Font::NintendoStandard);
-        pu::element::DialogOption *opty = new pu::element::DialogOption("Remove ticket", pu::element::DialogResult::Ok);
-        pu::element::DialogOption *optn = new pu::element::DialogOption("Back", pu::element::DialogResult::Cancel);
+        pu::Dialog *dlg = new pu::Dialog("Installed ticket information", info, pu::draw::Font::NintendoStandard);
+        pu::DialogOption *opty = new pu::DialogOption("Remove ticket", pu::DialogResult::Ok);
+        pu::DialogOption *optn = new pu::DialogOption("Back", pu::DialogResult::Cancel);
         dlg->AddOption(opty);
         dlg->AddOption(optn);
         mainapp->ShowDialog(dlg);
-        pu::element::DialogOption *sopt = dlg->GetSelectedOption();
+        pu::DialogOption *sopt = dlg->GetSelectedOption();
         if(sopt == optn) return;
         else
         {
-            dlg = new pu::element::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?", pu::draw::Font::NintendoStandard);
-            opty = new pu::element::DialogOption("Yes", pu::element::DialogResult::Ok);
-            optn = new pu::element::DialogOption("Cancel", pu::element::DialogResult::Cancel);
+            dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?", pu::draw::Font::NintendoStandard);
+            opty = new pu::DialogOption("Yes", pu::DialogResult::Ok);
+            optn = new pu::DialogOption("Cancel", pu::DialogResult::Cancel);
             dlg->AddOption(opty);
             dlg->AddOption(optn);
             mainapp->ShowDialog(dlg);
@@ -582,8 +582,8 @@ namespace gleaf::ui
                 Result rc = gleaf::es::DeleteTicket(&seltick.RId, sizeof(gleaf::es::RightsId));
                 std::string resstr = "The ticket was successfully removed from this console.";
                 if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
-                dlg = new pu::element::Dialog("Ticket uninstall", resstr, pu::draw::Font::NintendoStandard);
-                optn = new pu::element::DialogOption("Ok", pu::element::DialogResult::Ok);
+                dlg = new pu::Dialog("Ticket uninstall", resstr, pu::draw::Font::NintendoStandard);
+                optn = new pu::DialogOption("Ok", pu::DialogResult::Ok);
                 dlg->AddOption(optn);
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
