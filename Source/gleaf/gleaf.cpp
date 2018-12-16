@@ -1,4 +1,4 @@
-#include <gleaf/gleaf.hpp>
+#include <gleaf/Goldleaf>
 #include <sys/stat.h>
 
 namespace gleaf

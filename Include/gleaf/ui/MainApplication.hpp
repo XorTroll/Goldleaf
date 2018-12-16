@@ -9,12 +9,12 @@
 */
 
 #pragma once
-#include <gleaf/gleaf.hpp>
-#include <pn/pn.hpp>
+#include <gleaf/Goldleaf>
+#include <pu/Plutonium>
 
 namespace gleaf::ui
 {
-    class MainMenuLayout : public pn::Layout
+    class MainMenuLayout : public pu::Layout
     {
         public:
             MainMenuLayout();
@@ -25,17 +25,17 @@ namespace gleaf::ui
             void ticketMenuItem_Click();
             void sysinfoMenuItem_Click();
         private:
-            pn::fw::Menu *optionMenu;
-            pn::fw::MenuItem *sdcardMenuItem;
-            pn::fw::MenuItem *nandMenuItem;
-            pn::fw::MenuItem *remoteMenuItem;
-            pn::fw::MenuItem *titleMenuItem;
-            pn::fw::MenuItem *ticketMenuItem;
-            pn::fw::MenuItem *sysinfoMenuItem;
-            pn::fw::MenuItem *aboutMenuItem;
+            pu::element::Menu *optionMenu;
+            pu::element::MenuItem *sdcardMenuItem;
+            pu::element::MenuItem *nandMenuItem;
+            pu::element::MenuItem *remoteMenuItem;
+            pu::element::MenuItem *titleMenuItem;
+            pu::element::MenuItem *ticketMenuItem;
+            pu::element::MenuItem *sysinfoMenuItem;
+            pu::element::MenuItem *aboutMenuItem;
     };
 
-    class PartitionBrowserLayout : public pn::Layout
+    class PartitionBrowserLayout : public pu::Layout
     {
         public:
             PartitionBrowserLayout(gleaf::fs::Partition Partition);
@@ -46,22 +46,22 @@ namespace gleaf::ui
             void AlertInstallerError(gleaf::nsp::InstallerResult Res);
         private:
             gleaf::fs::Explorer *gexp;
-            pn::fw::Menu *browseMenu;
-            pn::fw::TextBlock *dirEmptyText;
+            pu::element::Menu *browseMenu;
+            pu::element::TextBlock *dirEmptyText;
     };
 
-    class NSPInstallLayout : public pn::Layout
+    class NSPInstallLayout : public pu::Layout
     {
         public:
             NSPInstallLayout();
-            void StartInstall(gleaf::nsp::Installer *Inst, pn::Layout *Prev);
+            void StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev);
             void LogError(gleaf::nsp::InstallerResult Res);
         private:
-            pn::fw::TextBlock *installText;
-            pn::fw::ProgressBar *installBar;
+            pu::element::TextBlock *installText;
+            pu::element::ProgressBar *installBar;
     };
 
-    class TitleManagerLayout : public pn::Layout
+    class TitleManagerLayout : public pu::Layout
     {
         public:
             TitleManagerLayout();
@@ -70,11 +70,11 @@ namespace gleaf::ui
             std::vector<gleaf::horizon::Title> GetTitles();
         private:
             std::vector<gleaf::horizon::Title> titles;
-            pn::fw::TextBlock *notTitlesText;
-            pn::fw::Menu *titlesMenu;
+            pu::element::TextBlock *notTitlesText;
+            pu::element::Menu *titlesMenu;
     };
 
-    class TicketManagerLayout : public pn::Layout
+    class TicketManagerLayout : public pu::Layout
     {
         public:
             TicketManagerLayout();
@@ -82,37 +82,37 @@ namespace gleaf::ui
             void tickets_Click();
         private:
             std::vector<gleaf::horizon::Ticket> tickets;
-            pn::fw::TextBlock *notTicketsText;
-            pn::fw::Menu *ticketsMenu;
+            pu::element::TextBlock *notTicketsText;
+            pu::element::Menu *ticketsMenu;
     };
 
-    class SystemInfoLayout : public pn::Layout
+    class SystemInfoLayout : public pu::Layout
     {
         public:
             SystemInfoLayout();
             void UpdateElements();
         private:
-            pn::fw::TextBlock *fwText;
-            pn::fw::TextBlock *sdText;
-            pn::fw::ProgressBar *sdBar;
-            pn::fw::TextBlock *nandText;
-            pn::fw::TextBlock *safeText;
-            pn::fw::ProgressBar *safeBar;
-            pn::fw::TextBlock *systemText;
-            pn::fw::ProgressBar *systemBar;
-            pn::fw::TextBlock *userText;
-            pn::fw::ProgressBar *userBar;
+            pu::element::TextBlock *fwText;
+            pu::element::TextBlock *sdText;
+            pu::element::ProgressBar *sdBar;
+            pu::element::TextBlock *nandText;
+            pu::element::TextBlock *safeText;
+            pu::element::ProgressBar *safeBar;
+            pu::element::TextBlock *systemText;
+            pu::element::ProgressBar *systemBar;
+            pu::element::TextBlock *userText;
+            pu::element::ProgressBar *userBar;
     };
 
-    class AboutLayout : public pn::Layout
+    class AboutLayout : public pu::Layout
     {
         public:
             AboutLayout();
         private:
-            pn::fw::TextBlock *typeText;
+            pu::element::TextBlock *typeText;
     };
 
-    class MainApplication : public pn::Application
+    class MainApplication : public pu::Application
     {
         public:
             MainApplication();
@@ -137,11 +137,11 @@ namespace gleaf::ui
             TitleManagerLayout *titleManager;
             TicketManagerLayout *ticketManager;
             SystemInfoLayout *sysInfo;
-            pn::fw::Image *bannerImage;
-            pn::fw::TextBlock *timeText;
-            pn::fw::Image *batteryImage;
-            pn::fw::Image *batteryChargeImage;
-            pn::fw::TextBlock *footerText;
+            pu::element::Image *bannerImage;
+            pu::element::TextBlock *timeText;
+            pu::element::Image *batteryImage;
+            pu::element::Image *batteryChargeImage;
+            pu::element::TextBlock *footerText;
     };
 
     void SetMainApplication(MainApplication *MainApp);
