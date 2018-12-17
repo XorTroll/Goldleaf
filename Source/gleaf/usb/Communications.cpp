@@ -1,4 +1,4 @@
-#include <gleaf/USB/Communications.hpp>
+#include <gleaf/usb/Communications.hpp>
 
 namespace gleaf::usb
 {
