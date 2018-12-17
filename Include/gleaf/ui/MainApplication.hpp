@@ -10,7 +10,7 @@
 
 #pragma once
 #include <gleaf/Goldleaf>
-#include <Plutonium/Plutonium/Include/pu/Plutonium>
+#include <pu/Plutonium>
 
 namespace gleaf::ui
 {
