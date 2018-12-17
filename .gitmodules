@@ -1,0 +1,3 @@
+[submodule "Include/Plutonium"]
+	path = Include/Plutonium
+	url = https://github.com/XorTroll/Plutonium
