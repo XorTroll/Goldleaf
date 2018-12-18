@@ -34,7 +34,7 @@
 
 ## Credits
 
-- Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing and all the RE done with DevMenu.
+- Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing.
 
 - C4Phoenix, for his awesome work doing this project's logo.
 
