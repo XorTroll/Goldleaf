@@ -41,6 +41,14 @@ namespace gleaf::nsp
             this->Finalize();
             return;
         }
+        fsdevMountDevice("gnsp", this->idfs);
+        std::string tikname = fs::SearchForFile(this->idfs, "", "tik");
+        if(tikname == "") this->tik = false;
+        else
+        {
+            this->tik = true;
+            this->tikdata = horizon::ReadTicket("gnsp:/" + tikname);
+        }
         ByteBuffer cnmt;
         std::string cnmtname = fs::SearchForFile(this->idfs, "", "cnmt.nca");
         if(cnmtname == "")
@@ -145,7 +153,7 @@ namespace gleaf::nsp
 
     Installer::~Installer()
     {
-        if(serviceIsActive(&this->idfs.s)) fsFsClose(&this->idfs);
+        fsdevUnmountDevice("gnsp");
     }
 
     InstallerResult Installer::ProcessRecords()
@@ -219,12 +227,9 @@ namespace gleaf::nsp
             this->irc.Type = InstallerError::RecordPush;
             return this->irc;
         }
+        if(!this->tik) return this->irc;
         std::string tikname = fs::SearchForFile(this->idfs, "", "tik");
-        if(tikname == "")
-        {
-            this->tik = false;
-            return this->irc;
-        }
+        if(tikname == "") return this->irc;
         FsFile tikfile;
         tikname.reserve(FS_MAX_PATH);
         rc = fsFsOpenFile(&this->idfs, tikname.c_str(), FS_OPEN_READ, &tikfile);
@@ -386,6 +391,11 @@ namespace gleaf::nsp
     bool Installer::HasTicketAndCert()
     {
         return this->tik;
+    }
+
+    horizon::TicketData Installer::GetTicketData()
+    {
+        return this->tikdata;
     }
 
     bool Installer::IsCNMTAlreadyInstalled()

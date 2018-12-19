@@ -24,14 +24,15 @@ namespace gleaf::horizon
         Personalized,
     };
 
+    // Thanks Switchbrew
     enum class TicketSignature
     {
-        RSA_4096_SHA1,
-        RSA_2048_SHA1,
-        ECDSA_SHA1,
-        RSA_4096_SHA256,
-        RSA_2048_SHA256,
-        ECDSHA_SHA256,
+        RSA_4096_SHA1 = 0x10000,
+        RSA_2048_SHA1 = 0x10001,
+        ECDSA_SHA1 = 0x10002,
+        RSA_4096_SHA256 = 0x10003,
+        RSA_2048_SHA256 = 0x10004,
+        ECDSA_SHA256 = 0x10005,
     };
 
     struct Title
@@ -60,8 +61,7 @@ namespace gleaf::horizon
     {
         TicketSignature Signature;
         std::string TitleKey;
-        RightsId RId;
-
+        u8 KeyGeneration;
     };
 
     struct PartitionFsHeader

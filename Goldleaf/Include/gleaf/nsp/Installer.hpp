@@ -63,6 +63,7 @@ namespace gleaf::nsp
             std::string GetExportedIconPath();
             bool HasContent(ncm::ContentType Type);
             bool HasTicketAndCert();
+            horizon::TicketData GetTicketData();
             bool IsCNMTAlreadyInstalled();
             void Finalize();
         private:
@@ -77,5 +78,6 @@ namespace gleaf::nsp
             FsFileSystem idfs;
             ByteBuffer cnmtbuf;
             ncm::ContentMeta cmeta;
+            horizon::TicketData tikdata;
     };
 }

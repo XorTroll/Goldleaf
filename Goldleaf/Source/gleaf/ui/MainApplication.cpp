@@ -233,7 +233,62 @@ namespace gleaf::ui
                         }
                     }
                     info += "\n\n";
-                    if(inst.HasTicketAndCert()) info += "This NSP has a ticket and it will be installed. (otherwise, the title wouldn't work)";
+                    if(inst.HasTicketAndCert())
+                    {
+                        info += "This NSP has a ticket and it will be installed. Ticket information:\n\n";
+                        gleaf::horizon::TicketData tik = inst.GetTicketData();
+                        info += "Title key: " + tik.TitleKey;
+                        info += "\nSignature type: ";
+                        switch(tik.Signature)
+                        {
+                            case horizon::TicketSignature::RSA_4096_SHA1:
+                                info += "RSA 4096 (SHA1)";
+                                break;
+                            case horizon::TicketSignature::RSA_2048_SHA1:
+                                info += "RSA 2048 (SHA1)";
+                                break;
+                            case horizon::TicketSignature::ECDSA_SHA1:
+                                info += "ECDSA (SHA256)";
+                                break;
+                            case horizon::TicketSignature::RSA_4096_SHA256:
+                                info += "RSA 4096 (SHA256)";
+                                break;
+                            case horizon::TicketSignature::RSA_2048_SHA256:
+                                info += "RSA 2048 (SHA256)";
+                                break;
+                            case horizon::TicketSignature::ECDSA_SHA256:
+                                info += "ECDSA (SHA256)";
+                                break;
+                        }
+                        info += "\nKey generation: " + std::to_string(tik.KeyGeneration);
+                        switch(tik.KeyGeneration)
+                        {
+                            case 0:
+                                info += " (1.0.0 - 2.3.0)";
+                                break;
+                            case 1:
+                                info += " (3.0.0)";
+                                break;
+                            case 2:
+                                info += " (3.0.1 - 3.0.2)";
+                                break;
+                            case 3:
+                                info += " (4.0.0 - 4.1.0)";
+                                break;
+                            case 4:
+                                info += " (5.0.0 - 5.1.0)";
+                                break;
+                            case 5:
+                                info += " (6.0.0 - 6.1.0)";
+                                break;
+                            case 6:
+                                info += " (6.2.0)";
+                                break;
+                            default:
+                                info += " (unknown supported versions?)";
+                                break;
+                        }
+                    }
                     else info += "This NSP doesn't have a ticket. It seems to only have standard crypto.";
                     dlg = new pu::Dialog("Ready to start installing?", info, pu::draw::Font::NintendoStandard);
                     if(hasnacp)

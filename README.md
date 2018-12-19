@@ -2,7 +2,7 @@
 
 ## Easy-to-use title installer & manager for Nintendo Switch
 
-<img src="Logo.png" width="150"/>
+![Logo](Logo.png)
 
 ## What is Goldleaf?
 
