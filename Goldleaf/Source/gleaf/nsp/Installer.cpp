@@ -49,6 +49,9 @@ namespace gleaf::nsp
             this->tik = true;
             this->tikdata = horizon::ReadTicket("gnsp:/" + tikname);
         }
+        std::string certname = fs::SearchForFile(this->idfs, "", "cert");
+        if(certname == "") this->tik = false;
+        else this->tik = true;
         ByteBuffer cnmt;
         std::string cnmtname = fs::SearchForFile(this->idfs, "", "cnmt.nca");
         if(cnmtname == "")
