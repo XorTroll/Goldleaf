@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Application.hpp
+    @brief An Application is the base to use the UI system of this library.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <vector>
 #include <functional>

@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Layout.hpp
+    @brief Contains Layout class, the object used to render specific objects
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <pu/element.hpp>
 

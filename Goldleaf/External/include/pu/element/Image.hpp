@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Image.hpp
+    @brief An Image is an Element showing a picture.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <pu/element/Element.hpp>
 

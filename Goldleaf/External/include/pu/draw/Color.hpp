@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Color.hpp
+    @brief A Color is used for basic RGBA drawing in all kind of elements.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <switch.h>
 

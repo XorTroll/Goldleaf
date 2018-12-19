@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Button.hpp
+    @brief A Button is an Element for option selecting.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <functional>
 #include <pu/element/Element.hpp>

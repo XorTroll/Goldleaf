@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Renderer.hpp
+    @brief A Renderer is the object performing basic rendering. (simply, a SDL2 wrapper)
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <pu/draw/Color.hpp>
 #include <pu/draw/Font.hpp>

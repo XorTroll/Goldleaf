@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file ProgressBar.hpp
+    @brief A ProgressBar is an Element which represents a progress (a percentage) by filling a bar.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <pu/element/Element.hpp>
 

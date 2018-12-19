@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file Toggle.hpp
+    @brief A Toggle is an Element used to switch between two options by toggling the item.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <pu/element/Element.hpp>
 

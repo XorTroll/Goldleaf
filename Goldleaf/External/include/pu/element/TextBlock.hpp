@@ -1,4 +1,16 @@
 
+/*
+
+    Plutonium library
+
+    @file TextBlock.hpp
+    @brief A TextBlock is a very useful Element which is used to draw text on the screen.
+    @author XorTroll
+
+    @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
+
+*/
+
 #pragma once
 #include <pu/element/Element.hpp>
 
