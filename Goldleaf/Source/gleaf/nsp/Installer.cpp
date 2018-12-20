@@ -47,11 +47,16 @@ namespace gleaf::nsp
         else
         {
             this->tik = true;
-            this->tikdata = horizon::ReadTicket("gnsp:/" + tikname);
+            this->stik = "gnsp:/" + tikname;
+            this->tikdata = horizon::ReadTicket(this->stik);
         }
         std::string certname = fs::SearchForFile(this->idfs, "", "cert");
         if(certname == "") this->tik = false;
-        else this->tik = true;
+        else
+        {
+            this->tik = true;
+            this->scert = "gnsp:/" + certname;
+        }
         ByteBuffer cnmt;
         std::string cnmtname = fs::SearchForFile(this->idfs, "", "cnmt.nca");
         if(cnmtname == "")
@@ -230,61 +235,23 @@ namespace gleaf::nsp
             this->irc.Type = InstallerError::RecordPush;
             return this->irc;
         }
-        if(!this->tik) return this->irc;
-        std::string tikname = fs::SearchForFile(this->idfs, "", "tik");
-        if(tikname == "") return this->irc;
-        FsFile tikfile;
-        tikname.reserve(FS_MAX_PATH);
-        rc = fsFsOpenFile(&this->idfs, tikname.c_str(), FS_OPEN_READ, &tikfile);
-        if(rc == 0)
+        if(this->tik)
         {
-            u64 tiksize = 0;
-            rc = fsFileGetSize(&tikfile, &tiksize);
-            if(rc != 0)
-            {
-                fsFileClose(&tikfile);
-                return this->irc;
-            }
-            auto tik = std::make_unique<u8[]>(tiksize);
-            size_t otiksize = 0;
-            rc = fsFileRead(&tikfile, 0, tik.get(), tiksize, &otiksize);
-            if(rc != 0)
-            {
-                fsFileClose(&tikfile);
-                return this->irc;
-            }
-            std::string certname = fs::SearchForFile(this->idfs, "", "cert");
-            if(certname == "")
-            {
-                this->tik = false;
-                fsFileClose(&tikfile);
-                return this->irc;
-            }
-            FsFile certfile;
-            certname.reserve(FS_MAX_PATH);
-            rc = fsFsOpenFile(&this->idfs, certname.c_str(), FS_OPEN_READ, &certfile);
-            if(rc == 0)
-            {
-                u64 certsize = 0;
-                rc = fsFileGetSize(&certfile, &certsize);
-                if(rc != 0)
-                {
-                    fsFileClose(&certfile);
-                    return this->irc;
-                }
-                auto cert = std::make_unique<u8[]>(certsize);
-                size_t ocertsize = 0;
-                rc = fsFileRead(&certfile, 0, cert.get(), certsize, &ocertsize);
-                if(rc != 0)
-                {
-                    fsFileClose(&certfile);
-                    return this->irc;
-                }
-                rc = es::ImportTicket(tik.get(), tiksize, cert.get(), certsize);
-                this->tik = true;
-                fsFileClose(&tikfile);
-                fsFileClose(&certfile);
-            }
+            std::ifstream ifs(this->stik, std::ios::binary);
+            ifs.seekg(0, ifs.end);
+            int sztik = ifs.tellg();
+            ifs.seekg(0, ifs.beg);
+            auto btik = std::make_unique<u8[]>(sztik);
+            ifs.read(btik.get(), sztik);
+            ifs.close();
+            ifs = std::ifstream(this->scert, std::ios::binary);
+            ifs.seekg(0, ifs.end);
+            int szcert = ifs.tellg();
+            ifs.seekg(0, ifs.beg);
+            auto bcert = std::make_unique<u8[]>(szcert);
+            ifs.read(bcert.get(), szcert);
+            ifs.close();
+            es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
         }
         return this->irc;
     }

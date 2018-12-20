@@ -292,9 +292,7 @@ namespace gleaf::ui
                     sopt = dlg->GetSelectedIndex();
                     if(dlg->UserCancelled() || (sopt == 1)) return;
                     mainapp->LoadLayout(mainapp->GetNSPInstallLayout());
-                    appletBeginBlockingHomeButton(0);
                     mainapp->GetNSPInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout());
-                    appletEndBlockingHomeButton();
                 }
                 else if(ext == "nro")
                 {
@@ -351,6 +349,8 @@ namespace gleaf::ui
 
     void NSPInstallLayout::StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev)
     {
+        if(gleaf::IsApplication()) appletBeginBlockingHomeButton(0);
+        else appletLockExit();
         this->installText->SetText("Processing title records...");
         mainapp->UpdateFooter("Installing NSP...");
         mainapp->CallForRender();
@@ -369,6 +369,8 @@ namespace gleaf::ui
         });
         if(!rc.IsSuccess()) this->LogError(rc);
         Inst->Finalize();
+        if(gleaf::IsApplication()) appletEndBlockingHomeButton();
+        else appletUnlockExit();
         if(rc.IsSuccess())
         {
             pu::Dialog *dlg = new pu::Dialog("NSP installation finished", "The NSP was successfully installed.\nYou can close this application and the title (should) appear on Home Menu. Enjoy!", pu::draw::Font::NintendoStandard);

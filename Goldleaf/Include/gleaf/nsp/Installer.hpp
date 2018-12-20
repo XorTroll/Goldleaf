@@ -78,6 +78,8 @@ namespace gleaf::nsp
             FsFileSystem idfs;
             ByteBuffer cnmtbuf;
             ncm::ContentMeta cmeta;
+            std::string stik;
+            std::string scert;
             horizon::TicketData tikdata;
     };
 }
