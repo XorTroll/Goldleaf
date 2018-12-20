@@ -37,7 +37,7 @@ APP_VERSION := 0.1
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
-ICON		:= Icon.jpg
+ICON		:= Control/icon_AmericanEnglish.dat
 
 BUILD       := Build
 SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/horizon Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/ui Source/gleaf/usb
@@ -138,7 +138,7 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(OUTPUT).nacp
+	export NROFLAGS += --nacp=$(CURDIR)/Control/control.nacp
 endif
 
 ifneq ($(APP_TITLEID),)
@@ -161,7 +161,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(OUTPUT).pfs0 $(OUTPUT).nso $(OUTPUT).nro $(OUTPUT).nacp $(OUTPUT).elf
+	@rm -fr $(BUILD) $(CURDIR)/ExeFs/main $(OUTPUT).nro $(OUTPUT).elf
 
 
 #---------------------------------------------------------------------------------
@@ -173,17 +173,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
-
-$(OUTPUT).pfs0	:	$(OUTPUT).nso
+all	:	$(OUTPUT).nro $(OUTPUT).nso
 
 $(OUTPUT).nso	:	$(OUTPUT).elf
 
-ifeq ($(strip $(NO_NACP)),)
-$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
-else
 $(OUTPUT).nro	:	$(OUTPUT).elf
-endif
 
 $(OUTPUT).elf	:	$(OFILES)
 
