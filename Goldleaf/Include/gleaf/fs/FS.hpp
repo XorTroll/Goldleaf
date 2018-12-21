@@ -27,8 +27,13 @@ namespace gleaf::fs
     bool IsDirectory(std::string Path);
     void CreateFile(std::string Path);
     void CreateDirectory(std::string Path);
+    void CopyFile(std::string Path, std::string NewPath);
+    void CopyDirectory(std::string Dir, std::string NewDir);
+    void DeleteFile(std::string Path);
+    void DeleteDirectory(std::string Path);
     std::string GetFileName(std::string Path);
     std::string GetExtension(std::string Path);
+    std::string GetPathWithoutRoot(std::string Path);
     u64 GetTotalSpaceForPartition(Partition Partition);
     u64 GetFreeSpaceForPartition(Partition Partition);
     std::string FormatSize(u64 Bytes);

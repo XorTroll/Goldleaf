@@ -5,6 +5,8 @@
 #include <cmath>
 #include <memory>
 #include <sstream>
+#include <dirent.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 namespace gleaf::fs
@@ -44,6 +46,61 @@ namespace gleaf::fs
         ::mkdir(Path.c_str(), 777);
     }
 
+    void CopyFile(std::string Path, std::string NewPath)
+    {
+        std::ifstream ifs(Path);
+        std::ofstream ofs(NewPath);
+        if(ifs.good() && ofs.good()) ofs << ifs.rdbuf();
+        ofs.close();
+        ifs.close();
+    }
+
+    void CopyDirectory(std::string Dir, std::string NewDir)
+    {
+        mkdir(NewDir.c_str(), 777);
+        DIR *from = opendir(Dir.c_str());
+        if(from)
+        {
+            struct dirent *dent;
+            while(true)
+            {
+                dent = readdir(from);
+                if(dent == NULL) break;
+                std::string nd = dent->d_name;
+                std::string dfrom = Dir + "/" + nd;
+                std::string dto = NewDir + "/" + nd;
+                if(gleaf::fs::IsFile(dfrom)) CopyFile(dfrom, dto);
+                else CopyDirectory(dfrom, dto);
+            }
+        }
+        closedir(from);
+    }
+
+    void DeleteFile(std::string Path)
+    {
+        remove(Path.c_str());
+    }
+
+    void DeleteDirectory(std::string Path)
+    {
+        DIR *d = opendir(Path.c_str());
+        if(d)
+        {
+            struct dirent *dent;
+            while(true)
+            {
+                dent = readdir(d);
+                if(dent == NULL) break;
+                std::string nd = dent->d_name;
+                std::string pd = Path + "/" + nd;
+                if(gleaf::fs::IsFile(pd)) DeleteFile(pd);
+                else DeleteDirectory(pd);
+            }
+        }
+        closedir(d);
+        rmdir(Path.c_str());
+    }
+
     std::string GetFileName(std::string Path)
     {
         return Path.substr(Path.find_last_of("/\\") + 1);
@@ -52,6 +109,11 @@ namespace gleaf::fs
     std::string GetExtension(std::string Path)
     {
         return Path.substr(Path.find_last_of(".") + 1);
+    }
+
+    std::string GetPathWithoutRoot(std::string Path)
+    {
+        return Path.substr(Path.find_first_of(":") + 1);
     }
 
     u64 GetTotalSpaceForPartition(Partition Partition)

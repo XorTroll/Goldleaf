@@ -42,8 +42,10 @@ namespace gleaf::ui
             void ChangePartition(gleaf::fs::Partition Partition);
             void UpdateElements();
             bool GoBack();
+            bool WarnNANDWriteAccess();
             void fsItems_Click();
-            void AlertInstallerError(gleaf::nsp::InstallerResult Res);
+            void fsItems_Click_Y();
+            gleaf::fs::Explorer *GetExplorer();
         private:
             gleaf::fs::Explorer *gexp;
             pu::element::Menu *browseMenu;
@@ -54,7 +56,7 @@ namespace gleaf::ui
     {
         public:
             NSPInstallLayout();
-            void StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev);
+            void StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev, bool Delete);
             void LogError(gleaf::nsp::InstallerResult Res);
         private:
             pu::element::TextBlock *installText;
@@ -124,6 +126,7 @@ namespace gleaf::ui
             void titleManager_Input(u64 Input);
             void ticketManager_Input(u64 Input);
             void sysInfo_Input(u64 Input);
+            void OnInput(u64 Input);
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
             NSPInstallLayout *GetNSPInstallLayout();
@@ -145,5 +148,6 @@ namespace gleaf::ui
             pu::element::TextBlock *footerText;
     };
 
+    void UpdateClipboard(std::string Path);
     void SetMainApplication(MainApplication *MainApp);
 }

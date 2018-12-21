@@ -3,6 +3,7 @@
 namespace gleaf::ui
 {
     MainApplication *mainapp;
+    std::string clipboard;
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -10,21 +11,21 @@ namespace gleaf::ui
         this->optionMenu->SetOnSelectionChanged(std::bind(&MainMenuLayout::optionMenu_SelectionChanged, this));
         this->sdcardMenuItem = new pu::element::MenuItem("Browse SD card");
         this->sdcardMenuItem->SetIcon("romfs:/Common/SdCard.png");
-        this->sdcardMenuItem->SetOnClick(std::bind(&MainMenuLayout::sdcardMenuItem_Click, this));
+        this->sdcardMenuItem->AddOnClick(std::bind(&MainMenuLayout::sdcardMenuItem_Click, this));
         this->nandMenuItem = new pu::element::MenuItem("Browse system NAND");
         this->nandMenuItem->SetIcon("romfs:/Common/NAND.png");
-        this->nandMenuItem->SetOnClick(std::bind(&MainMenuLayout::nandMenuItem_Click, this));
+        this->nandMenuItem->AddOnClick(std::bind(&MainMenuLayout::nandMenuItem_Click, this));
         this->remoteMenuItem = new pu::element::MenuItem("Remote installation");
         this->remoteMenuItem->SetIcon("romfs:/Common/USB.png");
         this->titleMenuItem = new pu::element::MenuItem("Manage installed titles");
         this->titleMenuItem->SetIcon("romfs:/Common/Storage.png");
-        this->titleMenuItem->SetOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
+        this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
         this->ticketMenuItem = new pu::element::MenuItem("Manage installed tickets");
         this->ticketMenuItem->SetIcon("romfs:/Common/Ticket.png");
-        this->ticketMenuItem->SetOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
+        this->ticketMenuItem->AddOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
         this->sysinfoMenuItem = new pu::element::MenuItem("Show system information");
         this->sysinfoMenuItem->SetIcon("romfs:/Common/Settings.png");
-        this->sysinfoMenuItem->SetOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
+        this->sysinfoMenuItem->AddOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
         this->aboutMenuItem = new pu::element::MenuItem("About this application");
         this->aboutMenuItem->SetIcon("romfs:/Common/Info.png");
         this->optionMenu->AddItem(this->sdcardMenuItem);
@@ -134,7 +135,8 @@ namespace gleaf::ui
                     if(ext == "nsp") mitm->SetIcon("romfs:/FileSystem/NSP.png");
                     else mitm->SetIcon("romfs:/FileSystem/File.png");
                 }
-                mitm->SetOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this));
+                mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this));
+                mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click_Y, this), KEY_Y);
                 this->browseMenu->AddItem(mitm);
             }
             this->browseMenu->SetSelectedIndex(0);
@@ -146,18 +148,49 @@ namespace gleaf::ui
         return this->gexp->NavigateBack();
     }
 
+    bool PartitionBrowserLayout::WarnNANDWriteAccess()
+    {
+        if(this->gexp->GetPartition() == gleaf::fs::Partition::SdCard) return true;
+        pu::Dialog *dlg = new pu::Dialog("Warning: NAND access", "You are trying to write or delete content within the console's NAND memory.\n\nDeleting or replacing content there can be a risky operation.\nImportant file loss could lead to a bricked NAND, where the console won't boot.\n\nAre you sure you want to perform this operation?", pu::draw::Font::NintendoStandard);
+        dlg->AddOption("Yes");
+        dlg->AddOption("Cancel");
+        mainapp->ShowDialog(dlg);
+        u32 sopt = dlg->GetSelectedIndex();
+        return (sopt == 0);
+    }
+
     void PartitionBrowserLayout::fsItems_Click()
     {
         std::string itm = this->browseMenu->GetSelectedItem()->GetName();
+        std::string fullitm = this->gexp->FullPathFor(itm);
         if(this->gexp->NavigateForward(itm)) this->UpdateElements();
-        else
+        else if(gleaf::fs::IsFile(fullitm))
         {
             std::string ext = gleaf::fs::GetExtension(itm);
-            if(this->gexp->GetPartition() == gleaf::fs::Partition::SdCard)
+            pu::Dialog *dlg = new pu::Dialog("File options", "What would you like to do with the selected file?", pu::draw::Font::NintendoStandard);
+            u32 copt = 2;
+            if(ext == "nsp")
             {
-                if(ext == "nsp")
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
+                dlg->AddOption("Install NSP");
+                dlg->AddOption("Install and delete NSP");
+                copt = 4;
+            }
+            else if(ext == "nro")
+            {
+                dlg->AddOption("Launch NRO");
+                copt = 3;
+            }
+            dlg->AddOption("Copy");
+            dlg->AddOption("Delete");
+            dlg->AddOption("Cancel");
+            mainapp->ShowDialog(dlg);
+            u32 sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled() || (sopt == copt)) return;
+            if(ext == "nsp") switch(sopt)
+            {
+                case 0:
+                case 1:
+                    dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
                     dlg->AddOption("SD card");
                     dlg->AddOption("NAND (console memory)");
                     dlg->AddOption("Cancel");
@@ -292,51 +325,96 @@ namespace gleaf::ui
                     sopt = dlg->GetSelectedIndex();
                     if(dlg->UserCancelled() || (sopt == 1)) return;
                     mainapp->LoadLayout(mainapp->GetNSPInstallLayout());
-                    mainapp->GetNSPInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout());
-                }
-                else if(ext == "nro")
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Launch selected NRO binary", "Would you like to launch the selected NRO binary?\n(Goldleaf will be closed and the NRO will be executed)", pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Yes");
-                    dlg->AddOption("Cancel");
-                    mainapp->ShowDialog(dlg);
-                    u32 sopt = dlg->GetSelectedIndex();
-                    if(dlg->UserCancelled() || (sopt == 1)) return;
-                    std::string fullitm = this->gexp->FullPathFor(itm);
-                    envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
-                    mainapp->Close();
-                }
-            }
-            else
-            {
-                std::string fullitm = this->gexp->FullPathFor(itm);
-                if(gleaf::fs::IsFile(fullitm))
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Export NAND file", "Do you want to export this file to the SD card?", pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Yes");
-                    dlg->AddOption("Cancel");
-                    mainapp->ShowDialog(dlg);
-                    u32 sopt = dlg->GetSelectedIndex();
-                    if(dlg->UserCancelled() || (sopt == 1)) return;
-                    std::ifstream ifs(fullitm);
-                    std::string outitm = "sdmc:/switch/.gleaf/out/" + gleaf::fs::GetFileName(fullitm);
-                    std::ofstream ofs(outitm);
-                    bool ok = false;
-                    if(ifs.good()) if(ofs.good())
+                    if(sopt == 1)
                     {
-                        ok = true;
-                        ofs << ifs.rdbuf();
+                        gleaf::fs::DeleteFile(fullitm);
+                        this->UpdateElements();
                     }
-                    ifs.close();
-                    ofs.close();
-                    std::string info = "File was successfully exported to \'" + outitm + "\'.";
-                    if(!ok) info = "An error ocurred attempting to export the file.";
-                    dlg = new pu::Dialog("File export information", info, pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Ok");
+                    mainapp->GetNSPInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), (sopt == 1));
+                    break;
+                case 2:
+                    UpdateClipboard(fullitm);
+                    this->UpdateElements();
+                    break;
+                case 3:
+                    gleaf::fs::DeleteFile(fullitm);
+                    mainapp->UpdateFooter("File deleted: \'" + gleaf::fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
+            }
+            else if(ext == "nro") switch(sopt)
+            {
+                case 0:
+                    dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Launch");
+                    dlg->AddOption("Cancel");
                     mainapp->ShowDialog(dlg);
-                }
+                    if(dlg->GetSelectedIndex() == 0)
+                    {
+                        envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
+                        mainapp->Close();
+                    }
+                    break;
+                case 2:
+                    UpdateClipboard(fullitm);
+                    this->UpdateElements();
+                    break;
+                case 3:
+                    gleaf::fs::DeleteFile(fullitm);
+                    mainapp->UpdateFooter("File deleted: \'" + gleaf::fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
+            }
+            else switch(sopt)
+            {
+                case 0:
+                    UpdateClipboard(fullitm);
+                    this->UpdateElements();
+                    break;
+                case 1:
+                    gleaf::fs::DeleteFile(fullitm);
+                    mainapp->UpdateFooter("File deleted: \'" + gleaf::fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
             }
         }
+    }
+
+    void PartitionBrowserLayout::fsItems_Click_Y()
+    {
+        std::string itm = this->browseMenu->GetSelectedItem()->GetName();
+        std::string fullitm = this->gexp->FullPathFor(itm);
+        if(gleaf::fs::IsDirectory(fullitm))
+        {
+            pu::Dialog *dlg = new pu::Dialog("Directory options", "What would you like to do with the selected directory?", pu::draw::Font::NintendoStandard);
+            dlg->AddOption("Browse");
+            dlg->AddOption("Copy");
+            dlg->AddOption("Delete");
+            dlg->AddOption("Cancel");
+            mainapp->ShowDialog(dlg);
+            u32 sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled() || (sopt == 3)) return;
+            else switch(sopt)
+            {
+                case 0:
+                    if(this->gexp->NavigateForward(itm)) this->UpdateElements();
+                    break;
+                case 1:
+                    UpdateClipboard(fullitm);
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
+                case 2:
+                    gleaf::fs::DeleteDirectory(fullitm);
+                    mainapp->UpdateFooter("Directory deleted: \'" + gleaf::fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
+            }
+        }
+    }
+
+    gleaf::fs::Explorer *PartitionBrowserLayout::GetExplorer()
+    {
+        return this->gexp;
     }
 
     NSPInstallLayout::NSPInstallLayout()
@@ -347,7 +425,7 @@ namespace gleaf::ui
         this->AddChild(this->installBar);
     }
 
-    void NSPInstallLayout::StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev)
+    void NSPInstallLayout::StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev, bool Delete)
     {
         if(gleaf::IsApplication()) appletBeginBlockingHomeButton(0);
         else appletLockExit();
@@ -377,6 +455,7 @@ namespace gleaf::ui
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
             mainapp->UpdateFooter("The NSP was successfully installed.");
+            if(Delete) mainapp->UpdateFooter("The NSP was successfully installed and deleted.");
         }
         else mainapp->UpdateFooter("An error ocurred installing the NSP.");
         mainapp->LoadLayout(Prev);
@@ -447,6 +526,7 @@ namespace gleaf::ui
     TitleManagerLayout::TitleManagerLayout()
     {
         this->titlesMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
+        this->titlesMenu->SetCooldownEnabled(true);
         this->notTitlesText = new pu::element::TextBlock(450, 400, "No titles were found for this console.");
         this->UpdateElements();
         this->AddChild(this->notTitlesText);
@@ -457,7 +537,6 @@ namespace gleaf::ui
     {
         this->titles = gleaf::horizon::GetAllSystemTitles();
         this->titlesMenu->ClearItems();
-        this->titlesMenu->SetCooldownEnabled(true);
         if(this->titles.empty())
         {
             this->notTitlesText->SetVisible(true);
@@ -482,7 +561,7 @@ namespace gleaf::ui
                         itm->SetIcon("romfs:/Common/SdCard.png");
                         break;
                 }
-                itm->SetOnClick(std::bind(&TitleManagerLayout::titles_Click, this));
+                itm->AddOnClick(std::bind(&TitleManagerLayout::titles_Click, this));
                 this->titlesMenu->AddItem(itm);
             }
             this->titlesMenu->SetSelectedIndex(0);
@@ -548,6 +627,7 @@ namespace gleaf::ui
     TicketManagerLayout::TicketManagerLayout()
     {
         this->ticketsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
+        this->ticketsMenu->SetCooldownEnabled(true);
         this->notTicketsText = new pu::element::TextBlock(450, 400, "No tickets were found for this console.");
         this->UpdateElements();
         this->AddChild(this->notTicketsText);
@@ -558,7 +638,6 @@ namespace gleaf::ui
     {
         this->tickets = gleaf::horizon::GetAllSystemTickets();
         this->ticketsMenu->ClearItems();
-        this->ticketsMenu->SetCooldownEnabled(true);
         if(this->tickets.empty())
         {
             this->notTicketsText->SetVisible(true);
@@ -580,7 +659,7 @@ namespace gleaf::ui
                 }
                 pu::element::MenuItem *itm = new pu::element::MenuItem(tname);
                 itm->SetIcon("romfs:/Common/Ticket.png");
-                itm->SetOnClick(std::bind(&TicketManagerLayout::tickets_Click, this));
+                itm->AddOnClick(std::bind(&TicketManagerLayout::tickets_Click, this));
                 this->ticketsMenu->AddItem(itm);
             }
             this->ticketsMenu->SetSelectedIndex(0);
@@ -732,6 +811,7 @@ namespace gleaf::ui
         this->ticketManager->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
+        this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1));
         this->LoadLayout(this->mainMenu);
     }
 
@@ -760,6 +840,30 @@ namespace gleaf::ui
             if(this->sdBrowser->GoBack()) this->sdBrowser->UpdateElements();
             else this->LoadLayout(this->mainMenu);
         }
+        else if(Input & KEY_X)
+        {
+            if(clipboard != "")
+            {
+                bool cdir = gleaf::fs::IsDirectory(clipboard);
+                pu::Dialog *dlg = new pu::Dialog("Clipboard process", "Current clipboard contents path:\n\'" + gleaf::fs::GetPathWithoutRoot(clipboard) + "\'\n\nDo you want to copy clipboard contents to this directory?", pu::draw::Font::NintendoStandard);
+                if(cdir) dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/Directory.png"));
+                else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                dlg->AddOption("Yes");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                if(sopt == 0)
+                {
+                    std::string cname = gleaf::fs::GetFileName(clipboard);
+                    if(cdir) gleaf::fs::CopyDirectory(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
+                    else gleaf::fs::CopyFile(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
+                    this->sdBrowser->UpdateElements();
+                    mainapp->UpdateFooter("Clipboard was processed and cleaned (file / directory was copied: " + gleaf::fs::GetPathWithoutRoot(clipboard));
+                    clipboard = "";
+                }
+            }
+            else mainapp->UpdateFooter("Clipboard is not selected.");
+        }
     }
 
     void MainApplication::nandBrowser_Input(u64 Input)
@@ -768,6 +872,30 @@ namespace gleaf::ui
         {
             if(this->nandBrowser->GoBack()) this->nandBrowser->UpdateElements();
             else this->LoadLayout(this->mainMenu);
+        }
+        else if(Input & KEY_X)
+        {
+            if(clipboard != "")
+            {
+                bool cdir = gleaf::fs::IsDirectory(clipboard);
+                pu::Dialog *dlg = new pu::Dialog("Clipboard process", "Current clipboard contents path:\n\'" + gleaf::fs::GetPathWithoutRoot(clipboard) + "\'\n\nDo you want to copy clipboard contents to this directory?", pu::draw::Font::NintendoStandard);
+                if(cdir) dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/Directory.png"));
+                else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                dlg->AddOption("Yes");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                if((sopt == 0) && this->nandBrowser->WarnNANDWriteAccess())
+                {
+                    std::string cname = gleaf::fs::GetFileName(clipboard);
+                    if(cdir) gleaf::fs::CopyDirectory(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
+                    else gleaf::fs::CopyFile(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
+                    this->nandBrowser->UpdateElements();
+                    mainapp->UpdateFooter("Clipboard was processed and cleaned (file / directory was copied: " + gleaf::fs::GetPathWithoutRoot(clipboard));
+                    clipboard = "";
+                }
+            }
+            else mainapp->UpdateFooter("Clipboard is not selected.");
         }
     }
 
@@ -784,6 +912,11 @@ namespace gleaf::ui
     void MainApplication::sysInfo_Input(u64 Input)
     {
         if(Input & KEY_B) this->LoadLayout(this->mainMenu);
+    }
+
+    void MainApplication::OnInput(u64 Input)
+    {
+        if((Input & KEY_PLUS) || (Input & KEY_MINUS)) if(!gleaf::IsApplication()) this->Close();
     }
 
     PartitionBrowserLayout *MainApplication::GetSDBrowserLayout()
@@ -814,6 +947,12 @@ namespace gleaf::ui
     SystemInfoLayout *MainApplication::GetSystemInfoLayout()
     {
         return this->sysInfo;
+    }
+
+    void UpdateClipboard(std::string Path)
+    {
+        clipboard = Path;
+        mainapp->UpdateFooter("Clipboard was set to \'" + gleaf::fs::GetPathWithoutRoot(Path) + "\'.");
     }
 
     void SetMainApplication(MainApplication *MainApp)

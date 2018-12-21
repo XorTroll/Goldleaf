@@ -242,14 +242,14 @@ namespace gleaf::nsp
             int sztik = ifs.tellg();
             ifs.seekg(0, ifs.beg);
             auto btik = std::make_unique<u8[]>(sztik);
-            ifs.read(btik.get(), sztik);
+            ifs.read((char*)btik.get(), sztik);
             ifs.close();
             ifs = std::ifstream(this->scert, std::ios::binary);
             ifs.seekg(0, ifs.end);
             int szcert = ifs.tellg();
             ifs.seekg(0, ifs.beg);
             auto bcert = std::make_unique<u8[]>(szcert);
-            ifs.read(bcert.get(), szcert);
+            ifs.read((char*)bcert.get(), szcert);
             ifs.close();
             es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
         }

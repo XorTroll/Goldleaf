@@ -35,6 +35,7 @@ namespace pu
             bool UsesCustomFont();
             std::string GetCustomFont();
             void AddThread(std::function<void()> Callback);
+            void SetOnInput(std::function<void(u64 Input)> Callback);
             void ShowDialog(Dialog *ToShow);
             void Show();
             void CallForRender();
@@ -47,6 +48,7 @@ namespace pu
             s32 fact;
             Layout *lyt;
             std::vector<std::function<void()>> thds;
+            std::function<void(u64)> cbipt;
             render::Renderer *rend;
     };
 }
