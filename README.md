@@ -40,7 +40,7 @@ Nothing else is required. No external files, or extra configuration are required
 
 - **NSP** (installable title)
 
-  Goldleaf's NSP title has application ID / title ID `050032A5CF12E000`. (as a piece of extra information)
+  Goldleaf's NSP title has application ID / title ID `050032A5CF12E000`. (as an extra piece of information)
 
   You need a homebrew to install the NSP. The best solution would be to download both the NRO and the NSP, and install the NSP via the NRO. (ironically)
 
@@ -52,7 +52,7 @@ Goldleaf differs on some features depending on whether it is loaded as a NRO or 
 
 - Goldleaf can be exited via Plus (+) or Minus (-) buttons if it's loaded as a NRO, but as regular titles have to be exited from the Home Menu, this feature is not available as a title.
 
-- Goldleaf disables Home button pressing if it's loaded as a title, but this feature isn't available for applets for technical reasons related to applets.
+- Goldleaf disables Home button pressing if it's loaded as a title, but this feature isn't available as a NRO binary for technical reasons related to applets.
 
 ## Issues and support
 
