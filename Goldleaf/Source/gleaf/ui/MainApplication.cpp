@@ -40,15 +40,15 @@ namespace gleaf::ui
 
     void MainMenuLayout::optionMenu_SelectionChanged()
     {
-        std::string info = "Unknown option";
+        std::string info = "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...";
         pu::element::MenuItem *isel = this->optionMenu->GetSelectedItem();
-        if(isel == this->sdcardMenuItem) info = "Browse the SD card's files and folders. You can install NSPs from here.";
-        else if(isel == this->nandMenuItem) info = "Browse the NAND's files and folders. You can export them to the SD card. Writing (copying) is not allowed.";
+        if(isel == this->sdcardMenuItem) info = "Browse the SD card's files and folders: install NSPs, launch NROs, install tickets... (and copy, paste and delete)";
+        else if(isel == this->nandMenuItem) info = "Browse the NAND's files and folders. (and copy, paste and delete)";
         else if(isel == this->remoteMenuItem) info = "Install NSPs remotely, via network or USB communications.";
-        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and/or uninstall them.";
-        else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and/or remove them.";
-        else if(isel == this->sysinfoMenuItem) info = "Show information about this Nintendo Switch: current firmware and used space in NAND and SD card.";
-        else if(isel == this->aboutMenuItem) info = "Show information about Goldleaf: author, version, credits...";
+        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
+        else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
+        else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
+        else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf: author, version, credits...";
         mainapp->UpdateFooter(info);
     }
 
@@ -133,6 +133,9 @@ namespace gleaf::ui
                 {
                     std::string ext = gleaf::fs::GetExtension(itm);
                     if(ext == "nsp") mitm->SetIcon("romfs:/FileSystem/NSP.png");
+                    else if(ext == "nro") mitm->SetIcon("romfs:/FileSystem/NRO.png");
+                    else if(ext == "tik") mitm->SetIcon("romfs:/FileSystem/TIK.png");
+                    else if(ext == "cert") mitm->SetIcon("romfs:/FileSystem/CERT.png");
                     else mitm->SetIcon("romfs:/FileSystem/File.png");
                 }
                 mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this));
@@ -167,17 +170,27 @@ namespace gleaf::ui
         else if(gleaf::fs::IsFile(fullitm))
         {
             std::string ext = gleaf::fs::GetExtension(itm);
-            pu::Dialog *dlg = new pu::Dialog("File options", "What would you like to do with the selected file?", pu::draw::Font::NintendoStandard);
+            std::string msg = "What would you like to do with the selected ";
+            if(ext == "nsp") msg += "NSP file";
+            else if(ext == "nro") msg += "NRO binary";
+            else if(ext == "tik") msg += "ticket file";
+            msg += "?";
+            pu::Dialog *dlg = new pu::Dialog("File options", msg, pu::draw::Font::NintendoStandard);
             u32 copt = 2;
             if(ext == "nsp")
             {
-                dlg->AddOption("Install NSP");
-                dlg->AddOption("Install and delete NSP");
+                dlg->AddOption("Install");
+                dlg->AddOption("Install and delete");
                 copt = 4;
             }
             else if(ext == "nro")
             {
-                dlg->AddOption("Launch NRO");
+                dlg->AddOption("Launch");
+                copt = 3;
+            }
+            else if(ext == "tik")
+            {
+                dlg->AddOption("Import");
                 copt = 3;
             }
             dlg->AddOption("Copy");
@@ -211,16 +224,28 @@ namespace gleaf::ui
                     std::string fullitm = this->gexp->FullPathFor(itm);
                     std::string nspipt = "@Sdcard:" + fullitm.substr(5);
                     gleaf::nsp::Installer inst(dst, nspipt, ignorev);
+                    gleaf::nsp::InstallerResult irc = inst.GetLatestResult();
+                    if(!irc.IsSuccess())
+                    {
+                        mainapp->GetNSPInstallLayout()->LogError(irc);
+                        return;
+                    }
                     bool hasnacp = inst.HasContent(gleaf::ncm::ContentType::Control);
                     std::string info = "No control data was found inside the NSP. (control NCA seems to be missing)";
                     if(hasnacp)
                     {
                         info = "Information about the NSP's control data:\n\n\n";
                         NacpStruct *nacp = inst.GetNACP();
+                        NacpLanguageEntry lent;
+                        for(u32 i = 0; i < 16; i++)
+                        {
+                            lent = nacp->lang[i];
+                            if((strlen(lent.name) != 0) && (strlen(lent.author) != 0)) break;
+                        }
                         info += "Name: ";
-                        info += nacp->lang[0].name;
+                        info += lent.name;
                         info += "\nAuthor: ";
-                        info += nacp->lang[0].author;
+                        info += lent.author;
                         info += "\nVersion: ";
                         info += nacp->version;
                         std::vector<gleaf::ncm::ContentRecord> ncas = inst.GetRecords();
@@ -325,12 +350,12 @@ namespace gleaf::ui
                     sopt = dlg->GetSelectedIndex();
                     if(dlg->UserCancelled() || (sopt == 1)) return;
                     mainapp->LoadLayout(mainapp->GetNSPInstallLayout());
+                    mainapp->GetNSPInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), (sopt == 1));
                     if(sopt == 1)
                     {
                         gleaf::fs::DeleteFile(fullitm);
                         this->UpdateElements();
                     }
-                    mainapp->GetNSPInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), (sopt == 1));
                     break;
                 case 2:
                     UpdateClipboard(fullitm);
@@ -353,6 +378,50 @@ namespace gleaf::ui
                     {
                         envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
                         mainapp->Close();
+                    }
+                    break;
+                case 2:
+                    UpdateClipboard(fullitm);
+                    this->UpdateElements();
+                    break;
+                case 3:
+                    gleaf::fs::DeleteFile(fullitm);
+                    mainapp->UpdateFooter("File deleted: \'" + gleaf::fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
+            }
+            else if(ext == "tik") switch(sopt)
+            {
+                case 0:
+                    std::string tcert = fullitm.substr(0, fullitm.length() - 3) + "cert";
+                    if(!gleaf::fs::Exists(tcert))
+                    {
+                        dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.", pu::draw::Font::NintendoStandard);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                    }
+                    dlg = new pu::Dialog("Ticket import confirmation", "The selected ticket will be imported.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Import");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    if(dlg->GetSelectedIndex() == 0)
+                    {
+                        std::ifstream ifs(fullitm, std::ios::binary);
+                        ifs.seekg(0, ifs.end);
+                        int sztik = ifs.tellg();
+                        ifs.seekg(0, ifs.beg);
+                        auto btik = std::make_unique<u8[]>(sztik);
+                        ifs.read((char*)btik.get(), sztik);
+                        ifs.close();
+                        ifs = std::ifstream(tcert, std::ios::binary);
+                        ifs.seekg(0, ifs.end);
+                        int szcert = ifs.tellg();
+                        ifs.seekg(0, ifs.beg);
+                        auto bcert = std::make_unique<u8[]>(szcert);
+                        ifs.read((char*)bcert.get(), szcert);
+                        ifs.close();
+                        Result rc = es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
+                        if(rc != 0) mainapp->UpdateFooter("An error ocurred trying to install the ticket (error code " + gleaf::horizon::FormatHex(rc) + ")");
                     }
                     break;
                 case 2:
@@ -451,9 +520,6 @@ namespace gleaf::ui
         else appletUnlockExit();
         if(rc.IsSuccess())
         {
-            pu::Dialog *dlg = new pu::Dialog("NSP installation finished", "The NSP was successfully installed.\nYou can close this application and the title (should) appear on Home Menu. Enjoy!", pu::draw::Font::NintendoStandard);
-            dlg->AddOption("Ok");
-            mainapp->ShowDialog(dlg);
             mainapp->UpdateFooter("The NSP was successfully installed.");
             if(Delete) mainapp->UpdateFooter("The NSP was successfully installed and deleted.");
         }
@@ -471,7 +537,7 @@ namespace gleaf::ui
             switch(Res.Type)
             {
                 case gleaf::nsp::InstallerError::BadNSP:
-                    err += "Failed to read from the NSP file. Are you sure this console has the correct keygen?";
+                    err += "Failed to read from the NSP file.\nThis error could be caused by various reasons: invalid NSP, minimum firmware mismatch...";
                     break;
                 case gleaf::nsp::InstallerError::NSPOpen:
                     err += "Failed to open the NSP file. Does it exist?";
@@ -516,10 +582,11 @@ namespace gleaf::ui
                     err += "<undocumented error>";
                     break;
             }
-            err += " (error code " + std::to_string(Res.Error) + ")";
+            err += " (error code " + gleaf::horizon::FormatHex(Res.Error) + ")";
             pu::Dialog *dlg = new pu::Dialog("NSP installation error", err, pu::draw::Font::NintendoStandard);
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
+            mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + gleaf::horizon::FormatHex(Res.Error) + ")");
         }
     }
 
@@ -773,7 +840,7 @@ namespace gleaf::ui
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/4.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
         this->UpdateValues();
-        this->footerText = new pu::element::TextBlock(20, 685, "Welcome to Goldleaf. You can install titles or tickets, manage them, check system's information, browse NAND...");
+        this->footerText = new pu::element::TextBlock(20, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...");
         this->footerText->SetFontSize(20);
         this->mainMenu->AddChild(this->bannerImage);
         this->sdBrowser->AddChild(this->bannerImage);

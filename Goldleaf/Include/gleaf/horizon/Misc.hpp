@@ -30,6 +30,6 @@ namespace gleaf::horizon
     std::string GetOpenedUserName();
     bool IsUserSelected();
     std::string GetCurrentTime();
-    bool HasInternetConnection();
     FwVersion GetFwVersion();
+    std::string FormatHex(u32 Number);
 }

@@ -10,6 +10,8 @@ namespace gleaf
         if(R_FAILED(ns::Initialize())) exit(0);
         if(R_FAILED(nsInitialize())) exit(0);
         if(R_FAILED(es::Initialize())) exit(0);
+        if(R_FAILED(psmInitialize())) exit(0);
+        if(R_FAILED(setsysInitialize())) exit(0);
         if(R_FAILED(usbCommsInitialize())) exit(0);
         mkdir("sdmc:/switch", 777);
         mkdir("sdmc:/switch/.gleaf", 777);
@@ -21,6 +23,8 @@ namespace gleaf
     void Finalize()
     {
         usbCommsExit();
+        setsysExit();
+        psmExit();
         es::Finalize();
         ns::Finalize();
         nsExit();

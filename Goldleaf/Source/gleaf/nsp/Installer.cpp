@@ -373,6 +373,11 @@ namespace gleaf::nsp
         return this->icnmt;
     }
 
+    InstallerResult Installer::GetLatestResult()
+    {
+        return this->irc;
+    }
+
     void Installer::Finalize()
     {
         fsFsClose(&this->idfs);

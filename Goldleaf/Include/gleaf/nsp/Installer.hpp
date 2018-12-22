@@ -65,6 +65,7 @@ namespace gleaf::nsp
             bool HasTicketAndCert();
             horizon::TicketData GetTicketData();
             bool IsCNMTAlreadyInstalled();
+            InstallerResult GetLatestResult();
             void Finalize();
         private:
             bool icnmt;

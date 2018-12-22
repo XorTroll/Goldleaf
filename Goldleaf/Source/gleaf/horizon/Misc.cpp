@@ -1,27 +1,19 @@
 #include <gleaf/horizon/Misc.hpp>
-#include <curl/curl.h>
+#include <sstream>
 
 namespace gleaf::horizon
 {
     u32 GetBatteryLevel()
     {
         u32 bat = 0;
-        Result rc = psmInitialize();
-        if(R_FAILED(rc)) return bat;
-        rc = psmGetBatteryChargePercentage(&bat);
-        if(R_FAILED(rc)) bat = 0;
-        psmExit();
+        psmGetBatteryChargePercentage(&bat);
         return bat;
     }
 
     bool IsCharging()
     {
         ChargerType charger = ChargerType_None;
-        Result rc = psmInitialize();
-        if(R_FAILED(rc)) return false;
-        rc = psmGetChargerType(&charger);
-        if(R_FAILED(rc)) charger = ChargerType_None;
-        psmExit();
+        psmGetChargerType(&charger);
         return (charger > ChargerType_None);
     }
 
@@ -82,47 +74,28 @@ namespace gleaf::horizon
         return std::string(timestr);
     }
 
-    bool HasInternetConnection()
-    {
-        CURLcode res = CURLE_OK;
-        CURL *curl = curl_easy_init();
-        if(curl)
-        {
-            curl_easy_setopt(curl, CURLOPT_URL, "http://google.es");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [&](void *ptr, size_t size, size_t nmemb, FILE *stream)
-            {
-                size_t written = fwrite(ptr, size, nmemb, stream);
-                return written;
-            });
-            res = curl_easy_perform(curl);
-            curl_easy_cleanup(curl);
-        }
-        else return false;
-        return (res == CURLE_OK);
-    }
-
     FwVersion GetFwVersion()
     {
         FwVersion pfw = { 0, 0, 0, "" };
-        Result rc = setsysInitialize();
-        if(rc != 0) return pfw;
         SetSysFirmwareVersion fw;
-        rc = setsysGetFirmwareVersion(&fw);
-        if(rc != 0)
-        {
-            setsysExit();
-            return pfw;
-        }
+        Result rc = setsysGetFirmwareVersion(&fw);
+        if(rc != 0) return pfw;
         pfw.Major = fw.major;
         pfw.Minor = fw.minor;
         pfw.Micro = fw.micro;
         pfw.DisplayName = std::string(fw.display_title);
-        setsysExit();
         return pfw;
     }
 
     std::string FwVersion::ToString()
     {
         return (std::to_string(this->Major) + "." + std::to_string(this->Minor) + "." + std::to_string(this->Micro));
+    }
+
+    std::string FormatHex(u32 Number)
+    {
+        std::stringstream strm;
+        strm << "0x" << std::hex << Number;
+        return strm.str();
     }
 }
