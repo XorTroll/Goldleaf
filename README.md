@@ -52,7 +52,7 @@ Goldleaf differs on some features depending on whether it is loaded as a NRO or 
 
 - Goldleaf can be exited via Plus (+) or Minus (-) buttons if it's loaded as a NRO, but as regular titles have to be exited from the Home Menu, this feature is not available as a title.
 
-- Goldleaf disables Home button pressing if it's loaded as a title, but this feature isn't available as a NRO binary for technical reasons related to applets.
+- Goldleaf disables Home button pressing while installing a NSP if it's loaded as a title, but this feature isn't available as a NRO binary for technical reasons related to applets.
 
 ## Issues and support
 
