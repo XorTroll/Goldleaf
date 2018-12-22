@@ -54,6 +54,8 @@ Goldleaf differs on some features depending on whether it is loaded as a NRO or 
 
 - Goldleaf disables Home button pressing while installing a NSP if it's loaded as a title, but this feature isn't available as a NRO binary for technical reasons related to applets.
 
+- Goldleaf cannot launch NRO binaries if it's loaded as a title due to technical reasons. They can only be launched from another NRO binary.
+
 ## Issues and support
 
 In case you find a bug or you need help with Goldleaf, you have several places to ask.

@@ -42,8 +42,8 @@ namespace gleaf::ui
     {
         std::string info = "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...";
         pu::element::MenuItem *isel = this->optionMenu->GetSelectedItem();
-        if(isel == this->sdcardMenuItem) info = "Browse the SD card's files and folders: install NSPs, launch NROs, install tickets... (and copy, paste and delete)";
-        else if(isel == this->nandMenuItem) info = "Browse the NAND's files and folders. (and copy, paste and delete)";
+        if(isel == this->sdcardMenuItem) info = "Browse the SD card. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
+        else if(isel == this->nandMenuItem) info = "Browse NAND. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->remoteMenuItem) info = "Install NSPs remotely, via network or USB communications.";
         else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
@@ -370,6 +370,13 @@ namespace gleaf::ui
             else if(ext == "nro") switch(sopt)
             {
                 case 0:
+                    if(gleaf::IsApplication())
+                    {
+                        dlg = new pu::Dialog("NRO launch error", "For technical reasons, NRO binaries cannot be launched if Goldleaf is launched as a title.", pu::draw::Font::NintendoStandard);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        return;
+                    }
                     dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.", pu::draw::Font::NintendoStandard);
                     dlg->AddOption("Launch");
                     dlg->AddOption("Cancel");
@@ -840,7 +847,7 @@ namespace gleaf::ui
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/4.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
         this->UpdateValues();
-        this->footerText = new pu::element::TextBlock(20, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...");
+        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...");
         this->footerText->SetFontSize(20);
         this->mainMenu->AddChild(this->bannerImage);
         this->sdBrowser->AddChild(this->bannerImage);
