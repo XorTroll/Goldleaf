@@ -12,7 +12,7 @@ namespace gtree
         ConnectionRequest, // Sent by Goldtree to Goldleaf to ask for connection
         ConnectionResponse, // Sent by Goldleaf to Goldtree like "accepting" the connection (to ensure the USB connection is with Goldleaf)
         NSPName, // Sent by Goldtree to Goldleaf with the name of the selected NSP, as a piece of information
-        InstallInstruction, // Sent by Goldleaf to Goldtree as a instruction to start sending NSP contents
+        Start, // Sent by Goldleaf to Goldtree as an approval to start sending NSP contents
 
         // ... (more commands have to be added here)
 
@@ -70,7 +70,7 @@ namespace gtree
         {
             Command cmd = new Command();
             USB.Read(out uint magic);
-            USB.Read(out byte cmdid);
+            USB.Read(out uint cmdid);
             cmd.Magic = magic;
             cmd.CommandId = (CommandId)cmdid;
             return cmd;
@@ -106,7 +106,6 @@ namespace gtree
     {
         public uint Magic { get; set; }
         public CommandId CommandId { get; set; }
-        public byte[] Padding { get; set; }
 
         public static readonly uint GLUC = 0x43554c47;
 
@@ -121,15 +120,22 @@ namespace gtree
             this.CommandId = CommandId;
         }
 
+        public bool MagicOk()
+        {
+            return (Magic == GLUC);
+        }
+
+        public bool IsCommandId(CommandId Id)
+        {
+            return (CommandId == Id);
+        }
+
         public byte[] AsData()
         {
             List<byte> fcmd = new List<byte>();
             byte[] emg = BitConverter.GetBytes(Magic);
             fcmd.AddRange(emg);
-            fcmd.Add((byte)CommandId);
-            fcmd.Add(0);
-            fcmd.Add(0);
-            fcmd.Add(0);
+            fcmd.AddRange(BitConverter.GetBytes((uint)CommandId));
             return fcmd.ToArray();
         }
     }

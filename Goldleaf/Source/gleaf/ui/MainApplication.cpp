@@ -627,15 +627,17 @@ namespace gleaf::ui
         this->infoText->SetText("Waiting for request command...");
         mainapp->CallForRender();
         usb::Command req = usb::ReadCommand();
-        if((req.Magic == usb::GLUC) && (req.CommandId == 0))
+        usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
+        if(req.MagicOk() && req.IsCommandId(usb::CommandId::ConnectionRequest))
         {
             // Step 1: receive connection request from PC (Id 0)
             this->infoText->SetText("Connection request was received from a Goldtree PC client.\nSending confirmation and waiting to select a NSP...");
             mainapp->CallForRender();
             // Step 2: send connection confirmation (Id 1)
-            usb::WriteCommand(usb::MakeCommand(1));
+            usb::Command cmd1 = usb::MakeCommand(usb::CommandId::ConnectionResponse);
+            usb::WriteCommand(cmd1);
             req = usb::ReadCommand();
-            if((req.Magic == usb::GLUC) && (req.CommandId == 2))
+            if(req.MagicOk() && req.IsCommandId(usb::CommandId::NSPName))
             {
                 // Step 3: get the name of the NSP file (Id 2)
                 u32 nspnamesize = usb::Read32();
@@ -648,11 +650,9 @@ namespace gleaf::ui
                 delete dlg;
                 if(sopt == 0)
                 {
-                    
-                }
-                while(true)
-                {
-                    mainapp->CallForRender();
+                    usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
+                    usb::WriteCommand(cmd2);
+                    while(true) mainapp->CallForRender(); // ...
                 }
             }
         }
@@ -660,7 +660,7 @@ namespace gleaf::ui
         {
             this->infoText->SetText("An invalid command was received.\nPress B to return to Goldleaf's menu and try again.\nAre you sure you're using Goldtree?");
         }
-        usb::WriteCommand(usb::MakeCommand(4));
+        usb::WriteCommand(fcmd);
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }
 

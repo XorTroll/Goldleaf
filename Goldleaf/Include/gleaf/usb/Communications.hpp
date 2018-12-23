@@ -23,7 +23,7 @@ namespace gleaf::usb
     std::string ReadString(u32 Length);
     size_t ReadFixed(void *Out, size_t Size);
     size_t Write(const void *Buffer, size_t Size);
-    void WriteCommand(Command Data);
+    void WriteCommand(Command &Data);
     void Write8(u8 Data);
     void Write16(u16 Data);
     void Write32(u32 Data);

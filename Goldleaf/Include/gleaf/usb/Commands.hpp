@@ -24,18 +24,20 @@ namespace gleaf::usb
         ConnectionRequest = 0,
         ConnectionResponse = 1,
         NSPName = 2,
-        InstallInstruction = 3,
+        Start = 3,
         Finish = 4,
     };
 
     struct Command
     {
         u32 Magic;
-        u8 CommandId;
-        u8 Padding[3];
+        u32 CommandId;
+
+        bool MagicOk();
+        bool IsCommandId(usb::CommandId Id);
     } PACKED;
 
-    Command MakeCommand(u8 Id);
+    Command MakeCommand(CommandId Id);
 
     static const u32 GLUC = 0x43554c47;
 }

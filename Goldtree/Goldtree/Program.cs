@@ -104,10 +104,10 @@ namespace gtree
                 usb.Write(c);
                 Log.Log("Attempting to connect to Goldleaf via USB...");
                 Command rc = usb.Read();
-                if((rc.Magic == Command.GLUC) && (rc.CommandId == CommandId.ConnectionResponse))
+                if(rc.MagicOk() && rc.IsCommandId(CommandId.ConnectionResponse))
                 {
-                    Log.Log("Connection was established with Goldleaf.", false);
-                    Log.Log("Select the NSP to send to Goldleaf on the dialog.", false);
+                    Log.Log("Connection was established with Goldleaf.");
+                    Log.Log("Select the NSP to send to Goldleaf on the dialog.");
                     OpenFileDialog fd = new OpenFileDialog()
                     {
                         Title = "Select NSP to send to Goldleaf via USB",
@@ -122,15 +122,21 @@ namespace gtree
                         usb.Write(c);
                         usb.Write((uint)nspname.Length);
                         usb.Write(nspname);
-                        Log.Log("NSP name was sent to Goldleaf. Waiting for install instruction...", false);
-                        // ...
+                        Log.Log("Selected NSP's name was sent to Goldleaf. Waiting for install approval from Goldleaf...");
+                        Command rc2 = usb.Read();
+                        if(rc2.MagicOk() && rc2.IsCommandId(CommandId.Start))
+                        {
+                            Log.Log("Goldleaf is ready for the installation. Preparing everything...");
+                        }
+                        while (true) ;
                     }
                     else Error.Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
                 }
+                else Error.Log("Invalid USB command was received. Are you sure Goldleaf is active?");
             }
             catch
             {
-                Error.Log("Error selecting NSP to be sent.");
+                Error.Log("An error ocurred selecting NSP to be sent.");
             }
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

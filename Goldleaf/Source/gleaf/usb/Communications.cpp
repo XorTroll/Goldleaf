@@ -63,7 +63,6 @@ namespace gleaf::usb
         u8 *data = (u8*)malloc(sizeof(u8) * Length);
         Read((void*)data, (sizeof(u8) * Length));
         std::string str = (const char*)data;
-        delete data;
         return str;
     }
 
@@ -86,7 +85,7 @@ namespace gleaf::usb
         return usbCommsWrite(Buffer, Size);
     }
 
-    void WriteCommand(Command Data)
+    void WriteCommand(Command &Data)
     {
         WriteFixed(&Data, sizeof(Command));
     }
