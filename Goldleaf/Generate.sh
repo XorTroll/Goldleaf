@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # IMPORTANT! Place keys.dat at "BuildTools/keys.dat"!
 
 rm -r ExeFs/main &> /dev/null
