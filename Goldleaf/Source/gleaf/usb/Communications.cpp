@@ -23,6 +23,50 @@ namespace gleaf::usb
         return usbCommsRead(Out, Size);
     }
 
+    Command ReadCommand()
+    {
+        Command cmd;
+        ReadFixed(&cmd, sizeof(Command));
+        return cmd;
+    }
+
+    u8 Read8()
+    {
+        u8 data;
+        Read((void*)&data, sizeof(u8));
+        return data;
+    }
+
+    u16 Read16()
+    {
+        u16 data;
+        Read((void*)&data, sizeof(u16));
+        return data;
+    }
+
+    u32 Read32()
+    {
+        u32 data;
+        Read((void*)&data, sizeof(u32));
+        return data;
+    }
+
+    u64 Read64()
+    {
+        u64 data;
+        Read((void*)&data, sizeof(u64));
+        return data;
+    }
+
+    std::string ReadString(u32 Length)
+    {
+        u8 *data = (u8*)malloc(sizeof(u8) * Length);
+        Read((void*)data, (sizeof(u8) * Length));
+        std::string str = (const char*)data;
+        delete data;
+        return str;
+    }
+
     size_t ReadFixed(void *Out, size_t Size)
     {
         u8 *buf = (u8*)Out;
@@ -30,7 +74,7 @@ namespace gleaf::usb
         size_t rsize = 0;
         while(szrem)
         {
-            rsize = usbCommsRead(buf, szrem);
+            rsize = Read(buf, szrem);
             buf += rsize;
             szrem -= rsize;
         }
@@ -42,6 +86,36 @@ namespace gleaf::usb
         return usbCommsWrite(Buffer, Size);
     }
 
+    void WriteCommand(Command Data)
+    {
+        WriteFixed(&Data, sizeof(Command));
+    }
+
+    void Write8(u8 Data)
+    {
+        Write((void*)&Data, sizeof(u8));
+    }
+
+    void Write16(u16 Data)
+    {
+        Write((void*)&Data, sizeof(u16));
+    }
+
+    void Write32(u32 Data)
+    {
+        Write((void*)&Data, sizeof(u32));
+    }
+
+    void Write64(u64 Data)
+    {
+        Write((void*)&Data, sizeof(u64));
+    }
+
+    void WriteString(std::string Data)
+    {
+        Write((void*)Data.c_str(), (sizeof(u8) * Data.length()));
+    }
+
     size_t WriteFixed(const void *Buffer, size_t Size)
     {
         const u8 *bufptr = (const u8*)Buffer;
@@ -49,7 +123,7 @@ namespace gleaf::usb
         size_t tsz = 0;
         while(sz)
         {
-            tsz = usbCommsWrite(bufptr, sz);
+            tsz = Write(bufptr, sz);
             bufptr += tsz;
             sz -= tsz;
         }

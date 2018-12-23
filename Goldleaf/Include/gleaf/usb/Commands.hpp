@@ -9,7 +9,7 @@
 */
 
 #pragma once
-#include <gleaf/usb/Communications.hpp>
+#include <gleaf/Types.hpp>
 
 namespace gleaf::usb
 {
@@ -23,8 +23,9 @@ namespace gleaf::usb
     {
         ConnectionRequest = 0,
         ConnectionResponse = 1,
-        Content = 2,
-        Finish = 3,
+        NSPName = 2,
+        InstallInstruction = 3,
+        Finish = 4,
     };
 
     struct Command
@@ -34,9 +35,7 @@ namespace gleaf::usb
         u8 Padding[3];
     } PACKED;
 
-    u8 GetNumericId(CommandId Id);
-    void MakeSendCommand(u8 Id);
-    Command ReceiveCommand();
+    Command MakeCommand(u8 Id);
 
     static const u32 GLUC = 0x43554c47;
 }

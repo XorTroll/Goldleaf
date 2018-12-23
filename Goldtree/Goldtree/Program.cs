@@ -1,9 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using libusbK;
 
-namespace gleaf.tree
+namespace gtree
 {
     public enum LogType
     {
@@ -15,9 +16,9 @@ namespace gleaf.tree
     public class Program
     {
 
-        public static void Log(string Text, LogType Type = LogType.Error)
+        public static void Log(string Text, LogType Type = LogType.Error, bool NewLine = true)
         {
-            Console.WriteLine();
+            if(NewLine) Console.WriteLine();
             switch(Type)
             {
                 case LogType.Information:
@@ -30,6 +31,7 @@ namespace gleaf.tree
                     Console.WriteLine("[tree:Error] " + Text);
                     Console.WriteLine("Press any key to exit.");
                     Console.ReadKey();
+                    Environment.Exit(1);
                     break;
             }
         }
@@ -37,6 +39,7 @@ namespace gleaf.tree
         [STAThread]
         public static void Main(string[] Args)
         {
+            // Some kind of greeting message...
             UsbK usb = null;
             try
             {
@@ -47,16 +50,37 @@ namespace gleaf.tree
             }
             catch
             {
-                Log("No USB connection was not found. Make sure you have Goldleaf open.");
+                Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
             }
             try
             {
-                Command c = new Command(0);
-                Commands.SendCommand(usb, c);
+                Command c = new Command(CommandId.ConnectionRequest);
+                usb.Write(c);
                 Log("Attempting to connect to Goldleaf via USB...", LogType.Information);
-                Command rc = Commands.ReceiveCommand(usb);
-                if(rc.Magic == Commands.GLUC) Log("Connection established (Id = " + rc.CommandId + ")");
-                while (true) ;
+                Command rc = usb.Read();
+                if((rc.Magic == Command.GLUC) && (rc.CommandId == CommandId.ConnectionResponse))
+                {
+                    Log("Connection was established with Goldleaf.", LogType.Information, false);
+                    Log("Select the NSP to send to Goldleaf on the dialog.", LogType.Information, false);
+                    OpenFileDialog fd = new OpenFileDialog()
+                    {
+                        Title = "Select NSP to send to Goldleaf via USB",
+                        Filter = "NSP / Nintendo Submission Package (*.nsp)|*.nsp",
+                        Multiselect = false,
+                    };
+                    if(fd.ShowDialog() == DialogResult.OK)
+                    {
+                        string nsp = fd.FileName;
+                        string nspname = Path.GetFileName(nsp);
+                        c = new Command(CommandId.NSPName);
+                        usb.Write(c);
+                        usb.Write((uint)nspname.Length);
+                        usb.Write(nspname);
+                        Log("NSP name was sent to Goldleaf. Waiting for install instruction...", LogType.Information, false);
+                        // ...
+                    }
+                    else Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
+                }
             }
             catch
             {

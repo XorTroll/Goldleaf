@@ -4,81 +4,133 @@ using System.Linq;
 using System.Text;
 using libusbK;
 
-namespace gleaf.tree
+namespace gtree
 {
-    public enum CommandType
-    {
-        Request,
-        Response,
-    }
-
+    // Command Ids for USB connections:
     public enum CommandId
     {
-        ConnectionRequest,
-        ConnectionResponse,
-        Content,
-        Finish,
+        ConnectionRequest, // Sent by Goldtree to Goldleaf to ask for connection
+        ConnectionResponse, // Sent by Goldleaf to Goldtree like "accepting" the connection (to ensure the USB connection is with Goldleaf)
+        NSPName, // Sent by Goldtree to Goldleaf with the name of the selected NSP, as a piece of information
+        InstallInstruction, // Sent by Goldleaf to Goldtree as a instruction to start sending NSP contents
+
+        // ... (more commands have to be added here)
+
+        Finish, 
     }
 
-    public static class UsbKExtra
+    public static class UsbKWriteExtras
     {
         public static void Write(this UsbK USB, byte[] Data)
         {
-            USB.WritePipe(1, Data, Data.Length, out _, IntPtr.Zero);
+            USB.WritePipe(0x1, Data, Data.Length, out _, IntPtr.Zero);
         }
 
+        public static void Write(this UsbK USB, Command Data)
+        {
+            USB.Write(Data.AsData());
+        }
+
+        public static void Write(this UsbK USB, byte Data)
+        {
+            USB.Write(BitConverter.GetBytes(Data));
+        }
+
+        public static void Write(this UsbK USB, ushort Data)
+        {
+            USB.Write(BitConverter.GetBytes(Data));
+        }
+
+        public static void Write(this UsbK USB, uint Data)
+        {
+            USB.Write(BitConverter.GetBytes(Data));
+        }
+
+        public static void Write(this UsbK USB, ulong Data)
+        {
+            USB.Write(BitConverter.GetBytes(Data));
+        }
+
+        public static void Write(this UsbK USB, string Data)
+        {
+            USB.Write(Encoding.UTF8.GetBytes(Data));
+        }
+    }
+
+    public static class UsbKReadExtras
+    {
         public static byte[] Read(this UsbK USB, int Length)
         {
-            byte[] b = new byte[0x1000];
-            USB.ReadPipe(1, b, Length, out _, IntPtr.Zero);
+            byte[] b = new byte[Length];
+            USB.ReadPipe(0x81, b, Length, out _, IntPtr.Zero);
             return b;
+        }
+
+        public static Command Read(this UsbK USB)
+        {
+            Command cmd = new Command();
+            USB.Read(out uint magic);
+            USB.Read(out byte cmdid);
+            cmd.Magic = magic;
+            cmd.CommandId = (CommandId)cmdid;
+            return cmd;
+        }
+
+        public static void Read(this UsbK USB, out byte Data)
+        {
+            Data = USB.Read(1)[0];
+        }
+
+        public static void Read(this UsbK USB, out ushort Data)
+        {
+            Data = BitConverter.ToUInt16(USB.Read(2), 0);
+        }
+
+        public static void Read(this UsbK USB, out uint Data)
+        {
+            Data = BitConverter.ToUInt32(USB.Read(4), 0);
+        }
+
+        public static void Read(this UsbK USB, out ulong Data)
+        {
+            Data = BitConverter.ToUInt64(USB.Read(8), 0);
+        }
+
+        public static void Read(this UsbK USB, out string Data, uint Length)
+        {
+            Data = Encoding.UTF8.GetString(USB.Read((int)Length));
         }
     }
 
     public class Command
     {
         public uint Magic { get; set; }
-        public byte CommandId { get; set; }
+        public CommandId CommandId { get; set; }
         public byte[] Padding { get; set; }
+
+        public static readonly uint GLUC = 0x43554c47;
 
         public Command()
         {
-            Magic = Commands.GLUC;
+            Magic = GLUC;
         }
 
-        public Command(byte CommandId)
+        public Command(CommandId CommandId)
         {
-            Magic = Commands.GLUC;
+            Magic = GLUC;
             this.CommandId = CommandId;
         }
-    }
 
-    public static class Commands
-    {
-        public static readonly uint GLUC = 0x43554c47;
-
-        public static Command ReceiveCommand(UsbK USB)
-        {
-            Command cmd = new Command();
-            byte[] rcmd = USB.Read(8);
-            byte[] mg = new byte[]{ rcmd[0], rcmd[1], rcmd[2], rcmd[3] };
-            byte cmdid = rcmd[4];
-            cmd.Magic = BitConverter.ToUInt32(mg, 0);
-            cmd.CommandId = rcmd[4];
-            cmd.Padding = new byte[]{ rcmd[5], rcmd[6], rcmd[7] };
-            return cmd;
-        }
-
-        public static void SendCommand(UsbK USB, Command Command)
+        public byte[] AsData()
         {
             List<byte> fcmd = new List<byte>();
-            byte[] emg = BitConverter.GetBytes(Command.Magic);
+            byte[] emg = BitConverter.GetBytes(Magic);
             fcmd.AddRange(emg);
-            fcmd.Add(Command.CommandId);
+            fcmd.Add((byte)CommandId);
             fcmd.Add(0);
             fcmd.Add(0);
             fcmd.Add(0);
-            USB.Write(fcmd.ToArray());
+            return fcmd.ToArray();
         }
     }
 }

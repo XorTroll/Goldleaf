@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>gleaf.tree</RootNamespace>
+    <RootNamespace>gtree</RootNamespace>
     <AssemblyName>Goldtree</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

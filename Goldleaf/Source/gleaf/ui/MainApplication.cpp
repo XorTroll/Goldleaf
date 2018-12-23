@@ -626,25 +626,42 @@ namespace gleaf::ui
         }
         this->infoText->SetText("Waiting for request command...");
         mainapp->CallForRender();
-        usb::Command req = usb::ReceiveCommand();
-        if(req.Magic == usb::GLUC)
+        usb::Command req = usb::ReadCommand();
+        if((req.Magic == usb::GLUC) && (req.CommandId == 0))
         {
-            // Step 1 done: receive connection request from PC (id 0)
-            if(req.CommandId == 0)
+            // Step 1: receive connection request from PC (Id 0)
+            this->infoText->SetText("Connection request was received from a Goldtree PC client.\nSending confirmation and waiting to select a NSP...");
+            mainapp->CallForRender();
+            // Step 2: send connection confirmation (Id 1)
+            usb::WriteCommand(usb::MakeCommand(1));
+            req = usb::ReadCommand();
+            if((req.Magic == usb::GLUC) && (req.CommandId == 2))
             {
-                this->infoText->SetText("Connection request was received from Goldtree PC client.\nSending confirmation...");
-                mainapp->CallForRender();
-                // Step 2: send connection confirmation (id 1)
-                usb::MakeSendCommand(1);
-                this->infoText->SetText("Confirmation was sent.");
-                mainapp->CallForRender();
+                // Step 3: get the name of the NSP file (Id 2)
+                u32 nspnamesize = usb::Read32();
+                std::string nspname = usb::ReadString(nspnamesize);
+                pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nDo you want to install this NSP?", pu::draw::Font::NintendoStandard);
+                dlg->AddOption("Install");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                delete dlg;
+                if(sopt == 0)
+                {
+                    
+                }
+                while(true)
+                {
+                    mainapp->CallForRender();
+                }
             }
         }
         else
         {
             this->infoText->SetText("An invalid command was received.\nPress B to return to Goldleaf's menu and try again.\nAre you sure you're using Goldtree?");
         }
-        mainapp->CallForRender();
+        usb::WriteCommand(usb::MakeCommand(4));
+        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }
 
     TitleManagerLayout::TitleManagerLayout()
@@ -1053,6 +1070,11 @@ namespace gleaf::ui
     void MainApplication::OnInput(u64 Input)
     {
         if((Input & KEY_PLUS) || (Input & KEY_MINUS)) if(!IsApplication()) this->Close();
+    }
+
+    MainMenuLayout *MainApplication::GetMainMenuLayout()
+    {
+        return this->mainMenu;
     }
 
     PartitionBrowserLayout *MainApplication::GetSDBrowserLayout()

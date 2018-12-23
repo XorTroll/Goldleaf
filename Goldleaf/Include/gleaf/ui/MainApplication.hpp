@@ -138,6 +138,7 @@ namespace gleaf::ui
             void ticketManager_Input(u64 Input);
             void sysInfo_Input(u64 Input);
             void OnInput(u64 Input);
+            MainMenuLayout *GetMainMenuLayout();
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
             InstallLayout *GetInstallLayout();
