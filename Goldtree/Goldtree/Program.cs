@@ -39,6 +39,7 @@ namespace gtree
         [STAThread]
         public static void Main(string[] Args)
         {
+            Console.Title = "Goldtree - Goldleaf's USB installation client";
             // Some kind of greeting message...
             UsbK usb = null;
             try

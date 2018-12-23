@@ -46,6 +46,14 @@ Nothing else is required. No external files, or extra configuration are required
 
   Having it installed, you should be able to launch Goldleaf as a normal title.
 
+## Goldtree
+
+Goldtree is a C# CLI tool for USB installs. Currently it's only available for Windows systems, but it simplifies the process.
+
+USB communication is different from Tinfoil's one, so Tinfoil's old Python script, AluminumFoil nor other tools won't work properly.
+
+Goldtree will ask you to choose a NSP after establishing connection with Goldleaf, and it will be received and installed by Goldleaf.
+
 ## Special features
 
 Goldleaf differs on some features depending on whether it is loaded as a NRO or as an installed title:
