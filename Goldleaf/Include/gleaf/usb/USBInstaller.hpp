@@ -8,6 +8,9 @@
 
 */
 
+#pragma once
+#include <usb/Commands.hpp>
+
 namespace gleaf::usb
 {
     

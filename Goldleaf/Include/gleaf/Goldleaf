@@ -10,7 +10,7 @@
 
 #pragma once
 #include <gleaf/Application.hpp>
-#include <gleaf/BufferedPlaceholderWriter.hpp>
+#include <gleaf/BufferedPlaceHolderWriter.hpp>
 #include <gleaf/ByteBuffer.hpp>
 #include <gleaf/es.hpp>
 #include <gleaf/fs.hpp>

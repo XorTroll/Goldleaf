@@ -8,28 +8,14 @@
 
 */
 
+#pragma once
 #include <gleaf/Types.hpp>
 
 namespace gleaf::usb
 {
-    enum class CommandType
-    {
-        Response,
-        Request,
-    };
-
-    struct CommandHeader
-    {
-        u32 Magic;
-        u8 CommandId;
-        u8 Pad[0x3];
-    } PACKED;
-
     size_t Read(void *Out, size_t Size);
+    size_t ReadFixed(void *Out, size_t Size);
     size_t Write(const void *Buffer, size_t Size);
-    void SendCommandHeader(u32 CommandId, u64 DataSize);
-    void SendExitCommand();
-
-    // New magic: Goldleaf USB command (GLUC)
-    static const u32 GLUC = 0x43554c47;
+    size_t WriteFixed(const void *Buffer, size_t Size);
+    bool WaitForConnection(u64 Timeout = UINT64_MAX);
 }

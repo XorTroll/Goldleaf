@@ -21,6 +21,7 @@ namespace gleaf::ui
             void optionMenu_SelectionChanged();
             void sdcardMenuItem_Click();
             void nandMenuItem_Click();
+            void usbMenuItem_Click();
             void titleMenuItem_Click();
             void ticketMenuItem_Click();
             void sysinfoMenuItem_Click();
@@ -28,7 +29,7 @@ namespace gleaf::ui
             pu::element::Menu *optionMenu;
             pu::element::MenuItem *sdcardMenuItem;
             pu::element::MenuItem *nandMenuItem;
-            pu::element::MenuItem *remoteMenuItem;
+            pu::element::MenuItem *usbMenuItem;
             pu::element::MenuItem *titleMenuItem;
             pu::element::MenuItem *ticketMenuItem;
             pu::element::MenuItem *sysinfoMenuItem;
@@ -52,15 +53,24 @@ namespace gleaf::ui
             pu::element::TextBlock *dirEmptyText;
     };
 
-    class NSPInstallLayout : public pu::Layout
+    class InstallLayout : public pu::Layout
     {
         public:
-            NSPInstallLayout();
+            InstallLayout();
             void StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev, bool Delete);
             void LogError(gleaf::nsp::InstallerResult Res);
         private:
             pu::element::TextBlock *installText;
             pu::element::ProgressBar *installBar;
+    };
+
+    class USBInstallLayout : public pu::Layout
+    {
+        public:
+            USBInstallLayout();
+            void USBTest();
+        private:
+            pu::element::TextBlock *infoText;
     };
 
     class TitleManagerLayout : public pu::Layout
@@ -123,13 +133,15 @@ namespace gleaf::ui
             void UpdateValues();
             void sdBrowser_Input(u64 Input);
             void nandBrowser_Input(u64 Input);
+            void usbInstall_Input(u64 Input);
             void titleManager_Input(u64 Input);
             void ticketManager_Input(u64 Input);
             void sysInfo_Input(u64 Input);
             void OnInput(u64 Input);
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
-            NSPInstallLayout *GetNSPInstallLayout();
+            InstallLayout *GetInstallLayout();
+            USBInstallLayout *GetUSBInstallLayout();
             TitleManagerLayout *GetTitleManagerLayout();
             TicketManagerLayout *GetTicketManagerLayout();
             SystemInfoLayout *GetSystemInfoLayout();
@@ -137,7 +149,8 @@ namespace gleaf::ui
             MainMenuLayout *mainMenu;
             PartitionBrowserLayout *sdBrowser;
             PartitionBrowserLayout *nandBrowser;
-            NSPInstallLayout *nspInstall;
+            InstallLayout *nspInstall;
+            USBInstallLayout *usbInstall;
             TitleManagerLayout *titleManager;
             TicketManagerLayout *ticketManager;
             SystemInfoLayout *sysInfo;

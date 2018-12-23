@@ -1,7 +1,5 @@
 #include <gleaf/Goldleaf>
 
-extern "C" u32 __nx_applet_type = AppletType_Application;
-
 int main()
 {
     gleaf::Initialize();

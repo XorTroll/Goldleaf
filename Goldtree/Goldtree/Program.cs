@@ -51,19 +51,12 @@ namespace gleaf.tree
             }
             try
             {
-                OpenFileDialog onsp = new OpenFileDialog
-                {
-                    Title = "Select NSP to send to Goldleaf via USB",
-                    Filter = "Nintendo Submission Package / NSP (*.nsp)|*.nsp",
-                    Multiselect = false,
-                };
-                if(onsp.ShowDialog() == DialogResult.OK)
-                {
-                    string nspf = onsp.FileName;
-                    usb.SetAltInterface(0, false, 0);
-
-                }
-                else Log("No file was selected.");
+                Command c = new Command(0);
+                Commands.SendCommand(usb, c);
+                Log("Attempting to connect to Goldleaf via USB...", LogType.Information);
+                Command rc = Commands.ReceiveCommand(usb);
+                if(rc.Magic == Commands.GLUC) Log("Connection established (Id = " + rc.CommandId + ")");
+                while (true) ;
             }
             catch
             {

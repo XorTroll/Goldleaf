@@ -8,5 +8,7 @@
 
 */
 
+#pragma once
+#include <gleaf/usb/Commands.hpp>
 #include <gleaf/usb/Communications.hpp>
 #include <gleaf/usb/USBInstaller.hpp>
