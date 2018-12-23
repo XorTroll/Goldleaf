@@ -25,6 +25,7 @@ namespace gleaf::ui
             void titleMenuItem_Click();
             void ticketMenuItem_Click();
             void sysinfoMenuItem_Click();
+            void aboutMenuItem_Click();
         private:
             pu::element::Menu *optionMenu;
             pu::element::MenuItem *sdcardMenuItem;
@@ -106,7 +107,6 @@ namespace gleaf::ui
         private:
             pu::element::TextBlock *fwText;
             pu::element::TextBlock *sdText;
-            pu::element::TextBlock *modeText;
             pu::element::ProgressBar *sdBar;
             pu::element::TextBlock *nandText;
             pu::element::TextBlock *safeText;
@@ -122,7 +122,8 @@ namespace gleaf::ui
         public:
             AboutLayout();
         private:
-            pu::element::TextBlock *typeText;
+            pu::element::Image *logoImage;
+            pu::element::TextBlock *modeText;
     };
 
     class MainApplication : public pu::Application
@@ -131,13 +132,14 @@ namespace gleaf::ui
             MainApplication();
             void UpdateFooter(std::string Text);
             void UpdateValues();
-            void sdBrowser_Input(u64 Input);
-            void nandBrowser_Input(u64 Input);
-            void usbInstall_Input(u64 Input);
-            void titleManager_Input(u64 Input);
-            void ticketManager_Input(u64 Input);
-            void sysInfo_Input(u64 Input);
-            void OnInput(u64 Input);
+            void sdBrowser_Input(u64 Down, u64 Up, u64 Held);
+            void nandBrowser_Input(u64 Down, u64 Up, u64 Held);
+            void usbInstall_Input(u64 Down, u64 Up, u64 Held);
+            void titleManager_Input(u64 Down, u64 Up, u64 Held);
+            void ticketManager_Input(u64 Down, u64 Up, u64 Held);
+            void sysInfo_Input(u64 Down, u64 Up, u64 Held);
+            void about_Input(u64 Down, u64 Up, u64 Held);
+            void OnInput(u64 Down, u64 Up, u64 Held);
             MainMenuLayout *GetMainMenuLayout();
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
@@ -146,6 +148,7 @@ namespace gleaf::ui
             TitleManagerLayout *GetTitleManagerLayout();
             TicketManagerLayout *GetTicketManagerLayout();
             SystemInfoLayout *GetSystemInfoLayout();
+            AboutLayout *GetAboutLayout();
         private:
             MainMenuLayout *mainMenu;
             PartitionBrowserLayout *sdBrowser;
@@ -155,6 +158,7 @@ namespace gleaf::ui
             TitleManagerLayout *titleManager;
             TicketManagerLayout *ticketManager;
             SystemInfoLayout *sysInfo;
+            AboutLayout *about;
             pu::element::Image *bannerImage;
             pu::element::TextBlock *timeText;
             pu::element::Image *batteryImage;

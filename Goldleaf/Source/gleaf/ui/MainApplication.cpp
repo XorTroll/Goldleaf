@@ -29,6 +29,7 @@ namespace gleaf::ui
         this->sysinfoMenuItem->AddOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
         this->aboutMenuItem = new pu::element::MenuItem("About this application");
         this->aboutMenuItem->SetIcon("romfs:/Common/Info.png");
+        this->aboutMenuItem->AddOnClick(std::bind(&MainMenuLayout::aboutMenuItem_Click, this));
         this->optionMenu->AddItem(this->sdcardMenuItem);
         this->optionMenu->AddItem(this->nandMenuItem);
         this->optionMenu->AddItem(this->usbMenuItem);
@@ -45,8 +46,7 @@ namespace gleaf::ui
         pu::element::MenuItem *isel = this->optionMenu->GetSelectedItem();
         if(isel == this->sdcardMenuItem) info = "Browse the SD card. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->nandMenuItem) info = "Browse NAND. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
-        else if(isel == this->usbMenuItem) info = "Install NSPs remotely, via network or USB communications.";
-        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
+        else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
         else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf: author, version, credits...";
@@ -100,6 +100,11 @@ namespace gleaf::ui
     {
         mainapp->GetSystemInfoLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSystemInfoLayout());
+    }
+
+    void MainMenuLayout::aboutMenuItem_Click()
+    {
+        mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 
     PartitionBrowserLayout::PartitionBrowserLayout(fs::Partition Partition) : pu::Layout()
@@ -847,7 +852,6 @@ namespace gleaf::ui
         horizon::FwVersion fwv = horizon::GetFwVersion();
         this->fwText = new pu::element::TextBlock(40, 330, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
         this->sdText = new pu::element::TextBlock(420, 490, "SD card:");
-        this->modeText = new pu::element::TextBlock(40, 365, (IsApplication() ? "Goldleaf is running as an installed title." : "Goldleaf is running as a homebrew NRO binary."));
         this->sdText->SetFontSize(30);
         this->sdBar = new pu::element::ProgressBar(420, 525, 300, 30);
         this->nandText = new pu::element::TextBlock(850, 250, "NAND partitions:");
@@ -861,7 +865,6 @@ namespace gleaf::ui
         this->UpdateElements();
         this->AddChild(this->fwText);
         this->AddChild(this->sdText);
-        this->AddChild(this->modeText);
         this->AddChild(this->sdBar);
         this->AddChild(this->nandText);
         this->AddChild(this->safeText);
@@ -896,23 +899,33 @@ namespace gleaf::ui
         this->userText->SetText("NAND User: " + fs::FormatSize(nsufree) + " free");
     }
 
+    AboutLayout::AboutLayout()
+    {
+        this->logoImage = new pu::element::Image(85, 104, "romfs:/Logo.png");
+        this->modeText = new pu::element::TextBlock(335, 580, (IsApplication() ? "Goldleaf is running as an installed title." : "Goldleaf is running as a homebrew NRO binary."));
+        this->AddChild(this->logoImage);
+        this->AddChild(this->modeText);
+    }
+
     MainApplication::MainApplication() : pu::Application()
     {
         this->SetBackgroundColor({ 235, 235, 235, 255 });
         this->mainMenu = new MainMenuLayout();
         this->sdBrowser = new PartitionBrowserLayout(fs::Partition::SdCard);
-        this->sdBrowser->SetOnInput(std::bind(&MainApplication::sdBrowser_Input, this, std::placeholders::_1));
+        this->sdBrowser->SetOnInput(std::bind(&MainApplication::sdBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nandBrowser = new PartitionBrowserLayout(fs::Partition::NANDSystem);
-        this->nandBrowser->SetOnInput(std::bind(&MainApplication::nandBrowser_Input, this, std::placeholders::_1));
+        this->nandBrowser->SetOnInput(std::bind(&MainApplication::nandBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nspInstall = new InstallLayout();
         this->usbInstall = new USBInstallLayout();
-        this->usbInstall->SetOnInput(std::bind(&MainApplication::usbInstall_Input, this, std::placeholders::_1));
+        this->usbInstall->SetOnInput(std::bind(&MainApplication::usbInstall_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->titleManager = new TitleManagerLayout();
-        this->titleManager->SetOnInput(std::bind(&MainApplication::titleManager_Input, this, std::placeholders::_1));
+        this->titleManager->SetOnInput(std::bind(&MainApplication::titleManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->ticketManager = new TicketManagerLayout();
-        this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1));
+        this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->sysInfo = new SystemInfoLayout();
-        this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1));
+        this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->about = new AboutLayout();
+        this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->bannerImage = new pu::element::Image(35, 35, "romfs:/Banner.png");
         this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/4.png");
@@ -936,6 +949,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->timeText);
         this->ticketManager->AddChild(this->timeText);
         this->sysInfo->AddChild(this->timeText);
+        this->about->AddChild(this->timeText);
         this->mainMenu->AddChild(this->batteryImage);
         this->sdBrowser->AddChild(this->batteryImage);
         this->nandBrowser->AddChild(this->batteryImage);
@@ -944,6 +958,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->batteryImage);
         this->ticketManager->AddChild(this->batteryImage);
         this->sysInfo->AddChild(this->batteryImage);
+        this->about->AddChild(this->batteryImage);
         this->mainMenu->AddChild(this->batteryChargeImage);
         this->sdBrowser->AddChild(this->batteryChargeImage);
         this->nandBrowser->AddChild(this->batteryChargeImage);
@@ -952,6 +967,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->batteryChargeImage);
         this->ticketManager->AddChild(this->batteryChargeImage);
         this->sysInfo->AddChild(this->batteryChargeImage);
+        this->about->AddChild(this->batteryChargeImage);
         this->mainMenu->AddChild(this->footerText);
         this->sdBrowser->AddChild(this->footerText);
         this->nandBrowser->AddChild(this->footerText);
@@ -961,7 +977,7 @@ namespace gleaf::ui
         this->ticketManager->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
-        this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1));
+        this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->LoadLayout(this->mainMenu);
     }
 
@@ -983,14 +999,14 @@ namespace gleaf::ui
         else this->batteryChargeImage->SetVisible(false);
     }
 
-    void MainApplication::sdBrowser_Input(u64 Input)
+    void MainApplication::sdBrowser_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Input & KEY_B)
+        if(Down & KEY_B)
         {
             if(this->sdBrowser->GoBack()) this->sdBrowser->UpdateElements();
             else this->LoadLayout(this->mainMenu);
         }
-        else if(Input & KEY_X)
+        else if(Down & KEY_X)
         {
             if(clipboard != "")
             {
@@ -1016,14 +1032,14 @@ namespace gleaf::ui
         }
     }
 
-    void MainApplication::nandBrowser_Input(u64 Input)
+    void MainApplication::nandBrowser_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Input & KEY_B)
+        if(Down & KEY_B)
         {
             if(this->nandBrowser->GoBack()) this->nandBrowser->UpdateElements();
             else this->LoadLayout(this->mainMenu);
         }
-        else if(Input & KEY_X)
+        else if(Down & KEY_X)
         {
             if(clipboard != "")
             {
@@ -1049,29 +1065,34 @@ namespace gleaf::ui
         }
     }
 
-    void MainApplication::usbInstall_Input(u64 Input)
+    void MainApplication::usbInstall_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Input & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
     }
 
-    void MainApplication::titleManager_Input(u64 Input)
+    void MainApplication::titleManager_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Input & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
     }
 
-    void MainApplication::ticketManager_Input(u64 Input)
+    void MainApplication::ticketManager_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Input & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
     }
 
-    void MainApplication::sysInfo_Input(u64 Input)
+    void MainApplication::sysInfo_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Input & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
     }
 
-    void MainApplication::OnInput(u64 Input)
+    void MainApplication::about_Input(u64 Down, u64 Up, u64 Held)
     {
-        if((Input & KEY_PLUS) || (Input & KEY_MINUS)) if(!IsApplication()) this->Close();
+        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
+    }
+
+    void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
+    {
+        if((Down & KEY_PLUS) || (Down & KEY_MINUS)) if(!IsApplication()) this->Close();
     }
 
     MainMenuLayout *MainApplication::GetMainMenuLayout()
@@ -1114,10 +1135,15 @@ namespace gleaf::ui
         return this->sysInfo;
     }
 
+    AboutLayout *MainApplication::GetAboutLayout()
+    {
+        return this->about;
+    }
+
     void UpdateClipboard(std::string Path)
     {
         clipboard = Path;
-        mainapp->UpdateFooter("Clipboard was set to \'" + fs::GetPathWithoutRoot(Path) + "\'.");
+        mainapp->UpdateFooter("Clipboard was set to: \'" + fs::GetPathWithoutRoot(Path) + "\'.");
     }
 
     void SetMainApplication(MainApplication *MainApp)

@@ -9,4 +9,6 @@ namespace gleaf
     void Initialize();
     void Finalize();
     bool IsApplication();
+
+    static const std::string Version = "0.1";
 }
