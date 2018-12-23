@@ -6,13 +6,6 @@ using libusbK;
 
 namespace gtree
 {
-    public enum LogType
-    {
-        Log,
-        Warning,
-        Error,
-    }
-
     public class LogMode
     {
         public string Type { get; set; }
