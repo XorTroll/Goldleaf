@@ -30,20 +30,6 @@ namespace gleaf::usb
         return cmd;
     }
 
-    u8 Read8()
-    {
-        u8 data;
-        Read((void*)&data, sizeof(u8));
-        return data;
-    }
-
-    u16 Read16()
-    {
-        u16 data;
-        Read((void*)&data, sizeof(u16));
-        return data;
-    }
-
     u32 Read32()
     {
         u32 data;
@@ -88,16 +74,6 @@ namespace gleaf::usb
     void WriteCommand(Command &Data)
     {
         WriteFixed(&Data, sizeof(Command));
-    }
-
-    void Write8(u8 Data)
-    {
-        Write((void*)&Data, sizeof(u8));
-    }
-
-    void Write16(u16 Data)
-    {
-        Write((void*)&Data, sizeof(u16));
     }
 
     void Write32(u32 Data)

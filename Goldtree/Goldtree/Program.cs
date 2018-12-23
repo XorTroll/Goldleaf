@@ -127,8 +127,8 @@ namespace gtree
                         if(rc2.MagicOk() && rc2.IsCommandId(CommandId.Start))
                         {
                             Log.Log("Goldleaf is ready for the installation. Preparing everything...");
+                            // Send NSP parts and offsets, install them...
                         }
-                        while (true) ;
                     }
                     else Error.Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
                 }

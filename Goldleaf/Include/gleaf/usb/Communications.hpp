@@ -16,16 +16,12 @@ namespace gleaf::usb
     bool WaitForConnection(u64 Timeout = UINT64_MAX);
     size_t Read(void *Out, size_t Size);
     Command ReadCommand();
-    u8 Read8();
-    u16 Read16();
     u32 Read32();
     u64 Read64();
     std::string ReadString(u32 Length);
     size_t ReadFixed(void *Out, size_t Size);
     size_t Write(const void *Buffer, size_t Size);
     void WriteCommand(Command &Data);
-    void Write8(u8 Data);
-    void Write16(u16 Data);
     void Write32(u32 Data);
     void write64(u64 Data);
     void WriteString(std::string Data);

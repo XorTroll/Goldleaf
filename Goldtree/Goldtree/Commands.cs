@@ -31,16 +31,6 @@ namespace gtree
             USB.Write(Data.AsData());
         }
 
-        public static void Write(this UsbK USB, byte Data)
-        {
-            USB.Write(BitConverter.GetBytes(Data));
-        }
-
-        public static void Write(this UsbK USB, ushort Data)
-        {
-            USB.Write(BitConverter.GetBytes(Data));
-        }
-
         public static void Write(this UsbK USB, uint Data)
         {
             USB.Write(BitConverter.GetBytes(Data));
@@ -74,16 +64,6 @@ namespace gtree
             cmd.Magic = magic;
             cmd.CommandId = (CommandId)cmdid;
             return cmd;
-        }
-
-        public static void Read(this UsbK USB, out byte Data)
-        {
-            Data = USB.Read(1)[0];
-        }
-
-        public static void Read(this UsbK USB, out ushort Data)
-        {
-            Data = BitConverter.ToUInt16(USB.Read(2), 0);
         }
 
         public static void Read(this UsbK USB, out uint Data)
