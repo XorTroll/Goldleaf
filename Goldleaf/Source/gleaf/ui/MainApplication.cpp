@@ -650,6 +650,7 @@ namespace gleaf::ui
                 delete dlg;
                 if(sopt == 0)
                 {
+                    // Step 4: send approval to start receiving NSP data (Id 3)
                     usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
                     usb::WriteCommand(cmd2);
                     while(true) mainapp->CallForRender(); // ...
