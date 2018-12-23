@@ -32,7 +32,7 @@ namespace pu::element
             void SetImage(std::string Image);
             bool IsImageValid();
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Input);
+            void OnInput(u64 Down, u64 Up, u64 Held);
         private:
             std::string img;
             u32 x;

@@ -33,7 +33,7 @@ namespace pu::element
             draw::Color GetColor();
             void SetColor(draw::Color RecColor);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Input);
+            void OnInput(u64 Down, u64 Up, u64 Held);
         private:
             u32 borderr;
             u32 x;

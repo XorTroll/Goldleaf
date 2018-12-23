@@ -37,7 +37,7 @@ namespace pu::element
             u64 GetKey();
             void SetKey(u64 Key);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Input);
+            void OnInput(u64 Down, u64 Up, u64 Held);
             bool IsChecked();
         private:
             std::string cnt;

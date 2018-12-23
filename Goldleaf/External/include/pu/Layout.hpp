@@ -25,10 +25,10 @@ namespace pu
             element::Element *GetChildAt(u32 Index);
             u32 GetChildCount();
             bool HasChilds();
-            void SetOnInput(std::function<void(u64 Input)> Callback);
-            std::function<void(u64 Input)> GetOnInput();
+            void SetOnInput(std::function<void(u64 Down, u64 Up, u64 Held)> Callback);
+            std::function<void(u64 Down, u64 Up, u64 Held)> GetOnInput();
         private:
-            std::function<void(u64 Input)> onipt;
+            std::function<void(u64, u64, u64)> onipt;
             std::vector<element::Element*> chld;
     };
 }

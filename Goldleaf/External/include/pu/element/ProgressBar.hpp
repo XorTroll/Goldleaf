@@ -40,7 +40,7 @@ namespace pu::element
             void ClearProgress();
             bool IsCompleted();
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Input);
+            void OnInput(u64 Down, u64 Up, u64 Held);
         private:
             u32 x;
             u32 y;

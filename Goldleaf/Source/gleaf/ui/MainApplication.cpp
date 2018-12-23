@@ -413,6 +413,7 @@ namespace gleaf::ui
                         dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.", pu::draw::Font::NintendoStandard);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
+                        return;
                     }
                     dlg = new pu::Dialog("Ticket import confirmation", "The selected ticket will be imported.", pu::draw::Font::NintendoStandard);
                     dlg->AddOption("Import");
