@@ -47,6 +47,7 @@ namespace gleaf::ui
         if(isel == this->sdcardMenuItem) info = "Browse the SD card. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->nandMenuItem) info = "Browse NAND. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
+        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
         else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf: author, version, credits...";
