@@ -32,6 +32,16 @@ You have two options to use Goldleaf: load it as regular homebrew via hbmenu as 
 
 For both options, you will have to get the latest release of the NRO/NSP from [here](https://github.com/XorTroll/Goldleaf/releases).
 
+### For USB installations
+
+USB installations require a few extra things to be available:
+
+- Download Zadig from [here](https://zadig.akeo.ie/)
+
+- Open Goldleaf and select the USB install option, with the Switch connected to the PC via a USB-C cable.
+
+- Open Zadig, and select the device of your Nintendo Switch, and install libusbK there.
+
 Nothing else is required. No external files, or extra configuration are required for Goldleaf but the NRO/NSP.
 
 - **NRO** binary

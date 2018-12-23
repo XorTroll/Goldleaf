@@ -17,7 +17,6 @@ namespace gleaf
         mkdir("sdmc:/switch/.gleaf", 777);
         mkdir("sdmc:/switch/.gleaf/meta", 777);
         mkdir("sdmc:/switch/.gleaf/title", 777);
-        mkdir("sdmc:/switch/.gleaf/out", 777);
     }
 
     void Finalize()

@@ -50,7 +50,7 @@ namespace gleaf::ui
         else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
-        else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf: author, version, credits...";
+        else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf. You can check Goldleaf's version there.";
         mainapp->UpdateFooter(info);
     }
 
@@ -74,6 +74,7 @@ namespace gleaf::ui
         else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
+        delete dlg;
     }
 
     void MainMenuLayout::usbMenuItem_Click()
@@ -95,6 +96,7 @@ namespace gleaf::ui
         pu::Dialog *dlg = new pu::Dialog("Removing tickets", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.", pu::draw::Font::NintendoStandard);
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
+        delete dlg;
     }
 
     void MainMenuLayout::sysinfoMenuItem_Click()
@@ -172,6 +174,7 @@ namespace gleaf::ui
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
+        delete dlg;
         return (sopt == 0);
     }
 
@@ -467,6 +470,7 @@ namespace gleaf::ui
                     if(this->WarnNANDWriteAccess()) this->UpdateElements();
                     break;
             }
+            delete dlg;
         }
     }
 
@@ -499,6 +503,7 @@ namespace gleaf::ui
                     if(this->WarnNANDWriteAccess()) this->UpdateElements();
                     break;
             }
+            delete dlg;
         }
     }
 
@@ -607,6 +612,7 @@ namespace gleaf::ui
             pu::Dialog *dlg = new pu::Dialog("NSP installation error", err, pu::draw::Font::NintendoStandard);
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
+            delete dlg;
             mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
         }
     }
@@ -749,6 +755,7 @@ namespace gleaf::ui
         if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
+            delete dlg;
             dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?", pu::draw::Font::NintendoStandard);
             dlg->AddOption("Yes");
             dlg->AddOption("Cancel");
@@ -760,12 +767,14 @@ namespace gleaf::ui
                 Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
                 std::string resstr = "The title was successfully uninstalled from this console.";
                 if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
+                delete dlg;
                 dlg = new pu::Dialog("Title uninstall", resstr, pu::draw::Font::NintendoStandard);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
         }
+        delete dlg;
     }
 
     std::vector<horizon::Title> TitleManagerLayout::GetTitles()
@@ -785,6 +794,7 @@ namespace gleaf::ui
 
     void TicketManagerLayout::UpdateElements()
     {
+        this->tickets.clear();
         this->tickets = horizon::GetAllSystemTickets();
         this->ticketsMenu->ClearItems();
         if(this->tickets.empty())
@@ -829,6 +839,7 @@ namespace gleaf::ui
         if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
+            delete dlg;
             dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?", pu::draw::Font::NintendoStandard);
             dlg->AddOption("Yes");
             dlg->AddOption("cancel");
@@ -840,12 +851,14 @@ namespace gleaf::ui
                 Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
                 std::string resstr = "The ticket was successfully removed from this console.";
                 if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
+                delete dlg;
                 dlg = new pu::Dialog("Ticket uninstall", resstr, pu::draw::Font::NintendoStandard);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
         }
+        delete dlg;
     }
 
     SystemInfoLayout::SystemInfoLayout() : pu::Layout()
@@ -1028,6 +1041,7 @@ namespace gleaf::ui
                     mainapp->UpdateFooter("Clipboard was processed and cleaned (file / directory was copied: " + fs::GetPathWithoutRoot(clipboard));
                     clipboard = "";
                 }
+                delete dlg;
             }
             else mainapp->UpdateFooter("Clipboard is not selected.");
         }
@@ -1061,6 +1075,7 @@ namespace gleaf::ui
                     mainapp->UpdateFooter("Clipboard was processed and cleaned (file / directory was copied: " + fs::GetPathWithoutRoot(clipboard));
                     clipboard = "";
                 }
+                delete dlg;
             }
             else mainapp->UpdateFooter("Clipboard is not selected.");
         }

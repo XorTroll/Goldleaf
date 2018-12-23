@@ -41,7 +41,7 @@ namespace gleaf::horizon
     {
         std::vector<Title> titles;
         NcmContentMetaDatabase *metadb = (NcmContentMetaDatabase*)malloc(sizeof(*metadb));
-        size_t size = sizeof(NcmApplicationContentMetaKey) * 32;
+        size_t size = sizeof(NcmApplicationContentMetaKey) * 128;
         NcmApplicationContentMetaKey *metas = (NcmApplicationContentMetaKey*)malloc(size);
         u32 total = 0;
         u32 written = 0;
@@ -72,6 +72,7 @@ namespace gleaf::horizon
                         fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
                         fclose(f);
                     }
+                    delete cdata;
                     titles.push_back(title);
                 }
             }
@@ -104,6 +105,7 @@ namespace gleaf::horizon
                         fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
                         fclose(f);
                     }
+                    delete cdata;
                     titles.push_back(title);
                 }
             }
@@ -136,6 +138,7 @@ namespace gleaf::horizon
                         fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
                         fclose(f);
                     }
+                    delete cdata;
                     titles.push_back(title);
                 }
             }
