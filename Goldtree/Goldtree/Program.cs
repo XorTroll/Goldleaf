@@ -8,39 +8,91 @@ namespace gtree
 {
     public enum LogType
     {
-        Information,
+        Log,
         Warning,
         Error,
     }
 
+    public class LogMode
+    {
+        public string Type { get; set; }
+        public ConsoleColor Color { get; set; }
+        public bool Close { get; set; }
+
+        public LogMode(string Type, ConsoleColor Color, bool Close = false)
+        {
+            this.Type = Type;
+            this.Color = Color;
+            this.Close = Close;
+        }
+
+        public void Log(string Text, bool NewLine = true)
+        {
+            ConsoleColor prev = Console.ForegroundColor;
+            if(NewLine) Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("[");
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write("gtree");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(":");
+            Console.ForegroundColor = Color;
+            Console.Write(Type);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("]");
+            Console.ForegroundColor = prev;
+            Console.Write(" ");
+            Console.Write(Text);
+            if(NewLine) Console.WriteLine();
+            if(Close)
+            {
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+                Environment.Exit(1);
+            }
+        }
+    }
+
     public class Program
     {
+        public static readonly string Name = "Goldtree";
+        public static readonly string Description = "Goldleaf's USB installation client";
 
-        public static void Log(string Text, LogType Type = LogType.Error, bool NewLine = true)
+        public static readonly LogMode Log = new LogMode("Log", ConsoleColor.Cyan);
+        public static readonly LogMode Warn = new LogMode("Warn", ConsoleColor.Yellow);
+        public static readonly LogMode Error = new LogMode("Error", ConsoleColor.Red, true);
+
+        public static void Initialize()
         {
-            if(NewLine) Console.WriteLine();
-            switch(Type)
-            {
-                case LogType.Information:
-                    Console.WriteLine("[tree:Information] " + Text);
-                    break;
-                case LogType.Warning:
-                    Console.WriteLine("[tree:Warning] " + Text);
-                    break;
-                case LogType.Error:
-                    Console.WriteLine("[tree:Error] " + Text);
-                    Console.WriteLine("Press any key to exit.");
-                    Console.ReadKey();
-                    Environment.Exit(1);
-                    break;
-            }
+            Console.Title = Name +  " - " + Description;
+            Console.WriteLine();
+            Console.Write("    ");
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write(Name);
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(" - ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(Description);
+            Console.WriteLine();
+            Console.Write("    ");
+            Console.Write("Copyright (C) 2018 ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write("-");
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write(" Goldleaf");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(" project, by");
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.Write(" XorTroll");
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Warn.Log("Make sure to open Goldtree AFTER having opened USB installation mode in Goldleaf!");
         }
 
         [STAThread]
         public static void Main(string[] Args)
         {
-            Console.Title = "Goldtree - Goldleaf's USB installation client";
-            // Some kind of greeting message...
+            Initialize();
             UsbK usb = null;
             try
             {
@@ -51,18 +103,18 @@ namespace gtree
             }
             catch
             {
-                Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
+                Error.Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
             }
             try
             {
                 Command c = new Command(CommandId.ConnectionRequest);
                 usb.Write(c);
-                Log("Attempting to connect to Goldleaf via USB...", LogType.Information);
+                Log.Log("Attempting to connect to Goldleaf via USB...");
                 Command rc = usb.Read();
                 if((rc.Magic == Command.GLUC) && (rc.CommandId == CommandId.ConnectionResponse))
                 {
-                    Log("Connection was established with Goldleaf.", LogType.Information, false);
-                    Log("Select the NSP to send to Goldleaf on the dialog.", LogType.Information, false);
+                    Log.Log("Connection was established with Goldleaf.", false);
+                    Log.Log("Select the NSP to send to Goldleaf on the dialog.", false);
                     OpenFileDialog fd = new OpenFileDialog()
                     {
                         Title = "Select NSP to send to Goldleaf via USB",
@@ -77,17 +129,19 @@ namespace gtree
                         usb.Write(c);
                         usb.Write((uint)nspname.Length);
                         usb.Write(nspname);
-                        Log("NSP name was sent to Goldleaf. Waiting for install instruction...", LogType.Information, false);
+                        Log.Log("NSP name was sent to Goldleaf. Waiting for install instruction...", false);
                         // ...
                     }
-                    else Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
+                    else Error.Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
                 }
             }
             catch
             {
-                Log("Error selecting NSP to be sent.");
+                Error.Log("Error selecting NSP to be sent.");
             }
+            Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
+            Environment.Exit(1);
         }
     }
 }
