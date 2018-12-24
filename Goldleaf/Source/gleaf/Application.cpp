@@ -18,7 +18,6 @@ namespace gleaf
         gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf");
         gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf/meta");
         gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf/title");
-        gleaf::fs::DeleteDirectory("sdmc:/switch/.gleaf/qlaunch");
         gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf/qlaunch");
     }
 

@@ -546,9 +546,9 @@ namespace gleaf::ui
                     }
                     std::string msg = "Information about the selected theme file:\n\n";
                     msg += "Name: " + nxth.ThemeName;
-                    msg += "\nAuthor: " + nxth.Author;
-                    msg += "\nLayout: " + nxth.LayoutInfo;
-                    msg += "\nTarget: " + nxth.Target;
+                    msg += "\nAuthor: " + ((nxth.Author == "") ? "<no author specified>" : nxth.Author);
+                    msg += "\nLayout: " + ((nxth.LayoutInfo == "") ? "<no layout information>" : nxth.LayoutInfo);
+                    msg += "\nTarget: " + gleaf::theme::ThemeTargetToName[nxth.Target] + " (will patch " + gleaf::theme::ThemeTargetToFileName[nxth.Target] + " file)";
                     msg += "\n\nIf there's another theme installed in the selected CFW, it will be overwritten.\nProceed with the installation?";
                     dlg = new pu::Dialog("Theme information", msg, pu::draw::Font::NintendoStandard);
                     dlg->AddOption("Install");
@@ -791,7 +791,7 @@ namespace gleaf::ui
 
     ThemeInstallLayout::ThemeInstallLayout()
     {
-        this->infoText = new pu::element::TextBlock(400, 400, "Starting theme installation...");
+        this->infoText = new pu::element::TextBlock(310, 310, "Starting theme installation...");
         this->AddChild(this->infoText);
     }
 
@@ -800,89 +800,134 @@ namespace gleaf::ui
         std::string baseszs = "sdmc:/switch/.gleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
         if(!gleaf::fs::Exists(baseszs))
         {
-            this->infoText->SetText("Required qlaunch files wasn't found\n(" + baseszs + ")\nExporting them from system...");
+            this->infoText->SetText("Required qlaunch files weren't found.\nExtracting them from qlaunch...\n(this might take some time)");
             mainapp->CallForRender();
             bool exok = gleaf::horizon::ExportQlaunchRomFs();
-            if(exok && gleaf::fs::Exists(baseszs))
-            {
-                this->infoText->SetText("Files exported. Processing theme...");
-                mainapp->CallForRender();
-                auto fdata = gleaf::fs::ReadFile(baseszs);
-                auto dfdata = gleaf::sarc::YAZ0::Decompress(fdata);
-                gleaf::sarc::SARC::SarcData szstp = gleaf::sarc::SARC::Unpack(dfdata);
-                auto ptp = gleaf::theme::DetectSarc(szstp);
-                if(ptp.FirmName == "")
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.", pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    return;
-                }
-                bool p5x = false;
-                this->infoText->SetText("Patch type determined. Applying it...");
-                mainapp->CallForRender();
-                if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
-                {
-                    std::string cszs = "sdmc:/switch/.gleaf/qlaunch/lyt/common.szs";
-                    auto c_fdata = gleaf::fs::ReadFile(baseszs);
-                    auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
-                    gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
-                    auto pcommon = gleaf::theme::DetectSarc(commonszs);
-
-                    auto pres = gleaf::theme::PatchBgLayouts(commonszs, pcommon);
-                    if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
-                    {
-                        pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layout.", pu::draw::Font::NintendoStandard);
-                        dlg->AddOption("Ok");
-                        mainapp->ShowDialog(dlg);
-                        return;
-                    }
-                    pres = gleaf::theme::PatchBntx(commonszs, SData.files["image.dds"], pcommon);
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles");
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId);
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs");
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt");
-                    gleaf::fs::CreateFile(CFWPath + "/titles/" + pcommon.TitleId + "/fsmitm.flag");
-                    auto cpack = gleaf::sarc::SARC::Pack(commonszs);
-                    auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
-                    gleaf::fs::WriteFile(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt/common.szs", cydata);
-                    p5x = true;
-                }
-                else
-                {
-                    auto pres = gleaf::theme::PatchBgLayouts(szstp, ptp);
-                    pres = gleaf::theme::PatchBntx(szstp, SData.files["image.dds"], ptp);
-                }
-                if(SData.files.count("layout.json"))
-                {
-                    p5x = false;
-                    auto jbin = SData.files["layout.json"];
-                    std::string jstr(reinterpret_cast<char*>(jbin.data()), jbin.size());
-                    auto pt = gleaf::lyt::LoadLayout(jstr);
-                    if(pt.IsCompatible(szstp)) auto pres = gleaf::theme::PatchLayouts(szstp, pt.Files);
-                }
-                if(!p5x)
-                {
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles");
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId);
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs");
-                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt");
-                    gleaf::fs::CreateFile(CFWPath + "/titles/" + ptp.TitleId + "/fsmitm.flag");
-                    auto cpack = gleaf::sarc::SARC::Pack(szstp);
-                    auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
-                    gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
-                }
-                this->infoText->SetText("Done!");
-                mainapp->CallForRender();
-            }
-            else
+            if(!exok)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to export qlaunch's files from the console.\nThey are required to proceed with the installation.", pu::draw::Font::NintendoStandard);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
             }
+            else
+            {
+                this->infoText->SetText("Files exported. Processing theme...");
+                mainapp->CallForRender();
+            }
         }
+        else
+        {
+            auto fdata = gleaf::fs::ReadFile(baseszs);
+            auto dfdata = gleaf::sarc::YAZ0::Decompress(fdata);
+            gleaf::sarc::SARC::SarcData szstp = gleaf::sarc::SARC::Unpack(dfdata);
+            auto ptp = gleaf::theme::DetectSarc(szstp);
+            if(ptp.FirmName == "")
+            {
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.", pu::draw::Font::NintendoStandard);
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                return;
+            }
+            bool p5x = false;
+            this->infoText->SetText("Patch type determined. Applying it...");
+            mainapp->CallForRender();
+            if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
+            {
+                p5x = true;
+                std::string cszs = "sdmc:/switch/.gleaf/qlaunch/lyt/common.szs";
+                auto c_fdata = gleaf::fs::ReadFile(cszs);
+                auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
+                gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
+                auto pcommon = gleaf::theme::DetectSarc(commonszs);
+                auto pres = gleaf::theme::PatchBgLayouts(commonszs, pcommon);
+                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    return;
+                }
+                pres = gleaf::theme::PatchBntx(commonszs, SData.files["image.dds"], pcommon);
+                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    return;
+                }
+                gleaf::fs::CreateDirectory(CFWPath + "/titles");
+                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId);
+                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs");
+                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt");
+                gleaf::fs::CreateFile(CFWPath + "/titles/" + pcommon.TitleId + "/fsmitm.flag");
+                auto cpack = gleaf::sarc::SARC::Pack(commonszs);
+                auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
+                gleaf::fs::WriteFile(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt/common.szs", cydata);
+            }
+            else
+            {
+                auto pres = gleaf::theme::PatchBgLayouts(szstp, ptp);
+                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    return;
+                }
+                pres = gleaf::theme::PatchBntx(szstp, SData.files["image.dds"], ptp);
+                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    return;
+                }
+            }
+            if(SData.files.count("layout.json"))
+            {
+                p5x = false;
+                auto jbin = SData.files["layout.json"];
+                std::string jstr(reinterpret_cast<char*>(jbin.data()), jbin.size());
+                auto pt = gleaf::lyt::LoadLayout(jstr);
+                if(!pt.IsCompatible(szstp))
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "The provided layout was not compatible with the patch to apply.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    return;
+                }
+                auto pres = gleaf::theme::PatchLayouts(szstp, pt.Files);
+                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layouts.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    return;
+                }
+            }
+            if(!p5x)
+            {
+                gleaf::fs::CreateDirectory(CFWPath + "/titles");
+                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId);
+                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs");
+                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt");
+                gleaf::fs::CreateFile(CFWPath + "/titles/" + ptp.TitleId + "/fsmitm.flag");
+                auto cpack = gleaf::sarc::SARC::Pack(szstp);
+                auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
+                gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
+            }
+        }
+        this->infoText->SetText("Done!");
+        mainapp->CallForRender();
     }
 
     TitleManagerLayout::TitleManagerLayout()
