@@ -1,4 +1,5 @@
 #include <gleaf/horizon/Title.hpp>
+#include <gleaf/fs.hpp>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -165,6 +166,19 @@ namespace gleaf::horizon
         if(cc > 0) for(u32 i = 0; i < vcrids.size(); i++) tickets.push_back({ vcrids[i], gleaf::horizon::TicketType::Common });
         if(pc > 0) for(u32 i = 0; i < vprids.size(); i++) tickets.push_back({ vprids[i], gleaf::horizon::TicketType::Personalized });
         return tickets;
+    }
+
+    std::string GetTitleNCAPath(u64 ApplicationId)
+    {
+        std::string pth = "";
+        LrLocationResolver lres;
+        Result rc = lrOpenLocationResolver(FsStorageId_NandSystem, &lres);
+        if(rc != 0) return pth;
+        char cpath[FS_MAX_PATH] = { 0 };
+        rc = lrLrResolveProgramPath(&lres, ApplicationId, cpath);
+        if(rc == 0) pth = gleaf::fs::GetFileName(std::string(cpath));
+        serviceClose(&lres.s);
+        return pth;
     }
 
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)

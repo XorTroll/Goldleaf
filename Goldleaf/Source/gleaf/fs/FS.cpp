@@ -101,6 +101,34 @@ namespace gleaf::fs
         rmdir(Path.c_str());
     }
 
+    std::vector<u8> ReadFile(std::string Path)
+    {
+        std::vector<u8> file;
+        FILE *fle = fopen(Path.c_str(), "rb");
+        if(fle)
+        {
+            fseek(fle, 0, SEEK_END);
+            auto sz = ftell(fle);
+            rewind(fle);
+            file = std::vector<u8>(sz);
+            fread(file.data(), 1, sz, fle);
+        }
+        fclose(fle);
+        return file;
+    }
+
+    void WriteFile(std::string Path, std::vector<u8> Data)
+    {
+        DeleteFile(Path);
+        FILE *fle = fopen(Path.c_str(), "wb");
+        if(fle)
+        {
+            fwrite(Data.data(), 1, Data.size(), fle);
+            fflush(fle);
+        }
+        fclose(fle);
+    }
+
     std::string GetFileName(std::string Path)
     {
         return Path.substr(Path.find_last_of("/\\") + 1);

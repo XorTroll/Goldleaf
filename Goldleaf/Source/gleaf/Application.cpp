@@ -13,14 +13,18 @@ namespace gleaf
         if(R_FAILED(psmInitialize())) exit(0);
         if(R_FAILED(setsysInitialize())) exit(0);
         if(R_FAILED(usbCommsInitialize())) exit(0);
-        mkdir("sdmc:/switch", 777);
-        mkdir("sdmc:/switch/.gleaf", 777);
-        mkdir("sdmc:/switch/.gleaf/meta", 777);
-        mkdir("sdmc:/switch/.gleaf/title", 777);
+        if(R_FAILED(lrInitialize())) exit(0);
+        gleaf::fs::CreateDirectory("sdmc:/switch");
+        gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf");
+        gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf/meta");
+        gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf/title");
+        gleaf::fs::DeleteDirectory("sdmc:/switch/.gleaf/qlaunch");
+        gleaf::fs::CreateDirectory("sdmc:/switch/.gleaf/qlaunch");
     }
 
     void Finalize()
     {
+        lrExit();
         usbCommsExit();
         setsysExit();
         psmExit();

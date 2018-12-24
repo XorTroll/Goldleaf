@@ -10,6 +10,7 @@
 
 #pragma once
 #include <string>
+#include <vector>
 #include <switch.h>
 
 namespace gleaf::fs
@@ -31,6 +32,8 @@ namespace gleaf::fs
     void CopyDirectory(std::string Dir, std::string NewDir);
     void DeleteFile(std::string Path);
     void DeleteDirectory(std::string Path);
+    std::vector<u8> ReadFile(std::string Path);
+    void WriteFile(std::string Path, std::vector<u8> Data);
     std::string GetFileName(std::string Path);
     std::string GetExtension(std::string Path);
     std::string GetPathWithoutRoot(std::string Path);

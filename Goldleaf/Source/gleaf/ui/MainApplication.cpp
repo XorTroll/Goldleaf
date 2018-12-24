@@ -4,6 +4,7 @@ namespace gleaf::ui
 {
     MainApplication *mainapp;
     std::string clipboard;
+    bool qexport = false;
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -151,6 +152,7 @@ namespace gleaf::ui
                     else if(ext == "nro") mitm->SetIcon("romfs:/FileSystem/NRO.png");
                     else if(ext == "tik") mitm->SetIcon("romfs:/FileSystem/TIK.png");
                     else if(ext == "cert") mitm->SetIcon("romfs:/FileSystem/CERT.png");
+                    else if(ext == "nxtheme") mitm->SetIcon("romfs:/FileSystem/NXTheme.png");
                     else mitm->SetIcon("romfs:/FileSystem/File.png");
                 }
                 mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this));
@@ -190,6 +192,8 @@ namespace gleaf::ui
             if(ext == "nsp") msg += "NSP file";
             else if(ext == "nro") msg += "NRO binary";
             else if(ext == "tik") msg += "ticket file";
+            else if(ext == "nxtheme") msg += "Home Menu theme file";
+            else msg += "file";
             msg += "?";
             pu::Dialog *dlg = new pu::Dialog("File options", msg, pu::draw::Font::NintendoStandard);
             u32 copt = 2;
@@ -207,6 +211,11 @@ namespace gleaf::ui
             else if(ext == "tik")
             {
                 dlg->AddOption("Import");
+                copt = 3;
+            }
+            else if(ext == "nxtheme")
+            {
+                dlg->AddOption("Install");
                 copt = 3;
             }
             dlg->AddOption("Copy");
@@ -403,11 +412,11 @@ namespace gleaf::ui
                         mainapp->Close();
                     }
                     break;
-                case 2:
+                case 1:
                     UpdateClipboard(fullitm);
                     this->UpdateElements();
                     break;
-                case 3:
+                case 2:
                     fs::DeleteFile(fullitm);
                     mainapp->UpdateFooter("File deleted: \'" + fs::GetPathWithoutRoot(fullitm) + "\'.");
                     if(this->WarnNANDWriteAccess()) this->UpdateElements();
@@ -448,11 +457,113 @@ namespace gleaf::ui
                         if(rc != 0) mainapp->UpdateFooter("An error ocurred trying to install the ticket (error code " + horizon::FormatHex(rc) + ")");
                     }
                     break;
-                case 2:
+                case 1:
                     UpdateClipboard(fullitm);
                     this->UpdateElements();
                     break;
-                case 3:
+                case 2:
+                    fs::DeleteFile(fullitm);
+                    mainapp->UpdateFooter("File deleted: \'" + fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    break;
+            }
+            else if(ext == "nxtheme") switch(sopt)
+            {
+                case 0:
+                    std::string kfile = "sdmc:/switch/.gleaf/keys.dat";
+                    if(!gleaf::fs::Exists(kfile))
+                    {
+                        dlg = new pu::Dialog("Theme install error", "To install themes, keys are required.\nPlace a \'keys.dat\' file with keys in \'switch/.gleaf\' folder.", pu::draw::Font::NintendoStandard);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        return;
+                    }
+                    bool hasatmos = gleaf::fs::IsDirectory("sdmc:/atmosphere");
+                    bool hasreinx = gleaf::fs::IsDirectory("sdmc:/ReiNX");
+                    bool hassxos = gleaf::fs::IsDirectory("sdmc:/sxos");
+                    dlg = new pu::Dialog("Select CFW", "Select CFW on which to install the theme.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Atmosphère");
+                    dlg->AddOption("ReiNX");
+                    dlg->AddOption("SX OS");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    u32 sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 3)) return;
+                    std::string installdir;
+                    switch(sopt)
+                    {
+                        case 0:
+                            if(!hasatmos)
+                            {
+                                delete dlg;
+                                dlg = new pu::Dialog("Theme install error", "Atmosphère folder was not found, so the theme cannot be installed.", pu::draw::Font::NintendoStandard);
+                                dlg->AddOption("Ok");
+                                mainapp->ShowDialog(dlg);
+                                return;
+                            }
+                            installdir = "sdmc:/atmosphere";
+                            break;
+                        case 1:
+                            if(!hasreinx)
+                            {
+                                delete dlg;
+                                dlg = new pu::Dialog("Theme install error", "ReiNX folder was not found, so the theme cannot be installed.", pu::draw::Font::NintendoStandard);
+                                dlg->AddOption("Ok");
+                                mainapp->ShowDialog(dlg);
+                                return;
+                            }
+                            installdir = "sdmc:/ReiNX";
+                            break;
+                        case 2:
+                            if(!hassxos)
+                            {
+                                delete dlg;
+                                dlg = new pu::Dialog("Theme install error", "SX OS folder was not found, so the theme cannot be installed.", pu::draw::Font::NintendoStandard);
+                                dlg->AddOption("Ok");
+                                mainapp->ShowDialog(dlg);
+                                return;
+                            }
+                            installdir = "sdmc:/sxos";
+                            break;
+                    }
+                    std::vector<u8> data = gleaf::fs::ReadFile(fullitm);
+                    std::vector<u8> ddata = gleaf::sarc::YAZ0::Decompress(data);
+                    gleaf::sarc::SARC::SarcData sdata = gleaf::sarc::SARC::Unpack(ddata);
+                    auto nxth = gleaf::theme::ParseNXThemeFile(sdata);
+                    if(nxth.Version == -1)
+                    {
+                        dlg = new pu::Dialog("Theme install error", "The selected theme file seems to be invalid.", pu::draw::Font::NintendoStandard);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        return;
+                    }
+                    if(!gleaf::theme::ThemeTargetToName.count(nxth.Target))
+                    {
+                        dlg = new pu::Dialog("Theme install error", "The target of the selected theme file was not found.", pu::draw::Font::NintendoStandard);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        return;
+                    }
+                    std::string msg = "Information about the selected theme file:\n\n";
+                    msg += "Name: " + nxth.ThemeName;
+                    msg += "\nAuthor: " + nxth.Author;
+                    msg += "\nLayout: " + nxth.LayoutInfo;
+                    msg += "\nTarget: " + nxth.Target;
+                    msg += "\n\nIf there's another theme installed in the selected CFW, it will be overwritten.\nProceed with the installation?";
+                    dlg = new pu::Dialog("Theme information", msg, pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Install");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 1)) return;
+                    mainapp->LoadLayout(mainapp->GetThemeInstallLayout());
+                    mainapp->GetThemeInstallLayout()->StartInstall(nxth, sdata, installdir);
+                    break;
+                case 1:
+                    UpdateClipboard(fullitm);
+                    this->UpdateElements();
+                    break;
+                case 2:
                     fs::DeleteFile(fullitm);
                     mainapp->UpdateFooter("File deleted: \'" + fs::GetPathWithoutRoot(fullitm) + "\'.");
                     if(this->WarnNANDWriteAccess()) this->UpdateElements();
@@ -676,6 +787,102 @@ namespace gleaf::ui
         }
         usb::WriteCommand(fcmd);
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+    }
+
+    ThemeInstallLayout::ThemeInstallLayout()
+    {
+        this->infoText = new pu::element::TextBlock(400, 400, "Starting theme installation...");
+        this->AddChild(this->infoText);
+    }
+
+    void ThemeInstallLayout::StartInstall(gleaf::theme::ThemeFileManifest &NXTheme, gleaf::sarc::SARC::SarcData &SData, std::string CFWPath)
+    {
+        std::string baseszs = "sdmc:/switch/.gleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
+        if(!gleaf::fs::Exists(baseszs))
+        {
+            this->infoText->SetText("Required qlaunch files wasn't found\n(" + baseszs + ")\nExporting them from system...");
+            mainapp->CallForRender();
+            bool exok = gleaf::horizon::ExportQlaunchRomFs();
+            if(exok && gleaf::fs::Exists(baseszs))
+            {
+                this->infoText->SetText("Files exported. Processing theme...");
+                mainapp->CallForRender();
+                auto fdata = gleaf::fs::ReadFile(baseszs);
+                auto dfdata = gleaf::sarc::YAZ0::Decompress(fdata);
+                gleaf::sarc::SARC::SarcData szstp = gleaf::sarc::SARC::Unpack(dfdata);
+                auto ptp = gleaf::theme::DetectSarc(szstp);
+                if(ptp.FirmName == "")
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.", pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    return;
+                }
+                bool p5x = false;
+                this->infoText->SetText("Patch type determined. Applying it...");
+                mainapp->CallForRender();
+                if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
+                {
+                    std::string cszs = "sdmc:/switch/.gleaf/qlaunch/lyt/common.szs";
+                    auto c_fdata = gleaf::fs::ReadFile(baseszs);
+                    auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
+                    gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
+                    auto pcommon = gleaf::theme::DetectSarc(commonszs);
+
+                    auto pres = gleaf::theme::PatchBgLayouts(commonszs, pcommon);
+                    if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+                    {
+                        pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layout.", pu::draw::Font::NintendoStandard);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        return;
+                    }
+                    pres = gleaf::theme::PatchBntx(commonszs, SData.files["image.dds"], pcommon);
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles");
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId);
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs");
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt");
+                    gleaf::fs::CreateFile(CFWPath + "/titles/" + pcommon.TitleId + "/fsmitm.flag");
+                    auto cpack = gleaf::sarc::SARC::Pack(commonszs);
+                    auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
+                    gleaf::fs::WriteFile(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt/common.szs", cydata);
+                    p5x = true;
+                }
+                else
+                {
+                    auto pres = gleaf::theme::PatchBgLayouts(szstp, ptp);
+                    pres = gleaf::theme::PatchBntx(szstp, SData.files["image.dds"], ptp);
+                }
+                if(SData.files.count("layout.json"))
+                {
+                    p5x = false;
+                    auto jbin = SData.files["layout.json"];
+                    std::string jstr(reinterpret_cast<char*>(jbin.data()), jbin.size());
+                    auto pt = gleaf::lyt::LoadLayout(jstr);
+                    if(pt.IsCompatible(szstp)) auto pres = gleaf::theme::PatchLayouts(szstp, pt.Files);
+                }
+                if(!p5x)
+                {
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles");
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId);
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs");
+                    gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt");
+                    gleaf::fs::CreateFile(CFWPath + "/titles/" + ptp.TitleId + "/fsmitm.flag");
+                    auto cpack = gleaf::sarc::SARC::Pack(szstp);
+                    auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
+                    gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
+                }
+                this->infoText->SetText("Done!");
+                mainapp->CallForRender();
+            }
+            else
+            {
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to export qlaunch's files from the console.\nThey are required to proceed with the installation.", pu::draw::Font::NintendoStandard);
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                return;
+            }
+        }
     }
 
     TitleManagerLayout::TitleManagerLayout()
@@ -932,6 +1139,7 @@ namespace gleaf::ui
         this->nspInstall = new InstallLayout();
         this->usbInstall = new USBInstallLayout();
         this->usbInstall->SetOnInput(std::bind(&MainApplication::usbInstall_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->themeInstall = new ThemeInstallLayout();
         this->titleManager = new TitleManagerLayout();
         this->titleManager->SetOnInput(std::bind(&MainApplication::titleManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->ticketManager = new TicketManagerLayout();
@@ -952,6 +1160,7 @@ namespace gleaf::ui
         this->nandBrowser->AddChild(this->bannerImage);
         this->nspInstall->AddChild(this->bannerImage);
         this->usbInstall->AddChild(this->bannerImage);
+        this->themeInstall->AddChild(this->bannerImage);
         this->titleManager->AddChild(this->bannerImage);
         this->ticketManager->AddChild(this->bannerImage);
         this->sysInfo->AddChild(this->bannerImage);
@@ -960,6 +1169,7 @@ namespace gleaf::ui
         this->nandBrowser->AddChild(this->timeText);
         this->nspInstall->AddChild(this->timeText);
         this->usbInstall->AddChild(this->timeText);
+        this->themeInstall->AddChild(this->timeText);
         this->titleManager->AddChild(this->timeText);
         this->ticketManager->AddChild(this->timeText);
         this->sysInfo->AddChild(this->timeText);
@@ -969,6 +1179,7 @@ namespace gleaf::ui
         this->nandBrowser->AddChild(this->batteryImage);
         this->nspInstall->AddChild(this->batteryImage);
         this->usbInstall->AddChild(this->batteryImage);
+        this->themeInstall->AddChild(this->batteryImage);
         this->titleManager->AddChild(this->batteryImage);
         this->ticketManager->AddChild(this->batteryImage);
         this->sysInfo->AddChild(this->batteryImage);
@@ -978,6 +1189,7 @@ namespace gleaf::ui
         this->nandBrowser->AddChild(this->batteryChargeImage);
         this->nspInstall->AddChild(this->batteryChargeImage);
         this->usbInstall->AddChild(this->batteryChargeImage);
+        this->themeInstall->AddChild(this->batteryChargeImage);
         this->titleManager->AddChild(this->batteryChargeImage);
         this->ticketManager->AddChild(this->batteryChargeImage);
         this->sysInfo->AddChild(this->batteryChargeImage);
@@ -987,6 +1199,7 @@ namespace gleaf::ui
         this->nandBrowser->AddChild(this->footerText);
         this->nspInstall->AddChild(this->footerText);
         this->usbInstall->AddChild(this->footerText);
+        this->themeInstall->AddChild(this->footerText);
         this->titleManager->AddChild(this->footerText);
         this->ticketManager->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
@@ -1134,6 +1347,11 @@ namespace gleaf::ui
     USBInstallLayout *MainApplication::GetUSBInstallLayout()
     {
         return this->usbInstall;
+    }
+
+    ThemeInstallLayout *MainApplication::GetThemeInstallLayout()
+    {
+        return this->themeInstall;
     }
 
     TitleManagerLayout *MainApplication::GetTitleManagerLayout()

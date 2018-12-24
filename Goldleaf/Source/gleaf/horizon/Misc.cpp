@@ -1,4 +1,6 @@
 #include <gleaf/horizon/Misc.hpp>
+#include <gleaf/horizon/Title.hpp>
+#include <gleaf/hactool.hpp>
 #include <sstream>
 
 namespace gleaf::horizon
@@ -60,6 +62,17 @@ namespace gleaf::horizon
         if(R_FAILED(rc)) sel = false;
         accountExit();
         return sel;
+    }
+
+    bool ExportQlaunchRomFs()
+    {
+        FsFileSystem nandfs;
+        fsOpenBisFileSystem(&nandfs, 31, "");
+        fsdevMountDevice("qnand", nandfs);
+        std::string path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001000);
+        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/switch/.gleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, "sdmc:/switch/.gleaf/keys.dat");
+        fsdevUnmountDevice("qnand");
+        return ex;
     }
 
     std::string GetCurrentTime()

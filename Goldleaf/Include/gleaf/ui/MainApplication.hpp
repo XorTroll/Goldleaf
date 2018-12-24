@@ -74,6 +74,15 @@ namespace gleaf::ui
             pu::element::TextBlock *infoText;
     };
 
+    class ThemeInstallLayout : public pu::Layout
+    {
+        public:
+            ThemeInstallLayout();
+            void StartInstall(gleaf::theme::ThemeFileManifest &NXTheme, gleaf::sarc::SARC::SarcData &SData, std::string CFWPath);
+        private:
+            pu::element::TextBlock *infoText;
+    };
+
     class TitleManagerLayout : public pu::Layout
     {
         public:
@@ -145,6 +154,7 @@ namespace gleaf::ui
             PartitionBrowserLayout *GetNANDBrowserLayout();
             InstallLayout *GetInstallLayout();
             USBInstallLayout *GetUSBInstallLayout();
+            ThemeInstallLayout *GetThemeInstallLayout();
             TitleManagerLayout *GetTitleManagerLayout();
             TicketManagerLayout *GetTicketManagerLayout();
             SystemInfoLayout *GetSystemInfoLayout();
@@ -155,6 +165,7 @@ namespace gleaf::ui
             PartitionBrowserLayout *nandBrowser;
             InstallLayout *nspInstall;
             USBInstallLayout *usbInstall;
+            ThemeInstallLayout *themeInstall;
             TitleManagerLayout *titleManager;
             TicketManagerLayout *ticketManager;
             SystemInfoLayout *sysInfo;

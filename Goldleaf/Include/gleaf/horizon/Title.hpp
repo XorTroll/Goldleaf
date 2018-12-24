@@ -83,6 +83,7 @@ namespace gleaf::horizon
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> GetAllSystemTitles();
     std::vector<Ticket> GetAllSystemTickets();
+    std::string GetTitleNCAPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
     TicketData ReadTicket(std::string Path);
 }
