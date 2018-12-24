@@ -24,6 +24,7 @@ namespace gleaf::ui
             void usbMenuItem_Click();
             void titleMenuItem_Click();
             void ticketMenuItem_Click();
+            void cfwConfigMenuItem_Click();
             void sysinfoMenuItem_Click();
             void aboutMenuItem_Click();
         private:
@@ -33,6 +34,7 @@ namespace gleaf::ui
             pu::element::MenuItem *usbMenuItem;
             pu::element::MenuItem *titleMenuItem;
             pu::element::MenuItem *ticketMenuItem;
+            pu::element::MenuItem *cfwConfigMenuItem;
             pu::element::MenuItem *sysinfoMenuItem;
             pu::element::MenuItem *aboutMenuItem;
     };
@@ -108,6 +110,16 @@ namespace gleaf::ui
             pu::element::Menu *ticketsMenu;
     };
 
+    class CFWConfigLayout : public pu::Layout
+    {
+        public:
+            CFWConfigLayout();
+            void UpdateElements();
+            void cfws_Click();
+        private:
+            pu::element::Menu *cfwsMenu;
+    };
+
     class SystemInfoLayout : public pu::Layout
     {
         public:
@@ -146,6 +158,7 @@ namespace gleaf::ui
             void usbInstall_Input(u64 Down, u64 Up, u64 Held);
             void titleManager_Input(u64 Down, u64 Up, u64 Held);
             void ticketManager_Input(u64 Down, u64 Up, u64 Held);
+            void cfwConfig_Input(u64 Down, u64 Up, u64 Held);
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
             void OnInput(u64 Down, u64 Up, u64 Held);
@@ -157,6 +170,7 @@ namespace gleaf::ui
             ThemeInstallLayout *GetThemeInstallLayout();
             TitleManagerLayout *GetTitleManagerLayout();
             TicketManagerLayout *GetTicketManagerLayout();
+            CFWConfigLayout *GetCFWConfigLayout();
             SystemInfoLayout *GetSystemInfoLayout();
             AboutLayout *GetAboutLayout();
         private:
@@ -168,6 +182,7 @@ namespace gleaf::ui
             ThemeInstallLayout *themeInstall;
             TitleManagerLayout *titleManager;
             TicketManagerLayout *ticketManager;
+            CFWConfigLayout *cfwConfig;
             SystemInfoLayout *sysInfo;
             AboutLayout *about;
             pu::element::Image *bannerImage;
@@ -178,5 +193,6 @@ namespace gleaf::ui
     };
 
     void UpdateClipboard(std::string Path);
+    void ShowRebootShutDownDialog(std::string Title, std::string Message);
     void SetMainApplication(MainApplication *MainApp);
 }

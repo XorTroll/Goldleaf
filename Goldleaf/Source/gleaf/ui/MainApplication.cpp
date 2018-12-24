@@ -25,7 +25,10 @@ namespace gleaf::ui
         this->ticketMenuItem = new pu::element::MenuItem("Manage installed tickets");
         this->ticketMenuItem->SetIcon("romfs:/Common/Ticket.png");
         this->ticketMenuItem->AddOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
-        this->sysinfoMenuItem = new pu::element::MenuItem("Show system information");
+        this->cfwConfigMenuItem = new pu::element::MenuItem("CFW configuration");
+        this->cfwConfigMenuItem->SetIcon("romfs:/Common/CFW.png");
+        this->cfwConfigMenuItem->AddOnClick(std::bind(&MainMenuLayout::cfwConfigMenuItem_Click, this));
+        this->sysinfoMenuItem = new pu::element::MenuItem("Console information");
         this->sysinfoMenuItem->SetIcon("romfs:/Common/Settings.png");
         this->sysinfoMenuItem->AddOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
         this->aboutMenuItem = new pu::element::MenuItem("About this application");
@@ -36,6 +39,7 @@ namespace gleaf::ui
         this->optionMenu->AddItem(this->usbMenuItem);
         this->optionMenu->AddItem(this->titleMenuItem);
         this->optionMenu->AddItem(this->ticketMenuItem);
+        this->optionMenu->AddItem(this->cfwConfigMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
         this->AddChild(this->optionMenu);
@@ -50,6 +54,7 @@ namespace gleaf::ui
         else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
         else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
+        else if(isel == this->cfwConfigMenuItem) info = "Browse which CFWs are available to install themes of if there is any theme installed.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
         else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf. You can check Goldleaf's version there.";
         mainapp->UpdateFooter(info);
@@ -94,10 +99,16 @@ namespace gleaf::ui
     {
         mainapp->GetTicketManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
-        pu::Dialog *dlg = new pu::Dialog("Removing tickets", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.", pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog("Removing tickets (warning)", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.", pu::draw::Font::NintendoStandard);
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
         delete dlg;
+    }
+
+    void MainMenuLayout::cfwConfigMenuItem_Click()
+    {
+        mainapp->GetCFWConfigLayout()->UpdateElements();
+        mainapp->LoadLayout(mainapp->GetCFWConfigLayout());
     }
 
     void MainMenuLayout::sysinfoMenuItem_Click()
@@ -623,7 +634,7 @@ namespace gleaf::ui
         return this->gexp;
     }
 
-    InstallLayout::InstallLayout()
+    InstallLayout::InstallLayout() : pu::Layout()
     {
         this->installText = new pu::element::TextBlock(150, 300, "Starting NSP installation...");
         this->installBar = new pu::element::ProgressBar(490, 335, 300, 50);
@@ -728,7 +739,7 @@ namespace gleaf::ui
         }
     }
 
-    USBInstallLayout::USBInstallLayout()
+    USBInstallLayout::USBInstallLayout() : pu::Layout()
     {
         this->infoText = new pu::element::TextBlock(400, 400, "Test USB");
         this->AddChild(this->infoText);
@@ -789,7 +800,7 @@ namespace gleaf::ui
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }
 
-    ThemeInstallLayout::ThemeInstallLayout()
+    ThemeInstallLayout::ThemeInstallLayout() : pu::Layout()
     {
         this->infoText = new pu::element::TextBlock(310, 310, "Starting theme installation...");
         this->AddChild(this->infoText);
@@ -930,7 +941,7 @@ namespace gleaf::ui
         mainapp->CallForRender();
     }
 
-    TitleManagerLayout::TitleManagerLayout()
+    TitleManagerLayout::TitleManagerLayout() : pu::Layout()
     {
         this->titlesMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
         this->titlesMenu->SetCooldownEnabled(true);
@@ -1034,7 +1045,7 @@ namespace gleaf::ui
         return this->titles;
     }
 
-    TicketManagerLayout::TicketManagerLayout()
+    TicketManagerLayout::TicketManagerLayout() : pu::Layout()
     {
         this->ticketsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
         this->ticketsMenu->SetCooldownEnabled(true);
@@ -1094,7 +1105,7 @@ namespace gleaf::ui
             delete dlg;
             dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?", pu::draw::Font::NintendoStandard);
             dlg->AddOption("Yes");
-            dlg->AddOption("cancel");
+            dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
             if(dlg->UserCancelled() || (sopt == 1)) return;
@@ -1109,6 +1120,60 @@ namespace gleaf::ui
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
+        }
+        delete dlg;
+    }
+
+    CFWConfigLayout::CFWConfigLayout() : pu::Layout()
+    {
+        this->cfwsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
+        this->UpdateElements();
+        this->AddChild(this->cfwsMenu);
+    }
+
+    void CFWConfigLayout::UpdateElements()
+    {
+        this->cfwsMenu->ClearItems();
+        for(u32 i = 0; i < CFWDirectories.size(); i++) if(gleaf::fs::IsDirectory("sdmc:/" + CFWDirectories[i]))
+        {
+            pu::element::MenuItem *itm = new pu::element::MenuItem(CFWList[i]);
+            itm->SetIcon("romfs:/Common/CFW.png");
+            itm->AddOnClick(std::bind(&CFWConfigLayout::cfws_Click, this));
+            this->cfwsMenu->AddItem(itm);
+        }
+        this->cfwsMenu->SetSelectedIndex(0);
+    }
+
+    void CFWConfigLayout::cfws_Click()
+    {
+        std::string cfw = CFWDirectories[this->cfwsMenu->GetSelectedIndex()];
+        bool htheme = false;
+        std::string msg = CFWList[this->cfwsMenu->GetSelectedIndex()] + " was selected.";
+        if(gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001000/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001000/fsmitm.flag"))
+        {
+            msg += "\nHome Menu (aka qlaunch) has a LayeredFS RomFs modification in this CFW.\nThis means that it could be a custom Home Menu theme.";
+            htheme = true;
+        }
+        else msg += "\nThere are no Home Menu modifications in this CFW, so it doesn't have any theme installed.";
+        pu::Dialog *dlg = new pu::Dialog("CFW information", msg, pu::draw::Font::NintendoStandard);   
+        if(htheme)
+        {
+            dlg->AddOption("Remove modification");
+            dlg->AddOption("Cancel");
+        }
+        else dlg->AddOption("Ok");
+        mainapp->ShowDialog(dlg);
+        if(htheme)
+        {
+            u32 sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled() || (sopt == 1))
+            {
+                delete dlg;
+                return;
+            }
+            gleaf::fs::DeleteDirectory("sdmc:/" + cfw + "/titles/0100000000001000");
+            delete dlg;
+            ShowRebootShutDownDialog("Modification removed", "Modification was removed successfully.\nNow, you can shut down or reboot to see the applied changes.");
         }
         delete dlg;
     }
@@ -1189,6 +1254,8 @@ namespace gleaf::ui
         this->titleManager->SetOnInput(std::bind(&MainApplication::titleManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->ticketManager = new TicketManagerLayout();
         this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->cfwConfig = new CFWConfigLayout();
+        this->cfwConfig->SetOnInput(std::bind(&MainApplication::cfwConfig_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->sysInfo = new SystemInfoLayout();
         this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->about = new AboutLayout();
@@ -1208,6 +1275,7 @@ namespace gleaf::ui
         this->themeInstall->AddChild(this->bannerImage);
         this->titleManager->AddChild(this->bannerImage);
         this->ticketManager->AddChild(this->bannerImage);
+        this->cfwConfig->AddChild(this->bannerImage);
         this->sysInfo->AddChild(this->bannerImage);
         this->mainMenu->AddChild(this->timeText);
         this->sdBrowser->AddChild(this->timeText);
@@ -1217,6 +1285,7 @@ namespace gleaf::ui
         this->themeInstall->AddChild(this->timeText);
         this->titleManager->AddChild(this->timeText);
         this->ticketManager->AddChild(this->timeText);
+        this->cfwConfig->AddChild(this->timeText);
         this->sysInfo->AddChild(this->timeText);
         this->about->AddChild(this->timeText);
         this->mainMenu->AddChild(this->batteryImage);
@@ -1227,6 +1296,7 @@ namespace gleaf::ui
         this->themeInstall->AddChild(this->batteryImage);
         this->titleManager->AddChild(this->batteryImage);
         this->ticketManager->AddChild(this->batteryImage);
+        this->cfwConfig->AddChild(this->batteryImage);
         this->sysInfo->AddChild(this->batteryImage);
         this->about->AddChild(this->batteryImage);
         this->mainMenu->AddChild(this->batteryChargeImage);
@@ -1237,6 +1307,7 @@ namespace gleaf::ui
         this->themeInstall->AddChild(this->batteryChargeImage);
         this->titleManager->AddChild(this->batteryChargeImage);
         this->ticketManager->AddChild(this->batteryChargeImage);
+        this->cfwConfig->AddChild(this->batteryChargeImage);
         this->sysInfo->AddChild(this->batteryChargeImage);
         this->about->AddChild(this->batteryChargeImage);
         this->mainMenu->AddChild(this->footerText);
@@ -1247,6 +1318,7 @@ namespace gleaf::ui
         this->themeInstall->AddChild(this->footerText);
         this->titleManager->AddChild(this->footerText);
         this->ticketManager->AddChild(this->footerText);
+        this->cfwConfig->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -1354,6 +1426,11 @@ namespace gleaf::ui
         if(Down & KEY_B) this->LoadLayout(this->mainMenu);
     }
 
+    void MainApplication::cfwConfig_Input(u64 Down, u64 Up, u64 Held)
+    {
+        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
+    }
+
     void MainApplication::sysInfo_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B) this->LoadLayout(this->mainMenu);
@@ -1366,7 +1443,11 @@ namespace gleaf::ui
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
-        if((Down & KEY_PLUS) || (Down & KEY_MINUS)) if(!IsApplication()) this->Close();
+        if((Down & KEY_PLUS) || (Down & KEY_MINUS))
+        {
+            if(!IsApplication()) this->Close();
+        }
+        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowRebootShutDownDialog("Reboot or shut down console", "You can shut down or reboot your console here.");
     }
 
     MainMenuLayout *MainApplication::GetMainMenuLayout()
@@ -1409,6 +1490,11 @@ namespace gleaf::ui
         return this->ticketManager;
     }
 
+    CFWConfigLayout *MainApplication::GetCFWConfigLayout()
+    {
+        return this->cfwConfig;
+    }
+
     SystemInfoLayout *MainApplication::GetSystemInfoLayout()
     {
         return this->sysInfo;
@@ -1423,6 +1509,30 @@ namespace gleaf::ui
     {
         clipboard = Path;
         mainapp->UpdateFooter("Clipboard was set to: \'" + fs::GetPathWithoutRoot(Path) + "\'.");
+    }
+
+    void ShowRebootShutDownDialog(std::string Title, std::string Message)
+    {
+        pu::Dialog *dlg = new pu::Dialog(Title, Message + "\nYou can always hold Vol- or Vol+ and reboot the console to automatically enter RCM mode.", pu::draw::Font::NintendoStandard);
+        dlg->AddOption("Shut down");
+        dlg->AddOption("Reboot");
+        dlg->AddOption("Cancel");
+        mainapp->ShowDialog(dlg);
+        u32 sopt = dlg->GetSelectedIndex();
+        if(dlg->UserCancelled() || (sopt == 2)) return;
+        switch(sopt)
+        {
+            case 0:
+                bpcInitialize();
+                bpcShutdownSystem();
+                bpcExit();
+                break;
+            case 1:
+                bpcInitialize();
+                bpcRebootSystem();
+                bpcExit();
+                break;
+        }
     }
 
     void SetMainApplication(MainApplication *MainApp)
