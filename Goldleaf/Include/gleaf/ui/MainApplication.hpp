@@ -129,7 +129,10 @@ namespace gleaf::ui
             pu::element::TextBlock *fwText;
             pu::element::TextBlock *sdText;
             pu::element::ProgressBar *sdBar;
+            pu::element::TextBlock *sdFreeText;
             pu::element::TextBlock *nandText;
+            pu::element::ProgressBar *nandBar;
+            pu::element::TextBlock *nandFreeText;
             pu::element::TextBlock *safeText;
             pu::element::ProgressBar *safeBar;
             pu::element::TextBlock *systemText;

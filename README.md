@@ -4,6 +4,8 @@
 
 > Easy-to-use title installer & manager for Nintendo Switch
 
+- **If you are looking for Tinfoil, this is Tinfoil's safer and way more extended evolution.**
+
 ## Brief description
 
 Goldleaf is a multipurpose tool, specialized on title installing from NSP packages, but with other utilities, such as NAND/SD browsing, 
@@ -11,6 +13,16 @@ Goldleaf is a multipurpose tool, specialized on title installing from NSP packag
 You can easily manage title-related stuff, like install titles via NSP packages or uninstall already installed titles.
 
 If you know what FBI is (related to 3DS homebrew), this is a similar project for Nintendo Switch.
+
+## Disclaimer
+
+Installing NSP packages can be dangerous.
+
+Keep in mind that there will always be a ban risk, and that NSPs with tickets are specially dangerous.
+
+If you want to be safe, avoid connecting to the internet via airplane mode, or block Nintendo's services via special tools such as 90DNS.
+
+Goldleaf simply provides support for a normal NSP and/or ticket installation. The way you use them or the risks you are taking are your problem.
 
 ## Goldleaf's features
 
@@ -28,15 +40,15 @@ If you know what FBI is (related to 3DS homebrew), this is a similar project for
 
 ## Installation
 
-You have two options to use Goldleaf: load it as regular homebrew via hbmenu as a NRO binary, or install it as a regular title. Ironically, you would need to install Goldleaf's NSP via Goldleaf as a NRO (or older installers like original Tinfoil)
+You have two options to use Goldleaf: load it as **regular homebrew via hbmenu** as a **NRO** binary, or install the **NSP** as a **regular title**. Ironically, you would need to install Goldleaf's NSP via Goldleaf as a NRO (or older installers like the original Tinfoil)
 
-For both options, you will have to get the latest release of the NRO/NSP from [here](https://github.com/XorTroll/Goldleaf/releases).
+For both options, you will have to get the latest release of the **NRO**/**NSP** from [here](https://github.com/XorTroll/Goldleaf/releases).
 
-### For USB installations
+### Getting ready for USB installations
 
 USB installations require a few extra things to be available:
 
-- Download Zadig from [here](https://zadig.akeo.ie/)
+- Download Zadig tool from [here](https://zadig.akeo.ie/)
 
 - Open Goldleaf and select the USB install option, with the Switch connected to the PC via a USB-C cable.
 
@@ -58,11 +70,29 @@ Nothing else is required. No external files, or extra configuration are required
 
 ## Goldtree
 
-Goldtree is a C# CLI tool for USB installs. Currently it's only available for Windows systems, but it simplifies the process.
+Goldtree is a C# CLI tool for USB installations. Currently it's only available for Windows systems, but it simplifies the process.
 
-USB communication is different from Tinfoil's one, so Tinfoil's old Python script, AluminumFoil nor other tools won't work properly.
+USB communication is slightly different from Tinfoil's one, so Tinfoil's old Python script, AluminumFoil nor other tools won't work properly.
 
 Goldtree will ask you to choose a NSP after establishing connection with Goldleaf, and it will be received and installed by Goldleaf.
+
+## Basic controls
+
+The controls are quite intuitive in Goldleaf, but here you have a brief explanation of them:
+
+- Press A to select options from menus, browse folders, or in case it's a file, to browse a menu with file options (copy, delete...)
+
+- Press B to cancel a dialog or to go back to the previous page / menu.
+
+- Press X to paste the path of the clipboard. Obviously, this option is only available on file browsers. (SD or NAND)
+
+- Press Y to browse a menu with directory options, similar to the one used with files, instead of browsing the directory. Obviously, this option is only available on file browsers. (SD or NAND)
+
+- Press ZL or ZR anywhere to browse a menu with reboot / shut down options, in case you want to reboot or shut down the console.
+
+- Press Plus (+) or Minus (-) to exit Goldleaf and return to hbmenu. This option is only available if Goldleaf is loaded as a NRO binary. (more special cases like this one below)
+
+- Movement is quite obvious. Using the L-stick, the D-pad you can move through menu or dialog options. On menus (like the file browsers or the main menu) the R-stick provides a faster scrolling.
 
 ## Special features
 
@@ -91,6 +121,8 @@ Many errors are very common and can be misunderstood, and you should document a 
 ## Credits
 
 - Adubbz and all the (old) Tinfoil contributors, for their huge work with title installing.
+
+- exelix and Qcean team for all their huge support with Home Menu themes. Goldleaf uses (adapted) SwitchThemesCommon libraries to handle theme installs.
 
 - C4Phoenix, for his awesome work doing this project's logo.
 

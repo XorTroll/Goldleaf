@@ -1181,29 +1181,35 @@ namespace gleaf::ui
     SystemInfoLayout::SystemInfoLayout() : pu::Layout()
     {
         horizon::FwVersion fwv = horizon::GetFwVersion();
-        this->fwText = new pu::element::TextBlock(40, 330, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
-        this->sdText = new pu::element::TextBlock(420, 490, "SD card:");
-        this->sdText->SetFontSize(30);
-        this->sdBar = new pu::element::ProgressBar(420, 525, 300, 30);
-        this->nandText = new pu::element::TextBlock(850, 250, "NAND partitions:");
-        this->nandText->SetFontSize(30);
-        this->safeText = new pu::element::TextBlock(850, 310, "NAND Safe:");
-        this->safeBar = new pu::element::ProgressBar(850, 345, 300, 30);
-        this->systemText = new pu::element::TextBlock(850, 400, "NAND System:");
-        this->systemBar = new pu::element::ProgressBar(850, 435, 300, 30);
-        this->userText = new pu::element::TextBlock(850, 490, "NAND User:");
-        this->userBar = new pu::element::ProgressBar(850, 525, 300, 30);
+        this->fwText = new pu::element::TextBlock(215, 585, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
+        this->sdText = new pu::element::TextBlock(225, 180, "SD card");
+        this->sdText->SetFontSize(35);
+        this->sdBar = new pu::element::ProgressBar(220, 225, 300, 30);
+        this->sdFreeText = new pu::element::TextBlock(225, 265, "free");
+        this->nandText = new pu::element::TextBlock(655, 180, "Console memory (NAND)");
+        this->nandText->SetFontSize(35);
+        this->nandBar = new pu::element::ProgressBar(660, 225, 300, 30);
+        this->nandFreeText = new pu::element::TextBlock(655, 265, "free");
+        this->safeText = new pu::element::TextBlock(105, 310, "NAND (SAFE partition)");
+        this->safeBar = new pu::element::ProgressBar(100, 345, 300, 30);
+        this->userText = new pu::element::TextBlock(455, 310, "NAND (USER partition)");
+        this->userBar = new pu::element::ProgressBar(450, 345, 300, 30);
+        this->systemText = new pu::element::TextBlock(805, 310, "NAND (SYSTEM partition)");
+        this->systemBar = new pu::element::ProgressBar(800, 345, 300, 30);
         this->UpdateElements();
         this->AddChild(this->fwText);
         this->AddChild(this->sdText);
         this->AddChild(this->sdBar);
+        this->AddChild(this->sdFreeText);
         this->AddChild(this->nandText);
+        this->AddChild(this->nandBar);
+        this->AddChild(this->nandFreeText);
         this->AddChild(this->safeText);
         this->AddChild(this->safeBar);
-        this->AddChild(this->systemText);
-        this->AddChild(this->systemBar);
         this->AddChild(this->userText);
         this->AddChild(this->userBar);
+        this->AddChild(this->systemText);
+        this->AddChild(this->systemBar);
     }
 
     void SystemInfoLayout::UpdateElements()
@@ -1212,22 +1218,24 @@ namespace gleaf::ui
         u64 sdcfree = fs::GetFreeSpaceForPartition(fs::Partition::SdCard);
         u64 nsftotal = fs::GetTotalSpaceForPartition(fs::Partition::NANDSafe);
         u64 nsffree = fs::GetFreeSpaceForPartition(fs::Partition::NANDSafe);
-        u64 nsstotal = fs::GetTotalSpaceForPartition(fs::Partition::NANDSystem);
-        u64 nssfree = fs::GetFreeSpaceForPartition(fs::Partition::NANDSystem);
         u64 nsutotal = fs::GetTotalSpaceForPartition(fs::Partition::NANDUser);
         u64 nsufree = fs::GetFreeSpaceForPartition(fs::Partition::NANDUser);
+        u64 nsstotal = fs::GetTotalSpaceForPartition(fs::Partition::NANDSystem);
+        u64 nssfree = fs::GetFreeSpaceForPartition(fs::Partition::NANDSystem);
         u8 sdval = ((100 * (sdctotal - sdcfree)) / sdctotal);
         u8 nsfval = ((100 * (nsftotal - nsffree)) / nsftotal);
-        u8 nssval = ((100 * (nsstotal - nssfree)) / nsstotal);
         u8 nsuval = ((100 * (nsutotal - nsufree)) / nsutotal);
+        u8 nssval = ((100 * (nsstotal - nssfree)) / nsstotal);
         this->sdBar->SetProgress(sdval);
         this->safeBar->SetProgress(nsfval);
-        this->systemBar->SetProgress(nssval);
         this->userBar->SetProgress(nsuval);
-        this->sdText->SetText("SD card: " + fs::FormatSize(sdcfree) + " free");
-        this->safeText->SetText("NAND Safe: " + fs::FormatSize(nsffree) + " free");
-        this->systemText->SetText("NAND System: " + fs::FormatSize(nssfree) + " free");
-        this->userText->SetText("NAND User: " + fs::FormatSize(nsufree) + " free");
+        this->systemBar->SetProgress(nssval);
+        u64 nandtotal = (nsfval + nsuval + nssval);
+        u64 nandfree = (nsffree + nsufree + nssfree);
+        u8 nandval = ((100 * (nandtotal - nandfree)) / nandtotal);
+        this->nandBar->SetProgress(nandval);
+        this->nandFreeText->SetText(fs::FormatSize(nandfree) + " free");
+        this->sdFreeText->SetText(fs::FormatSize(sdcfree) + " free");
     }
 
     AboutLayout::AboutLayout()
