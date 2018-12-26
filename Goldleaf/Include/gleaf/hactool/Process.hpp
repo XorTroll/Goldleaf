@@ -4,13 +4,6 @@
 
 namespace gleaf::hactool
 {
-    enum class ExtractionType
-    {
-        ExeFs,
-        RomFs,
-        Logo,
-    };
-
     enum class ExtractionFormat
     {
         XCI,
@@ -20,7 +13,9 @@ namespace gleaf::hactool
 
     struct Extraction
     {
-        ExtractionType Type;
+        bool DoExeFs;
+        bool DoRomFs;
+        bool DoLogo;
         std::string ExeFs;
         std::string RomFs;
         std::string Logo;

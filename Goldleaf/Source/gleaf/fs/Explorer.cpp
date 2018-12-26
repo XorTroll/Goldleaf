@@ -11,19 +11,19 @@ namespace gleaf::fs
         switch(Base)
         {
             case Partition::NANDSafe:
-                this->ecwd = "glfs:/";
+                this->ecwd = "glsafe:/";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
-                fsdevMountDevice("glfs", this->ifs);
-                break;
-            case Partition::NANDSystem:
-                this->ecwd = "glfs:/";
-                fsOpenBisFileSystem(&this->ifs, 30, "");
-                fsdevMountDevice("glfs", this->ifs);
+                fsdevMountDevice("glsafe", this->ifs);
                 break;
             case Partition::NANDUser:
-                this->ecwd = "glfs:/";
+                this->ecwd = "gluser:/";
+                fsOpenBisFileSystem(&this->ifs, 30, "");
+                fsdevMountDevice("gluser", this->ifs);
+                break;
+            case Partition::NANDSystem:
+                this->ecwd = "glsystem:/";
                 fsOpenBisFileSystem(&this->ifs, 31, "");
-                fsdevMountDevice("glfs", this->ifs);
+                fsdevMountDevice("glsystem", this->ifs);
                 break;
             case Partition::SdCard:
                 this->ecwd = "sdmc:/";
@@ -37,7 +37,7 @@ namespace gleaf::fs
     {
         this->customifs = true;
         this->ifs = IFS;
-        fsdevMountDevice("glfs", IFS);
+        fsdevMountDevice("glcfs", IFS);
     }
 
     Explorer::~Explorer()
@@ -47,7 +47,7 @@ namespace gleaf::fs
 
     bool Explorer::NavigateBack()
     {
-        if((this->ecwd == "sdmc:/") || (this->ecwd == "glfs:/")) return false;
+        if((this->ecwd == "sdmc:/") || (this->ecwd == "glsafe:/") || (this->ecwd == "gluser:/") || (this->ecwd == "glsystem:/") || (this->ecwd == "glcfs:/")) return false;
         std::string parent = this->ecwd.substr(0, this->ecwd.find_last_of("/\\"));
         DIR *check = opendir(parent.c_str());
         bool ok = (check != NULL);
@@ -135,19 +135,19 @@ namespace gleaf::fs
         switch(NewBase)
         {
             case Partition::NANDSafe:
-                this->ecwd = "glfs:/";
+                this->ecwd = "glsafe:/";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
-                fsdevMountDevice("glfs", this->ifs);
-                break;
-            case Partition::NANDSystem:
-                this->ecwd = "glfs:/";
-                fsOpenBisFileSystem(&this->ifs, 30, "");
-                fsdevMountDevice("glfs", this->ifs);
+                fsdevMountDevice("glsafe", this->ifs);
                 break;
             case Partition::NANDUser:
-                this->ecwd = "glfs:/";
+                this->ecwd = "gluser:/";
+                fsOpenBisFileSystem(&this->ifs, 30, "");
+                fsdevMountDevice("gluser", this->ifs);
+                break;
+            case Partition::NANDSystem:
+                this->ecwd = "glsystem:/";
                 fsOpenBisFileSystem(&this->ifs, 31, "");
-                fsdevMountDevice("glfs", this->ifs);
+                fsdevMountDevice("glsystem", this->ifs);
                 break;
             case Partition::SdCard:
                 this->ecwd = "sdmc:/";
@@ -192,6 +192,9 @@ namespace gleaf::fs
 
     void Explorer::Close()
     {
-        if((this->customifs) || (this->part != Partition::SdCard)) fsdevUnmountDevice("glfs");
+        fsdevUnmountDevice("glcfs");
+        fsdevUnmountDevice("glsafe");
+        fsdevUnmountDevice("gluser");
+        fsdevUnmountDevice("glsystem");
     }
 }

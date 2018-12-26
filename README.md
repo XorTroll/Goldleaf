@@ -1,6 +1,6 @@
 # Goldleaf
 
-![Logo](Logo.png)
+![Logo](Goldleaf/RomFs/Logo.png)
 
 > Easy-to-use title installer & manager for Nintendo Switch
 

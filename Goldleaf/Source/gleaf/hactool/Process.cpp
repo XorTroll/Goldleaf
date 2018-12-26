@@ -1,11 +1,14 @@
 #include <gleaf/hactool/Process.hpp>
+#include <gleaf/fs.hpp>
 
 namespace gleaf::hactool
 {
     Extraction Extraction::MakeExeFs(std::string OutExeFs)
     {
         Extraction ext;
-        ext.Type = ExtractionType::ExeFs;
+        ext.DoExeFs = true;
+        ext.DoRomFs = false;
+        ext.DoLogo = false;
         ext.ExeFs = OutExeFs;
         return ext;
     }
@@ -13,7 +16,9 @@ namespace gleaf::hactool
     Extraction Extraction::MakeRomFs(std::string OutRomFs)
     {
         Extraction ext;
-        ext.Type = ExtractionType::RomFs;
+        ext.DoExeFs = false;
+        ext.DoRomFs = true;
+        ext.DoLogo = false;
         ext.RomFs = OutRomFs;
         return ext;
     }
@@ -21,13 +26,17 @@ namespace gleaf::hactool
     Extraction Extraction::MakeLogo(std::string OutLogo)
     {
         Extraction ext;
-        ext.Type = ExtractionType::Logo;
+        ext.DoExeFs = false;
+        ext.DoRomFs = false;
+        ext.DoLogo = true;
         ext.Logo = OutLogo;
         return ext;
     }
 
     bool Process(std::string Input, Extraction Mode, ExtractionFormat Format, std::string KeyFile)
     {
+        if(!gleaf::fs::IsFile(Input)) return false;
+        if(!gleaf::fs::IsFile(KeyFile)) return false;
         hactool_ctx_t tool_ctx;
         hactool_ctx_t base_ctx; /* Context for base NCA, if used. */
         nca_ctx_t nca_ctx;
@@ -54,28 +63,29 @@ namespace gleaf::hactool
                 nca_ctx.tool_ctx->file_type = FILETYPE_PFS0;
                 break;
         }
-        switch(Mode.Type)
+        if(Mode.DoExeFs)
         {
-            case ExtractionType::ExeFs:
-                nca_ctx.tool_ctx->settings.exefs_dir_path.enabled = 1;
-                filepath_set(&nca_ctx.tool_ctx->settings.exefs_dir_path.path, Mode.ExeFs.c_str());
-                break;
-            case ExtractionType::RomFs:
-                nca_ctx.tool_ctx->settings.romfs_dir_path.enabled = 1;
-                filepath_set(&nca_ctx.tool_ctx->settings.romfs_dir_path.path, Mode.RomFs.c_str());
-                break;
-            case ExtractionType::Logo:
-                filepath_set(&nca_ctx.tool_ctx->settings.section_dir_paths[2], Mode.Logo.c_str());
-                break;
+            if(Mode.ExeFs == "") return false;
+            nca_ctx.tool_ctx->settings.exefs_dir_path.enabled = 1;
+            filepath_set(&nca_ctx.tool_ctx->settings.exefs_dir_path.path, Mode.ExeFs.c_str());
+        }
+        if(Mode.DoRomFs)
+        {
+            if(Mode.RomFs == "") return false;
+            nca_ctx.tool_ctx->settings.romfs_dir_path.enabled = 1;
+            filepath_set(&nca_ctx.tool_ctx->settings.romfs_dir_path.path, Mode.RomFs.c_str());
+        }
+        if(Mode.DoLogo)
+        {
+            if(Mode.Logo == "") return false;
+            filepath_set(&nca_ctx.tool_ctx->settings.section_dir_paths[2], Mode.Logo.c_str());
         }
         filepath_set(&keypath, KeyFile.c_str());
-        /* Try to populate default keyfile. */
         FILE *keyfile = NULL;
-        if (keypath.valid == VALIDITY_VALID) {
-            keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
-        }
+        if(keypath.valid == VALIDITY_VALID) keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
 
-        if (keyfile != NULL) {
+        if(keyfile != NULL)
+        {
             extkeys_initialize_keyset(&tool_ctx.settings.keyset, keyfile);
             if (tool_ctx.settings.has_sdseed) {
                 for (unsigned int key = 0; key < 2; key++) {
