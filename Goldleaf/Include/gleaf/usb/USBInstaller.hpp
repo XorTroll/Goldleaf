@@ -21,6 +21,7 @@ namespace gleaf::usb
             InstallerResult ProcessContent(u32 Index, std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback);
             InstallerResult ProcessContents(std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback);
             InstallerResult GetLatestResult();
+            void Finish();
         private:
             std::vector<NSPContentData> cnts;
             FsStorageId stid;

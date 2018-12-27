@@ -127,7 +127,7 @@ namespace gleaf::ui
     {
         this->gexp = new fs::Explorer(Partition);
         this->browseMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
-        this->dirEmptyText = new pu::element::TextBlock(465, 430, "<the directory is empty>");
+        this->dirEmptyText = new pu::element::TextBlock(30, 630, "The directory is empty.");
         this->AddChild(this->browseMenu);
         this->AddChild(this->dirEmptyText);
     }
@@ -253,7 +253,7 @@ namespace gleaf::ui
                         bool del = (sopt == 1);
                         dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
                         dlg->AddOption("SD card");
-                        dlg->AddOption("NAND (console memory)");
+                        dlg->AddOption("Console memory (NAND)");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         u32 sopt = dlg->GetSelectedIndex();
@@ -278,9 +278,11 @@ namespace gleaf::ui
                             mainapp->GetInstallLayout()->LogError(irc);
                             return;
                         }
+                        bool isapp = (inst.GetContentType() == ncm::ContentMetaType::Application);
                         bool hasnacp = inst.HasContent(ncm::ContentType::Control);
                         std::string info = "No control data was found inside the NSP. (control NCA seems to be missing)";
-                        if(hasnacp)
+                        if(!isapp) info = "The NSP isn't an application (could be an update, a patch, add-on content...)";
+                        if(hasnacp && isapp)
                         {
                             info = "Information about the NSP's control data:\n\n\n";
                             NacpStruct *nacp = inst.GetNACP();
@@ -329,7 +331,7 @@ namespace gleaf::ui
                             }
                         }
                         info += "\n\n";
-                        if(inst.HasTicketAndCert())
+                        if(isapp && inst.HasTicketAndCert())
                         {
                             info += "This NSP has a ticket and it will be installed. Ticket information:\n\n";
                             horizon::TicketData tik = inst.GetTicketData();
@@ -385,7 +387,7 @@ namespace gleaf::ui
                                     break;
                             }
                         }
-                        else info += "This NSP doesn't have a ticket. It seems to only have standard crypto.";
+                        else if(!inst.HasTicketAndCert()) info += "This NSP doesn't have a ticket. It seems to only have standard crypto.";
                         dlg = new pu::Dialog("Ready to start installing?", info, pu::draw::Font::NintendoStandard);
                         if(hasnacp)
                         {
@@ -651,7 +653,7 @@ namespace gleaf::ui
                     break;
                 case 1:
                     UpdateClipboard(fullitm);
-                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    this->UpdateElements();
                     break;
                 case 2:
                     fs::DeleteDirectory(fullitm);
@@ -776,7 +778,7 @@ namespace gleaf::ui
 
     USBInstallLayout::USBInstallLayout() : pu::Layout()
     {
-        this->infoText = new pu::element::TextBlock(400, 400, "Test USB");
+        this->infoText = new pu::element::TextBlock(150, 300, "USB");
         this->AddChild(this->infoText);
     }
 
@@ -784,27 +786,31 @@ namespace gleaf::ui
     {
         this->infoText->SetText("Waiting for USB connection...\nPlug this console to a USB-C cable to connect it with a PC and open Goldtree.");
         mainapp->CallForRender();
-        if(!usb::WaitForConnection())
+        while(true)
         {
-            mainapp->UpdateFooter("USB failed to connect. Try again!");
+            Result rc = usbDsWaitReady(U64_MAX);
+            if(rc == 0) break;
+            else if((rc & 0x3FFFFF) != 0xEA01)
+            {
+                mainapp->UpdateFooter("USB failed to connect. Try again!");
+                mainapp->CallForRender();
+                return;
+            }
             mainapp->CallForRender();
         }
-        this->infoText->SetText("USB connection was delected. Open Goldtree to connect it via USB.");
+        this->infoText->SetText("USB connection was detected. Open Goldtree to connect it via USB.");
         mainapp->CallForRender();
         usb::Command req = usb::ReadCommand();
         usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
         if(req.MagicOk() && req.IsCommandId(usb::CommandId::ConnectionRequest))
         {
-            // Step 1: receive connection request from PC (Id 0)
             this->infoText->SetText("Connection request was received from a Goldtree PC client.\nSending confirmation and waiting to select a NSP...");
             mainapp->CallForRender();
-            // Step 2: send connection confirmation (Id 1)
             usb::Command cmd1 = usb::MakeCommand(usb::CommandId::ConnectionResponse);
             usb::WriteCommand(cmd1);
             req = usb::ReadCommand();
             if(req.MagicOk() && req.IsCommandId(usb::CommandId::NSPName))
             {
-                // Step 3: get the name of the NSP file (Id 2)
                 u32 nspnamesize = usb::Read32();
                 std::string nspname = usb::ReadString(nspnamesize);
                 pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?", pu::draw::Font::NintendoStandard);
@@ -813,12 +819,11 @@ namespace gleaf::ui
                 mainapp->ShowDialog(dlg);
                 u32 sopt = dlg->GetSelectedIndex();
                 if(dlg->UserCancelled() || (sopt == 1)) return;
-                // Step 4: send approval to start receiving NSP data (Id 3)
                 usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
                 usb::WriteCommand(cmd2);
-                this->infoText->SetText("Installler...");
+                this->infoText->SetText("Starting installation...");
                 mainapp->CallForRender();
-                usb::Installer inst(Destination::NAND, true);
+                usb::Installer inst(Destination::SdCard, true);
                 InstallerResult rc = inst.GetLatestResult();
                 if(!rc.IsSuccess())
                 {
@@ -826,7 +831,7 @@ namespace gleaf::ui
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                 }
-                this->infoText->SetText("Records...");
+                this->infoText->SetText("Processing title records...");
                 mainapp->CallForRender();
                 rc = inst.ProcessRecords();
                 if(!rc.IsSuccess())
@@ -835,11 +840,11 @@ namespace gleaf::ui
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                 }
-                this->infoText->SetText("Contents...");
+                this->infoText->SetText("Starting to write contents...");
                 mainapp->CallForRender();
                 rc = inst.ProcessContents([&](std::string Name, u32 Content, u32 Count, int Percentage)
                 {
-                    this->infoText->SetText(Name + "(" + std::to_string(Content) + " / " + std::to_string(Count) + ") - " + std::to_string(Percentage) + "%");
+                    mainapp->UpdateFooter(Name + " (" + std::to_string(Content + 1) + " of " + std::to_string(Count) + ") - " + std::to_string(Percentage) + "%");
                     mainapp->CallForRender();
                 });
                 if(!rc.IsSuccess())
@@ -848,7 +853,9 @@ namespace gleaf::ui
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                 }
-                while(true) mainapp->CallForRender();
+                inst.Finish();
+                mainapp->UpdateFooter("The NSP was successfully installed.");
+                mainapp->CallForRender();
             }
         }
         else
@@ -1252,21 +1259,21 @@ namespace gleaf::ui
     SystemInfoLayout::SystemInfoLayout() : pu::Layout()
     {
         horizon::FwVersion fwv = horizon::GetFwVersion();
-        this->fwText = new pu::element::TextBlock(215, 585, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
-        this->sdText = new pu::element::TextBlock(225, 180, "SD card");
+        this->fwText = new pu::element::TextBlock(30, 630, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
+        this->sdText = new pu::element::TextBlock(280, 300, "SD card");
         this->sdText->SetFontSize(35);
-        this->sdBar = new pu::element::ProgressBar(220, 225, 300, 30);
-        this->sdFreeText = new pu::element::TextBlock(225, 265, "free");
-        this->nandText = new pu::element::TextBlock(655, 180, "Console memory (NAND)");
+        this->sdBar = new pu::element::ProgressBar(220, 345, 300, 30);
+        this->sdFreeText = new pu::element::TextBlock(225, 385, "free");
+        this->nandText = new pu::element::TextBlock(600, 300, "Console memory (NAND)");
         this->nandText->SetFontSize(35);
-        this->nandBar = new pu::element::ProgressBar(660, 225, 300, 30);
-        this->nandFreeText = new pu::element::TextBlock(655, 265, "free");
-        this->safeText = new pu::element::TextBlock(105, 310, "NAND (SAFE partition)");
-        this->safeBar = new pu::element::ProgressBar(100, 345, 300, 30);
-        this->userText = new pu::element::TextBlock(455, 310, "NAND (USER partition)");
-        this->userBar = new pu::element::ProgressBar(450, 345, 300, 30);
-        this->systemText = new pu::element::TextBlock(805, 310, "NAND (SYSTEM partition)");
-        this->systemBar = new pu::element::ProgressBar(800, 345, 300, 30);
+        this->nandBar = new pu::element::ProgressBar(660, 345, 300, 30);
+        this->nandFreeText = new pu::element::TextBlock(655, 385, "free");
+        this->safeText = new pu::element::TextBlock(105, 480, "NAND (SAFE partition)");
+        this->safeBar = new pu::element::ProgressBar(100, 515, 300, 30);
+        this->userText = new pu::element::TextBlock(455, 480, "NAND (USER partition)");
+        this->userBar = new pu::element::ProgressBar(450, 515, 300, 30);
+        this->systemText = new pu::element::TextBlock(805, 480, "NAND (SYSTEM partition)");
+        this->systemBar = new pu::element::ProgressBar(800, 515, 300, 30);
         this->UpdateElements();
         this->AddChild(this->fwText);
         this->AddChild(this->sdText);
@@ -1341,7 +1348,7 @@ namespace gleaf::ui
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->bannerImage = new pu::element::Image(35, 35, "romfs:/Banner.png");
         this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
-        this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/4.png");
+        this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
         this->UpdateValues();
         this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...");
@@ -1414,10 +1421,17 @@ namespace gleaf::ui
         this->timeText->SetText(horizon::GetCurrentTime());
         u32 blv = horizon::GetBatteryLevel();
         bool isch = horizon::IsCharging();
-        if(blv <= 25) this->batteryImage->SetImage("romfs:/Battery/1.png");
-        else if((blv > 25) && (blv <= 50)) this->batteryImage->SetImage("romfs:/Battery/2.png");
-        else if((blv > 50) && (blv <= 75)) this->batteryImage->SetImage("romfs:/Battery/3.png");
-        else if(blv > 75) this->batteryImage->SetImage("romfs:/Battery/4.png");
+        if(blv <= 10) this->batteryImage->SetImage("romfs:/Battery/0.png");
+        else if((blv > 10) && (blv <= 20)) this->batteryImage->SetImage("romfs:/Battery/10.png");
+        else if((blv > 20) && (blv <= 30)) this->batteryImage->SetImage("romfs:/Battery/20.png");
+        else if((blv > 30) && (blv <= 40)) this->batteryImage->SetImage("romfs:/Battery/30.png");
+        else if((blv > 40) && (blv <= 50)) this->batteryImage->SetImage("romfs:/Battery/40.png");
+        else if((blv > 50) && (blv <= 60)) this->batteryImage->SetImage("romfs:/Battery/50.png");
+        else if((blv > 60) && (blv <= 70)) this->batteryImage->SetImage("romfs:/Battery/60.png");
+        else if((blv > 70) && (blv <= 80)) this->batteryImage->SetImage("romfs:/Battery/70.png");
+        else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage("romfs:/Battery/80.png");
+        else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage("romfs:/Battery/90.png");
+        else if(blv == 100) this->batteryImage->SetImage("romfs:/Battery/100.png");
         if(isch) this->batteryChargeImage->SetVisible(true);
         else this->batteryChargeImage->SetVisible(false);
     }
@@ -1434,9 +1448,19 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
-                pu::Dialog *dlg = new pu::Dialog("Clipboard process", "Current clipboard contents path:\n\'" + fs::GetPathWithoutRoot(clipboard) + "\'\n\nDo you want to copy clipboard contents to this directory?", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?", pu::draw::Font::NintendoStandard);
                 if(cdir) dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/Directory.png"));
-                else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                else
+                {
+                    std::string ext = fs::GetExtension(clipboard);
+                    if(ext == "nsp") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NSP.png"));
+                    else if(ext == "nro") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NRO.png"));
+                    else if(ext == "tik") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/TIK.png"));
+                    else if(ext == "cert") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/CERT.png"));
+                    else if(ext == "nca") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NCA.png"));
+                    else if(ext == "nxtheme") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NXTheme.png"));
+                    else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                }
                 dlg->AddOption("Yes");
                 dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
@@ -1447,7 +1471,8 @@ namespace gleaf::ui
                     if(cdir) fs::CopyDirectory(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
                     else fs::CopyFile(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
                     this->sdBrowser->UpdateElements();
-                    mainapp->UpdateFooter("Clipboard was processed and cleaned (file / directory was copied: " + fs::GetPathWithoutRoot(clipboard));
+                    bool isdir = fs::IsDirectory(clipboard);
+                    mainapp->UpdateFooter("A " + std::string(isdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
                 delete dlg;
@@ -1468,9 +1493,19 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
-                pu::Dialog *dlg = new pu::Dialog("Clipboard process", "Current clipboard contents path:\n\'" + fs::GetPathWithoutRoot(clipboard) + "\'\n\nDo you want to copy clipboard contents to this directory?", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?", pu::draw::Font::NintendoStandard);
                 if(cdir) dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/Directory.png"));
-                else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                else
+                {
+                    std::string ext = fs::GetExtension(clipboard);
+                    if(ext == "nsp") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NSP.png"));
+                    else if(ext == "nro") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NRO.png"));
+                    else if(ext == "tik") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/TIK.png"));
+                    else if(ext == "cert") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/CERT.png"));
+                    else if(ext == "nca") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NCA.png"));
+                    else if(ext == "nxtheme") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NXTheme.png"));
+                    else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                }
                 dlg->AddOption("Yes");
                 dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
@@ -1481,12 +1516,13 @@ namespace gleaf::ui
                     if(cdir) fs::CopyDirectory(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
                     else fs::CopyFile(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
                     this->nandBrowser->UpdateElements();
-                    mainapp->UpdateFooter("Clipboard was processed and cleaned (file / directory was copied: " + fs::GetPathWithoutRoot(clipboard));
+                    bool isdir = fs::IsDirectory(clipboard);
+                    mainapp->UpdateFooter("A " + std::string(isdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
                 delete dlg;
             }
-            else mainapp->UpdateFooter("Clipboard is not selected.");
+            else mainapp->UpdateFooter("Couldn't paste clipboard path. There is nothing selected to paste.");
         }
     }
 
@@ -1587,7 +1623,7 @@ namespace gleaf::ui
     void UpdateClipboard(std::string Path)
     {
         clipboard = Path;
-        mainapp->UpdateFooter("Clipboard was set to: \'" + fs::GetPathWithoutRoot(Path) + "\'.");
+        mainapp->UpdateFooter("Clipboard path was updated: \'" + Path + "\'");
     }
 
     void ShowRebootShutDownDialog(std::string Title, std::string Message)

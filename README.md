@@ -156,6 +156,8 @@ The main conceps of Goldleaf are and have been developed by XorTroll, but withou
 
 - SciresM for hactool, which was ported as a library to make NCA extraction a thing in Goldleaf.
 
+- Thealexbarney, for his C# libraries for various Nintendo Switch formats: LibHac, used by Goldtree.
+
 - All the testers, for reporting bugs and helping with the project's development.
 
 ## Patreon

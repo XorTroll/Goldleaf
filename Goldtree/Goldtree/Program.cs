@@ -87,6 +87,8 @@ namespace gtree
         [STAThread]
         public static void Main(string[] Args)
         {
+            usbnsp:
+            Console.Clear();
             Initialize();
             UsbK usb = null;
             try
@@ -100,7 +102,7 @@ namespace gtree
             {
                 Error.Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
             }
-            // try
+            try
             {
                 Command c = new Command(CommandId.ConnectionRequest);
                 usb.Write(c);
@@ -129,7 +131,7 @@ namespace gtree
                         if(rc2.MagicOk() && rc2.IsCommandId(CommandId.Start))
                         {
                             Log.Log("Goldleaf is ready for the installation. Preparing everything...");
-                            // try
+                            try
                             {
                                 FileStream fs = new FileStream(nsp, FileMode.Open);
                                 StreamStorage ist = new StreamStorage(fs, true);
@@ -166,49 +168,52 @@ namespace gtree
                                         if(ccmd.IsCommandId(CommandId.NSPContent))
                                         {
                                             usb.Read(out uint idx);
-                                            Console.WriteLine(idx + " of " + pnsp.Files.Length);
+                                            Log.Log("Sending content " + (idx + 1) + " of " + pnsp.Files.Length + "...");
                                             PfsFileEntry ent = pnsp.Files[idx];
-                                            long rsize = 1048576;
+                                            long rsize = 0x800000;
                                             long coffset = pnsp.HeaderSize + ent.Offset;
                                             long toread = ent.Size;
                                             long tmpread = 1;
-                                            byte[] bufb = new byte[rsize];
-                                            while((tmpread > 0) && (toread > 0))
+                                            byte[] bufb;
+                                            while((tmpread > 0) && (toread > 0) && (coffset < (coffset + ent.Size)))
                                             {
-                                                Console.WriteLine("Offset: " + coffset);
+                                                if(rsize >= ent.Size) rsize = ent.Size;
                                                 int tor = (int)Math.Min(rsize, toread);
                                                 bufb = new byte[tor];
                                                 br.BaseStream.Position = coffset;
                                                 tmpread = br.Read(bufb, 0, bufb.Length);
-                                                Console.WriteLine("Read size: " + tmpread);
                                                 usb.Write(bufb);
                                                 coffset += tmpread;
                                                 toread -= tmpread;
                                             }
-                                            Console.WriteLine("END");
-                                            while (true) ;
+                                            Log.Log("Content sent (successfully?)");
                                         }
                                         else if(ccmd.IsCommandId(CommandId.NSPTicket))
                                         {
                                             PfsFileEntry tik = pnsp.Files[tikidx];
-                                            br.BaseStream.Seek(tik.Offset, SeekOrigin.Begin);
+                                            br.BaseStream.Seek(pnsp.HeaderSize + tik.Offset, SeekOrigin.Begin);
                                             byte[] file = br.ReadBytes((int)tik.Size);
                                             usb.Write(file);
                                         }
                                         else if(ccmd.IsCommandId(CommandId.NSPCert))
                                         {
                                             PfsFileEntry cert = pnsp.Files[certidx];
-                                            br.BaseStream.Seek(cert.Offset, SeekOrigin.Begin);
+                                            br.BaseStream.Seek(pnsp.HeaderSize + cert.Offset, SeekOrigin.Begin);
                                             byte[] file = br.ReadBytes((int)cert.Size);
                                             usb.Write(file);
                                         }
+                                        else if(ccmd.IsCommandId(CommandId.Finish))
+                                        {
+                                            Log.Log("The installation finished. Check whether the NSP installed correctly.");
+                                            break;
+                                        }
                                     }
-                                    else break;
+                                    else continue;
                                 }
                             }
-                            // catch(Exception ex)
+                            catch
                             {
-                                Error.Log("An error ocurred opening the selected NSP. Is it sa valid NSP? Is it in an unauthorized path? Error: ");// + ex.StackTrace);
+                                Error.Log("An error ocurred opening the selected NSP. Are you sure it's a valid NSP?");
                             }
                         }
                     }
@@ -216,13 +221,14 @@ namespace gtree
                 }
                 else Error.Log("Invalid USB command was received. Are you sure Goldleaf is active?");
             }
-            // catch
+            catch
             {
                 Error.Log("An error ocurred selecting NSP to be sent.");
             }
-            Console.WriteLine("Press any key to exit...");
+            Log.Log("The installation has finished. Press any key to start again, or close this window if you want to.", false);
             Console.ReadKey();
-            Environment.Exit(1);
+            goto usbnsp;
+            Environment.Exit(0);
         }
     }
 }

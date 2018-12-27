@@ -69,14 +69,14 @@ namespace gleaf::usb
         Result rc = fsOpenFileSystemWithId(&cnmtfs, 0, FsFileSystemType_ContentMeta, cnmtabs.c_str());
         if(rc != 0)
         {
-            this->irc.Error = 0xCAFE;
+            this->irc.Error = rc;
             this->irc.Type = InstallerError::CNMTMCAOpen;
             return this->irc;
         }
         std::string fcnmtname = fs::SearchForFile(cnmtfs, "", "cnmt");
         if(fcnmtname == "")
         {
-            this->irc.Error = 0XDEAD;
+            this->irc.Error = rc;
             this->irc.Type = InstallerError::BadCNMT;
             return this->irc;
         }
@@ -85,7 +85,7 @@ namespace gleaf::usb
         rc = fsFsOpenFile(&cnmtfs, ("/" + fcnmtname).c_str(), FS_OPEN_READ, &fcnmtfile);
         if(rc != 0)
         {
-            this->irc.Error = 0XBEEF;
+            this->irc.Error = rc;
             this->irc.Type = InstallerError::CNMTOpen;
             return this->irc;
         }
@@ -173,8 +173,7 @@ namespace gleaf::usb
     {
         NSPContentData cnt = this->cnts[Index];
         std::string name = cnt.Name;
-        
-        std::string ext = fs::GetExtension(cnt.Name);
+        std::string ext = fs::GetExtension(name);
         if(ext == "nca")
         {
             NcmNcaId ncaid = horizon::GetNCAIdFromString(name);
@@ -202,21 +201,21 @@ namespace gleaf::usb
                     if((tnew - tstart) >= freq)
                     {
                         size_t bnsize = bphw.GetSizeBuffered();
-                        double mbbuf = ((bnsize / 1000000.0) - (bssize / 1000000.0));
+                        double mbbuf = ((bnsize / 1048576.0) - (bssize / 1048576.0));
                         double dtime = ((double)(tnew - tstart) / (double)freq);
                         speed = (mbbuf / dtime);
                         tstart = tnew;
                         bssize = bnsize;
                     }
-                    u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
-                    u64 mbdlsz = (bphw.GetSizeBuffered() / 1000000);
+                    u64 mbtotal = (bphw.GetTotalDataSize() / 1048576);
+                    u64 mbdlsz = (bphw.GetSizeBuffered() / 1048576);
                     int perc = (int)(((double)bphw.GetSizeBuffered() / (double)bphw.GetTotalDataSize()) * 100.0);
                     Callback(name, Index, cnts.size(), perc);
                 }
-                u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
+                u64 mbtotal = (bphw.GetTotalDataSize() / 1048576);
                 while(!bphw.IsPlaceHolderComplete())
                 {
-                    u64 mbinsz = (bphw.GetSizeWrittenToPlaceHolder() / 1000000);
+                    u64 mbinsz = (bphw.GetSizeWrittenToPlaceHolder() / 1048576);
                     int perc = (int)(((double)bphw.GetSizeWrittenToPlaceHolder() / (double)bphw.GetTotalDataSize()) * 100.0);
                     Callback(name, Index, cnts.size(), perc);
                 }
@@ -224,7 +223,6 @@ namespace gleaf::usb
                 thrd_join(tcntappend, NULL);
                 cst.Register(ncaid, ncaid);
                 cst.DeletePlaceHolder(ncaid);
-                gleaf::ui::ShowRebootShutDownDialog(name, "Registered: " + cst.GetPath(ncaid));
             }
         }
         else if(ext == "tik")
@@ -232,7 +230,7 @@ namespace gleaf::usb
             Command tikcmd = MakeCommand(CommandId::NSPTicket);
             WriteCommand(tikcmd);
             this->btik = std::make_unique<u8[]>(cnt.Size);
-            Read((void*)btik.get(), cnt.Size);
+            Read((void*)this->btik.get(), cnt.Size);
             this->stik = cnt.Size;
             this->gtik = true;
         }
@@ -248,8 +246,7 @@ namespace gleaf::usb
         if(this->gtik && this->gcert && !this->itik)
         {
             this->itik = true;
-            Result rc = es::ImportTicket(btik.get(), stik, bcert.get(), scert);
-            gleaf::ui::ShowRebootShutDownDialog(name, "Imported: " + std::to_string(stik) + " - " + std::to_string(scert));
+            es::ImportTicket(this->btik.get(), this->stik, this->bcert.get(), this->scert);
         }
         return this->irc;
     }
@@ -260,7 +257,7 @@ namespace gleaf::usb
         {
             NSPContentData cnt = this->cnts[i];
             if(cnt.Name.substr(cnt.Name.length() - 8) == "cnmt.nca") continue;
-            this->ProcessContent(i, Callback);
+            else this->ProcessContent(i, Callback);
         }
         return this->irc;
     }
@@ -268,5 +265,11 @@ namespace gleaf::usb
     InstallerResult Installer::GetLatestResult()
     {
         return this->irc;
+    }
+
+    void Installer::Finish()
+    {
+        Command fcmd = MakeCommand(CommandId::Finish);
+        WriteCommand(fcmd);
     }
 }
