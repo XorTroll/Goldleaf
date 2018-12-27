@@ -7,13 +7,13 @@
 
 namespace gleaf
 {
-    static const size_t SegmentDataSize = 0x800000;
+    static const size_t SegmentDataSize = 1048576;
 
     struct BufferSegment
     {
         std::atomic_bool IsFinalized = false;
         u64 WriteOffset = 0;
-        u8 Data[0x800000] = { 0 };
+        u8 Data[1048576] = { 0 };
     };
 
     class BufferedPlaceHolderWriter

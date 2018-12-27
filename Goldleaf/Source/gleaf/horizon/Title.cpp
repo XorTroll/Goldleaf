@@ -69,9 +69,12 @@ namespace gleaf::horizon
                         title.Author = std::string(lent->author);
                         title.NACP = cdata->nacp;
                         std::string fappid = FormatApplicationId(title.ApplicationId);
-                        FILE *f = fopen(("sdmc:/switch/.gleaf/title/" + fappid + ".jpg").c_str(), "wb");
-                        fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
-                        fclose(f);
+                        if(cdata->icon != NULL)
+                        {
+                            FILE *f = fopen(("sdmc:/switch/.gleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
+                            fclose(f);
+                        }
                     }
                     delete cdata;
                     titles.push_back(title);

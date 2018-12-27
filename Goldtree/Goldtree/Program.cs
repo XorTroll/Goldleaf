@@ -170,7 +170,7 @@ namespace gtree
                                             usb.Read(out uint idx);
                                             Log.Log("Sending content " + (idx + 1) + " of " + pnsp.Files.Length + "...");
                                             PfsFileEntry ent = pnsp.Files[idx];
-                                            long rsize = 0x800000;
+                                            long rsize = 10485760;
                                             long coffset = pnsp.HeaderSize + ent.Offset;
                                             long toread = ent.Size;
                                             long tmpread = 1;
@@ -228,7 +228,6 @@ namespace gtree
             Log.Log("The installation has finished. Press any key to start again, or close this window if you want to.", false);
             Console.ReadKey();
             goto usbnsp;
-            Environment.Exit(0);
         }
     }
 }

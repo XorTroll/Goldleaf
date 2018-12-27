@@ -35,13 +35,13 @@ namespace gleaf::usb
         Command cmd = MakeCommand(CommandId::NSPContent);
         WriteCommand(cmd);
         Write32(args->Index);
-        u64 rsize = 0x800000;
+        u64 rsize = 1048576;
         u8 *data = (u8*)memalign(0x1000, rsize);
         u64 szrem = args->Size;
         size_t tmpread = 0;
         while(szrem)
         {
-            tmpread = usbCommsRead(data, std::min(szrem, rsize));
+            tmpread = usb::Read(data, std::min(szrem, rsize));
             szrem -= tmpread;
             while(!args->WriterRef->CanAppendData(tmpread));
             args->WriterRef->AppendData(data, tmpread);
