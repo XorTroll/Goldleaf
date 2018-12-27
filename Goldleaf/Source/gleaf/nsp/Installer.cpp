@@ -5,11 +5,6 @@
 
 namespace gleaf::nsp
 {
-    bool InstallerResult::IsSuccess()
-    {
-        return R_SUCCEEDED(this->Error);
-    }
-
     Installer::Installer(Destination Location, std::string Input, bool IgnoreVersion)
     {
         switch(Location)
@@ -75,7 +70,7 @@ namespace gleaf::nsp
         ncm::ContentRecord record;
         fsFileClose(&cnmtfile);
         record.NCAId = horizon::GetNCAIdFromString(cnmtname);
-        *(u64*)record.Size = (cnmtsize & 0xFFFFFFFFFFFF);
+        *(u64*)record.Size = (cnmtsize & 0xffffffffffff);
         record.Type = ncm::ContentType::Meta;
         FsFileSystem cnmtfs;
         cnmtabs.reserve(FS_MAX_PATH);

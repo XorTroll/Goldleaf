@@ -46,9 +46,11 @@ namespace gleaf::usb
 
     std::string ReadString(u32 Length)
     {
-        u8 *data = (u8*)malloc(sizeof(u8) * Length);
+        u8 *data = (u8*)malloc((sizeof(u8) * Length));
         Read((void*)data, (sizeof(u8) * Length));
-        std::string str = (const char*)data;
+        char *cdata = reinterpret_cast<char*>(data);
+        cdata[Length] = '\0';
+        std::string str = std::string((char*)data);
         return str;
     }
 

@@ -13,5 +13,26 @@
 
 namespace gleaf::usb
 {
-    
+    class Installer
+    {
+        public:
+            Installer(Destination Location, bool IgnoreVersion);
+            InstallerResult ProcessRecords();
+            InstallerResult ProcessContent(u32 Index, std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback);
+            InstallerResult ProcessContents(std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback);
+            InstallerResult GetLatestResult();
+        private:
+            std::vector<NSPContentData> cnts;
+            FsStorageId stid;
+            InstallerResult irc;
+            ByteBuffer cnmtbuf;
+            bool iver;
+            bool gtik;
+            bool gcert;
+            bool itik;
+            std::unique_ptr<u8[]> btik;
+            std::unique_ptr<u8[]> bcert;
+            size_t stik;
+            size_t scert;
+    };
 }

@@ -60,8 +60,8 @@ namespace gleaf::ui
     {
         public:
             InstallLayout();
-            void StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev, bool Delete);
-            void LogError(gleaf::nsp::InstallerResult Res);
+            void StartInstall(gleaf::nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input = "");
+            void LogError(gleaf::InstallerResult Res);
         private:
             pu::element::TextBlock *installText;
             pu::element::ProgressBar *installBar;
@@ -118,6 +118,8 @@ namespace gleaf::ui
             void cfws_Click();
         private:
             pu::element::Menu *cfwsMenu;
+            std::vector<std::string> cfws;
+            std::vector<std::string> cfwnms;
     };
 
     class SystemInfoLayout : public pu::Layout

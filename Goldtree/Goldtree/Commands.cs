@@ -13,9 +13,10 @@ namespace gtree
         ConnectionResponse, // Sent by Goldleaf to Goldtree like "accepting" the connection (to ensure the USB connection is with Goldleaf)
         NSPName, // Sent by Goldtree to Goldleaf with the name of the selected NSP, as a piece of information
         Start, // Sent by Goldleaf to Goldtree as an approval to start sending NSP contents
-
-        // ... (more commands have to be added here)
-
+        NSPData, // Sent by Goldtree to Goldleaf with offsets, sizes and names of all the files inside the NSP
+        NSPContent, // Sent by Goldleaf to Goldtree each time it requests the contents of a NCA inside the NSP
+        NSPTicket,
+        NSPCert,
         Finish, 
     }
 

@@ -129,6 +129,36 @@ namespace gleaf::fs
         fclose(fle);
     }
 
+    u64 GetFileSize(std::string Path)
+    {
+        u64 sz = 0;
+        std::ifstream ifs(Path, std::ios::binary | std::ios::ate);
+        if(ifs.good()) sz = ifs.tellg();
+        ifs.close();
+        return sz;
+    }
+
+    u64 GetDirectorySize(std::string Path)
+    {
+        u64 sz = 0;
+        DIR *d = opendir(Path.c_str());
+        if(d)
+        {
+            struct dirent *dent;
+            while(true)
+            {
+                dent = readdir(d);
+                if(dent == NULL) break;
+                std::string nd = dent->d_name;
+                std::string pd = Path + "/" + nd;
+                if(gleaf::fs::IsFile(pd)) sz += GetFileSize(pd);
+                else sz += GetDirectorySize(pd);
+            }
+        }
+        closedir(d);
+        return sz;
+    }
+
     std::string GetFileName(std::string Path)
     {
         return Path.substr(Path.find_last_of("/\\") + 1);

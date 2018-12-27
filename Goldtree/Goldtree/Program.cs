@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using libusbK;
+using LibHac;
+using LibHac.IO;
 
 namespace gtree
 {
@@ -98,7 +100,7 @@ namespace gtree
             {
                 Error.Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
             }
-            try
+            // try
             {
                 Command c = new Command(CommandId.ConnectionRequest);
                 usb.Write(c);
@@ -127,14 +129,94 @@ namespace gtree
                         if(rc2.MagicOk() && rc2.IsCommandId(CommandId.Start))
                         {
                             Log.Log("Goldleaf is ready for the installation. Preparing everything...");
-                            // Send NSP parts and offsets, install them...
+                            // try
+                            {
+                                FileStream fs = new FileStream(nsp, FileMode.Open);
+                                StreamStorage ist = new StreamStorage(fs, true);
+                                Pfs pnsp = new Pfs(ist);
+                                ist.Dispose();
+                                fs.Close();
+                                fs = new FileStream(nsp, FileMode.Open);
+                                uint filecount = (uint)pnsp.Files.Length;
+                                c = new Command(CommandId.NSPData);
+                                usb.Write(c);
+                                usb.Write(filecount);
+                                int tikidx = -1;
+                                int certidx = -1;
+                                int tmpidx = 0;
+                                foreach(var file in pnsp.Files)
+                                {
+                                    ulong offset = (ulong)pnsp.HeaderSize + (ulong)file.Offset;
+                                    ulong size = (ulong)file.Size;
+                                    uint len = (uint)file.Name.Length;
+                                    usb.Write(len);
+                                    usb.Write(file.Name);
+                                    usb.Write(offset);
+                                    usb.Write(size);
+                                    if(Path.GetExtension(file.Name).Replace(".", "").ToLower() == "tik") tikidx = tmpidx;
+                                    else if(Path.GetExtension(file.Name).Replace(".", "").ToLower() == "cert") certidx = tmpidx;
+                                    tmpidx++;
+                                }
+                                BinaryReader br = new BinaryReader(fs);
+                                while(true)
+                                {
+                                    Command ccmd = usb.Read();
+                                    if(ccmd.MagicOk())
+                                    {
+                                        if(ccmd.IsCommandId(CommandId.NSPContent))
+                                        {
+                                            usb.Read(out uint idx);
+                                            Console.WriteLine(idx + " of " + pnsp.Files.Length);
+                                            PfsFileEntry ent = pnsp.Files[idx];
+                                            long rsize = 1048576;
+                                            long coffset = pnsp.HeaderSize + ent.Offset;
+                                            long toread = ent.Size;
+                                            long tmpread = 1;
+                                            byte[] bufb = new byte[rsize];
+                                            while((tmpread > 0) && (toread > 0))
+                                            {
+                                                Console.WriteLine("Offset: " + coffset);
+                                                int tor = (int)Math.Min(rsize, toread);
+                                                bufb = new byte[tor];
+                                                br.BaseStream.Position = coffset;
+                                                tmpread = br.Read(bufb, 0, bufb.Length);
+                                                Console.WriteLine("Read size: " + tmpread);
+                                                usb.Write(bufb);
+                                                coffset += tmpread;
+                                                toread -= tmpread;
+                                            }
+                                            Console.WriteLine("END");
+                                            while (true) ;
+                                        }
+                                        else if(ccmd.IsCommandId(CommandId.NSPTicket))
+                                        {
+                                            PfsFileEntry tik = pnsp.Files[tikidx];
+                                            br.BaseStream.Seek(tik.Offset, SeekOrigin.Begin);
+                                            byte[] file = br.ReadBytes((int)tik.Size);
+                                            usb.Write(file);
+                                        }
+                                        else if(ccmd.IsCommandId(CommandId.NSPCert))
+                                        {
+                                            PfsFileEntry cert = pnsp.Files[certidx];
+                                            br.BaseStream.Seek(cert.Offset, SeekOrigin.Begin);
+                                            byte[] file = br.ReadBytes((int)cert.Size);
+                                            usb.Write(file);
+                                        }
+                                    }
+                                    else break;
+                                }
+                            }
+                            // catch(Exception ex)
+                            {
+                                Error.Log("An error ocurred opening the selected NSP. Is it sa valid NSP? Is it in an unauthorized path? Error: ");// + ex.StackTrace);
+                            }
                         }
                     }
                     else Error.Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
                 }
                 else Error.Log("Invalid USB command was received. Are you sure Goldleaf is active?");
             }
-            catch
+            // catch
             {
                 Error.Log("An error ocurred selecting NSP to be sent.");
             }

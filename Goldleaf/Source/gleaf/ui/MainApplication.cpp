@@ -1,4 +1,5 @@
 #include <gleaf/ui/MainApplication.hpp>
+#include <threads.h>
 
 namespace gleaf::ui
 {
@@ -126,7 +127,7 @@ namespace gleaf::ui
     {
         this->gexp = new fs::Explorer(Partition);
         this->browseMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
-        this->dirEmptyText = new pu::element::TextBlock(450, 400, "Directory is empty.");
+        this->dirEmptyText = new pu::element::TextBlock(465, 430, "<the directory is empty>");
         this->AddChild(this->browseMenu);
         this->AddChild(this->dirEmptyText);
     }
@@ -208,6 +209,7 @@ namespace gleaf::ui
             else if(ext == "nca") msg += "NCA archive";
             else msg += "file";
             msg += "?";
+            msg += "\n\nFile size: " + fs::FormatSize(fs::GetFileSize(fullitm));
             pu::Dialog *dlg = new pu::Dialog("File options", msg, pu::draw::Font::NintendoStandard);
             u32 copt = 3;
             if(ext == "nsp")
@@ -233,7 +235,7 @@ namespace gleaf::ui
             }
             else if(ext == "nca")
             {
-                dlg->AddOption("Extract contents");
+                dlg->AddOption("Extract");
                 copt = 4;
             }
             dlg->AddOption("Copy");
@@ -248,6 +250,7 @@ namespace gleaf::ui
                 {
                     case 0:
                     case 1:
+                        bool del = (sopt == 1);
                         dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
                         dlg->AddOption("SD card");
                         dlg->AddOption("NAND (console memory)");
@@ -269,7 +272,7 @@ namespace gleaf::ui
                         std::string fullitm = this->gexp->FullPathFor(itm);
                         std::string nspipt = "@Sdcard:" + fullitm.substr(5);
                         nsp::Installer inst(dst, nspipt, ignorev);
-                        nsp::InstallerResult irc = inst.GetLatestResult();
+                        InstallerResult irc = inst.GetLatestResult();
                         if(!irc.IsSuccess())
                         {
                             mainapp->GetInstallLayout()->LogError(irc);
@@ -378,7 +381,7 @@ namespace gleaf::ui
                                     info += " (6.2.0)";
                                     break;
                                 default:
-                                    info += " (unknown supported versions?)";
+                                    info += " (unknown supported version?)";
                                     break;
                             }
                         }
@@ -395,12 +398,8 @@ namespace gleaf::ui
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 1)) return;
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
-                        mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), (sopt == 1));
-                        if(sopt == 1)
-                        {
-                            fs::DeleteFile(fullitm);
-                            this->UpdateElements();
-                        }
+                        mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), del, fullitm);
+                        this->UpdateElements();
                         break;
                 }
             }
@@ -568,7 +567,7 @@ namespace gleaf::ui
                             mainapp->ShowDialog(dlg);
                             return;
                         }
-                        dlg = new pu::Dialog("Extract ExeFs?", "Would you like to extract the ExeFs partition of the selected NCA?\n(it will be extracted to " + fullitm + ".ExeFs directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Extract ExeFs?", "Would you like to extract the ExeFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".ExeFs\' directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
@@ -577,7 +576,7 @@ namespace gleaf::ui
                         if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool xexefs = false;
                         if(sopt == 0) xexefs = true;
-                        dlg = new pu::Dialog("Extract RomFs?", "Would you like to extract the RomFs partition of the selected NCA?\n(it will be extracted to " + fullitm + ".RomFs directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Extract RomFs?", "Would you like to extract the RomFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".RomFs\' directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
@@ -586,7 +585,7 @@ namespace gleaf::ui
                         if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool xromfs = false;
                         if(sopt == 0) xromfs = true;
-                        dlg = new pu::Dialog("Extract section 0?", "Would you like to extract the section no. 0 of the selected NCA?\nThis section could be present in CNMT NCAs or in program NCAs.\n(it will be extracted to " + fullitm + ".Section2 directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Extract section 0?", "Would you like to extract the section no. 0 of the selected NCA?\nThis section could be present in CNMT NCAs or in program NCAs.\n(it will be extracted to \'" + fullitm + ".Section0\' directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
@@ -622,7 +621,7 @@ namespace gleaf::ui
             else if(sopt == delopt)
             {
                 fs::DeleteFile(fullitm);
-                mainapp->UpdateFooter("File deleted: \'" + fs::GetPathWithoutRoot(fullitm) + "\'.");
+                mainapp->UpdateFooter("File deleted: \'" + fullitm + "\'");
                 if(this->WarnNANDWriteAccess()) this->UpdateElements();
             }
             delete dlg;
@@ -635,7 +634,9 @@ namespace gleaf::ui
         std::string fullitm = this->gexp->FullPathFor(itm);
         if(fs::IsDirectory(fullitm))
         {
-            pu::Dialog *dlg = new pu::Dialog("Directory options", "What would you like to do with the selected directory?", pu::draw::Font::NintendoStandard);
+            std::string msg = "What would you like to do with the selected directory?";
+            msg += "\n\nDirectory size: " + fs::FormatSize(fs::GetDirectorySize(fullitm));
+            pu::Dialog *dlg = new pu::Dialog("Directory options", msg, pu::draw::Font::NintendoStandard);
             dlg->AddOption("Browse");
             dlg->AddOption("Copy");
             dlg->AddOption("Delete");
@@ -654,7 +655,7 @@ namespace gleaf::ui
                     break;
                 case 2:
                     fs::DeleteDirectory(fullitm);
-                    mainapp->UpdateFooter("Directory deleted: \'" + fs::GetPathWithoutRoot(fullitm) + "\'.");
+                    mainapp->UpdateFooter("Directory deleted: \'" + fullitm + "\'");
                     if(this->WarnNANDWriteAccess()) this->UpdateElements();
                     break;
             }
@@ -675,14 +676,14 @@ namespace gleaf::ui
         this->AddChild(this->installBar);
     }
 
-    void InstallLayout::StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete)
+    void InstallLayout::StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input)
     {
         if(IsApplication()) appletBeginBlockingHomeButton(0);
         else appletLockExit();
         this->installText->SetText("Processing title records...");
         mainapp->UpdateFooter("Installing NSP...");
         mainapp->CallForRender();
-        nsp::InstallerResult rc = Inst->ProcessRecords();
+        InstallerResult rc = Inst->ProcessRecords();
         this->LogError(rc);
         this->installText->SetText("Starting to write contents...");
         mainapp->CallForRender();
@@ -705,58 +706,59 @@ namespace gleaf::ui
             if(Delete) mainapp->UpdateFooter("The NSP was successfully installed and deleted.");
         }
         else mainapp->UpdateFooter("An error ocurred installing the NSP.");
+        if(Delete) fs::DeleteFile(Input);
         mainapp->LoadLayout(Prev);
         mainapp->CallForRender();
     }
 
-    void InstallLayout::LogError(nsp::InstallerResult Res)
+    void InstallLayout::LogError(InstallerResult Res)
     {
         if(!Res.IsSuccess())
         {
             std::string err = "An error ocurred while installing NSP package:\n\n";
-            if(Res.Type == nsp::InstallerError::Success) return;
+            if(Res.Type == InstallerError::Success) return;
             switch(Res.Type)
             {
-                case nsp::InstallerError::BadNSP:
+                case InstallerError::BadNSP:
                     err += "Failed to read from the NSP file.\nThis error could be caused by various reasons: invalid NSP, minimum firmware mismatch...";
                     break;
-                case nsp::InstallerError::NSPOpen:
+                case InstallerError::NSPOpen:
                     err += "Failed to open the NSP file. Does it exist?";
                     break;
-                case nsp::InstallerError::BadCNMTNCA:
+                case InstallerError::BadCNMTNCA:
                     err += "Failed to read from the meta NCA (CNMT NCA) within the NSP.";
                     break;
-                case nsp::InstallerError::CNMTMCAOpen:
+                case InstallerError::CNMTMCAOpen:
                     err += "Failed to open the meta NCA (CNMT NCA) within the NSP.";
                     break;
-                case nsp::InstallerError::BadCNMT:
+                case InstallerError::BadCNMT:
                     err += "Failed to read from the meta file (CNMT) within the CNMT NCA.";
                     break;
-                case nsp::InstallerError::CNMTOpen:
+                case InstallerError::CNMTOpen:
                     err += "Failed to open the meta file (CNMT) within the CNMT NCA.";
                     break;
-                case nsp::InstallerError::BadControlNCA:
+                case InstallerError::BadControlNCA:
                     err += "Failed to open the control NCA within the NSP.";
                     break;
-                case nsp::InstallerError::MetaDatabaseOpen:
+                case InstallerError::MetaDatabaseOpen:
                     err += "Failed to open content meta database for record processing.";
                     break;
-                case nsp::InstallerError::MetaDatabaseSet:
+                case InstallerError::MetaDatabaseSet:
                     err += "Failed to set in the content meta database for record processing.";
                     break;
-                case nsp::InstallerError::MetaDatabaseCommit:
+                case InstallerError::MetaDatabaseCommit:
                     err += "Failed to commit on the content meta database for record processing.";
                     break;
-                case nsp::InstallerError::ContentMetaCount:
+                case InstallerError::ContentMetaCount:
                     err += "Failed to count content meta for registered application.";
                     break;
-                case nsp::InstallerError::ContentMetaList:
+                case InstallerError::ContentMetaList:
                     err += "Failed to list content meta for registered application.";
                     break;
-                case nsp::InstallerError::RecordPush:
+                case InstallerError::RecordPush:
                     err += "Failed to push record for application.";
                     break;
-                case nsp::InstallerError::InstallBadNCA:
+                case InstallerError::InstallBadNCA:
                     err += "Failed to find NCA content to write within the NSP.";
                     break;
                 default:
@@ -780,19 +782,14 @@ namespace gleaf::ui
 
     void USBInstallLayout::USBTest()
     {
-        this->infoText->SetText("Starting test...");
+        this->infoText->SetText("Waiting for USB connection...\nPlug this console to a USB-C cable to connect it with a PC and open Goldtree.");
         mainapp->CallForRender();
-        if(usb::WaitForConnection())
+        if(!usb::WaitForConnection())
         {
-            this->infoText->SetText("USB connected!");
+            mainapp->UpdateFooter("USB failed to connect. Try again!");
             mainapp->CallForRender();
         }
-        else
-        {
-            this->infoText->SetText("USB failed...");
-            mainapp->CallForRender();
-        }
-        this->infoText->SetText("Waiting for request command...");
+        this->infoText->SetText("USB connection was delected. Open Goldtree to connect it via USB.");
         mainapp->CallForRender();
         usb::Command req = usb::ReadCommand();
         usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
@@ -810,19 +807,48 @@ namespace gleaf::ui
                 // Step 3: get the name of the NSP file (Id 2)
                 u32 nspnamesize = usb::Read32();
                 std::string nspname = usb::ReadString(nspnamesize);
-                pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nDo you want to install this NSP?", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?", pu::draw::Font::NintendoStandard);
                 dlg->AddOption("Install");
                 dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
                 u32 sopt = dlg->GetSelectedIndex();
-                delete dlg;
-                if(sopt == 0)
+                if(dlg->UserCancelled() || (sopt == 1)) return;
+                // Step 4: send approval to start receiving NSP data (Id 3)
+                usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
+                usb::WriteCommand(cmd2);
+                this->infoText->SetText("Installler...");
+                mainapp->CallForRender();
+                usb::Installer inst(Destination::NAND, true);
+                InstallerResult rc = inst.GetLatestResult();
+                if(!rc.IsSuccess())
                 {
-                    // Step 4: send approval to start receiving NSP data (Id 3)
-                    usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
-                    usb::WriteCommand(cmd2);
-                    while(true) mainapp->CallForRender(); // ...
+                    dlg = new pu::Dialog("Error - const", horizon::FormatHex(rc.Error), pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
                 }
+                this->infoText->SetText("Records...");
+                mainapp->CallForRender();
+                rc = inst.ProcessRecords();
+                if(!rc.IsSuccess())
+                {
+                    dlg = new pu::Dialog("Error - record", horizon::FormatHex(rc.Error), pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                }
+                this->infoText->SetText("Contents...");
+                mainapp->CallForRender();
+                rc = inst.ProcessContents([&](std::string Name, u32 Content, u32 Count, int Percentage)
+                {
+                    this->infoText->SetText(Name + "(" + std::to_string(Content) + " / " + std::to_string(Count) + ") - " + std::to_string(Percentage) + "%");
+                    mainapp->CallForRender();
+                });
+                if(!rc.IsSuccess())
+                {
+                    dlg = new pu::Dialog("Error - install", horizon::FormatHex(rc.Error), pu::draw::Font::NintendoStandard);
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                }
+                while(true) mainapp->CallForRender();
             }
         }
         else
@@ -996,6 +1022,7 @@ namespace gleaf::ui
     {
         this->titles = horizon::GetAllSystemTitles();
         this->titlesMenu->ClearItems();
+        this->titlesMenu->SetCooldownEnabled(true);
         if(this->titles.empty())
         {
             this->notTitlesText->SetVisible(true);
@@ -1101,6 +1128,7 @@ namespace gleaf::ui
         this->tickets.clear();
         this->tickets = horizon::GetAllSystemTickets();
         this->ticketsMenu->ClearItems();
+        this->ticketsMenu->SetCooldownEnabled(true);
         if(this->tickets.empty())
         {
             this->notTicketsText->SetVisible(true);
@@ -1168,6 +1196,8 @@ namespace gleaf::ui
     CFWConfigLayout::CFWConfigLayout() : pu::Layout()
     {
         this->cfwsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
+        this->cfws = GetSdCardCFWs();
+        this->cfwnms = GetSdCardCFWNames();
         this->UpdateElements();
         this->AddChild(this->cfwsMenu);
     }
@@ -1175,9 +1205,9 @@ namespace gleaf::ui
     void CFWConfigLayout::UpdateElements()
     {
         this->cfwsMenu->ClearItems();
-        for(u32 i = 0; i < CFWDirectories.size(); i++) if(gleaf::fs::IsDirectory("sdmc:/" + CFWDirectories[i]))
+        for(u32 i = 0; i < this->cfws.size(); i++) if(gleaf::fs::IsDirectory("sdmc:/" + this->cfws[i]))
         {
-            pu::element::MenuItem *itm = new pu::element::MenuItem(CFWList[i]);
+            pu::element::MenuItem *itm = new pu::element::MenuItem(this->cfwnms[i]);
             itm->SetIcon("romfs:/Common/CFW.png");
             itm->AddOnClick(std::bind(&CFWConfigLayout::cfws_Click, this));
             this->cfwsMenu->AddItem(itm);
@@ -1187,9 +1217,9 @@ namespace gleaf::ui
 
     void CFWConfigLayout::cfws_Click()
     {
-        std::string cfw = CFWDirectories[this->cfwsMenu->GetSelectedIndex()];
+        std::string cfw = this->cfws[this->cfwsMenu->GetSelectedIndex()];
         bool htheme = false;
-        std::string msg = CFWList[this->cfwsMenu->GetSelectedIndex()] + " was selected.";
+        std::string msg = this->cfwnms[this->cfwsMenu->GetSelectedIndex()] + " was selected.";
         if(gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001000/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001000/fsmitm.flag"))
         {
             msg += "\nHome Menu (aka qlaunch) has a LayeredFS RomFs modification in this CFW.\nThis means that it could be a custom Home Menu theme.";
@@ -1271,7 +1301,7 @@ namespace gleaf::ui
         this->safeBar->SetProgress(nsfval);
         this->userBar->SetProgress(nsuval);
         this->systemBar->SetProgress(nssval);
-        u64 nandtotal = (nsfval + nsuval + nssval);
+        u64 nandtotal = (nsftotal + nsutotal + nsstotal);
         u64 nandfree = (nsffree + nsufree + nssfree);
         u8 nandval = ((100 * (nandtotal - nandfree)) / nandtotal);
         this->nandBar->SetProgress(nandval);

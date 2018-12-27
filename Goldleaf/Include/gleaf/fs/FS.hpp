@@ -34,6 +34,8 @@ namespace gleaf::fs
     void DeleteDirectory(std::string Path);
     std::vector<u8> ReadFile(std::string Path);
     void WriteFile(std::string Path, std::vector<u8> Data);
+    u64 GetFileSize(std::string Path);
+    u64 GetDirectorySize(std::string Path);
     std::string GetFileName(std::string Path);
     std::string GetExtension(std::string Path);
     std::string GetPathWithoutRoot(std::string Path);

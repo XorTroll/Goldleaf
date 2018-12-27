@@ -9,18 +9,7 @@ namespace gleaf
     void Initialize();
     void Finalize();
     bool IsApplication();
-
-    static const std::vector<std::string> CFWList =
-    {
-        "Atmosphère",
-        "ReiNX",
-        "SX OS",
-    };
-
-    static const std::vector<std::string> CFWDirectories =
-    {
-        "atmosphere",
-        "reinx",
-        "sxos",
-    };
+    std::vector<std::string> GetSdCardCFWs();
+    std::vector<std::string> GetSdCardCFWNames();
+    std::string GetCFWName(std::string Path);
 }

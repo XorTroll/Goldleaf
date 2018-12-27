@@ -22,33 +22,6 @@
 
 namespace gleaf::nsp
 {
-    enum class InstallerError
-    {
-        Success,
-        BadNSP,
-        NSPOpen,
-        BadCNMTNCA,
-        CNMTMCAOpen,
-        BadCNMT,
-        CNMTOpen,
-        BadControlNCA,
-        MetaDatabaseOpen,
-        MetaDatabaseSet,
-        MetaDatabaseCommit,
-        ContentMetaCount,
-        ContentMetaList,
-        RecordPush,
-        InstallBadNCA,
-    };
-
-    struct InstallerResult
-    {
-        Result Error;
-        InstallerError Type;
-
-        bool IsSuccess();
-    };
-
     class Installer
     {
         public:
