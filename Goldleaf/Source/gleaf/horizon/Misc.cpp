@@ -70,7 +70,7 @@ namespace gleaf::horizon
         fsOpenBisFileSystem(&nandfs, 31, "");
         fsdevMountDevice("qnand", nandfs);
         std::string path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001000);
-        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/switch/.gleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, "sdmc:/switch/.gleaf/keys.dat");
+        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, "sdmc:/goldleaf/keys.dat");
         fsdevUnmountDevice("qnand");
         return ex;
     }
@@ -109,6 +109,13 @@ namespace gleaf::horizon
     {
         std::stringstream strm;
         strm << "0x" << std::hex << Number;
+        return strm.str();
+    }
+
+    std::string DoubleToString(double Number)
+    {
+        std::stringstream strm;
+        strm << Number;
         return strm.str();
     }
 }

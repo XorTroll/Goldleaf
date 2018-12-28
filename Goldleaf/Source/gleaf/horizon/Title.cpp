@@ -10,7 +10,7 @@ namespace gleaf::horizon
 {
     std::string Title::GetExportedIconPath()
     {
-        return ("sdmc:/switch/.gleaf/title/" + FormatApplicationId(this->ApplicationId) + ".jpg");
+        return ("sdmc:/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".jpg");
     }
 
     u64 Ticket::GetApplicationId()
@@ -71,8 +71,16 @@ namespace gleaf::horizon
                         std::string fappid = FormatApplicationId(title.ApplicationId);
                         if(cdata->icon != NULL)
                         {
-                            FILE *f = fopen(("sdmc:/switch/.gleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
+                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
                             fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
+                            fclose(f);
+                        }
+                        if(&cdata->nacp != NULL)
+                        {
+                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
+                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
+                            fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
                     }
@@ -105,9 +113,20 @@ namespace gleaf::horizon
                         title.Author = std::string(lent->author);
                         title.NACP = cdata->nacp;
                         std::string fappid = FormatApplicationId(title.ApplicationId);
-                        FILE *f = fopen(("sdmc:/switch/.gleaf/title/" + fappid + ".jpg").c_str(), "wb");
-                        fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
-                        fclose(f);
+                        if(cdata->icon != NULL)
+                        {
+                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
+                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
+                            fclose(f);
+                        }
+                        if(&cdata->nacp != NULL)
+                        {
+                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
+                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
+                            fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
+                            fclose(f);
+                        }
                     }
                     delete cdata;
                     titles.push_back(title);
@@ -138,9 +157,20 @@ namespace gleaf::horizon
                         title.Author = std::string(lent->author);
                         title.NACP = cdata->nacp;
                         std::string fappid = FormatApplicationId(title.ApplicationId);
-                        FILE *f = fopen(("sdmc:/switch/.gleaf/title/" + fappid + ".jpg").c_str(), "wb");
-                        fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
-                        fclose(f);
+                        if(cdata->icon != NULL)
+                        {
+                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
+                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
+                            fclose(f);
+                        }
+                        if(&cdata->nacp != NULL)
+                        {
+                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
+                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
+                            fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
+                            fclose(f);
+                        }
                     }
                     delete cdata;
                     titles.push_back(title);
@@ -241,7 +271,6 @@ namespace gleaf::horizon
                     break;
             }
             u32 tikdata = (4 + sigsz + padsz);
-            // +0x40, we're not interested in the issuer
             ifs.seekg(tikdata + 0x40, std::ios::beg);
             u8 tkey[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             ifs.read((char*)tkey, 0x10);

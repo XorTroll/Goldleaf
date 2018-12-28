@@ -4,7 +4,7 @@
     Plutonium library
 
     @file Image.hpp
-    @brief An Image is an Element showing a picture.
+    @brief An Image is an Element showing a picture. (JPEG, PNG, TGA, BMP)
     @author XorTroll
 
     @copyright Plutonium project - an easy-to-use UI framework for Nintendo Switch homebrew
@@ -20,6 +20,7 @@ namespace pu::element
     {
         public:
             Image(u32 X, u32 Y, std::string Image);
+            ~Image();
             u32 GetX();
             void SetX(u32 X);
             u32 GetY();
@@ -35,6 +36,7 @@ namespace pu::element
             void OnInput(u64 Down, u64 Up, u64 Held);
         private:
             std::string img;
+            render::NativeTexture ntex;
             u32 x;
             u32 y;
             u32 w;

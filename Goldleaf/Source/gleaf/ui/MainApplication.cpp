@@ -20,10 +20,10 @@ namespace gleaf::ui
         this->usbMenuItem = new pu::element::MenuItem("USB installation (via Goldtree)");
         this->usbMenuItem->SetIcon("romfs:/Common/USB.png");
         this->usbMenuItem->AddOnClick(std::bind(&MainMenuLayout::usbMenuItem_Click, this));
-        this->titleMenuItem = new pu::element::MenuItem("Manage installed titles");
+        this->titleMenuItem = new pu::element::MenuItem("Title management");
         this->titleMenuItem->SetIcon("romfs:/Common/Storage.png");
         this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
-        this->ticketMenuItem = new pu::element::MenuItem("Manage installed tickets");
+        this->ticketMenuItem = new pu::element::MenuItem("Ticket management");
         this->ticketMenuItem->SetIcon("romfs:/Common/Ticket.png");
         this->ticketMenuItem->AddOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
         this->cfwConfigMenuItem = new pu::element::MenuItem("CFW configuration");
@@ -32,7 +32,7 @@ namespace gleaf::ui
         this->sysinfoMenuItem = new pu::element::MenuItem("Console information");
         this->sysinfoMenuItem->SetIcon("romfs:/Common/Settings.png");
         this->sysinfoMenuItem->AddOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
-        this->aboutMenuItem = new pu::element::MenuItem("About this application");
+        this->aboutMenuItem = new pu::element::MenuItem("About Goldleaf");
         this->aboutMenuItem->SetIcon("romfs:/Common/Info.png");
         this->aboutMenuItem->AddOnClick(std::bind(&MainMenuLayout::aboutMenuItem_Click, this));
         this->optionMenu->AddItem(this->sdcardMenuItem);
@@ -69,25 +69,29 @@ namespace gleaf::ui
 
     void MainMenuLayout::nandMenuItem_Click()
     {
-        pu::Dialog *dlg = new pu::Dialog("Select NAND partition", "Select NAND partition to explore via Goldleaf.", pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog("Select NAND partition", "Select NAND partition to explore via Goldleaf.");
         dlg->AddOption("NAND SAFE");
         dlg->AddOption("NAND USER");
         dlg->AddOption("NAND SYSTEM");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 3)) return;
+        if(dlg->UserCancelled() || (sopt == 3))
+        {
+            delete dlg;
+            return;
+        }
         else if(sopt == 0) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
         else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
-        mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
         delete dlg;
+        mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
     }
 
     void MainMenuLayout::usbMenuItem_Click()
     {
         mainapp->LoadLayout(mainapp->GetUSBInstallLayout());
-        mainapp->GetUSBInstallLayout()->USBTest();
+        mainapp->GetUSBInstallLayout()->StartUSBConnection();
     }
 
     void MainMenuLayout::titleMenuItem_Click()
@@ -100,7 +104,7 @@ namespace gleaf::ui
     {
         mainapp->GetTicketManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
-        pu::Dialog *dlg = new pu::Dialog("Removing tickets (warning)", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.", pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog("Removing tickets (warning)", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.");
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
         delete dlg;
@@ -164,8 +168,9 @@ namespace gleaf::ui
                     else if(ext == "nro") mitm->SetIcon("romfs:/FileSystem/NRO.png");
                     else if(ext == "tik") mitm->SetIcon("romfs:/FileSystem/TIK.png");
                     else if(ext == "cert") mitm->SetIcon("romfs:/FileSystem/CERT.png");
-                    else if(ext == "nca") mitm->SetIcon("romfs:/FileSystem/NCA.png");
                     else if(ext == "nxtheme") mitm->SetIcon("romfs:/FileSystem/NXTheme.png");
+                    else if(ext == "nca") mitm->SetIcon("romfs:/FileSystem/NCA.png");
+                    else if(ext == "nacp") mitm->SetIcon("romfs:/FileSystem/NACP.png");
                     else mitm->SetIcon("romfs:/FileSystem/File.png");
                 }
                 mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this));
@@ -184,7 +189,7 @@ namespace gleaf::ui
     bool PartitionBrowserLayout::WarnNANDWriteAccess()
     {
         if(this->gexp->GetPartition() == fs::Partition::SdCard) return true;
-        pu::Dialog *dlg = new pu::Dialog("Warning: NAND access", "You are trying to write or delete content within the console's NAND memory.\n\nDeleting or replacing content there can be a risky operation.\nImportant file loss could lead to a bricked NAND, where the console won't boot.\n\nAre you sure you want to perform this operation?", pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog("Warning: NAND access", "You are trying to write or delete content within the console's NAND memory.\n\nDeleting or replacing content there can be a risky operation.\nImportant file loss could lead to a bricked NAND, where the console won't boot.\n\nAre you sure you want to perform this operation?");
         dlg->AddOption("Yes");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
@@ -202,15 +207,16 @@ namespace gleaf::ui
         {
             std::string ext = fs::GetExtension(itm);
             std::string msg = "What would you like to do with the selected ";
-            if(ext == "nsp") msg += "NSP file";
-            else if(ext == "nro") msg += "NRO binary";
+            if(ext == "nsp") msg += "NSP package (aka Nintendo Submission Package)";
+            else if(ext == "nro") msg += "NRO binary (aka Nintendo Relocatable Object)";
             else if(ext == "tik") msg += "ticket file";
             else if(ext == "nxtheme") msg += "Home Menu theme file";
-            else if(ext == "nca") msg += "NCA archive";
+            else if(ext == "nca") msg += "NCA archive (aka Nintendo Content Archive)";
+            else if(ext == "nacp") msg += "NACP data (aka Nintendo Application Control Property)";
             else msg += "file";
             msg += "?";
             msg += "\n\nFile size: " + fs::FormatSize(fs::GetFileSize(fullitm));
-            pu::Dialog *dlg = new pu::Dialog("File options", msg, pu::draw::Font::NintendoStandard);
+            pu::Dialog *dlg = new pu::Dialog("File options", msg);
             u32 copt = 3;
             if(ext == "nsp")
             {
@@ -238,12 +244,22 @@ namespace gleaf::ui
                 dlg->AddOption("Extract");
                 copt = 4;
             }
+            else if(ext == "nacp")
+            {
+                dlg->AddOption("View information");
+                copt = 4;
+            }
             dlg->AddOption("Copy");
             dlg->AddOption("Delete");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == copt)) return;
+            if(dlg->UserCancelled() || (sopt == copt))
+            {
+                delete dlg;
+                return;
+            }
+            delete dlg;
             if(ext == "nsp")
             {
                 switch(sopt)
@@ -251,23 +267,33 @@ namespace gleaf::ui
                     case 0:
                     case 1:
                         bool del = (sopt == 1);
-                        dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
                         dlg->AddOption("SD card");
                         dlg->AddOption("Console memory (NAND)");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         u32 sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || ( sopt == 2)) return;
+                        if(dlg->UserCancelled() || ( sopt == 2))
+                        {
+                            delete dlg;
+                            return;
+                        }
                         Destination dst = Destination::SdCard;
                         if(sopt == 0) dst = Destination::SdCard;
                         else if(sopt == 1) dst = Destination::NAND;
-                        dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?", pu::draw::Font::NintendoStandard);
+                        delete dlg;
+                        dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2)) return;
+                        if(dlg->UserCancelled() || (sopt == 2))
+                        {
+                            delete dlg;
+                            return;
+                        }
+                        delete dlg;
                         bool ignorev = (sopt == 0);
                         std::string fullitm = this->gexp->FullPathFor(itm);
                         std::string nspipt = "@Sdcard:" + fullitm.substr(5);
@@ -388,17 +414,18 @@ namespace gleaf::ui
                             }
                         }
                         else if(!inst.HasTicketAndCert()) info += "This NSP doesn't have a ticket. It seems to only have standard crypto.";
-                        dlg = new pu::Dialog("Ready to start installing?", info, pu::draw::Font::NintendoStandard);
-                        if(hasnacp)
-                        {
-                            pu::element::Image *img = new pu::element::Image(994, 30, inst.GetExportedIconPath());
-                            dlg->SetIcon(img);
-                        }
+                        dlg = new pu::Dialog("Ready to start installing?", info);
+                        if(hasnacp) dlg->SetIcon(inst.GetExportedIconPath(), 994, 30);
                         dlg->AddOption("Install");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 1)) return;
+                        if(dlg->UserCancelled() || (sopt == 1))
+                        {
+                            delete dlg;
+                            return;
+                        }
+                        delete dlg;
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), del, fullitm);
                         this->UpdateElements();
@@ -412,19 +439,22 @@ namespace gleaf::ui
                     case 0:
                         if(IsApplication())
                         {
-                            dlg = new pu::Dialog("NRO launch error", "For technical reasons, NRO binaries cannot be launched if Goldleaf is launched as a title.", pu::draw::Font::NintendoStandard);
+                            dlg = new pu::Dialog("NRO launch error", "For technical reasons, NRO binaries cannot be launched if Goldleaf is launched as a title.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
+                            delete dlg;
                             return;
                         }
-                        dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.");
                         dlg->AddOption("Launch");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         if(dlg->GetSelectedIndex() == 0)
                         {
+                            delete dlg;
                             envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
                             mainapp->Close();
+                            return;
                         }
                         break;
                 }
@@ -437,12 +467,13 @@ namespace gleaf::ui
                         std::string tcert = fullitm.substr(0, fullitm.length() - 3) + "cert";
                         if(!fs::Exists(tcert))
                         {
-                            dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.", pu::draw::Font::NintendoStandard);
+                            dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
+                            delete dlg;
                             return;
                         }
-                        dlg = new pu::Dialog("Ticket import confirmation", "The selected ticket will be imported.", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Ticket import confirmation", "The selected ticket will be imported.");
                         dlg->AddOption("Import");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
@@ -476,24 +507,29 @@ namespace gleaf::ui
                         bool hasatmos = gleaf::fs::IsDirectory("sdmc:/atmosphere");
                         bool hasreinx = gleaf::fs::IsDirectory("sdmc:/ReiNX");
                         bool hassxos = gleaf::fs::IsDirectory("sdmc:/sxos");
-                        dlg = new pu::Dialog("Select CFW", "Select CFW on which to install the theme.", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Select CFW", "Select CFW on which to install the theme.");
                         dlg->AddOption("Atmosphère");
                         dlg->AddOption("ReiNX");
                         dlg->AddOption("SX OS");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         u32 sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 3)) return;
-                        std::string installdir;
+                        if(dlg->UserCancelled() || (sopt == 3))
+                        {
+                            delete dlg;
+                            return;
+                        }
+                        delete dlg;
+                        std::string installdir = "";
                         switch(sopt)
                         {
                             case 0:
                                 if(!hasatmos)
                                 {
-                                    delete dlg;
-                                    dlg = new pu::Dialog("Theme install error", "Atmosphère folder was not found, so the theme cannot be installed.", pu::draw::Font::NintendoStandard);
+                                    dlg = new pu::Dialog("Theme install error", "Atmosphère folder was not found, so the theme cannot be installed.");
                                     dlg->AddOption("Ok");
                                     mainapp->ShowDialog(dlg);
+                                    delete dlg;
                                     return;
                                 }
                                 installdir = "sdmc:/atmosphere";
@@ -501,10 +537,10 @@ namespace gleaf::ui
                             case 1:
                                 if(!hasreinx)
                                 {
-                                    delete dlg;
-                                    dlg = new pu::Dialog("Theme install error", "ReiNX folder was not found, so the theme cannot be installed.", pu::draw::Font::NintendoStandard);
+                                    dlg = new pu::Dialog("Theme install error", "ReiNX folder was not found, so the theme cannot be installed.");
                                     dlg->AddOption("Ok");
                                     mainapp->ShowDialog(dlg);
+                                    delete dlg;
                                     return;
                                 }
                                 installdir = "sdmc:/ReiNX";
@@ -512,10 +548,10 @@ namespace gleaf::ui
                             case 2:
                                 if(!hassxos)
                                 {
-                                    delete dlg;
-                                    dlg = new pu::Dialog("Theme install error", "SX OS folder was not found, so the theme cannot be installed.", pu::draw::Font::NintendoStandard);
+                                    dlg = new pu::Dialog("Theme install error", "SX OS folder was not found, so the theme cannot be installed.");
                                     dlg->AddOption("Ok");
                                     mainapp->ShowDialog(dlg);
+                                    delete dlg;
                                     return;
                                 }
                                 installdir = "sdmc:/sxos";
@@ -527,16 +563,18 @@ namespace gleaf::ui
                         auto nxth = gleaf::theme::ParseNXThemeFile(sdata);
                         if(nxth.Version == -1)
                         {
-                            dlg = new pu::Dialog("Theme install error", "The selected theme file seems to be invalid.", pu::draw::Font::NintendoStandard);
+                            dlg = new pu::Dialog("Theme install error", "The selected theme file seems to be invalid.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
+                            delete dlg;
                             return;
                         }
                         if(!gleaf::theme::ThemeTargetToName.count(nxth.Target))
                         {
-                            dlg = new pu::Dialog("Theme install error", "The target of the selected theme file was not found.", pu::draw::Font::NintendoStandard);
+                            dlg = new pu::Dialog("Theme install error", "The target of the selected theme file was not found.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
+                            delete dlg;
                             return;
                         }
                         std::string msg = "Information about the selected theme file:\n\n";
@@ -545,14 +583,19 @@ namespace gleaf::ui
                         msg += "\nLayout: " + ((nxth.LayoutInfo == "") ? "<no layout information>" : nxth.LayoutInfo);
                         msg += "\nTarget: " + gleaf::theme::ThemeTargetToName[nxth.Target] + " (will patch " + gleaf::theme::ThemeTargetToFileName[nxth.Target] + " file)";
                         msg += "\n\nIf there's another theme installed in the selected CFW, it will be overwritten.\nProceed with the installation?";
-                        dlg = new pu::Dialog("Theme information", msg, pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Theme information", msg);
                         dlg->AddOption("Install");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 1)) return;
+                        if(dlg->UserCancelled() || (sopt == 1))
+                        {
+                            delete dlg;
+                            return;
+                        }
                         mainapp->LoadLayout(mainapp->GetThemeInstallLayout());
                         mainapp->GetThemeInstallLayout()->StartInstall(nxth, sdata, installdir);
+                        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                         break;
                 }
             }
@@ -561,39 +604,54 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                        std::string kdat = "sdmc:/switch/.gleaf/keys.dat";
+                        std::string kdat = "sdmc:/goldleaf/keys.dat";
                         if(!fs::Exists(kdat))
                         {
-                            dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'switch/.gleaf/keys.dat\'.", pu::draw::Font::NintendoStandard);
+                            dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'goldleaf/keys.dat\'.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
+                            delete dlg;
                             return;
                         }
-                        dlg = new pu::Dialog("Extract ExeFs?", "Would you like to extract the ExeFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".ExeFs\' directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("Extract ExeFs?", "Would you like to extract the ExeFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".ExeFs\' directory)\n\n(in case it isn't found, it won't be extracted)");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2)) return;
+                        if(dlg->UserCancelled() || (sopt == 2))
+                        {
+                            delete dlg;
+                            return;
+                        }
                         bool xexefs = false;
                         if(sopt == 0) xexefs = true;
-                        dlg = new pu::Dialog("Extract RomFs?", "Would you like to extract the RomFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".RomFs\' directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
+                        delete dlg;
+                        dlg = new pu::Dialog("Extract RomFs?", "Would you like to extract the RomFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".RomFs\' directory)\n\n(in case it isn't found, it won't be extracted)");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2)) return;
+                        if(dlg->UserCancelled() || (sopt == 2))
+                        {
+                            delete dlg;
+                            return;
+                        }
                         bool xromfs = false;
                         if(sopt == 0) xromfs = true;
-                        dlg = new pu::Dialog("Extract section 0?", "Would you like to extract the section no. 0 of the selected NCA?\nThis section could be present in CNMT NCAs or in program NCAs.\n(it will be extracted to \'" + fullitm + ".Section0\' directory)\n\n(in case it isn't found, it won't be extracted)", pu::draw::Font::NintendoStandard);
+                        delete dlg;
+                        dlg = new pu::Dialog("Extract section 0?", "Would you like to extract the section no. 0 of the selected NCA?\nThis section could be present in CNMT NCAs or in program NCAs.\n(it will be extracted to \'" + fullitm + ".Section0\' directory)\n\n(in case it isn't found, it won't be extracted)");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2)) return;
+                        if(dlg->UserCancelled() || (sopt == 2))
+                        {
+                            delete dlg;
+                            return;
+                        }
                         bool xlogo = false;
                         if(sopt == 0) xlogo = true;
                         gleaf::hactool::Extraction ext;
@@ -603,13 +661,60 @@ namespace gleaf::ui
                         if(xexefs) ext.ExeFs = fullitm + ".ExeFs";
                         if(xromfs) ext.RomFs = fullitm + ".RomFs";
                         if(xlogo) ext.Logo = fullitm + ".Section0";
-                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, "sdmc:/switch/.gleaf/keys.dat");
+                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, "sdmc:/goldleaf/keys.dat");
                         std::string msg = "The content extraction failed.\nAre you sure the NCA is valid (and that it doesn't require a titlekey) or that you have all the necessary keys?";
                         if(ok) msg = "The NCA extraction succeeded.\nAll the selected partitions were extracted (if they existed within the NCA)";
-                        dlg = new pu::Dialog("NCA extraction", msg, pu::draw::Font::NintendoStandard);
+                        dlg = new pu::Dialog("NCA extraction", msg);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
                         this->UpdateElements();
+                        break;
+                }
+            }
+            else if(ext == "nacp") 
+            {
+                switch(sopt)
+                {
+                    case 0:
+                        u8 *rnacp = fs::ReadFile(fullitm).data();
+                        u32 *rnacp32 = (u32*)rnacp;
+                        u64 *rnacp64 = (u64*)rnacp;
+                        NacpStruct *snacp = (NacpStruct*)rnacp;
+                        NacpLanguageEntry *lent = NULL;
+                        nacpGetLanguageEntry(snacp, &lent);
+                        std::string name = "<unknown name>";
+                        std::string author = "<unknown author>";
+                        std::string version = std::string(snacp->version);
+                        if(lent != NULL)
+                        {
+                            name = std::string(lent->name);
+                            author = std::string(lent->author);
+                        };
+                        std::string msg = "Information of the title provided by the NACP file:\n\n";
+                        msg += "Name: " + name;
+                        msg += "\nAuthor: " + author;
+                        msg += "\n(data according to the console's actual language)\n";
+                        msg += "\nVersion: " + version;
+                        msg += "\nAsks for user account? ";
+                        u8 uacc = rnacp[0x3025];
+                        if(uacc == 0) msg += "No";
+                        else if(uacc == 1) msg += "Yes";
+                        else if(uacc == 2) msg += "Yes, and requires to have a NSA active";
+                        else msg += "<unknown value>";
+                        u8 scrc = rnacp[0x3034];
+                        msg += "\nSupports taking screenshots? ";
+                        if(scrc == 0) msg += "Yes";
+                        else if(scrc == 1) msg += "No";
+                        else msg += "<unknown value>";
+                        u8 vidc = rnacp[0x3035];
+                        msg += "\nSupports capturing video? ";
+                        if(scrc == 0) msg += "No";
+                        else if(scrc == 1) msg += "Yes (manually)";
+                        else if(scrc == 2) msg += "Yes";
+                        else msg += "<unknown value>";
+                        dlg = new pu::Dialog("NACP information", msg);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
                         break;
                 }
             }
@@ -626,7 +731,6 @@ namespace gleaf::ui
                 mainapp->UpdateFooter("File deleted: \'" + fullitm + "\'");
                 if(this->WarnNANDWriteAccess()) this->UpdateElements();
             }
-            delete dlg;
         }
     }
 
@@ -638,14 +742,18 @@ namespace gleaf::ui
         {
             std::string msg = "What would you like to do with the selected directory?";
             msg += "\n\nDirectory size: " + fs::FormatSize(fs::GetDirectorySize(fullitm));
-            pu::Dialog *dlg = new pu::Dialog("Directory options", msg, pu::draw::Font::NintendoStandard);
+            pu::Dialog *dlg = new pu::Dialog("Directory options", msg);
             dlg->AddOption("Browse");
             dlg->AddOption("Copy");
             dlg->AddOption("Delete");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 3)) return;
+            if(dlg->UserCancelled() || (sopt == 3))
+            {
+                delete dlg;
+                return;
+            }
             else switch(sopt)
             {
                 case 0:
@@ -768,7 +876,7 @@ namespace gleaf::ui
                     break;
             }
             err += " (error code " + horizon::FormatHex(Res.Error) + ")";
-            pu::Dialog *dlg = new pu::Dialog("NSP installation error", err, pu::draw::Font::NintendoStandard);
+            pu::Dialog *dlg = new pu::Dialog("NSP installation error", err);
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
             delete dlg;
@@ -778,13 +886,16 @@ namespace gleaf::ui
 
     USBInstallLayout::USBInstallLayout() : pu::Layout()
     {
-        this->infoText = new pu::element::TextBlock(150, 300, "USB");
-        this->AddChild(this->infoText);
+        this->installText = new pu::element::TextBlock(150, 300, "Starting NSP installation via USB...");
+        this->installBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->installBar->SetVisible(false);
+        this->AddChild(this->installText);
+        this->AddChild(this->installBar);
     }
 
-    void USBInstallLayout::USBTest()
+    void USBInstallLayout::StartUSBConnection()
     {
-        this->infoText->SetText("Waiting for USB connection...\nPlug this console to a USB-C cable to connect it with a PC and open Goldtree.");
+        this->installText->SetText("Waiting for USB connection...\nPlug this console to a USB-C cable to connect it with a PC and open Goldtree.");
         mainapp->CallForRender();
         while(true)
         {
@@ -796,15 +907,17 @@ namespace gleaf::ui
                 mainapp->CallForRender();
                 return;
             }
+            hidScanInput();
+            if(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B) return;
             mainapp->CallForRender();
         }
-        this->infoText->SetText("USB connection was detected. Open Goldtree to connect it via USB.");
+        this->installText->SetText("USB connection was detected. Open Goldtree to connect it via USB.");
         mainapp->CallForRender();
         usb::Command req = usb::ReadCommand();
         usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
         if(req.MagicOk() && req.IsCommandId(usb::CommandId::ConnectionRequest))
         {
-            this->infoText->SetText("Connection request was received from a Goldtree PC client.\nSending confirmation and waiting to select a NSP...");
+            this->installText->SetText("Connection request was received from a Goldtree PC client.\nSending confirmation and waiting to select a NSP...");
             mainapp->CallForRender();
             usb::Command cmd1 = usb::MakeCommand(usb::CommandId::ConnectionResponse);
             usb::WriteCommand(cmd1);
@@ -813,76 +926,177 @@ namespace gleaf::ui
             {
                 u32 nspnamesize = usb::Read32();
                 std::string nspname = usb::ReadString(nspnamesize);
-                pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?");
                 dlg->AddOption("Install");
                 dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
                 u32 sopt = dlg->GetSelectedIndex();
-                if(dlg->UserCancelled() || (sopt == 1)) return;
+                if(dlg->UserCancelled() || (sopt == 1))
+                {
+                    delete dlg;
+                    return;
+                }
+                delete dlg;
+                dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
+                dlg->AddOption("SD card");
+                dlg->AddOption("Console memory (NAND)");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                sopt = dlg->GetSelectedIndex();
+                if(dlg->UserCancelled() || ( sopt == 2))
+                {
+                    delete dlg;
+                    return;
+                }
+                Destination dst = Destination::SdCard;
+                if(sopt == 0) dst = Destination::SdCard;
+                else if(sopt == 1) dst = Destination::NAND;
+                delete dlg;
+                dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?");
+                dlg->AddOption("Yes");
+                dlg->AddOption("No");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                sopt = dlg->GetSelectedIndex();
+                if(dlg->UserCancelled() || (sopt == 2))
+                {
+                    delete dlg;
+                    return;
+                }
+                delete dlg;
+                bool ignorev = (sopt == 0);
                 usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
                 usb::WriteCommand(cmd2);
-                this->infoText->SetText("Starting installation...");
+                this->installText->SetText("Starting installation...");
                 mainapp->CallForRender();
-                usb::Installer inst(Destination::SdCard, true);
+                usb::Installer inst(dst, ignorev);
                 InstallerResult rc = inst.GetLatestResult();
                 if(!rc.IsSuccess())
                 {
-                    dlg = new pu::Dialog("Error - const", horizon::FormatHex(rc.Error), pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
+                    mainapp->GetInstallLayout()->LogError(rc);
+                    return;
                 }
-                this->infoText->SetText("Processing title records...");
+                this->installText->SetText("Processing title records...");
                 mainapp->CallForRender();
                 rc = inst.ProcessRecords();
                 if(!rc.IsSuccess())
                 {
-                    dlg = new pu::Dialog("Error - record", horizon::FormatHex(rc.Error), pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
+                    mainapp->GetInstallLayout()->LogError(rc);
+                    return;
                 }
-                this->infoText->SetText("Starting to write contents...");
+                this->installText->SetText("Starting to write contents...");
                 mainapp->CallForRender();
-                rc = inst.ProcessContents([&](std::string Name, u32 Content, u32 Count, int Percentage)
+                this->installBar->SetVisible(true);
+                rc = inst.ProcessContents([&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed)
                 {
-                    mainapp->UpdateFooter(Name + " (" + std::to_string(Content + 1) + " of " + std::to_string(Count) + ") - " + std::to_string(Percentage) + "%");
+                    std::string name = "Writing content \'"  + Name + "\'... (NCA " + std::to_string(Index + 1) + " of " + std::to_string(Count) + ")";
+                    this->installText->SetText(name);
+                    this->installBar->SetProgress((u8)Percentage);
+                    mainapp->UpdateFooter("Average speed: " + horizon::DoubleToString(Speed) + " MB/s");
                     mainapp->CallForRender();
                 });
+                this->installBar->SetVisible(false);
                 if(!rc.IsSuccess())
                 {
-                    dlg = new pu::Dialog("Error - install", horizon::FormatHex(rc.Error), pu::draw::Font::NintendoStandard);
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
+                    mainapp->GetInstallLayout()->LogError(rc);
+                    return;
                 }
                 inst.Finish();
-                mainapp->UpdateFooter("The NSP was successfully installed.");
+                mainapp->UpdateFooter("The NSP was successfully installed via USB. You can close Goldtree now.");
                 mainapp->CallForRender();
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
             }
         }
         else
         {
-            this->infoText->SetText("An invalid command was received.\nPress B to return to Goldleaf's menu and try again.\nAre you sure you're using Goldtree?");
+            this->installText->SetText("An invalid command was received.\nPress B to return to Goldleaf's menu and try again.\nAre you sure you're using Goldtree?");
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
         }
-        usb::WriteCommand(fcmd);
-        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+    }
+
+    void USBInstallLayout::LogError(InstallerResult Res)
+    {
+        if(!Res.IsSuccess())
+        {
+            std::string err = "An error ocurred while installing the NSP via USB:\n\n";
+            if(Res.Type == InstallerError::Success) return;
+            switch(Res.Type)
+            {
+                case InstallerError::BadNSP:
+                    err += "Failed to read from the NSP file.\nThis error could be caused by various reasons: invalid NSP, minimum firmware mismatch...";
+                    break;
+                case InstallerError::NSPOpen:
+                    err += "Failed to open the NSP file. Does it exist?";
+                    break;
+                case InstallerError::BadCNMTNCA:
+                    err += "Failed to read from the meta NCA (CNMT NCA) within the NSP.";
+                    break;
+                case InstallerError::CNMTMCAOpen:
+                    err += "Failed to open the meta NCA (CNMT NCA) within the NSP.";
+                    break;
+                case InstallerError::BadCNMT:
+                    err += "Failed to read from the meta file (CNMT) within the CNMT NCA.";
+                    break;
+                case InstallerError::CNMTOpen:
+                    err += "Failed to open the meta file (CNMT) within the CNMT NCA.";
+                    break;
+                case InstallerError::BadControlNCA:
+                    err += "Failed to open the control NCA within the NSP.";
+                    break;
+                case InstallerError::MetaDatabaseOpen:
+                    err += "Failed to open content meta database for record processing.";
+                    break;
+                case InstallerError::MetaDatabaseSet:
+                    err += "Failed to set in the content meta database for record processing.";
+                    break;
+                case InstallerError::MetaDatabaseCommit:
+                    err += "Failed to commit on the content meta database for record processing.";
+                    break;
+                case InstallerError::ContentMetaCount:
+                    err += "Failed to count content meta for registered application.";
+                    break;
+                case InstallerError::ContentMetaList:
+                    err += "Failed to list content meta for registered application.";
+                    break;
+                case InstallerError::RecordPush:
+                    err += "Failed to push record for application.";
+                    break;
+                case InstallerError::InstallBadNCA:
+                    err += "Failed to find NCA content to write within the NSP.";
+                    break;
+                default:
+                    err += "<undocumented error>";
+                    break;
+            }
+            err += " (error code " + horizon::FormatHex(Res.Error) + ")";
+            pu::Dialog *dlg = new pu::Dialog("NSP via USB installation error", err);
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            delete dlg;
+            mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
+        }
     }
 
     ThemeInstallLayout::ThemeInstallLayout() : pu::Layout()
     {
-        this->infoText = new pu::element::TextBlock(310, 310, "Starting theme installation...");
+        this->infoText = new pu::element::TextBlock(150, 300, "Starting theme installation...");
         this->AddChild(this->infoText);
     }
 
     void ThemeInstallLayout::StartInstall(gleaf::theme::ThemeFileManifest &NXTheme, gleaf::sarc::SARC::SarcData &SData, std::string CFWPath)
     {
-        std::string baseszs = "sdmc:/switch/.gleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
+        std::string baseszs = "sdmc:/goldleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
         if(!gleaf::fs::Exists(baseszs))
         {
-            std::string kfile = "sdmc:/switch/.gleaf/keys.dat";
+            std::string kfile = "sdmc:/goldleaf/keys.dat";
             if(!gleaf::fs::Exists(kfile))
             {
-                pu::Dialog *dlg = new pu::Dialog("Theme install error", "To install themes, keys are required to dump qlaunch SZS contents in case they aren't found.\nPlace a \'keys.dat\' file with keys in \'switch/.gleaf\' folder.", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "To install themes, keys are required to dump qlaunch SZS contents in case they aren't found.\nPlace a \'keys.dat\' file with keys in \'goldleaf\' folder.");
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
+                delete dlg;
                 return;
             }
             this->infoText->SetText("Required qlaunch SZS contents weren't found.\nExtracting them from system's qlaunch NCA...\n(this might take some time)");
@@ -890,10 +1104,11 @@ namespace gleaf::ui
             bool exok = gleaf::horizon::ExportQlaunchRomFs();
             if(!exok)
             {
-                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to export qlaunch's files from the console.\nThey are required to proceed with the installation.", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to export qlaunch's files from the console.\nThey are required to proceed with the installation.");
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                delete dlg;
                 return;
             }
             else
@@ -910,10 +1125,11 @@ namespace gleaf::ui
             auto ptp = gleaf::theme::DetectSarc(szstp);
             if(ptp.FirmName == "")
             {
-                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.", pu::draw::Font::NintendoStandard);
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.");
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                delete dlg;
                 return;
             }
             bool p5x = false;
@@ -922,7 +1138,7 @@ namespace gleaf::ui
             if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
             {
                 p5x = true;
-                std::string cszs = "sdmc:/switch/.gleaf/qlaunch/lyt/common.szs";
+                std::string cszs = "sdmc:/goldleaf/qlaunch/lyt/common.szs";
                 auto c_fdata = gleaf::fs::ReadFile(cszs);
                 auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
                 gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
@@ -930,19 +1146,21 @@ namespace gleaf::ui
                 auto pres = gleaf::theme::PatchBgLayouts(commonszs, pcommon);
                 if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
                 {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.", pu::draw::Font::NintendoStandard);
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                     mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    delete dlg;
                     return;
                 }
                 pres = gleaf::theme::PatchBntx(commonszs, SData.files["image.dds"], pcommon);
                 if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
                 {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.", pu::draw::Font::NintendoStandard);
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                     mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    delete dlg;
                     return;
                 }
                 gleaf::fs::CreateDirectory(CFWPath + "/titles");
@@ -959,19 +1177,21 @@ namespace gleaf::ui
                 auto pres = gleaf::theme::PatchBgLayouts(szstp, ptp);
                 if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
                 {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.", pu::draw::Font::NintendoStandard);
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                     mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    delete dlg;
                     return;
                 }
                 pres = gleaf::theme::PatchBntx(szstp, SData.files["image.dds"], ptp);
                 if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
                 {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.", pu::draw::Font::NintendoStandard);
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                     mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    delete dlg;
                     return;
                 }
             }
@@ -983,19 +1203,21 @@ namespace gleaf::ui
                 auto pt = gleaf::lyt::LoadLayout(jstr);
                 if(!pt.IsCompatible(szstp))
                 {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "The provided layout was not compatible with the patch to apply.", pu::draw::Font::NintendoStandard);
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "The provided layout was not compatible with the patch to apply.");
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                     mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    delete dlg;
                     return;
                 }
                 auto pres = gleaf::theme::PatchLayouts(szstp, pt.Files);
                 if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
                 {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layouts.", pu::draw::Font::NintendoStandard);
+                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layouts.");
                     dlg->AddOption("Ok");
                     mainapp->ShowDialog(dlg);
                     mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                    delete dlg;
                     return;
                 }
             }
@@ -1011,7 +1233,7 @@ namespace gleaf::ui
                 gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
             }
         }
-        this->infoText->SetText("Done!");
+        mainapp->UpdateFooter("The Home Menu theme was successfully installed in \'" + CFWPath + "\'.");
         mainapp->CallForRender();
     }
 
@@ -1042,18 +1264,7 @@ namespace gleaf::ui
             {
                 horizon::Title title = this->titles[i];
                 pu::element::MenuItem *itm = new pu::element::MenuItem(title.Name);
-                switch(title.Location)
-                {
-                    case Storage::GameCart:
-                        itm->SetIcon("romfs:/Common/GameCart.png");
-                        break;
-                    case Storage::NAND:
-                        itm->SetIcon("romfs:/Common/NAND.png");
-                        break;
-                    case Storage::SdCard:
-                        itm->SetIcon("romfs:/Common/SdCard.png");
-                        break;
-                }
+                itm->SetIcon(title.GetExportedIconPath());
                 itm->AddOnClick(std::bind(&TitleManagerLayout::titles_Click, this));
                 this->titlesMenu->AddItem(itm);
             }
@@ -1064,7 +1275,6 @@ namespace gleaf::ui
     void TitleManagerLayout::titles_Click()
     {
         horizon::Title seltit = this->titles[this->titlesMenu->GetSelectedIndex()];
-        if(seltit.Location == Storage::GameCart) return;
         std::string info = "Information about selected title:\n\n\n";
         info += "Name: " + seltit.Name;
         info += "\nAuthor: " + seltit.Author;
@@ -1076,37 +1286,54 @@ namespace gleaf::ui
                 info += "Game cart";
                 break;
             case Storage::NAND:
-                info += "NAND (system memory)";
+                info += "Console memory (NAND)";
                 break;
             case Storage::SdCard:
                 info += "SD card";
                 break;
         }
-        info += "\n\nApplication Id: " + horizon::FormatApplicationId(seltit.ApplicationId);
-        pu::Dialog *dlg = new pu::Dialog("Installed title information", info, pu::draw::Font::NintendoStandard);
-        pu::element::Image *img = new pu::element::Image(994, 30, seltit.GetExportedIconPath());
-        dlg->SetIcon(img);
+        info += "\nApplication Id: " + horizon::FormatApplicationId(seltit.ApplicationId);
+        info += "\n\nThe JPEG icon and the NACP data can be found at:";
+        info += "\n\'sdmc:/goldleaf/title/" + horizon::FormatApplicationId(seltit.ApplicationId) + ".jpg\'";
+        info += "\n\'sdmc:/goldleaf/title/" + horizon::FormatApplicationId(seltit.ApplicationId) + ".nacp\'";
+        pu::Dialog *dlg = new pu::Dialog("Installed title information", info);
+        dlg->SetIcon(seltit.GetExportedIconPath(), 994, 30);
+        if(seltit.Location == gleaf::Storage::GameCart)
+        {
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            delete dlg;
+            return;
+        }
         dlg->AddOption("Uninstall");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 1)) return;
+        if(dlg->UserCancelled() || (sopt == 1))
+        {
+            delete dlg;
+            return;
+        }
         else
         {
             delete dlg;
-            dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?", pu::draw::Font::NintendoStandard);
+            dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?");
             dlg->AddOption("Yes");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1)) return;
+            if(dlg->UserCancelled() || (sopt == 1))
+            {
+                delete dlg;
+                return;
+            }
             else
             {
                 Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
                 std::string resstr = "The title was successfully uninstalled from this console.";
                 if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
                 delete dlg;
-                dlg = new pu::Dialog("Title uninstall", resstr, pu::draw::Font::NintendoStandard);
+                dlg = new pu::Dialog("Title uninstall", resstr);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
@@ -1170,28 +1397,36 @@ namespace gleaf::ui
         std::string info = "Information about selected ticket:\n\n\n";
         info += "Application Id: " + horizon::FormatApplicationId(seltick.GetApplicationId());
         info += "\nKey generation: " + std::to_string(seltick.GetKeyGeneration());
-        pu::Dialog *dlg = new pu::Dialog("Installed ticket information", info, pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog("Installed ticket information", info);
         dlg->AddOption("Remove ticket");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 1)) return;
+        if(dlg->UserCancelled() || (sopt == 1))
+        {
+            delete dlg;
+            return;
+        }
         else
         {
             delete dlg;
-            dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?", pu::draw::Font::NintendoStandard);
+            dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?");
             dlg->AddOption("Yes");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1)) return;
+            if(dlg->UserCancelled() || (sopt == 1))
+            {
+                delete dlg;
+                return;
+            }
             else
             {
                 Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
                 std::string resstr = "The ticket was successfully removed from this console.";
                 if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
                 delete dlg;
-                dlg = new pu::Dialog("Ticket uninstall", resstr, pu::draw::Font::NintendoStandard);
+                dlg = new pu::Dialog("Ticket uninstall", resstr);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
@@ -1233,7 +1468,7 @@ namespace gleaf::ui
             htheme = true;
         }
         else msg += "\nThere are no Home Menu modifications in this CFW, so it doesn't have any theme installed.";
-        pu::Dialog *dlg = new pu::Dialog("CFW information", msg, pu::draw::Font::NintendoStandard);   
+        pu::Dialog *dlg = new pu::Dialog("CFW information", msg);   
         if(htheme)
         {
             dlg->AddOption("Remove modification");
@@ -1260,12 +1495,10 @@ namespace gleaf::ui
     {
         horizon::FwVersion fwv = horizon::GetFwVersion();
         this->fwText = new pu::element::TextBlock(30, 630, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
-        this->sdText = new pu::element::TextBlock(280, 300, "SD card");
-        this->sdText->SetFontSize(35);
+        this->sdText = new pu::element::TextBlock(280, 300, "SD card", 35);
         this->sdBar = new pu::element::ProgressBar(220, 345, 300, 30);
         this->sdFreeText = new pu::element::TextBlock(225, 385, "free");
-        this->nandText = new pu::element::TextBlock(600, 300, "Console memory (NAND)");
-        this->nandText->SetFontSize(35);
+        this->nandText = new pu::element::TextBlock(600, 300, "Console memory (NAND)", 35);
         this->nandBar = new pu::element::ProgressBar(660, 345, 300, 30);
         this->nandFreeText = new pu::element::TextBlock(655, 385, "free");
         this->safeText = new pu::element::TextBlock(105, 480, "NAND (SAFE partition)");
@@ -1351,8 +1584,7 @@ namespace gleaf::ui
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
         this->UpdateValues();
-        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...");
-        this->footerText->SetFontSize(20);
+        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...", 20);
         this->mainMenu->AddChild(this->bannerImage);
         this->sdBrowser->AddChild(this->bannerImage);
         this->nandBrowser->AddChild(this->bannerImage);
@@ -1448,18 +1680,18 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
-                pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?", pu::draw::Font::NintendoStandard);
-                if(cdir) dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/Directory.png"));
+                pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?");
+                if(cdir) dlg->SetIcon("romfs:/FileSystem/Directory.png", 1150, 30);
                 else
                 {
                     std::string ext = fs::GetExtension(clipboard);
-                    if(ext == "nsp") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NSP.png"));
-                    else if(ext == "nro") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NRO.png"));
-                    else if(ext == "tik") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/TIK.png"));
-                    else if(ext == "cert") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/CERT.png"));
-                    else if(ext == "nca") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NCA.png"));
-                    else if(ext == "nxtheme") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NXTheme.png"));
-                    else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                    if(ext == "nsp") dlg->SetIcon("romfs:/FileSystem/NSP.png", 1150, 30);
+                    else if(ext == "nro") dlg->SetIcon("romfs:/FileSystem/NRO.png", 1150, 30);
+                    else if(ext == "tik") dlg->SetIcon("romfs:/FileSystem/TIK.png", 1150, 30);
+                    else if(ext == "cert") dlg->SetIcon("romfs:/FileSystem/CERT.png", 1150, 30);
+                    else if(ext == "nca") dlg->SetIcon("romfs:/FileSystem/NCA.png", 1150, 30);
+                    else if(ext == "nxtheme") dlg->SetIcon("romfs:/FileSystem/NXTheme.png", 1150, 30);
+                    else dlg->SetIcon("romfs:/FileSystem/File.png", 1150, 30);
                 }
                 dlg->AddOption("Yes");
                 dlg->AddOption("Cancel");
@@ -1493,18 +1725,18 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
-                pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?", pu::draw::Font::NintendoStandard);
-                if(cdir) dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/Directory.png"));
+                pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?");
+                if(cdir) dlg->SetIcon("romfs:/FileSystem/Directory.png", 1150, 30);
                 else
                 {
                     std::string ext = fs::GetExtension(clipboard);
-                    if(ext == "nsp") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NSP.png"));
-                    else if(ext == "nro") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NRO.png"));
-                    else if(ext == "tik") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/TIK.png"));
-                    else if(ext == "cert") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/CERT.png"));
-                    else if(ext == "nca") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NCA.png"));
-                    else if(ext == "nxtheme") dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/NXTheme.png"));
-                    else dlg->SetIcon(new pu::element::Image(1150, 30, "romfs:/FileSystem/File.png"));
+                    if(ext == "nsp") dlg->SetIcon("romfs:/FileSystem/NSP.png", 1150, 30);
+                    else if(ext == "nro") dlg->SetIcon("romfs:/FileSystem/NRO.png", 1150, 30);
+                    else if(ext == "tik") dlg->SetIcon("romfs:/FileSystem/TIK.png", 1150, 30);
+                    else if(ext == "cert") dlg->SetIcon("romfs:/FileSystem/CERT.png", 1150, 30);
+                    else if(ext == "nca") dlg->SetIcon("romfs:/FileSystem/NCA.png", 1150, 30);
+                    else if(ext == "nxtheme") dlg->SetIcon("romfs:/FileSystem/NXTheme.png", 1150, 30);
+                    else dlg->SetIcon("romfs:/FileSystem/File.png", 1150, 30);
                 }
                 dlg->AddOption("Yes");
                 dlg->AddOption("Cancel");
@@ -1628,7 +1860,7 @@ namespace gleaf::ui
 
     void ShowRebootShutDownDialog(std::string Title, std::string Message)
     {
-        pu::Dialog *dlg = new pu::Dialog(Title, Message + "\nYou can always hold Vol- or Vol+ and reboot the console to automatically enter RCM mode.", pu::draw::Font::NintendoStandard);
+        pu::Dialog *dlg = new pu::Dialog(Title, Message + "\nYou can always hold Vol- or Vol+ and reboot the console to automatically enter RCM mode.");
         dlg->AddOption("Shut down");
         dlg->AddOption("Reboot");
         dlg->AddOption("Cancel");

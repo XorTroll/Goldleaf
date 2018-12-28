@@ -137,7 +137,7 @@ namespace gleaf::nsp
                 }
                 closedir(d);
                 std::ifstream dat(icon);
-                this->icn = ("sdmc:/switch/.gleaf/meta/" + horizon::GetStringFromNCAId(record.NCAId) + ".jpg");
+                this->icn = ("sdmc:/goldleaf/meta/" + horizon::GetStringFromNCAId(record.NCAId) + ".jpg");
                 remove(this->icn.c_str());
                 std::ofstream out(this->icn);
                 out << dat.rdbuf();

@@ -31,9 +31,6 @@ namespace pu
             bool HasBackgroundImage();
             void SetBackgroundImage(std::string Path);
             void DeleteBackgroundImage();
-            void SetCustomFont(std::string FontPath);
-            bool UsesCustomFont();
-            std::string GetCustomFont();
             void AddThread(std::function<void()> Callback);
             void SetOnInput(std::function<void(u64 Down, u64 Up, u64 Held)> Callback);
             void ShowDialog(Dialog *ToShow);
@@ -43,6 +40,7 @@ namespace pu
         protected:
             draw::Color bgcolor;
             std::string bgimage;
+            render::NativeTexture ntex;
             bool hasimage;
             bool show;
             s32 fact;

@@ -42,15 +42,15 @@ Manage currently installed tickets, being able to see the application they belon
 
 Show SD card's and NAND partitions' space, and the firmware version (number and display name) of the current console.
 
-Install themes from the new format created by exelix and Qcean team: nxtheme files. This is a safe way to share themes, and Goldleaf can manage their installation. You will need to provide qlaunch's (aka Home Menu) RomFs (or at least the files within `lyt` folder) in `switch/.gleaf/qlaunch` directory. (not necessary, check the "providing keys" features below)
+Install themes from the new format created by exelix and Qcean team: nxtheme files. This is a safe way to share themes, and Goldleaf can manage their installation. You will need to provide qlaunch's (aka Home Menu) RomFs (or at least the files within `lyt` folder) in `goldleaf/qlaunch` directory. (not necessary, check the "providing keys" features below)
 
 As some other miscellaneous options, you can easily reboot or shut down your console from Goldleaf, by pressing ZL or ZR in any moment.
 
 ### Providing keys
 
-If you provide a file with several Switch keys (commonly named as `prod.keys` or `keys.dat`) you will be able to do some extra stuff with Goldleaf: (remember that you have to place it as `switch/.gleaf/keys.dat`)
+If you provide a file with several Switch keys (commonly named as `prod.keys` or `keys.dat`) you will be able to do some extra stuff with Goldleaf: (remember that you have to place it as `goldleaf/keys.dat`)
 
-- Unless you already have dumped qlaunch's (aka Home Menu) RomFs (or at least the files within `lyt` folder) in `switch/.gleaf/qlaunch` directory, you will need to provide the previously mentioned key file with several keys, so that Goldleaf can extract directly the RomFs of the console's qlaunch contents to use it.
+- Unless you already have dumped qlaunch's (aka Home Menu) RomFs (or at least the files within `lyt` folder) in `goldleaf/qlaunch` directory, you will need to provide the previously mentioned key file with several keys, so that Goldleaf can extract directly the RomFs of the console's qlaunch contents to use it.
 
 - You have the option to extract NCA contents (ExeFs, RomFs or section 0), but you will need the previously mentioned keys too.
 
@@ -84,13 +84,15 @@ Nothing else is required. No external files, or extra configuration are required
 
   Having it installed, you should be able to launch Goldleaf as a normal title.
 
-## Goldtree
+## Goldtree and USB installs
 
 Goldtree is a C# CLI tool for USB installations. Currently it's only available for Windows systems, but it simplifies the process.
 
 USB communication is slightly different from Tinfoil's one, so Tinfoil's old Python script, AluminumFoil nor other tools won't work properly.
 
 Goldtree will ask you to choose a NSP after establishing connection with Goldleaf, and it will be received and installed by Goldleaf.
+
+Keep in mind that USB support is a bit unstable, and sometimes it might fail. Anyway, it should work most of the times.
 
 ## Basic controls
 

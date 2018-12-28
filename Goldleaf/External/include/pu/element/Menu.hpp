@@ -22,6 +22,7 @@ namespace pu::element
     {
         public:
             MenuItem(std::string Name);
+            ~MenuItem();
             std::string GetName();
             void SetName(std::string Name);
             void AddOnClick(std::function<void()> Callback, u64 Key = KEY_A);
@@ -31,18 +32,25 @@ namespace pu::element
             std::string GetIcon();
             void SetIcon(std::string Icon);
             bool HasIcon();
+            render::NativeFont GetFont();
+            render::NativeTexture GetNameTexture();
+            render::NativeTexture GetIconTexture();
         private:
             std::string name;
             bool hasicon;
             std::string icon;
             std::vector<std::function<void()>> cbs;
             std::vector<u64> cbipts;
+            render::NativeFont font;
+            render::NativeTexture itex;
+            render::NativeTexture ntex;
     };
 
     class Menu : public Element
     {
         public:
             Menu(u32 X, u32 Y, u32 Width, draw::Color OptionColor, u32 ItemSize, u32 ItemsToShow);
+            ~Menu();
             u32 GetX();
             void SetX(u32 X);
             u32 GetY();
@@ -54,14 +62,10 @@ namespace pu::element
             void SetItemSize(u32 ItemSize);
             u32 GetNumberOfItemsToShow();
             void SetNumberOfItemsToShow(u32 ItemsToShow);
-            draw::Font GetFont();
-            void SetFont(draw::Font Font);
-            u32 GetFontSize();
-            void SetFontSize(u32 Size);
             draw::Color GetColor();
-            void SetColor(draw::Color OptionColor);
+            void SetColor(draw::Color Color);
             draw::Color GetScrollbarColor();
-            void SetScrollbarColor(draw::Color ScrollbarColor);
+            void SetScrollbarColor(draw::Color Color);
             void SetOnSelectionChanged(std::function<void()> Callback);
             void AddItem(MenuItem *Item);
             void ClearItems();
@@ -84,8 +88,6 @@ namespace pu::element
             s32 selfact;
             draw::Color scb;
             draw::Color clr;
-            draw::Font fnt;
-            u32 fsize;
             bool icdown;
             std::function<void()> onselch;
             std::vector<MenuItem*> itms;

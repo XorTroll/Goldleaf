@@ -19,7 +19,8 @@ namespace pu::element
     class TextBlock : public Element
     {
         public:
-            TextBlock(u32 X, u32 Y, std::string Text);
+            TextBlock(u32 X, u32 Y, std::string Text, u32 FontSize = 25);
+            ~TextBlock();
             u32 GetX();
             void SetX(u32 X);
             u32 GetY();
@@ -28,20 +29,18 @@ namespace pu::element
             u32 GetHeight();
             std::string GetText();
             void SetText(std::string Text);
-            draw::Font GetFont();
-            void SetFont(draw::Font Font);
-            u32 GetFontSize();
-            void SetFontSize(u32 Size);
+            void SetFont(render::NativeFont Font);
             draw::Color GetColor();
-            void SetColor(draw::Color TextColor);
+            void SetColor(draw::Color Color);
             void OnRender(render::Renderer *Drawer);
             void OnInput(u64 Down, u64 Up, u64 Held);
         private:
             std::string text;
             u32 x;
             u32 y;
-            draw::Font fnt;
+            render::NativeFont fnt;
             u32 fsize;
             draw::Color clr;
+            render::NativeTexture ntex;
     };
 }

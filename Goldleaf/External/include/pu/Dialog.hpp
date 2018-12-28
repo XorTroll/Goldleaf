@@ -12,7 +12,7 @@
 */
 
 #pragma once
-#include <pu/element/Image.hpp>
+#include <pu/render.hpp>
 #include <vector>
 
 namespace pu
@@ -20,24 +20,30 @@ namespace pu
     class Dialog
     {
         public:
-            Dialog(std::string Title, std::string Content, draw::Font Font);
+            Dialog(std::string Title, std::string Content);
+            ~Dialog();
             void AddOption(std::string Name);
-            void SetIcon(element::Image *Icon);
+            void SetIcon(std::string Icon, u32 IconX, u32 IconY);
             bool Hasicon();
             void Show(render::Renderer *Drawer);
             bool UserCancelled();
             u32 GetSelectedIndex();
         private:
-            std::string title;
-            std::string cnt;
-            std::vector<std::string> opts;
+            render::NativeFont tfont;
+            render::NativeFont cfont;
+            render::NativeFont ofont;
+            render::NativeTexture title;
+            render::NativeTexture cnt;
+            std::vector<std::string> sopts;
+            std::vector<render::NativeTexture> opts;
             u32 osel;
             bool cancel;
             bool hicon;
-            element::Image *icon;
+            render::NativeTexture icon;
+            u32 ix;
+            u32 iy;
             u32 prevosel;
             s32 pselfact;
             s32 selfact;
-            draw::Font fnt;
     };
 }

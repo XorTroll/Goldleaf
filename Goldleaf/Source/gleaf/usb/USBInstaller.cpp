@@ -54,11 +54,7 @@ namespace gleaf::usb
             if(cnt.Name.substr(cnt.Name.length() - 8) == "cnmt.nca")
             { 
                 cnmtdata = cnt;
-                this->ProcessContent(i, [&](std::string Name, u32 Content, u32 Count, int Percentage)
-                {
-                    gleaf::ui::mainapp->UpdateFooter(std::to_string(Percentage) + "%");
-                    gleaf::ui::mainapp->CallForRender();
-                });
+                this->ProcessContent(i, [&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed){});
             }
         }
         NcmNcaId cnmtid = horizon::GetNCAIdFromString(cnmtdata.Name);
@@ -169,7 +165,7 @@ namespace gleaf::usb
         return this->irc;
     }
 
-    InstallerResult Installer::ProcessContent(u32 Index, std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback)
+    InstallerResult Installer::ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback)
     {
         NSPContentData cnt = this->cnts[Index];
         std::string name = cnt.Name;
@@ -210,14 +206,14 @@ namespace gleaf::usb
                     u64 mbtotal = (bphw.GetTotalDataSize() / 1048576);
                     u64 mbdlsz = (bphw.GetSizeBuffered() / 1048576);
                     int perc = (int)(((double)bphw.GetSizeBuffered() / (double)bphw.GetTotalDataSize()) * 100.0);
-                    Callback(name, Index, cnts.size(), perc);
+                    Callback(name, Index, cnts.size(), perc, speed);
                 }
                 u64 mbtotal = (bphw.GetTotalDataSize() / 1048576);
                 while(!bphw.IsPlaceHolderComplete())
                 {
                     u64 mbinsz = (bphw.GetSizeWrittenToPlaceHolder() / 1048576);
                     int perc = (int)(((double)bphw.GetSizeWrittenToPlaceHolder() / (double)bphw.GetTotalDataSize()) * 100.0);
-                    Callback(name, Index, cnts.size(), perc);
+                    // Callback(name, Index, cnts.size(), perc, speed);
                 }
                 thrd_join(tcntread, NULL);
                 thrd_join(tcntappend, NULL);
@@ -251,7 +247,7 @@ namespace gleaf::usb
         return this->irc;
     }
 
-    InstallerResult Installer::ProcessContents(std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback)
+    InstallerResult Installer::ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback)
     {
         for(u32 i = 0; i < this->cnts.size(); i++)
         {

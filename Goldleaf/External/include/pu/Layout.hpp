@@ -20,6 +20,7 @@ namespace pu
     {
         public:
             Layout();
+            ~Layout();
             void AddChild(element::Element *Child);
             void ClearChildren();
             element::Element *GetChildAt(u32 Index);

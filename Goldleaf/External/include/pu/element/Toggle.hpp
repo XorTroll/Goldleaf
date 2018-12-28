@@ -19,7 +19,8 @@ namespace pu::element
     class Toggle : public Element
     {
         public:
-            Toggle(u32 X, u32 Y, std::string Content, u64 Key, draw::Color Checked);
+            Toggle(u32 X, u32 Y, std::string Content, u64 Key, draw::Color Color);
+            ~Toggle();
             u32 GetX();
             void SetX(u32 X);
             u32 GetY();
@@ -28,10 +29,7 @@ namespace pu::element
             u32 GetHeight();
             std::string GetContent();
             void SetContent(std::string Content);
-            draw::Font GetFont();
-            void SetFont(draw::Font Font);
-            u32 GetFontSize();
-            void SetFontSize(u32 Size);
+            void SetFont(render::NativeFont Font);
             draw::Color GetColor();
             void SetColor(draw::Color General);
             u64 GetKey();
@@ -46,8 +44,9 @@ namespace pu::element
             u64 key;
             bool checked;
             draw::Color clr;
-            draw::Font fnt;
+            render::NativeFont fnt;
             u32 fsize;
             s32 togfact;
+            render::NativeTexture ntex;
     };
 }

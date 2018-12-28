@@ -21,6 +21,7 @@ namespace pu::element
     {
         public:
             Button(u32 X, u32 Y, u32 Width, u32 Height, std::string Content, draw::Color Color);
+            ~Button();
             u32 GetX();
             void SetX(u32 X);
             u32 GetY();
@@ -33,8 +34,7 @@ namespace pu::element
             void SetContent(std::string Content);
             draw::Color GetColor();
             void SetColor(draw::Color Color);
-            draw::Font GetContentFont();
-            void SetContentFont(draw::Font Font);
+            void SetContentFont(render::NativeFont Font);
             void SetOnClick(std::function<void()> ClickCallback);
             void OnRender(render::Renderer *Drawer);
             void OnInput(u64 Down, u64 Up, u64 Held);
@@ -43,12 +43,12 @@ namespace pu::element
             u32 y;
             u32 w;
             u32 h;
-            draw::Font fnt;
-            u32 fsize;
+            render::NativeFont fnt;
             draw::Color clr;
             std::string cnt;
             std::function<void()> clickcb;
             bool hover;
             s32 hoverfact;
+            render::NativeTexture ntex;
     };
 }

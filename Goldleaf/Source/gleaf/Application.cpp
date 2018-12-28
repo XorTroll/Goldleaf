@@ -14,11 +14,10 @@ namespace gleaf
         if(R_FAILED(setsysInitialize())) exit(0);
         if(R_FAILED(usbCommsInitialize())) exit(0);
         if(R_FAILED(lrInitialize())) exit(0);
-        fs::CreateDirectory("sdmc:/switch");
-        fs::CreateDirectory("sdmc:/switch/.gleaf");
-        fs::CreateDirectory("sdmc:/switch/.gleaf/meta");
-        fs::CreateDirectory("sdmc:/switch/.gleaf/title");
-        fs::CreateDirectory("sdmc:/switch/.gleaf/qlaunch");
+        fs::CreateDirectory("sdmc:/goldleaf");
+        fs::CreateDirectory("sdmc:/goldleaf/meta");
+        fs::CreateDirectory("sdmc:/goldleaf/title");
+        fs::CreateDirectory("sdmc:/goldleaf/qlaunch");
     }
 
     void Finalize()

@@ -71,9 +71,11 @@ namespace gleaf::ui
     {
         public:
             USBInstallLayout();
-            void USBTest();
+            void StartUSBConnection();
+            void LogError(gleaf::InstallerResult Res);
         private:
-            pu::element::TextBlock *infoText;
+            pu::element::TextBlock *installText;
+            pu::element::ProgressBar *installBar;
     };
 
     class ThemeInstallLayout : public pu::Layout

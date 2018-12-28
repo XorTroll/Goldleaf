@@ -20,6 +20,7 @@ namespace pu::element
     {
         public:
             Element();
+            virtual ~Element();
             virtual u32 GetX() = 0;
             virtual u32 GetY() = 0;
             virtual u32 GetWidth() = 0;

@@ -33,4 +33,5 @@ namespace gleaf::horizon
     std::string GetCurrentTime();
     FwVersion GetFwVersion();
     std::string FormatHex(u32 Number);
+    std::string DoubleToString(double Number);
 }

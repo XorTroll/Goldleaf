@@ -18,8 +18,8 @@ namespace gleaf::usb
         public:
             Installer(Destination Location, bool IgnoreVersion);
             InstallerResult ProcessRecords();
-            InstallerResult ProcessContent(u32 Index, std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback);
-            InstallerResult ProcessContents(std::function<void(std::string Name, u32 Content, u32 ContentCount, int Percentage)> Callback);
+            InstallerResult ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
+            InstallerResult ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             InstallerResult GetLatestResult();
             void Finish();
         private:
