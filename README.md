@@ -258,4 +258,4 @@ If you would like to be more informed about my projects' status and support, you
 
 If you like my work, you should take a look at my [Patreon](https://patreon.com/xortroll) page. For those who support me, you will be credited on my projects, and you'll gain some nice extras on H&H!
 
-<iframe src="https://discordapp.com/widget?id=472179996857860096&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0"></iframe>
+https://discord.gg/3KpFyaH
