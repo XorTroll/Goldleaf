@@ -6,15 +6,14 @@ using libusbK;
 
 namespace gtree
 {
-    // Command Ids for USB connections:
     public enum CommandId
     {
-        ConnectionRequest, // Sent by Goldtree to Goldleaf to ask for connection
-        ConnectionResponse, // Sent by Goldleaf to Goldtree like "accepting" the connection (to ensure the USB connection is with Goldleaf)
-        NSPName, // Sent by Goldtree to Goldleaf with the name of the selected NSP, as a piece of information
-        Start, // Sent by Goldleaf to Goldtree as an approval to start sending NSP contents
-        NSPData, // Sent by Goldtree to Goldleaf with offsets, sizes and names of all the files inside the NSP
-        NSPContent, // Sent by Goldleaf to Goldtree each time it requests the contents of a NCA inside the NSP
+        ConnectionRequest,
+        ConnectionResponse,
+        NSPName,
+        Start,
+        NSPData,
+        NSPContent,
         NSPTicket,
         NSPCert,
         Finish, 
@@ -24,7 +23,7 @@ namespace gtree
     {
         public static void Write(this UsbK USB, byte[] Data)
         {
-            USB.WritePipe(0x1, Data, Data.Length, out _, IntPtr.Zero);
+            USB.WritePipe(1, Data, Data.Length, out _, IntPtr.Zero);
         }
 
         public static void Write(this UsbK USB, Command Data)
