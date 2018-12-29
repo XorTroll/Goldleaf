@@ -24,7 +24,7 @@ If you want to be safe, avoid connecting to the internet via airplane mode, or b
 
 Goldleaf simply provides support for a normal NSP and/or ticket installation. The way you use them or the risks you are taking are your problem.
 
-Goldleaf gives the user the possibility to modify NAND files, by deleting them ow allowing to copy new files there.
+Goldleaf gives the user the possibility to modify NAND files, by deleting them or allowing to copy new files there.
 
 This can be dangerous, as deleting NCAs from the NAND contents can lead to unfixable errors. Image deleting all the EXE and DLL files from System32 folder. Well, the result would be similar.
 
