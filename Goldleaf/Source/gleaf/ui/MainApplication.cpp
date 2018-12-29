@@ -48,7 +48,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::optionMenu_SelectionChanged()
     {
-        std::string info = "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...";
+        std::string info = "Welcome to Goldleaf! You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...";
         pu::element::MenuItem *isel = this->optionMenu->GetSelectedItem();
         if(isel == this->sdcardMenuItem) info = "Browse the SD card. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->nandMenuItem) info = "Browse NAND. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
@@ -711,6 +711,11 @@ namespace gleaf::ui
                         if(scrc == 0) msg += "No";
                         else if(scrc == 1) msg += "Yes (manually)";
                         else if(scrc == 2) msg += "Yes";
+                        else msg += "<unknown value>";
+                        u8 logom = rnacp[0x30f0];
+                        msg += "\nLogo type: ";
+                        if(logom == 0) msg += "Licensed by Nintendo";
+                        else if(logom == 2) msg += "Nintendo";
                         else msg += "<unknown value>";
                         dlg = new pu::Dialog("NACP information", msg);
                         dlg->AddOption("Ok");
@@ -1584,7 +1589,7 @@ namespace gleaf::ui
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
         this->UpdateValues();
-        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf. You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...", 20);
+        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf! You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...", 20);
         this->mainMenu->AddChild(this->bannerImage);
         this->sdBrowser->AddChild(this->bannerImage);
         this->nandBrowser->AddChild(this->bannerImage);

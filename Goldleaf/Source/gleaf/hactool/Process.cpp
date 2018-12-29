@@ -78,7 +78,7 @@ namespace gleaf::hactool
         if(Mode.DoLogo)
         {
             if(Mode.Logo == "") return false;
-            filepath_set(&nca_ctx.tool_ctx->settings.section_dir_paths[2], Mode.Logo.c_str());
+            filepath_set(&nca_ctx.tool_ctx->settings.section_dir_paths[0], Mode.Logo.c_str());
         }
         filepath_set(&keypath, KeyFile.c_str());
         FILE *keyfile = NULL;
