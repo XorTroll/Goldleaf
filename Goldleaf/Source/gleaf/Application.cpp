@@ -59,9 +59,9 @@ namespace gleaf
     std::string GetCFWName(std::string Path)
     {
         std::string name = "Unknown CFW";
-        if(Path == "atmosphere") name = "Atmosphère";
-        else if(Path == "reinx") name = "ReiNX";
-        else if(Path == "sxos") name == "SX OS";
+        if(Path == "sdmc:/atmosphere") name = "Atmosphère";
+        else if(Path == "sdmc:/reinx") name = "ReiNX";
+        else if(Path == "sdmc:/sxos") name == "SX OS";
         return name;
     }
 }

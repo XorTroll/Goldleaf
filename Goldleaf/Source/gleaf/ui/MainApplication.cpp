@@ -207,12 +207,12 @@ namespace gleaf::ui
         {
             std::string ext = fs::GetExtension(itm);
             std::string msg = "What would you like to do with the selected ";
-            if(ext == "nsp") msg += "NSP package (aka Nintendo Submission Package)";
-            else if(ext == "nro") msg += "NRO binary (aka Nintendo Relocatable Object)";
+            if(ext == "nsp") msg += "NSP package";
+            else if(ext == "nro") msg += "NRO binary";
             else if(ext == "tik") msg += "ticket file";
             else if(ext == "nxtheme") msg += "Home Menu theme file";
-            else if(ext == "nca") msg += "NCA archive (aka Nintendo Content Archive)";
-            else if(ext == "nacp") msg += "NACP data (aka Nintendo Application Control Property)";
+            else if(ext == "nca") msg += "NCA archive";
+            else if(ext == "nacp") msg += "NACP data";
             else msg += "file";
             msg += "?";
             msg += "\n\nFile size: " + fs::FormatSize(fs::GetFileSize(fullitm));
@@ -508,55 +508,18 @@ namespace gleaf::ui
                         bool hasreinx = gleaf::fs::IsDirectory("sdmc:/ReiNX");
                         bool hassxos = gleaf::fs::IsDirectory("sdmc:/sxos");
                         dlg = new pu::Dialog("Select CFW", "Select CFW on which to install the theme.");
-                        dlg->AddOption("Atmosphère");
-                        dlg->AddOption("ReiNX");
-                        dlg->AddOption("SX OS");
+                        std::vector<std::string> cfws = GetSdCardCFWNames();
+                        for(u32 i = 0; i < cfws.size(); i++) dlg->AddOption(cfws[i]);
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         u32 sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 3))
+                        if(dlg->UserCancelled() || (sopt == cfws.size()))
                         {
                             delete dlg;
                             return;
                         }
                         delete dlg;
-                        std::string installdir = "";
-                        switch(sopt)
-                        {
-                            case 0:
-                                if(!hasatmos)
-                                {
-                                    dlg = new pu::Dialog("Theme install error", "Atmosphère folder was not found, so the theme cannot be installed.");
-                                    dlg->AddOption("Ok");
-                                    mainapp->ShowDialog(dlg);
-                                    delete dlg;
-                                    return;
-                                }
-                                installdir = "sdmc:/atmosphere";
-                                break;
-                            case 1:
-                                if(!hasreinx)
-                                {
-                                    dlg = new pu::Dialog("Theme install error", "ReiNX folder was not found, so the theme cannot be installed.");
-                                    dlg->AddOption("Ok");
-                                    mainapp->ShowDialog(dlg);
-                                    delete dlg;
-                                    return;
-                                }
-                                installdir = "sdmc:/ReiNX";
-                                break;
-                            case 2:
-                                if(!hassxos)
-                                {
-                                    dlg = new pu::Dialog("Theme install error", "SX OS folder was not found, so the theme cannot be installed.");
-                                    dlg->AddOption("Ok");
-                                    mainapp->ShowDialog(dlg);
-                                    delete dlg;
-                                    return;
-                                }
-                                installdir = "sdmc:/sxos";
-                                break;
-                        }
+                        std::string installdir = "sdmc:/" + GetSdCardCFWs()[sopt];
                         std::vector<u8> data = gleaf::fs::ReadFile(fullitm);
                         std::vector<u8> ddata = gleaf::sarc::YAZ0::Decompress(data);
                         gleaf::sarc::SARC::SarcData sdata = gleaf::sarc::SARC::Unpack(ddata);
@@ -910,16 +873,21 @@ namespace gleaf::ui
         mainapp->CallForRender();
         while(true)
         {
+            hidScanInput();
+            if(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)
+            {
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
+            }
             Result rc = usbDsWaitReady(U64_MAX);
             if(rc == 0) break;
             else if((rc & 0x3FFFFF) != 0xEA01)
             {
                 mainapp->UpdateFooter("USB failed to connect. Try again!");
                 mainapp->CallForRender();
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                 return;
             }
-            hidScanInput();
-            if(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B) return;
             mainapp->CallForRender();
         }
         this->installText->SetText("USB connection was detected. Open Goldtree to connect it via USB.");
@@ -1281,7 +1249,7 @@ namespace gleaf::ui
                 gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
             }
         }
-        mainapp->UpdateFooter("The Home Menu theme was successfully installed in \'" + CFWPath + "\'.");
+        mainapp->UpdateFooter("The Home Menu theme was successfully installed in " + GetCFWName(CFWPath) + ".");
         mainapp->CallForRender();
     }
 
@@ -1532,11 +1500,10 @@ namespace gleaf::ui
                 delete dlg;
                 return;
             }
-            gleaf::fs::DeleteDirectory("sdmc:/" + cfw + "/titles/0100000000001000");
             delete dlg;
+            gleaf::fs::DeleteDirectory("sdmc:/" + cfw + "/titles/0100000000001000");
             ShowRebootShutDownDialog("Modification removed", "Modification was removed successfully.\nNow, you can shut down or reboot to see the applied changes.");
         }
-        delete dlg;
     }
 
     SystemInfoLayout::SystemInfoLayout() : pu::Layout()
@@ -1914,8 +1881,12 @@ namespace gleaf::ui
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 2)) return;
-        switch(sopt)
+        if(dlg->UserCancelled() || (sopt == 2))
+        {
+            delete dlg;
+            return;
+        }
+        else switch(sopt)
         {
             case 0:
                 bpcInitialize();
