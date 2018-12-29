@@ -257,3 +257,5 @@ The main conceps of Goldleaf are and have been developed by XorTroll, but withou
 If you would like to be more informed about my projects' status and support, you should check [H&H](https://discord.gg/3KpFyaH), my Discord server. It's a simple server for Homebrew and Hacking, focused on my projects. If you would like to be a beta-tester, you might be interested on the nightly building system we have there for testers.
 
 If you like my work, you should take a look at my [Patreon](https://patreon.com/xortroll) page. For those who support me, you will be credited on my projects, and you'll gain some nice extras on H&H!
+
+<iframe src="https://discordapp.com/widget?id=472179996857860096&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0"></iframe>
