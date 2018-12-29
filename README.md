@@ -218,6 +218,40 @@ Many errors are very common and can be misunderstood, and you should document a 
 
 - The USB installation can sometimes freeze in the middle of the install. If that happens, try closing Goldleaf and Goldtree, uninstalling the wrongly-installed title and retrying.
 
+## Screenshot
+
+![Logo](Screenshots/Goldleaf.menu.jpg)
+
+![Logo](Screenshots/Goldleaf.install1.jpg)
+
+![Logo](Screenshots/Goldleaf.install2.jpg)
+
+![Logo](Screenshots/Goldleaf.install3.jpg)
+
+![Logo](Screenshots/Goldleaf.nandSelect.jpg)
+
+![Logo](Screenshots/Goldleaf.sysNAND.jpg)
+
+![Logo](Screenshots/Goldleaf.titleBrowse.jpg)
+
+![Logo](Screenshots/Goldleaf.ticketBrowse.jpg)
+
+![Logo](Screenshots/Goldleaf.ncaExtract.jpg)
+
+![Logo](Screenshots/Goldleaf.nxtheme.jpg)
+
+![Logo](Screenshots/Goldleaf.themeInfo.jpg)
+
+![Logo](Screenshots/Goldleaf.nacp.jpg)
+
+![Logo](Screenshots/Goldleaf.sysInfo.jpg)
+
+![Logo](Screenshots/Goldtree.start.png)
+
+![Logo](Screenshots/Goldtree.selectNSP.png)
+
+![Logo](Screenshots/Goldtree.install.png)
+
 ## Possible future features
 
 - Savedata mounting and browsing (and hopefully exporting)
