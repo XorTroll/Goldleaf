@@ -106,7 +106,7 @@ namespace gtree
             }
             catch
             {
-                Error.Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
+                Error.Log("No USB connection was found. Make sure you have Goldleaf open before running Goldtree.");
             }
             try
             {
