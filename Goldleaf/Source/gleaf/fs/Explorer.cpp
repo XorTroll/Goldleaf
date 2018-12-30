@@ -77,9 +77,7 @@ namespace gleaf::fs
             {
                 std::string entname = std::string(dt->d_name);
                 std::string fullent = this->ecwd + "/" + entname;
-                DIR *check = opendir(fullent.c_str());
-                if(check != NULL) dirs.push_back(entname);
-                closedir(check);
+                if(IsDirectory(fullent)) dirs.push_back(entname);
             }
         }
         closedir(dir);
@@ -97,9 +95,7 @@ namespace gleaf::fs
             {
                 std::string entname = std::string(dt->d_name);
                 std::string fullent = this->ecwd + "/" + entname;
-                FILE *check = fopen(fullent.c_str(), "rb");
-                if(check != NULL) files.push_back(entname);
-                fclose(check);
+                if(IsFile(fullent)) files.push_back(entname);
             }
         }
         closedir(dir);

@@ -188,14 +188,15 @@ namespace gleaf::ui
 
     bool PartitionBrowserLayout::WarnNANDWriteAccess()
     {
+        bool ok = false;
         if(this->gexp->GetPartition() == fs::Partition::SdCard) return true;
         pu::Dialog *dlg = new pu::Dialog("Warning: NAND access", "You are trying to write or delete content within the console's NAND memory.\n\nDeleting or replacing content there can be a risky operation.\nImportant file loss could lead to a bricked NAND, where the console won't boot.\n\nAre you sure you want to perform this operation?");
         dlg->AddOption("Yes");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
-        u32 sopt = dlg->GetSelectedIndex();
+        if(dlg->GetSelectedIndex() == 0) ok = true;
         delete dlg;
-        return (sopt == 0);
+        return ok;
     }
 
     void PartitionBrowserLayout::fsItems_Click()
@@ -456,6 +457,7 @@ namespace gleaf::ui
                             mainapp->Close();
                             return;
                         }
+                        delete dlg;
                         break;
                 }
             }
@@ -496,6 +498,7 @@ namespace gleaf::ui
                             Result rc = es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
                             if(rc != 0) mainapp->UpdateFooter("An error ocurred trying to install the ticket (error code " + horizon::FormatHex(rc) + ")");
                         }
+                        delete dlg;
                         break;
                 }
             }
@@ -556,6 +559,7 @@ namespace gleaf::ui
                             delete dlg;
                             return;
                         }
+                        delete dlg;
                         mainapp->LoadLayout(mainapp->GetThemeInstallLayout());
                         mainapp->GetThemeInstallLayout()->StartInstall(nxth, sdata, installdir);
                         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
@@ -617,6 +621,7 @@ namespace gleaf::ui
                         }
                         bool xlogo = false;
                         if(sopt == 0) xlogo = true;
+                        delete dlg;
                         gleaf::hactool::Extraction ext;
                         ext.DoExeFs = xexefs;
                         ext.DoRomFs = xromfs;
@@ -630,6 +635,7 @@ namespace gleaf::ui
                         dlg = new pu::Dialog("NCA extraction", msg);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
+                        delete dlg;
                         this->UpdateElements();
                         break;
                 }
@@ -652,7 +658,7 @@ namespace gleaf::ui
                         {
                             name = std::string(lent->name);
                             author = std::string(lent->author);
-                        };
+                        }
                         std::string msg = "Information of the title provided by the NACP file:\n\n";
                         msg += "Name: " + name;
                         msg += "\nAuthor: " + author;
@@ -683,21 +689,22 @@ namespace gleaf::ui
                         dlg = new pu::Dialog("NACP information", msg);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
+                        delete dlg;
                         break;
                 }
             }
-            u32 delopt = copt - 2;
             u32 copyopt = copt - 3;
+            u32 delopt = copt - 2;
             if(sopt == copyopt)
             {
                 UpdateClipboard(fullitm);
                 this->UpdateElements();
             }
-            else if(sopt == delopt)
+            else if(sopt == delopt) if(this->WarnNANDWriteAccess())
             {
                 fs::DeleteFile(fullitm);
                 mainapp->UpdateFooter("File deleted: \'" + fullitm + "\'");
-                if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                this->UpdateElements();
             }
         }
     }
@@ -722,7 +729,8 @@ namespace gleaf::ui
                 delete dlg;
                 return;
             }
-            else switch(sopt)
+            delete dlg;
+            switch(sopt)
             {
                 case 0:
                     if(this->gexp->NavigateForward(itm)) this->UpdateElements();
@@ -732,12 +740,14 @@ namespace gleaf::ui
                     this->UpdateElements();
                     break;
                 case 2:
-                    fs::DeleteDirectory(fullitm);
-                    mainapp->UpdateFooter("Directory deleted: \'" + fullitm + "\'");
-                    if(this->WarnNANDWriteAccess()) this->UpdateElements();
+                    if(this->WarnNANDWriteAccess())
+                    {
+                        fs::DeleteDirectory(fullitm);
+                        mainapp->UpdateFooter("Directory deleted: \'" + fullitm + "\'");
+                        this->UpdateElements();
+                    }
                     break;
             }
-            delete dlg;
         }
     }
 
@@ -1899,6 +1909,7 @@ namespace gleaf::ui
                 bpcExit();
                 break;
         }
+        delete dlg;
     }
 
     void SetMainApplication(MainApplication *MainApp)
