@@ -28,7 +28,7 @@ Goldleaf gives the user the possibility to modify NAND files, by deleting them o
 
 This can be dangerous, as deleting NCAs from the NAND contents can lead to unfixable errors. Image deleting all the EXE and DLL files from System32 folder. Well, the result would be similar.
 
-Removing tickets from installed contents will make the system not to be able to recognise them as "legit" purchased, so it will refuse to launch them (in many times, but NOT in all the cases)
+Removing tickets from installed contents will make the system not to be able to recognise them as "legit" purchased, so it will refuse to launch them (in many cases, but NOT all cases)
 
 ## Main features
 
