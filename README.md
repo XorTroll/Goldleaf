@@ -270,13 +270,13 @@ Many errors are very common and can be misunderstood, and you should document a 
 
 The main conceps of Goldleaf are and have been developed by XorTroll, but without the effort and support of many others, this project wouldn't be what it is now:
 
-(from all the people listed below, special thanks to Adubbz, exelix, The-4n and SciresM, for their huge support on their respective areas of homebrew)
+(from all the people listed below, special thanks to Adubbz, exelix, C4Phoenix, The-4n and SciresM, for their huge support on their respective areas of homebrew)
 
 - Adubbz and all the (old) [Tinfoil](https://github.com/Adubbz/Tinfoil) contributors, for their huge work with title installing.
 
 - exelix and Qcean team, for all their huge support with Home Menu themes. Goldleaf uses (adapted) [SwitchThemesCommon](https://github.com/exelix11/SwitchThemeInjector) libraries to handle theme installs.
 
-- C4Phoenix, for his awesome work doing this project's logo.
+- C4Phoenix, for his awesome work doing this project's logo, and the GIF displayed when launching the installed version.
 
 - All the icons except Goldleaf's one (see credit above) were grabbed from [Icons8](https://icons8.com).
 
