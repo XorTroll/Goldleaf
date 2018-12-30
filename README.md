@@ -32,11 +32,11 @@ Removing tickets from installed contents will make the system not to be able to 
 
 ## Main features
 
-- SD card and NAND browser
+- **SD card and NAND browser**
 
   A very simple but, in my opinion, one of the most useful features in Goldleaf. Just a file browser for the SD card or for NAND partitions, providing special support for some file formats:
 
-  - NSP (Nintendo Submission Package)
+  - **NSP (Nintendo Submission Package)**
   
     It's the official format used by Nintendo to provide installable content from their CDN servers.
 
@@ -46,7 +46,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
     As a warning, I do not recommend installing NSPs in case you plan to go online. Installing content from unofficial tools (such as Goldleaf or the old Tinfoil) can lead to permanent bans from online services, and in severe cases, from every Nintendo service, even from updating the console or games. Install NSPs at your own risk.
 
-  - NRO (Nintendo Relocatable Object)
+  - **NRO (Nintendo Relocatable Object)**
 
     Officially is treated as a dynamic library object, similar to DLLs on Windows. This are loaded dynamically by applications at runtime.
 
@@ -54,7 +54,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
     Goldleaf has the ability of launching NROs located at the SD card. Keep in mind that this feature usually can cause undefined behavior due to some difficulties cleaning up graphics so quickly.
 
-  - NCA (Nintendo Content Archive)
+  - **NCA (Nintendo Content Archive)**
 
     This format is the base format used by Horizon OS to store content.
 
@@ -70,7 +70,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
     Goldleaf has embedded hactool in his code, so it can extract those partitions from NCAs, if the keys are provided.
 
-  - NXTheme (Home Menu theme)
+  - **NXTheme (Home Menu theme)**
 
     This format is developed by Qcean team, a format to handle Home Menu layout modding.
 
@@ -78,13 +78,13 @@ Removing tickets from installed contents will make the system not to be able to 
 
     You will have to reboot with CFW after installing a theme to see any changes.
 
-  - NACP (Nintendo Application Control Property)
+  - **NACP (Nintendo Application Control Property)**
 
     This is the format used by Nintendo to store a title's name, version, author name and other information, like if the title supports screnshots or video captures.
 
     Goldleaf can parse a NACP file and display some of it's information.
 
-  - Tickets and certificates
+  - **Tickets and certificates**
 
     Tickets (.tik) and certificates (.cert) are the format used by Nintendo to provide encryption data for titlekey-signed titles (almost every game).
     
@@ -94,13 +94,13 @@ Removing tickets from installed contents will make the system not to be able to 
 
   The NAND browser has almost the same support, but it's reccomended to use it only to export files via copying them to the SD card, to avoid any trouble. Goldleaf should warn when doing dangerous operations anyway.
 
-- USB installer and Goldtree
+- **USB installer and Goldtree**
 
   You can install NSPs via USB using Goldtree, a C# PC client to handle this installations.
 
   Keep in mind that USB installations are a bit unstable, and might bug sometimes.
 
-- Title manager
+- **Title manager**
 
   Goldleaf's title manager will display all the titles installed in the system, both SD, NAND and the one in the gamecart if inserted.
 
@@ -108,7 +108,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
   Titles can also be completely uninstalled here. Keep in mind that deleting a title won't delete its savedata, that should stay on the system.
 
-- Ticket manager
+- **Ticket manager**
 
   Goldleaf can get all the tickets installed on the console. While some of them will contain the name of the title they belong to, some could belong to DLC or other types of content despite not belonging directly to a title.
 
@@ -116,19 +116,19 @@ Removing tickets from installed contents will make the system not to be able to 
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-signed won't be allowed to boot by Home Menu.
 
-- CFW configuration
+- **CFW configuration**
 
   This is mostly a useful menu for checking which CFWs are in the SD card and whichof them have any Home Menu modifications, meaning that a theme is probably installed there.
 
   You can delete any Home Menu modifications of a certain CFW after selecting a CFW.
 
-- Console information
+- **Console information**
 
   On this option, you can check the used size of the SD card, the entire NAND, and on the different NAND partitions.
 
   It also displays the current firmware version the console is.
 
-- About
+- **About**
 
   Displays Goldleaf's logo and whether Goldleaf is running as a NRO from hbmenu or as a normal title.
 
