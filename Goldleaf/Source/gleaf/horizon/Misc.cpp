@@ -29,6 +29,9 @@ namespace gleaf::horizon
         fsdevMountDevice("qnand", nandfs);
         std::string path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001000);
         bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
+        if(!ex) return ex;
+        path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001013);
+        ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
         fsdevUnmountDevice("qnand");
         return ex;
     }
