@@ -116,6 +116,10 @@ Removing tickets from installed contents will make the system not to be able to 
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-signed won't be allowed to boot by Home Menu.
 
+  **GameCard dumper (XCI)**
+  
+  *WIP*
+
 - **CFW configuration**
 
   This is mostly a useful menu for checking which CFWs are in the SD card and whichof them have any Home Menu modifications, meaning that a theme is probably installed there.
