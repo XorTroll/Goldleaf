@@ -83,6 +83,6 @@ namespace gleaf
 
     std::vector<std::string> GetKeyFilePossibleNames()
     {
-        return { "keys.dat", "prod.keys", "keys.ini", "keys.txt" };
+        return { "keys.dat", "prod.keys", "keys.ini", "keys.txt", "dev.keys" };
     }
 }
