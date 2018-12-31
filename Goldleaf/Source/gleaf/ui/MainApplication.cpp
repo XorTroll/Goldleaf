@@ -100,7 +100,7 @@ namespace gleaf::ui
         mainapp->GetTicketManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
         pu::Dialog *dlg = new pu::Dialog("Removing tickets (warning)", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.");
-        dlg->AddOption("Ok");
+        dlg->AddOption("OK");
         mainapp->ShowDialog(dlg);
     }
 
@@ -415,7 +415,7 @@ namespace gleaf::ui
                         if(IsApplication())
                         {
                             dlg = new pu::Dialog("NRO launch error", "For technical reasons, NRO binaries cannot be launched if Goldleaf is launched as a title.");
-                            dlg->AddOption("Ok");
+                            dlg->AddOption("OK");
                             mainapp->ShowDialog(dlg);
                             return;
                         }
@@ -441,7 +441,7 @@ namespace gleaf::ui
                         if(!fs::Exists(tcert))
                         {
                             dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.");
-                            dlg->AddOption("Ok");
+                            dlg->AddOption("OK");
                             mainapp->ShowDialog(dlg);
                             return;
                         }
@@ -494,14 +494,14 @@ namespace gleaf::ui
                         if(nxth.Version == -1)
                         {
                             dlg = new pu::Dialog("Theme install error", "The selected theme file seems to be invalid.");
-                            dlg->AddOption("Ok");
+                            dlg->AddOption("OK");
                             mainapp->ShowDialog(dlg);
                             return;
                         }
                         if(!gleaf::theme::ThemeTargetToName.count(nxth.Target))
                         {
                             dlg = new pu::Dialog("Theme install error", "The target of the selected theme file was not found.");
-                            dlg->AddOption("Ok");
+                            dlg->AddOption("OK");
                             mainapp->ShowDialog(dlg);
                             return;
                         }
@@ -531,7 +531,7 @@ namespace gleaf::ui
                         if(!HasKeyFile())
                         {
                             dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
-                            dlg->AddOption("Ok");
+                            dlg->AddOption("OK");
                             mainapp->ShowDialog(dlg);
                             return;
                         }
@@ -573,7 +573,7 @@ namespace gleaf::ui
                         std::string msg = "The content extraction failed.\nAre you sure the NCA is valid (and that it doesn't require a titlekey) or that you have all the necessary keys?";
                         if(ok) msg = "The NCA extraction succeeded.\nAll the selected partitions were extracted (if they existed within the NCA)";
                         dlg = new pu::Dialog("NCA extraction", msg);
-                        dlg->AddOption("Ok");
+                        dlg->AddOption("OK");
                         mainapp->ShowDialog(dlg);
                         this->UpdateElements();
                         break;
@@ -626,7 +626,7 @@ namespace gleaf::ui
                         else if(logom == 2) msg += "Nintendo";
                         else msg += "<unknown value>";
                         dlg = new pu::Dialog("NACP information", msg);
-                        dlg->AddOption("Ok");
+                        dlg->AddOption("OK");
                         mainapp->ShowDialog(dlg);
                         break;
                 }
@@ -794,7 +794,7 @@ namespace gleaf::ui
             }
             err += " (error code " + horizon::FormatHex(Res.Error) + ")";
             pu::Dialog *dlg = new pu::Dialog("NSP installation error", err);
-            dlg->AddOption("Ok");
+            dlg->AddOption("OK");
             mainapp->ShowDialog(dlg);
             mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
         }
@@ -1025,7 +1025,7 @@ namespace gleaf::ui
             }
             err += " (error code " + horizon::FormatHex(Res.Error) + ")";
             pu::Dialog *dlg = new pu::Dialog("NSP via USB installation error", err);
-            dlg->AddOption("Ok");
+            dlg->AddOption("OK");
             mainapp->ShowDialog(dlg);
             mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
         }
@@ -1045,7 +1045,7 @@ namespace gleaf::ui
             if(!HasKeyFile())
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "To install themes, keys are required to dump qlaunch SZS contents in case they aren't found.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 return;
             }
@@ -1055,7 +1055,7 @@ namespace gleaf::ui
             if(!exok)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to export qlaunch's files from the console.\nThey are required to proceed with the installation.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1073,7 +1073,7 @@ namespace gleaf::ui
         if(ptp.FirmName == "")
         {
             pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.");
-            dlg->AddOption("Ok");
+            dlg->AddOption("OK");
             mainapp->ShowDialog(dlg);
             mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
             return;
@@ -1093,7 +1093,7 @@ namespace gleaf::ui
             if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1102,7 +1102,7 @@ namespace gleaf::ui
             if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1122,7 +1122,7 @@ namespace gleaf::ui
             if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1131,7 +1131,7 @@ namespace gleaf::ui
             if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1146,7 +1146,7 @@ namespace gleaf::ui
             if(!pt.IsCompatible(szstp))
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "The provided layout was not compatible with the patch to apply.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1155,7 +1155,7 @@ namespace gleaf::ui
             if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
                 pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layouts.");
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
                 return;
@@ -1240,7 +1240,7 @@ namespace gleaf::ui
         dlg->SetIcon(seltit.GetExportedIconPath(), 994, 30);
         if(seltit.Location == gleaf::Storage::GameCart)
         {
-            dlg->AddOption("Ok");
+            dlg->AddOption("OK");
             mainapp->ShowDialog(dlg);
             return;
         }
@@ -1263,7 +1263,7 @@ namespace gleaf::ui
                 std::string resstr = "The title was successfully uninstalled from this console.";
                 if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
                 dlg = new pu::Dialog("Title uninstall", resstr);
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
@@ -1344,7 +1344,7 @@ namespace gleaf::ui
                 std::string resstr = "The ticket was successfully removed from this console.";
                 if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
                 dlg = new pu::Dialog("Ticket uninstall", resstr);
-                dlg->AddOption("Ok");
+                dlg->AddOption("OK");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
@@ -1390,7 +1390,7 @@ namespace gleaf::ui
             dlg->AddOption("Remove modification");
             dlg->AddOption("Cancel");
         }
-        else dlg->AddOption("Ok");
+        else dlg->AddOption("OK");
         mainapp->ShowDialog(dlg);
         if(htheme)
         {
