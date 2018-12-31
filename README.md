@@ -136,7 +136,7 @@ As some other miscellaneous options, you can easily reboot or shut down your con
 
 ### Providing keys
 
-If you provide a file with several Switch keys (commonly named as `prod.keys` or `keys.dat`) you will be able to do some extra stuff with Goldleaf: (remember that you have to place it as `sd:/goldleaf/keys.dat`)
+If you provide a file with several Switch keys (commonly named as `prod.keys` or `keys.dat`) you will be able to do some extra stuff with Goldleaf: (remember that you have to place it as `sd:/goldleaf/keys.dat`, `prod.keys`, `keys.txt` or `keys.ini`)
 
 - Unless you already have dumped qlaunch's (aka Home Menu) RomFs (or at least the files within `lyt` folder) in `sd:/goldleaf/qlaunch` directory, you will need to provide the previously mentioned key file with several keys, so that Goldleaf can extract directly the RomFs of the console's qlaunch contents to use it.
 
