@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ApplicationIcon />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="gtree.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="gtree.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Goldtree.Lib\Goldtree.Lib.csproj" />
+  </ItemGroup>
+
+</Project>
