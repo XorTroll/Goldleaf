@@ -35,6 +35,13 @@ namespace gleaf::horizon
         ECDSA_SHA256 = 0x10005,
     };
 
+    enum class ApplicationIdMask
+    {
+        Official,
+        Homebrew,
+        Invalid,
+    };
+
     struct Title
     {
         u64 ApplicationId;
@@ -45,6 +52,7 @@ namespace gleaf::horizon
         NacpStruct NACP;
 
         std::string GetExportedIconPath();
+        std::string GetExportedNACPPath();
     };
 
     struct Ticket
@@ -85,5 +93,6 @@ namespace gleaf::horizon
     std::vector<Ticket> GetAllSystemTickets();
     std::string GetTitleNCAPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
+    ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
     TicketData ReadTicket(std::string Path);
 }

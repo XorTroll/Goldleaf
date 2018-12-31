@@ -13,6 +13,11 @@ namespace gleaf::horizon
         return ("sdmc:/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".jpg");
     }
 
+    std::string Title::GetExportedNACPPath()
+    {
+        return ("sdmc:/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".nacp");
+    }
+
     u64 Ticket::GetApplicationId()
     {
         return __bswap64(*(u64*)(this->RId.RId));
@@ -83,6 +88,8 @@ namespace gleaf::horizon
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
+                        
+                        // delete lent;
                     }
                     delete cdata;
                     titles.push_back(title);
@@ -127,6 +134,7 @@ namespace gleaf::horizon
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
+                        // delete lent;
                     }
                     delete cdata;
                     titles.push_back(title);
@@ -171,6 +179,7 @@ namespace gleaf::horizon
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
+                        // delete lent;
                     }
                     delete cdata;
                     titles.push_back(title);
@@ -198,6 +207,8 @@ namespace gleaf::horizon
         if(pc > 0) vprids = std::vector<es::RightsId>(prids, prids + pc); 
         if(cc > 0) for(u32 i = 0; i < vcrids.size(); i++) tickets.push_back({ vcrids[i], gleaf::horizon::TicketType::Common });
         if(pc > 0) for(u32 i = 0; i < vprids.size(); i++) tickets.push_back({ vprids[i], gleaf::horizon::TicketType::Personalized });
+        delete crids;
+        delete prids;
         return tickets;
     }
 
@@ -230,6 +241,16 @@ namespace gleaf::horizon
                 break;
         }
         return appid;
+    }
+
+    ApplicationIdMask IsValidApplicationId(u64 ApplicationId)
+    {
+        ApplicationIdMask mas = ApplicationIdMask::Invalid;
+        std::string fappid = FormatApplicationId(ApplicationId);
+        char mask = fappid[1];
+        if(mask == '1') mas = ApplicationIdMask::Official;
+        else if(mask == '5') mas = ApplicationIdMask::Homebrew;
+        return mas;
     }
 
     TicketData ReadTicket(std::string Path)

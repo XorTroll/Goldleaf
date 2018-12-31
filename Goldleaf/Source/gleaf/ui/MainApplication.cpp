@@ -76,15 +76,10 @@ namespace gleaf::ui
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 3))
-        {
-            delete dlg;
-            return;
-        }
-        else if(sopt == 0) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
+        if(dlg->UserCancelled() || (sopt == 3)) return;
+        if(sopt == 0) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
         else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
-        delete dlg;
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
     }
 
@@ -107,7 +102,6 @@ namespace gleaf::ui
         pu::Dialog *dlg = new pu::Dialog("Removing tickets (warning)", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.");
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
-        delete dlg;
     }
 
     void MainMenuLayout::cfwConfigMenuItem_Click()
@@ -144,9 +138,10 @@ namespace gleaf::ui
 
     void PartitionBrowserLayout::UpdateElements()
     {
-        std::vector<std::string> elems = this->gexp->GetContents();
+        if(!this->elems.empty()) this->elems.clear();
+        this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
-        if(elems.empty())
+        if(this->elems.empty())
         {
             this->browseMenu->SetVisible(false);
             this->dirEmptyText->SetVisible(true);
@@ -155,9 +150,9 @@ namespace gleaf::ui
         {
             this->browseMenu->SetVisible(true);
             this->dirEmptyText->SetVisible(false);
-            for(u32 i = 0; i < elems.size(); i++)
+            for(u32 i = 0; i < this->elems.size(); i++)
             {
-                std::string itm = elems[i];
+                std::string itm = this->elems[i];
                 bool isdir = fs::IsDirectory(this->gexp->FullPathFor(itm));
                 pu::element::MenuItem *mitm = new pu::element::MenuItem(itm);
                 if(isdir) mitm->SetIcon("romfs:/FileSystem/Directory.png");
@@ -195,7 +190,6 @@ namespace gleaf::ui
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         if(dlg->GetSelectedIndex() == 0) ok = true;
-        delete dlg;
         return ok;
     }
 
@@ -255,12 +249,7 @@ namespace gleaf::ui
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == copt))
-            {
-                delete dlg;
-                return;
-            }
-            delete dlg;
+            if(dlg->UserCancelled() || (sopt == copt)) return;
             if(ext == "nsp")
             {
                 switch(sopt)
@@ -274,27 +263,17 @@ namespace gleaf::ui
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         u32 sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || ( sopt == 2))
-                        {
-                            delete dlg;
-                            return;
-                        }
+                        if(dlg->UserCancelled() || ( sopt == 2)) return;
                         Destination dst = Destination::SdCard;
                         if(sopt == 0) dst = Destination::SdCard;
                         else if(sopt == 1) dst = Destination::NAND;
-                        delete dlg;
                         dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2))
-                        {
-                            delete dlg;
-                            return;
-                        }
-                        delete dlg;
+                        if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool ignorev = (sopt == 0);
                         std::string fullitm = this->gexp->FullPathFor(itm);
                         std::string nspipt = "@Sdcard:" + fullitm.substr(5);
@@ -421,12 +400,7 @@ namespace gleaf::ui
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 1))
-                        {
-                            delete dlg;
-                            return;
-                        }
-                        delete dlg;
+                        if(dlg->UserCancelled() || (sopt == 1)) return;
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), del, fullitm);
                         this->UpdateElements();
@@ -443,7 +417,6 @@ namespace gleaf::ui
                             dlg = new pu::Dialog("NRO launch error", "For technical reasons, NRO binaries cannot be launched if Goldleaf is launched as a title.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
-                            delete dlg;
                             return;
                         }
                         dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.");
@@ -452,12 +425,10 @@ namespace gleaf::ui
                         mainapp->ShowDialog(dlg);
                         if(dlg->GetSelectedIndex() == 0)
                         {
-                            delete dlg;
                             envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
                             mainapp->Close();
                             return;
                         }
-                        delete dlg;
                         break;
                 }
             }
@@ -472,7 +443,6 @@ namespace gleaf::ui
                             dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
-                            delete dlg;
                             return;
                         }
                         dlg = new pu::Dialog("Ticket import confirmation", "The selected ticket will be imported.");
@@ -498,7 +468,6 @@ namespace gleaf::ui
                             Result rc = es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
                             if(rc != 0) mainapp->UpdateFooter("An error ocurred trying to install the ticket (error code " + horizon::FormatHex(rc) + ")");
                         }
-                        delete dlg;
                         break;
                 }
             }
@@ -516,12 +485,7 @@ namespace gleaf::ui
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         u32 sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == cfws.size()))
-                        {
-                            delete dlg;
-                            return;
-                        }
-                        delete dlg;
+                        if(dlg->UserCancelled() || (sopt == cfws.size())) return;
                         std::string installdir = "sdmc:/" + GetSdCardCFWs()[sopt];
                         std::vector<u8> data = gleaf::fs::ReadFile(fullitm);
                         std::vector<u8> ddata = gleaf::sarc::YAZ0::Decompress(data);
@@ -532,7 +496,6 @@ namespace gleaf::ui
                             dlg = new pu::Dialog("Theme install error", "The selected theme file seems to be invalid.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
-                            delete dlg;
                             return;
                         }
                         if(!gleaf::theme::ThemeTargetToName.count(nxth.Target))
@@ -540,7 +503,6 @@ namespace gleaf::ui
                             dlg = new pu::Dialog("Theme install error", "The target of the selected theme file was not found.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
-                            delete dlg;
                             return;
                         }
                         std::string msg = "Information about the selected theme file:\n\n";
@@ -554,12 +516,7 @@ namespace gleaf::ui
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 1))
-                        {
-                            delete dlg;
-                            return;
-                        }
-                        delete dlg;
+                        if(dlg->UserCancelled() || (sopt == 1)) return;
                         mainapp->LoadLayout(mainapp->GetThemeInstallLayout());
                         mainapp->GetThemeInstallLayout()->StartInstall(nxth, sdata, installdir);
                         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
@@ -571,13 +528,11 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                        std::string kdat = "sdmc:/goldleaf/keys.dat";
-                        if(!fs::Exists(kdat))
+                        if(!HasKeyFile())
                         {
-                            dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'goldleaf/keys.dat\'.");
+                            dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
-                            delete dlg;
                             return;
                         }
                         dlg = new pu::Dialog("Extract ExeFs?", "Would you like to extract the ExeFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".ExeFs\' directory)\n\n(in case it isn't found, it won't be extracted)");
@@ -586,42 +541,27 @@ namespace gleaf::ui
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2))
-                        {
-                            delete dlg;
-                            return;
-                        }
+                        if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool xexefs = false;
                         if(sopt == 0) xexefs = true;
-                        delete dlg;
                         dlg = new pu::Dialog("Extract RomFs?", "Would you like to extract the RomFs partition of the selected NCA?\n(it will be extracted to \'" + fullitm + ".RomFs\' directory)\n\n(in case it isn't found, it won't be extracted)");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2))
-                        {
-                            delete dlg;
-                            return;
-                        }
+                        if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool xromfs = false;
                         if(sopt == 0) xromfs = true;
-                        delete dlg;
                         dlg = new pu::Dialog("Extract section 0?", "Would you like to extract the section no. 0 of the selected NCA?\nThis section could be present in CNMT NCAs or in program NCAs.\n(it will be extracted to \'" + fullitm + ".Section0\' directory)\n\n(in case it isn't found, it won't be extracted)");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2))
-                        {
-                            delete dlg;
-                            return;
-                        }
+                        if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool xlogo = false;
                         if(sopt == 0) xlogo = true;
-                        delete dlg;
                         gleaf::hactool::Extraction ext;
                         ext.DoExeFs = xexefs;
                         ext.DoRomFs = xromfs;
@@ -629,13 +569,12 @@ namespace gleaf::ui
                         if(xexefs) ext.ExeFs = fullitm + ".ExeFs";
                         if(xromfs) ext.RomFs = fullitm + ".RomFs";
                         if(xlogo) ext.Logo = fullitm + ".Section0";
-                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, "sdmc:/goldleaf/keys.dat");
+                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
                         std::string msg = "The content extraction failed.\nAre you sure the NCA is valid (and that it doesn't require a titlekey) or that you have all the necessary keys?";
                         if(ok) msg = "The NCA extraction succeeded.\nAll the selected partitions were extracted (if they existed within the NCA)";
                         dlg = new pu::Dialog("NCA extraction", msg);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
-                        delete dlg;
                         this->UpdateElements();
                         break;
                 }
@@ -689,7 +628,6 @@ namespace gleaf::ui
                         dlg = new pu::Dialog("NACP information", msg);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
-                        delete dlg;
                         break;
                 }
             }
@@ -724,12 +662,7 @@ namespace gleaf::ui
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 3))
-            {
-                delete dlg;
-                return;
-            }
-            delete dlg;
+            if(dlg->UserCancelled() || (sopt == 3)) return;
             switch(sopt)
             {
                 case 0:
@@ -863,7 +796,6 @@ namespace gleaf::ui
             pu::Dialog *dlg = new pu::Dialog("NSP installation error", err);
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
-            delete dlg;
             mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
         }
     }
@@ -926,12 +858,10 @@ namespace gleaf::ui
                         u32 sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 1))
                         {
-                            delete dlg;
                             usb::WriteCommand(fcmd);
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
-                        delete dlg;
                         dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
                         dlg->AddOption("SD card");
                         dlg->AddOption("Console memory (NAND)");
@@ -940,7 +870,6 @@ namespace gleaf::ui
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || ( sopt == 2))
                         {
-                            delete dlg;
                             usb::WriteCommand(fcmd);
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
@@ -948,7 +877,6 @@ namespace gleaf::ui
                         Destination dst = Destination::SdCard;
                         if(sopt == 0) dst = Destination::SdCard;
                         else if(sopt == 1) dst = Destination::NAND;
-                        delete dlg;
                         dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?");
                         dlg->AddOption("Yes");
                         dlg->AddOption("No");
@@ -957,12 +885,11 @@ namespace gleaf::ui
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 2))
                         {
-                            delete dlg;
                             usb::WriteCommand(fcmd);
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
-                        delete dlg;
+                        
                         bool ignorev = (sopt == 0);
                         usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
                         usb::WriteCommand(cmd2);
@@ -1100,7 +1027,6 @@ namespace gleaf::ui
             pu::Dialog *dlg = new pu::Dialog("NSP via USB installation error", err);
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
-            delete dlg;
             mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
         }
     }
@@ -1116,13 +1042,11 @@ namespace gleaf::ui
         std::string baseszs = "sdmc:/goldleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
         if(!gleaf::fs::Exists(baseszs))
         {
-            std::string kfile = "sdmc:/goldleaf/keys.dat";
-            if(!gleaf::fs::Exists(kfile))
+            if(!HasKeyFile())
             {
-                pu::Dialog *dlg = new pu::Dialog("Theme install error", "To install themes, keys are required to dump qlaunch SZS contents in case they aren't found.\nPlace a \'keys.dat\' file with keys in \'goldleaf\' folder.");
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "To install themes, keys are required to dump qlaunch SZS contents in case they aren't found.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
-                delete dlg;
                 return;
             }
             this->infoText->SetText("Required qlaunch SZS contents weren't found.\nExtracting them from system's qlaunch NCA...\n(this might take some time)");
@@ -1134,7 +1058,6 @@ namespace gleaf::ui
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                delete dlg;
                 return;
             }
             else
@@ -1143,121 +1066,111 @@ namespace gleaf::ui
                 mainapp->CallForRender();
             }
         }
-        else
+        auto fdata = gleaf::fs::ReadFile(baseszs);
+        auto dfdata = gleaf::sarc::YAZ0::Decompress(fdata);
+        gleaf::sarc::SARC::SarcData szstp = gleaf::sarc::SARC::Unpack(dfdata);
+        auto ptp = gleaf::theme::DetectSarc(szstp);
+        if(ptp.FirmName == "")
         {
-            auto fdata = gleaf::fs::ReadFile(baseszs);
-            auto dfdata = gleaf::sarc::YAZ0::Decompress(fdata);
-            gleaf::sarc::SARC::SarcData szstp = gleaf::sarc::SARC::Unpack(dfdata);
-            auto ptp = gleaf::theme::DetectSarc(szstp);
-            if(ptp.FirmName == "")
+            pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+            return;
+        }
+        bool p5x = false;
+        this->infoText->SetText("Patch type determined. Applying it...");
+        mainapp->CallForRender();
+        if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
+        {
+            p5x = true;
+            std::string cszs = "sdmc:/goldleaf/qlaunch/lyt/common.szs";
+            auto c_fdata = gleaf::fs::ReadFile(cszs);
+            auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
+            gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
+            auto pcommon = gleaf::theme::DetectSarc(commonszs);
+            auto pres = gleaf::theme::PatchBgLayouts(commonszs, pcommon);
+            if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
-                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.");
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                delete dlg;
                 return;
             }
-            bool p5x = false;
-            this->infoText->SetText("Patch type determined. Applying it...");
-            mainapp->CallForRender();
-            if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
+            pres = gleaf::theme::PatchBntx(commonszs, SData.files["image.dds"], pcommon);
+            if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
-                p5x = true;
-                std::string cszs = "sdmc:/goldleaf/qlaunch/lyt/common.szs";
-                auto c_fdata = gleaf::fs::ReadFile(cszs);
-                auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
-                gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
-                auto pcommon = gleaf::theme::DetectSarc(commonszs);
-                auto pres = gleaf::theme::PatchBgLayouts(commonszs, pcommon);
-                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                    delete dlg;
-                    return;
-                }
-                pres = gleaf::theme::PatchBntx(commonszs, SData.files["image.dds"], pcommon);
-                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                    delete dlg;
-                    return;
-                }
-                gleaf::fs::CreateDirectory(CFWPath + "/titles");
-                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId);
-                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs");
-                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt");
-                gleaf::fs::CreateFile(CFWPath + "/titles/" + pcommon.TitleId + "/fsmitm.flag");
-                auto cpack = gleaf::sarc::SARC::Pack(commonszs);
-                auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
-                gleaf::fs::WriteFile(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt/common.szs", cydata);
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                return;
             }
-            else
+            gleaf::fs::CreateDirectory(CFWPath + "/titles");
+            gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId);
+            gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs");
+            gleaf::fs::CreateDirectory(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt");
+            gleaf::fs::CreateFile(CFWPath + "/titles/" + pcommon.TitleId + "/fsmitm.flag");
+            auto cpack = gleaf::sarc::SARC::Pack(commonszs);
+            auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
+            gleaf::fs::WriteFile(CFWPath + "/titles/" + pcommon.TitleId + "/romfs/lyt/common.szs", cydata);
+        }
+        else
+        {
+            auto pres = gleaf::theme::PatchBgLayouts(szstp, ptp);
+            if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
-                auto pres = gleaf::theme::PatchBgLayouts(szstp, ptp);
-                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                    delete dlg;
-                    return;
-                }
-                pres = gleaf::theme::PatchBntx(szstp, SData.files["image.dds"], ptp);
-                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                    delete dlg;
-                    return;
-                }
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch background layout.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                return;
             }
-            if(SData.files.count("layout.json"))
+            pres = gleaf::theme::PatchBntx(szstp, SData.files["image.dds"], ptp);
+            if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
             {
-                p5x = false;
-                auto jbin = SData.files["layout.json"];
-                std::string jstr(reinterpret_cast<char*>(jbin.data()), jbin.size());
-                auto pt = gleaf::lyt::LoadLayout(jstr);
-                if(!pt.IsCompatible(szstp))
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "The provided layout was not compatible with the patch to apply.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                    delete dlg;
-                    return;
-                }
-                auto pres = gleaf::theme::PatchLayouts(szstp, pt.Files);
-                if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layouts.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-                    delete dlg;
-                    return;
-                }
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch BNTX texture.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                return;
             }
-            if(!p5x)
+        }
+        if(SData.files.count("layout.json"))
+        {
+            p5x = false;
+            auto jbin = SData.files["layout.json"];
+            std::string jstr(reinterpret_cast<char*>(jbin.data()), jbin.size());
+            auto pt = gleaf::lyt::LoadLayout(jstr);
+            if(!pt.IsCompatible(szstp))
             {
-                gleaf::fs::CreateDirectory(CFWPath + "/titles");
-                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId);
-                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs");
-                gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt");
-                gleaf::fs::CreateFile(CFWPath + "/titles/" + ptp.TitleId + "/fsmitm.flag");
-                auto cpack = gleaf::sarc::SARC::Pack(szstp);
-                auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
-                gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "The provided layout was not compatible with the patch to apply.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                return;
             }
+            auto pres = gleaf::theme::PatchLayouts(szstp, pt.Files);
+            if(pres != gleaf::lyt::BflytFile::PatchResult::OK)
+            {
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "Failed to patch layouts.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+                return;
+            }
+        }
+        if(!p5x)
+        {
+            gleaf::fs::CreateDirectory(CFWPath + "/titles");
+            gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId);
+            gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs");
+            gleaf::fs::CreateDirectory(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt");
+            gleaf::fs::CreateFile(CFWPath + "/titles/" + ptp.TitleId + "/fsmitm.flag");
+            auto cpack = gleaf::sarc::SARC::Pack(szstp);
+            auto cydata = gleaf::sarc::YAZ0::Compress(cpack.data, 3, cpack.align);
+            gleaf::fs::WriteFile(CFWPath + "/titles/" + ptp.TitleId + "/romfs/lyt/" + ptp.szsName, cydata);
         }
         mainapp->UpdateFooter("The Home Menu theme was successfully installed in " + GetCFWName(CFWPath) + ".");
         mainapp->CallForRender();
@@ -1275,6 +1188,7 @@ namespace gleaf::ui
 
     void TitleManagerLayout::UpdateElements()
     {
+        if(!this->titles.empty()) this->titles.clear();
         this->titles = horizon::GetAllSystemTitles();
         this->titlesMenu->ClearItems();
         this->titlesMenu->SetCooldownEnabled(true);
@@ -1328,44 +1242,32 @@ namespace gleaf::ui
         {
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
-            delete dlg;
             return;
         }
         dlg->AddOption("Uninstall");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 1))
-        {
-            delete dlg;
-            return;
-        }
+        if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
-            delete dlg;
             dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?");
             dlg->AddOption("Yes");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1))
-            {
-                delete dlg;
-                return;
-            }
+            if(dlg->UserCancelled() || (sopt == 1)) return;
             else
             {
                 Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
                 std::string resstr = "The title was successfully uninstalled from this console.";
                 if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
-                delete dlg;
                 dlg = new pu::Dialog("Title uninstall", resstr);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
         }
-        delete dlg;
     }
 
     std::vector<horizon::Title> TitleManagerLayout::GetTitles()
@@ -1376,7 +1278,6 @@ namespace gleaf::ui
     TicketManagerLayout::TicketManagerLayout() : pu::Layout()
     {
         this->ticketsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
-        this->ticketsMenu->SetCooldownEnabled(true);
         this->notTicketsText = new pu::element::TextBlock(450, 400, "No tickets were found for this console.");
         this->UpdateElements();
         this->AddChild(this->notTicketsText);
@@ -1385,7 +1286,7 @@ namespace gleaf::ui
 
     void TicketManagerLayout::UpdateElements()
     {
-        this->tickets.clear();
+        if(!this->tickets.empty()) this->tickets.clear();
         this->tickets = horizon::GetAllSystemTickets();
         this->ticketsMenu->ClearItems();
         this->ticketsMenu->SetCooldownEnabled(true);
@@ -1428,37 +1329,26 @@ namespace gleaf::ui
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 1))
-        {
-            delete dlg;
-            return;
-        }
+        if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
-            delete dlg;
             dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?");
             dlg->AddOption("Yes");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1))
-            {
-                delete dlg;
-                return;
-            }
+            if(dlg->UserCancelled() || (sopt == 1)) return;
             else
             {
                 Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
                 std::string resstr = "The ticket was successfully removed from this console.";
                 if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
-                delete dlg;
                 dlg = new pu::Dialog("Ticket uninstall", resstr);
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 if(rc == 0) this->UpdateElements();
             }
         }
-        delete dlg;
     }
 
     CFWConfigLayout::CFWConfigLayout() : pu::Layout()
@@ -1488,9 +1378,9 @@ namespace gleaf::ui
         std::string cfw = this->cfws[this->cfwsMenu->GetSelectedIndex()];
         bool htheme = false;
         std::string msg = this->cfwnms[this->cfwsMenu->GetSelectedIndex()] + " was selected.";
-        if(gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001000/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001000/fsmitm.flag"))
+        if((gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001000/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001000/fsmitm.flag")) || (gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001013/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001013/fsmitm.flag")))
         {
-            msg += "\nHome Menu (aka qlaunch) has a LayeredFS RomFs modification in this CFW.\nThis means that it could be a custom Home Menu theme.";
+            msg += "\nHome Menu (aka qlaunch) has a LayeredFS RomFs modification in this CFW.\nThis means that it seems to have a custom Home Menu theme.";
             htheme = true;
         }
         else msg += "\nThere are no Home Menu modifications in this CFW, so it doesn't have any theme installed.";
@@ -1505,13 +1395,9 @@ namespace gleaf::ui
         if(htheme)
         {
             u32 sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1))
-            {
-                delete dlg;
-                return;
-            }
-            delete dlg;
+            if(dlg->UserCancelled() || (sopt == 1)) return;
             gleaf::fs::DeleteDirectory("sdmc:/" + cfw + "/titles/0100000000001000");
+            gleaf::fs::DeleteDirectory("sdmc:/" + cfw + "/titles/0100000000001013");
             ShowRebootShutDownDialog("Modification removed", "Modification was removed successfully.\nNow, you can shut down or reboot to see the applied changes.");
         }
     }
@@ -1605,6 +1491,10 @@ namespace gleaf::ui
         this->about = new AboutLayout();
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->bannerImage = new pu::element::Image(35, 35, "romfs:/Banner.png");
+        this->preblv = 0;
+        this->preisch = false;
+        this->pretime = "";
+        this->vfirst = true;
         this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
@@ -1675,22 +1565,36 @@ namespace gleaf::ui
 
     void MainApplication::UpdateValues()
     {
-        this->timeText->SetText(horizon::GetCurrentTime());
+        std::string dtime = horizon::GetCurrentTime();
         u32 blv = horizon::GetBatteryLevel();
         bool isch = horizon::IsCharging();
-        if(blv <= 10) this->batteryImage->SetImage("romfs:/Battery/0.png");
-        else if((blv > 10) && (blv <= 20)) this->batteryImage->SetImage("romfs:/Battery/10.png");
-        else if((blv > 20) && (blv <= 30)) this->batteryImage->SetImage("romfs:/Battery/20.png");
-        else if((blv > 30) && (blv <= 40)) this->batteryImage->SetImage("romfs:/Battery/30.png");
-        else if((blv > 40) && (blv <= 50)) this->batteryImage->SetImage("romfs:/Battery/40.png");
-        else if((blv > 50) && (blv <= 60)) this->batteryImage->SetImage("romfs:/Battery/50.png");
-        else if((blv > 60) && (blv <= 70)) this->batteryImage->SetImage("romfs:/Battery/60.png");
-        else if((blv > 70) && (blv <= 80)) this->batteryImage->SetImage("romfs:/Battery/70.png");
-        else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage("romfs:/Battery/80.png");
-        else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage("romfs:/Battery/90.png");
-        else if(blv == 100) this->batteryImage->SetImage("romfs:/Battery/100.png");
-        if(isch) this->batteryChargeImage->SetVisible(true);
-        else this->batteryChargeImage->SetVisible(false);
+        if((this->preblv != blv) || this->vfirst)
+        {
+            if(blv <= 10) this->batteryImage->SetImage("romfs:/Battery/0.png");
+            else if((blv > 10) && (blv <= 20)) this->batteryImage->SetImage("romfs:/Battery/10.png");
+            else if((blv > 20) && (blv <= 30)) this->batteryImage->SetImage("romfs:/Battery/20.png");
+            else if((blv > 30) && (blv <= 40)) this->batteryImage->SetImage("romfs:/Battery/30.png");
+            else if((blv > 40) && (blv <= 50)) this->batteryImage->SetImage("romfs:/Battery/40.png");
+            else if((blv > 50) && (blv <= 60)) this->batteryImage->SetImage("romfs:/Battery/50.png");
+            else if((blv > 60) && (blv <= 70)) this->batteryImage->SetImage("romfs:/Battery/60.png");
+            else if((blv > 70) && (blv <= 80)) this->batteryImage->SetImage("romfs:/Battery/70.png");
+            else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage("romfs:/Battery/80.png");
+            else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage("romfs:/Battery/90.png");
+            else if(blv == 100) this->batteryImage->SetImage("romfs:/Battery/100.png");
+            this->preblv = blv;
+        }
+        if((this->preisch != isch) || this->vfirst)
+        {
+            if(isch) this->batteryChargeImage->SetVisible(true);
+            else this->batteryChargeImage->SetVisible(false);
+            this->preisch = isch;
+        }
+        if((this->pretime != dtime) || this->vfirst)
+        {
+            this->timeText->SetText(dtime);
+            this->pretime = dtime;
+        }
+        if(this->vfirst) this->vfirst = false;
     }
 
     void MainApplication::sdBrowser_Input(u64 Down, u64 Up, u64 Held)
@@ -1732,7 +1636,6 @@ namespace gleaf::ui
                     mainapp->UpdateFooter("A " + std::string(isdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
-                delete dlg;
             }
             else mainapp->UpdateFooter("Clipboard is not selected.");
         }
@@ -1777,7 +1680,6 @@ namespace gleaf::ui
                     mainapp->UpdateFooter("A " + std::string(isdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
-                delete dlg;
             }
             else mainapp->UpdateFooter("Couldn't paste clipboard path. There is nothing selected to paste.");
         }
@@ -1891,11 +1793,7 @@ namespace gleaf::ui
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 2))
-        {
-            delete dlg;
-            return;
-        }
+        if(dlg->UserCancelled() || (sopt == 2)) return;
         else switch(sopt)
         {
             case 0:
@@ -1909,7 +1807,6 @@ namespace gleaf::ui
                 bpcExit();
                 break;
         }
-        delete dlg;
     }
 
     void SetMainApplication(MainApplication *MainApp)

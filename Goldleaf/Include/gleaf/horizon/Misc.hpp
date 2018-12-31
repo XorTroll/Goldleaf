@@ -27,11 +27,11 @@ namespace gleaf::horizon
 
     u32 GetBatteryLevel();
     bool IsCharging();
-    std::string GetOpenedUserName();
-    bool IsUserSelected();
     bool ExportQlaunchRomFs();
     std::string GetCurrentTime();
     FwVersion GetFwVersion();
     std::string FormatHex(u32 Number);
     std::string DoubleToString(double Number);
+    u64 GetSdCardFreeSpaceForInstalls();
+    u64 GetNANDFreeSpaceForInstalls();
 }

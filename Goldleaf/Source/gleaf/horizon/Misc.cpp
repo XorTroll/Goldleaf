@@ -1,6 +1,8 @@
 #include <gleaf/horizon/Misc.hpp>
 #include <gleaf/horizon/Title.hpp>
 #include <gleaf/hactool.hpp>
+#include <gleaf/fs.hpp>
+#include <gleaf/Application.hpp>
 #include <sstream>
 
 namespace gleaf::horizon
@@ -19,58 +21,14 @@ namespace gleaf::horizon
         return (charger > ChargerType_None);
     }
 
-    std::string GetOpenedUserName()
-    {
-        std::string user = "<unknown>";
-        u128 uid = 0;
-        Result rc = accountInitialize();
-        if(R_FAILED(rc)) return user;
-        AccountProfile pr;
-        AccountProfileBase bpr;
-        AccountUserData udata;
-        bool active = false;
-        rc = accountGetActiveUser(&uid, &active);
-        if(R_FAILED(rc))
-        {
-            accountExit();
-            return user;
-        }
-        rc = accountGetProfile(&pr, uid);
-        if(R_FAILED(rc))
-        {
-            accountExit();
-            return user;
-        }
-        rc = accountProfileGet(&pr, &udata, &bpr);
-        if(R_FAILED(rc))
-        {
-            accountExit();
-            return user;
-        }
-        user = std::string(bpr.username);
-        accountExit();
-        return user;
-    }
-
-    bool IsUserSelected()
-    {
-        bool sel = false;
-        u128 uid = 0;
-        Result rc = accountInitialize();
-        if(R_FAILED(rc)) return sel;
-        rc = accountGetActiveUser(&uid, &sel);
-        if(R_FAILED(rc)) sel = false;
-        accountExit();
-        return sel;
-    }
-
     bool ExportQlaunchRomFs()
     {
+        if(!HasKeyFile()) return false;
         FsFileSystem nandfs;
         fsOpenBisFileSystem(&nandfs, 31, "");
         fsdevMountDevice("qnand", nandfs);
         std::string path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001000);
-        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, "sdmc:/goldleaf/keys.dat");
+        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
         fsdevUnmountDevice("qnand");
         return ex;
     }
@@ -117,5 +75,15 @@ namespace gleaf::horizon
         std::stringstream strm;
         strm << Number;
         return strm.str();
+    }
+
+    u64 GetSdCardFreeSpaceForInstalls()
+    {
+        return fs::GetFreeSpaceForPartition(fs::Partition::SdCard);
+    }
+
+    u64 GetNANDFreeSpaceForInstalls()
+    {
+        return fs::GetFreeSpaceForPartition(fs::Partition::NANDUser);
     }
 }

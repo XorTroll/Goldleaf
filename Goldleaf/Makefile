@@ -33,7 +33,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.1
+APP_VERSION := 0.2
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf

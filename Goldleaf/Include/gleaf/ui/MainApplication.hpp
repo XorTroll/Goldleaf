@@ -52,6 +52,7 @@ namespace gleaf::ui
             gleaf::fs::Explorer *GetExplorer();
         private:
             gleaf::fs::Explorer *gexp;
+            std::vector<std::string> elems;
             pu::element::Menu *browseMenu;
             pu::element::TextBlock *dirEmptyText;
     };
@@ -181,6 +182,10 @@ namespace gleaf::ui
             SystemInfoLayout *GetSystemInfoLayout();
             AboutLayout *GetAboutLayout();
         private:
+            u32 preblv;
+            bool preisch;
+            std::string pretime;
+            bool vfirst;
             MainMenuLayout *mainMenu;
             PartitionBrowserLayout *sdBrowser;
             PartitionBrowserLayout *nandBrowser;
