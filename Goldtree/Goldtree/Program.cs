@@ -77,9 +77,7 @@ namespace gtree
             Console.Write(Description);
             Console.WriteLine();
             Console.Write("    ");
-            Console.Write("Copyright (C) 2018 ");
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("-");
+            Console.Write("Copyright (C) 2018 - 2019");
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write(" Goldleaf");
             Console.ForegroundColor = ConsoleColor.White;

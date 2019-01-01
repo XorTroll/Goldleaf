@@ -10,6 +10,11 @@ namespace gleaf::fs
         this->customifs = false;
         switch(Base)
         {
+            case Partition::PRODINFOF:
+                this->ecwd = "glprodf:/";
+                fsOpenBisFileSystem(&this->ifs, 28, "");
+                fsdevMountDevice("glprodf", this->ifs);
+                break;
             case Partition::NANDSafe:
                 this->ecwd = "glsafe:/";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
@@ -47,7 +52,7 @@ namespace gleaf::fs
 
     bool Explorer::NavigateBack()
     {
-        if((this->ecwd == "sdmc:/") || (this->ecwd == "glsafe:/") || (this->ecwd == "gluser:/") || (this->ecwd == "glsystem:/") || (this->ecwd == "glcfs:/")) return false;
+        if((this->ecwd == "glprodf:/") || (this->ecwd == "glsafe:/") || (this->ecwd == "gluser:/") || (this->ecwd == "glsystem:/") || (this->ecwd == "sdmc:/") || (this->ecwd == "glcfs:/")) return false;
         std::string parent = this->ecwd.substr(0, this->ecwd.find_last_of("/\\"));
         DIR *check = opendir(parent.c_str());
         bool ok = (check != NULL);
@@ -130,6 +135,11 @@ namespace gleaf::fs
         this->Close();
         switch(NewBase)
         {
+            case Partition::PRODINFOF:
+                this->ecwd = "glprodf:/";
+                fsOpenBisFileSystem(&this->ifs, 28, "");
+                fsdevMountDevice("glprodf", this->ifs);
+                break;
             case Partition::NANDSafe:
                 this->ecwd = "glsafe:/";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
@@ -188,9 +198,10 @@ namespace gleaf::fs
 
     void Explorer::Close()
     {
-        fsdevUnmountDevice("glcfs");
-        fsdevUnmountDevice("glsafe");
-        fsdevUnmountDevice("gluser");
-        fsdevUnmountDevice("glsystem");
+        if(this->part == Partition::PRODINFOF) fsdevUnmountDevice("glprodf");
+        else if(this->part == Partition::NANDSafe) fsdevUnmountDevice("glsafe");
+        else if(this->part == Partition::NANDUser) fsdevUnmountDevice("gluser");
+        else if(this->part == Partition::NANDSystem) fsdevUnmountDevice("glsystem");
+        else if(this->customifs) fsdevUnmountDevice("glcfs");
     }
 }

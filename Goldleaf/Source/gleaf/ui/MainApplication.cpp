@@ -14,16 +14,16 @@ namespace gleaf::ui
         this->sdcardMenuItem = new pu::element::MenuItem("Browse SD card");
         this->sdcardMenuItem->SetIcon("romfs:/Common/SdCard.png");
         this->sdcardMenuItem->AddOnClick(std::bind(&MainMenuLayout::sdcardMenuItem_Click, this));
-        this->nandMenuItem = new pu::element::MenuItem("Browse system NAND");
+        this->nandMenuItem = new pu::element::MenuItem("Browse console memory");
         this->nandMenuItem->SetIcon("romfs:/Common/NAND.png");
         this->nandMenuItem->AddOnClick(std::bind(&MainMenuLayout::nandMenuItem_Click, this));
         this->usbMenuItem = new pu::element::MenuItem("USB installation (via Goldtree)");
         this->usbMenuItem->SetIcon("romfs:/Common/USB.png");
         this->usbMenuItem->AddOnClick(std::bind(&MainMenuLayout::usbMenuItem_Click, this));
-        this->titleMenuItem = new pu::element::MenuItem("Title management");
+        this->titleMenuItem = new pu::element::MenuItem("Manage installed titles");
         this->titleMenuItem->SetIcon("romfs:/Common/Storage.png");
         this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
-        this->ticketMenuItem = new pu::element::MenuItem("Ticket management");
+        this->ticketMenuItem = new pu::element::MenuItem("Manage imported tickets");
         this->ticketMenuItem->SetIcon("romfs:/Common/Ticket.png");
         this->ticketMenuItem->AddOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
         this->cfwConfigMenuItem = new pu::element::MenuItem("CFW configuration");
@@ -69,17 +69,19 @@ namespace gleaf::ui
 
     void MainMenuLayout::nandMenuItem_Click()
     {
-        pu::Dialog *dlg = new pu::Dialog("Select NAND partition", "Select NAND partition to explore via Goldleaf.");
+        pu::Dialog *dlg = new pu::Dialog("Select console partition", "Which partition of the console memory would you like to browse?\n\nPRODINFOF contains several \"calibration\" contents.\nNAND's SAFE partition is usually empty.\nNAND's SYSTEM partition contains system NCAs and save datas.\nNAND's USER partition contains NCAs of titles installed to console memory.");
+        dlg->AddOption("PRODINFOF");
         dlg->AddOption("NAND SAFE");
         dlg->AddOption("NAND USER");
         dlg->AddOption("NAND SYSTEM");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
-        if(dlg->UserCancelled() || (sopt == 3)) return;
-        if(sopt == 0) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
-        else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
-        else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
+        if(dlg->UserCancelled() || (sopt == 4)) return;
+        if(sopt == 0) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::PRODINFOF);
+        else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
+        else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
+        else if(sopt == 3) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
     }
 
@@ -91,6 +93,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::titleMenuItem_Click()
     {
+        EnsureDirectories();
         mainapp->GetTitleManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
     }
@@ -519,7 +522,6 @@ namespace gleaf::ui
                         if(dlg->UserCancelled() || (sopt == 1)) return;
                         mainapp->LoadLayout(mainapp->GetThemeInstallLayout());
                         mainapp->GetThemeInstallLayout()->StartInstall(nxth, sdata, installdir);
-                        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                         break;
                 }
             }
@@ -633,11 +635,7 @@ namespace gleaf::ui
             }
             u32 copyopt = copt - 3;
             u32 delopt = copt - 2;
-            if(sopt == copyopt)
-            {
-                UpdateClipboard(fullitm);
-                this->UpdateElements();
-            }
+            if(sopt == copyopt) UpdateClipboard(fullitm);
             else if(sopt == delopt) if(this->WarnNANDWriteAccess())
             {
                 fs::DeleteFile(fullitm);
@@ -670,7 +668,6 @@ namespace gleaf::ui
                     break;
                 case 1:
                     UpdateClipboard(fullitm);
-                    this->UpdateElements();
                     break;
                 case 2:
                     if(this->WarnNANDWriteAccess())
@@ -1609,6 +1606,7 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
+                
                 pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?");
                 if(cdir) dlg->SetIcon("romfs:/FileSystem/Directory.png", 1150, 30);
                 else
@@ -1632,8 +1630,7 @@ namespace gleaf::ui
                     if(cdir) fs::CopyDirectory(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
                     else fs::CopyFile(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
                     this->sdBrowser->UpdateElements();
-                    bool isdir = fs::IsDirectory(clipboard);
-                    mainapp->UpdateFooter("A " + std::string(isdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
+                    mainapp->UpdateFooter("A " + std::string(cdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
             }
@@ -1653,6 +1650,7 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
+                if(!cdir && !fs::IsFile(clipboard)) return;
                 pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?");
                 if(cdir) dlg->SetIcon("romfs:/FileSystem/Directory.png", 1150, 30);
                 else
@@ -1676,8 +1674,7 @@ namespace gleaf::ui
                     if(cdir) fs::CopyDirectory(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
                     else fs::CopyFile(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
                     this->nandBrowser->UpdateElements();
-                    bool isdir = fs::IsDirectory(clipboard);
-                    mainapp->UpdateFooter("A " + std::string(isdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
+                    mainapp->UpdateFooter("A " + std::string(cdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
             }

@@ -17,9 +17,10 @@ namespace gleaf::fs
 {
     enum class Partition
     {
+        PRODINFOF,
         NANDSafe,
-        NANDSystem,
         NANDUser,
+        NANDSystem,
         SdCard,
     };
 

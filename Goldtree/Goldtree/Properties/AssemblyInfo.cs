@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("By XorTroll")]
 [assembly: AssemblyProduct("Goldleaf project")]
-[assembly: AssemblyCopyright("Copyright © 2018, part of Goldleaf project, by XorTroll")]
+[assembly: AssemblyCopyright("Copyright © 2018 - 2019 Goldleaf project, by XorTroll")]
 [assembly: AssemblyTrademark("Goldleaf project")]
 [assembly: AssemblyCulture("")]
 
