@@ -10,12 +10,12 @@ namespace gleaf::horizon
 {
     std::string Title::GetExportedIconPath()
     {
-        return ("sdmc:/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".jpg");
+        return ("sdmc:/switch/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".jpg");
     }
 
     std::string Title::GetExportedNACPPath()
     {
-        return ("sdmc:/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".nacp");
+        return ("sdmc:/switch/goldleaf/title/" + FormatApplicationId(this->ApplicationId) + ".nacp");
     }
 
     u64 Ticket::GetApplicationId()
@@ -76,15 +76,15 @@ namespace gleaf::horizon
                         std::string fappid = FormatApplicationId(title.ApplicationId);
                         if(cdata->icon != NULL)
                         {
-                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
-                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/switch/goldleaf/title/" + fappid + ".jpg");
+                            FILE *f = fopen(("sdmc:/switch/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
                             fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
                             fclose(f);
                         }
                         if(&cdata->nacp != NULL)
                         {
-                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
-                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/switch/goldleaf/title/" + fappid + ".nacp");
+                            FILE *f = fopen(("sdmc:/switch/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
@@ -122,15 +122,15 @@ namespace gleaf::horizon
                         std::string fappid = FormatApplicationId(title.ApplicationId);
                         if(cdata->icon != NULL)
                         {
-                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
-                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/switch/goldleaf/title/" + fappid + ".jpg");
+                            FILE *f = fopen(("sdmc:/switch/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
                             fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
                             fclose(f);
                         }
                         if(&cdata->nacp != NULL)
                         {
-                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
-                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/switch/goldleaf/title/" + fappid + ".nacp");
+                            FILE *f = fopen(("sdmc:/switch/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
@@ -167,15 +167,15 @@ namespace gleaf::horizon
                         std::string fappid = FormatApplicationId(title.ApplicationId);
                         if(cdata->icon != NULL)
                         {
-                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
-                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/switch/goldleaf/title/" + fappid + ".jpg");
+                            FILE *f = fopen(("sdmc:/switch/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
                             fwrite(cdata->icon, sizeof(u8), sizeof(cdata->icon), f);
                             fclose(f);
                         }
                         if(&cdata->nacp != NULL)
                         {
-                            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
-                            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
+                            fs::DeleteFile("sdmc:/switch/goldleaf/title/" + fappid + ".nacp");
+                            FILE *f = fopen(("sdmc:/switch/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
