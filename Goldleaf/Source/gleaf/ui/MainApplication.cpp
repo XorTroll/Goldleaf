@@ -1039,7 +1039,7 @@ namespace gleaf::ui
 
     void ThemeInstallLayout::StartInstall(gleaf::theme::ThemeFileManifest &NXTheme, gleaf::sarc::SARC::SarcData &SData, std::string CFWPath)
     {
-        std::string baseszs = "sdmc:/goldleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
+        std::string baseszs = "sdmc:/switch/goldleaf/qlaunch/lyt/" + gleaf::theme::ThemeTargetToFileName[NXTheme.Target];
         if(!gleaf::fs::Exists(baseszs))
         {
             if(!HasKeyFile())
@@ -1084,7 +1084,7 @@ namespace gleaf::ui
         if((NXTheme.Target == "home") && (ptp.FirmName == "<= 5.X") && NXTheme.UseCommon5X)
         {
             p5x = true;
-            std::string cszs = "sdmc:/goldleaf/qlaunch/lyt/common.szs";
+            std::string cszs = "sdmc:/switch/goldleaf/qlaunch/lyt/common.szs";
             auto c_fdata = gleaf::fs::ReadFile(cszs);
             auto c_dfdata = gleaf::sarc::YAZ0::Decompress(c_fdata);
             gleaf::sarc::SARC::SarcData commonszs = gleaf::sarc::SARC::Unpack(c_dfdata);
@@ -1234,8 +1234,8 @@ namespace gleaf::ui
         }
         info += "\nApplication Id: " + horizon::FormatApplicationId(seltit.ApplicationId);
         info += "\n\nThe JPEG icon and the NACP data can be found at:";
-        info += "\n\'sdmc:/goldleaf/title/" + horizon::FormatApplicationId(seltit.ApplicationId) + ".jpg\'";
-        info += "\n\'sdmc:/goldleaf/title/" + horizon::FormatApplicationId(seltit.ApplicationId) + ".nacp\'";
+        info += "\n\'sdmc:/switch/goldleaf/title/" + horizon::FormatApplicationId(seltit.ApplicationId) + ".jpg\'";
+        info += "\n\'sdmc:/switch/goldleaf/title/" + horizon::FormatApplicationId(seltit.ApplicationId) + ".nacp\'";
         pu::Dialog *dlg = new pu::Dialog("Installed title information", info);
         dlg->SetIcon(seltit.GetExportedIconPath(), 994, 30);
         if(seltit.Location == gleaf::Storage::GameCart)
