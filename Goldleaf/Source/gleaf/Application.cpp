@@ -64,4 +64,25 @@ namespace gleaf
         else if(Path == "sdmc:/sxos") name == "SX OS";
         return name;
     }
+
+    bool HasKeyFile()
+    {
+        return (GetKeyFilePath() != "");
+    }
+    std::string GetKeyFilePath()
+    {
+        std::string path = "";
+        std::vector<std::string> knames = GetKeyFilePossibleNames();
+        for(u32 i = 0; i < knames.size(); i++) if(fs::IsFile("sdmc:/goldleaf/" + knames[i]))
+        {
+            path = "sdmc:/goldleaf/" + knames[i];
+            break;
+        }
+        return path;
+    }
+
+    std::vector<std::string> GetKeyFilePossibleNames()
+    {
+        return { "keys.dat", "prod.keys", "keys.ini", "keys.txt" };
+    }
 }
