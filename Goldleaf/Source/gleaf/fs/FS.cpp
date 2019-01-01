@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cmath>
 #include <memory>
+#include <iomanip>
 #include <algorithm>
 #include <cctype>
 #include <sstream>
@@ -140,16 +141,24 @@ namespace gleaf::fs
         return file;
     }
 
-    std::vector<std::string> ReadFileLines(std::string Path)
+    std::vector<std::string> ReadFileLines(std::string Path, u32 LineOffset, u32 LineCount)
     {
         std::vector<std::string> data;
         std::ifstream ifs(Path);
         if(ifs.good())
         {
             std::string tmpline;
-            while(!ifs.eof())
+            u32 tmpc = 0;
+            u32 tmpo = 0;
+            while(tmpc < LineCount)
             {
                 getline(ifs, tmpline);
+                if(ifs.eof()) break;
+                if(tmpo < LineOffset)
+                {
+                    tmpo++;
+                    continue;
+                }
                 std::string tab = "\t";
                 while(true)
                 {
@@ -158,10 +167,76 @@ namespace gleaf::fs
                     tmpline.replace(spos, tab.length(), "    ");
                 }
                 data.push_back(tmpline);
+                tmpc++;
             }
         }
         ifs.close();
         return data;
+    }
+
+    std::vector<std::string> ReadFileFormatHex(std::string Path, u32 LineOffset, u32 LineCount)
+    {
+        std::vector<std::string> sdata;
+        FILE *f = fopen(Path.c_str(), "rb");
+        if(f)
+        {
+            fseek(f, 0, SEEK_END);
+            u64 sz = ftell(f);
+            rewind(f);
+            u64 off = (16 * LineOffset);
+            u64 rsz = (16 * LineCount);
+            if(off >= sz) return sdata;
+            u64 rrsz = std::min(sz, rsz);
+            if((off + rsz) > sz) rrsz = rsz - ((off + rsz) - sz);
+            fseek(f, off, SEEK_SET);
+            std::vector<u8> bdata(rrsz);
+            fread(bdata.data(), 1, rrsz, f);
+            u32 count = 0;
+            std::string tmpline;
+            std::string tmpchr;
+            u32 toff = 0;
+            for(u32 i = 0; i < (rrsz + 1); i++)
+            {
+                if(count == 16)
+                {
+                    std::stringstream ostrm;
+                    ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
+                    std::string def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
+                    sdata.push_back(def);
+                    toff += 16;
+                    count = 0;
+                    tmpline = "";
+                    tmpchr = "";
+                }
+                else if(i == rrsz)
+                {
+                    if((rrsz % 16) != 0)
+                    {
+                        u32 miss = 16 - count;
+                        for(u32 i = 0; i < miss; i++)
+                        {
+                            tmpline += "   ";
+                            tmpchr += " ";
+                        }
+                    }
+                    std::stringstream ostrm;
+                    ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
+                    std::string def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
+                    sdata.push_back(def);
+                    break;
+                }
+                u8 byte = bdata[i];
+                std::stringstream strm;
+                strm << std::setw(2) << std::uppercase << std::setfill('0') << std::hex << (int)byte;
+                tmpline += strm.str() + " ";
+                if(isprint(byte)) tmpchr += (char)byte;
+                else tmpchr += ".";
+                count++;
+            }
+            bdata.clear();
+        }
+        fclose(f);
+        return sdata;
     }
 
     void WriteFile(std::string Path, std::vector<u8> Data)

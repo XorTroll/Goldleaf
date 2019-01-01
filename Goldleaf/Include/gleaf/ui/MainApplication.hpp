@@ -57,18 +57,20 @@ namespace gleaf::ui
             pu::element::TextBlock *dirEmptyText;
     };
 
-    class PlainFileLayout : public pu::Layout
+    class FileContentLayout : public pu::Layout
     {
         public:
-            PlainFileLayout();
-            void LoadFile(std::string Path, pu::Layout *Prev);
+            FileContentLayout();
+            void LoadFile(std::string Path, pu::Layout *Prev, bool Hex);
             void Update();
             void ScrollUp();
             void ScrollDown();
             pu::Layout *GetPreviousLayout();
         private:
             u32 loffset;
-            std::vector<std::string> lines;
+            u32 rlines;
+            bool mode;
+            std::string pth;
             pu::element::TextBlock *cntText;
             pu::Layout *prev;
     };
@@ -190,7 +192,7 @@ namespace gleaf::ui
             MainMenuLayout *GetMainMenuLayout();
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
-            PlainFileLayout *GetPlainFileLayout();
+            FileContentLayout *GetFileContentLayout();
             InstallLayout *GetInstallLayout();
             USBInstallLayout *GetUSBInstallLayout();
             ThemeInstallLayout *GetThemeInstallLayout();
@@ -207,7 +209,7 @@ namespace gleaf::ui
             MainMenuLayout *mainMenu;
             PartitionBrowserLayout *sdBrowser;
             PartitionBrowserLayout *nandBrowser;
-            PlainFileLayout *plainFile;
+            FileContentLayout *fileContent;
             InstallLayout *nspInstall;
             USBInstallLayout *usbInstall;
             ThemeInstallLayout *themeInstall;

@@ -202,7 +202,7 @@ namespace gleaf::ui
         if(this->gexp->NavigateForward(itm)) this->UpdateElements();
         else if(fs::IsFile(fullitm))
         {
-            bool plain = !fs::IsFileBinary(fullitm);
+            bool bin = fs::IsFileBinary(fullitm);
             std::string ext = fs::GetExtension(itm);
             std::string msg = "What would you like to do with the selected ";
             if(ext == "nsp") msg += "NSP package";
@@ -211,47 +211,48 @@ namespace gleaf::ui
             else if(ext == "nxtheme") msg += "Home Menu theme file";
             else if(ext == "nca") msg += "NCA archive";
             else if(ext == "nacp") msg += "NACP data";
-            else msg += std::string(plain ? "text" : "binary") + " file";
+            else msg += std::string(bin ? "binary" : "text") + " file";
             msg += "?";
             msg += "\n\nFile size: " + fs::FormatSize(fs::GetFileSize(fullitm));
             pu::Dialog *dlg = new pu::Dialog("File options", msg);
-            u32 copt = 3;
+            u32 copt = 4;
             if(ext == "nsp")
             {
                 dlg->AddOption("Install");
                 dlg->AddOption("Install and delete");
-                copt = 5;
+                copt = 6;
             }
             else if(ext == "nro")
             {
                 dlg->AddOption("Launch");
-                copt = 4;
+                copt = 5;
             }
             else if(ext == "tik")
             {
                 dlg->AddOption("Import");
-                copt = 4;
+                copt = 5;
             }
             else if(ext == "nxtheme")
             {
                 dlg->AddOption("Install");
-                copt = 4;
+                copt = 5;
             }
             else if(ext == "nca")
             {
                 dlg->AddOption("Extract");
-                copt = 4;
+                copt = 5;
             }
             else if(ext == "nacp")
             {
                 dlg->AddOption("View information");
-                copt = 4;
+                copt = 5;
             }
-            else if(plain)
+            else if(!bin)
             {
                 dlg->AddOption("View text");
-                copt = 4;
+                copt = 5;
             }
+            dlg->AddOption("View hex");
             dlg->AddOption("Copy");
             dlg->AddOption("Delete");
             dlg->AddOption("Cancel");
@@ -431,7 +432,7 @@ namespace gleaf::ui
                         dlg->AddOption("Launch");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
-                        if(dlg->GetSelectedIndex() == 0)
+                        if(!dlg->UserCancelled() || dlg->GetSelectedIndex() == 0)
                         {
                             envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
                             mainapp->Close();
@@ -638,14 +639,25 @@ namespace gleaf::ui
                         break;
                 }
             }
-            else if(plain)
+            else if(!bin)
             {
-                mainapp->LoadLayout(mainapp->GetPlainFileLayout());
-                mainapp->GetPlainFileLayout()->LoadFile(fullitm, this);
+                switch(sopt)
+                {
+                    case 0:
+                        mainapp->LoadLayout(mainapp->GetFileContentLayout());
+                        mainapp->GetFileContentLayout()->LoadFile(fullitm, this, false);
+                        break;
+                }
             }
+            u32 viewopt = copt - 4;
             u32 copyopt = copt - 3;
             u32 delopt = copt - 2;
-            if(sopt == copyopt) UpdateClipboard(fullitm);
+            if(sopt == viewopt)
+            {
+                mainapp->LoadLayout(mainapp->GetFileContentLayout());
+                mainapp->GetFileContentLayout()->LoadFile(fullitm, this, true);
+            }
+            else if(sopt == copyopt) UpdateClipboard(fullitm);
             else if(sopt == delopt) if(this->WarnNANDWriteAccess())
             {
                 fs::DeleteFile(fullitm);
@@ -696,7 +708,7 @@ namespace gleaf::ui
         return this->gexp;
     }
 
-    PlainFileLayout::PlainFileLayout()
+    FileContentLayout::FileContentLayout()
     {
         this->cntText = new pu::element::TextBlock(25, 150, "");
         this->cntText->SetFont(pu::render::LoadFont("romfs:/Consolas.ttf", 25));
@@ -704,27 +716,37 @@ namespace gleaf::ui
         this->loffset = 0;
     }
 
-    void PlainFileLayout::LoadFile(std::string Path, pu::Layout *Prev)
+    void FileContentLayout::LoadFile(std::string Path, pu::Layout *Prev, bool Hex)
     {
         this->prev = Prev;
-        this->lines = fs::ReadFileLines(Path);
+        this->pth = Path;
+        this->mode = Hex;
         this->loffset = 0;
         this->Update();
     }
 
-    void PlainFileLayout::Update()
+    void FileContentLayout::Update()
     {
-        u32 dlines = std::min(20, (int)(this->lines.size() - this->loffset));
+        std::vector<std::string> lines;
+        if(this->mode) lines = fs::ReadFileFormatHex(this->pth, this->loffset, 20);
+        else lines = fs::ReadFileLines(this->pth, this->loffset, 20);
+        if(lines.empty())
+        {
+            this->loffset--;
+            return;
+        }
+        this->rlines = lines.size();
         std::string alines;
-        if(dlines > 0) for(u32 i = 0; i < dlines; i++)
+        if(this->rlines > 0) for(u32 i = 0; i < this->rlines; i++)
         {
             if(i > 0) alines += "\n";
-            alines += this->lines[i + this->loffset];
+            alines += lines[i];
         }
         this->cntText->SetText(alines);
+        lines.clear();
     }
 
-    void PlainFileLayout::ScrollUp()
+    void FileContentLayout::ScrollUp()
     {
         if(this->loffset > 0)
         {
@@ -733,16 +755,13 @@ namespace gleaf::ui
         }
     }
 
-    void PlainFileLayout::ScrollDown()
+    void FileContentLayout::ScrollDown()
     {
-        if((this->lines.size() > 20) && (this->loffset < (this->lines.size() - 20)))
-        {
-            this->loffset++;
-            this->Update();
-        }
+        this->loffset++;
+        this->Update();
     }
 
-    pu::Layout *PlainFileLayout::GetPreviousLayout()
+    pu::Layout *FileContentLayout::GetPreviousLayout()
     {
         return this->prev;
     }
@@ -1534,8 +1553,8 @@ namespace gleaf::ui
         this->sdBrowser->SetOnInput(std::bind(&MainApplication::sdBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nandBrowser = new PartitionBrowserLayout(fs::Partition::NANDSystem);
         this->nandBrowser->SetOnInput(std::bind(&MainApplication::nandBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->plainFile = new PlainFileLayout();
-        this->plainFile->SetOnInput(std::bind(&MainApplication::plainFile_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->fileContent = new FileContentLayout();
+        this->fileContent->SetOnInput(std::bind(&MainApplication::plainFile_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nspInstall = new InstallLayout();
         this->usbInstall = new USBInstallLayout();
         this->usbInstall->SetOnInput(std::bind(&MainApplication::usbInstall_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -1563,7 +1582,7 @@ namespace gleaf::ui
         this->mainMenu->AddChild(this->bannerImage);
         this->sdBrowser->AddChild(this->bannerImage);
         this->nandBrowser->AddChild(this->bannerImage);
-        this->plainFile->AddChild(this->bannerImage);
+        this->fileContent->AddChild(this->bannerImage);
         this->nspInstall->AddChild(this->bannerImage);
         this->usbInstall->AddChild(this->bannerImage);
         this->themeInstall->AddChild(this->bannerImage);
@@ -1574,7 +1593,7 @@ namespace gleaf::ui
         this->mainMenu->AddChild(this->timeText);
         this->sdBrowser->AddChild(this->timeText);
         this->nandBrowser->AddChild(this->timeText);
-        this->plainFile->AddChild(this->timeText);
+        this->fileContent->AddChild(this->timeText);
         this->nspInstall->AddChild(this->timeText);
         this->usbInstall->AddChild(this->timeText);
         this->themeInstall->AddChild(this->timeText);
@@ -1586,7 +1605,7 @@ namespace gleaf::ui
         this->mainMenu->AddChild(this->batteryImage);
         this->sdBrowser->AddChild(this->batteryImage);
         this->nandBrowser->AddChild(this->batteryImage);
-        this->plainFile->AddChild(this->batteryImage);
+        this->fileContent->AddChild(this->batteryImage);
         this->nspInstall->AddChild(this->batteryImage);
         this->usbInstall->AddChild(this->batteryImage);
         this->themeInstall->AddChild(this->batteryImage);
@@ -1598,7 +1617,7 @@ namespace gleaf::ui
         this->mainMenu->AddChild(this->batteryChargeImage);
         this->sdBrowser->AddChild(this->batteryChargeImage);
         this->nandBrowser->AddChild(this->batteryChargeImage);
-        this->plainFile->AddChild(this->batteryChargeImage);
+        this->fileContent->AddChild(this->batteryChargeImage);
         this->nspInstall->AddChild(this->batteryChargeImage);
         this->usbInstall->AddChild(this->batteryChargeImage);
         this->themeInstall->AddChild(this->batteryChargeImage);
@@ -1610,7 +1629,7 @@ namespace gleaf::ui
         this->mainMenu->AddChild(this->footerText);
         this->sdBrowser->AddChild(this->footerText);
         this->nandBrowser->AddChild(this->footerText);
-        this->plainFile->AddChild(this->footerText);
+        this->fileContent->AddChild(this->footerText);
         this->nspInstall->AddChild(this->footerText);
         this->usbInstall->AddChild(this->footerText);
         this->themeInstall->AddChild(this->footerText);
@@ -1757,9 +1776,9 @@ namespace gleaf::ui
 
     void MainApplication::plainFile_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->plainFile->GetPreviousLayout());
-        else if((Down & KEY_DDOWN) || (Down & KEY_LSTICK_DOWN) || (Held & KEY_RSTICK_DOWN)) this->plainFile->ScrollDown();
-        else if((Down & KEY_DUP) || (Down & KEY_LSTICK_UP) || (Held & KEY_RSTICK_UP)) this->plainFile->ScrollUp();
+        if(Down & KEY_B) this->LoadLayout(this->fileContent->GetPreviousLayout());
+        else if((Down & KEY_DDOWN) || (Down & KEY_LSTICK_DOWN) || (Held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
+        else if((Down & KEY_DUP) || (Down & KEY_LSTICK_UP) || (Held & KEY_RSTICK_UP)) this->fileContent->ScrollUp();
     }
 
     void MainApplication::titleManager_Input(u64 Down, u64 Up, u64 Held)
@@ -1811,9 +1830,9 @@ namespace gleaf::ui
         return this->nandBrowser;
     }
 
-    PlainFileLayout *MainApplication::GetPlainFileLayout()
+    FileContentLayout *MainApplication::GetFileContentLayout()
     {
-        return this->plainFile;
+        return this->fileContent;
     }
 
     InstallLayout *MainApplication::GetInstallLayout()
