@@ -14,10 +14,10 @@ namespace gleaf
         if(R_FAILED(setsysInitialize())) exit(0);
         if(R_FAILED(usbCommsInitialize())) exit(0);
         if(R_FAILED(lrInitialize())) exit(0);
-        fs::CreateDirectory("sdmc:/goldleaf");
-        fs::CreateDirectory("sdmc:/goldleaf/meta");
-        fs::CreateDirectory("sdmc:/goldleaf/title");
-        fs::CreateDirectory("sdmc:/goldleaf/qlaunch");
+        fs::CreateDirectory("sdmc:/switch/goldleaf");
+        fs::CreateDirectory("sdmc:/switch/goldleaf/meta");
+        fs::CreateDirectory("sdmc:/switch/goldleaf/title");
+        fs::CreateDirectory("sdmc:/switch/goldleaf/qlaunch");
     }
 
     void Finalize()
@@ -73,9 +73,9 @@ namespace gleaf
     {
         std::string path = "";
         std::vector<std::string> knames = GetKeyFilePossibleNames();
-        for(u32 i = 0; i < knames.size(); i++) if(fs::IsFile("sdmc:/goldleaf/" + knames[i]))
+        for(u32 i = 0; i < knames.size(); i++) if(fs::IsFile("sdmc:/switch/goldleaf/" + knames[i]))
         {
-            path = "sdmc:/goldleaf/" + knames[i];
+            path = "sdmc:/switch/goldleaf/" + knames[i];
             break;
         }
         return path;
