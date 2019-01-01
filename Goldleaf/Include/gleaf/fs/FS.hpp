@@ -33,7 +33,9 @@ namespace gleaf::fs
     void CopyDirectory(std::string Dir, std::string NewDir);
     void DeleteFile(std::string Path);
     void DeleteDirectory(std::string Path);
+    bool IsFileBinary(std::string Path);
     std::vector<u8> ReadFile(std::string Path);
+    std::vector<std::string> ReadFileLines(std::string Path);
     void WriteFile(std::string Path, std::vector<u8> Data);
     u64 GetFileSize(std::string Path);
     u64 GetDirectorySize(std::string Path);

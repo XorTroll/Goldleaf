@@ -57,6 +57,22 @@ namespace gleaf::ui
             pu::element::TextBlock *dirEmptyText;
     };
 
+    class PlainFileLayout : public pu::Layout
+    {
+        public:
+            PlainFileLayout();
+            void LoadFile(std::string Path, pu::Layout *Prev);
+            void Update();
+            void ScrollUp();
+            void ScrollDown();
+            pu::Layout *GetPreviousLayout();
+        private:
+            u32 loffset;
+            std::vector<std::string> lines;
+            pu::element::TextBlock *cntText;
+            pu::Layout *prev;
+    };
+
     class InstallLayout : public pu::Layout
     {
         public:
@@ -163,6 +179,7 @@ namespace gleaf::ui
             void UpdateValues();
             void sdBrowser_Input(u64 Down, u64 Up, u64 Held);
             void nandBrowser_Input(u64 Down, u64 Up, u64 Held);
+            void plainFile_Input(u64 Down, u64 Up, u64 Held);
             void usbInstall_Input(u64 Down, u64 Up, u64 Held);
             void titleManager_Input(u64 Down, u64 Up, u64 Held);
             void ticketManager_Input(u64 Down, u64 Up, u64 Held);
@@ -173,6 +190,7 @@ namespace gleaf::ui
             MainMenuLayout *GetMainMenuLayout();
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
+            PlainFileLayout *GetPlainFileLayout();
             InstallLayout *GetInstallLayout();
             USBInstallLayout *GetUSBInstallLayout();
             ThemeInstallLayout *GetThemeInstallLayout();
@@ -189,6 +207,7 @@ namespace gleaf::ui
             MainMenuLayout *mainMenu;
             PartitionBrowserLayout *sdBrowser;
             PartitionBrowserLayout *nandBrowser;
+            PlainFileLayout *plainFile;
             InstallLayout *nspInstall;
             USBInstallLayout *usbInstall;
             ThemeInstallLayout *themeInstall;

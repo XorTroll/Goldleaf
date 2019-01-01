@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cmath>
 #include <memory>
+#include <algorithm>
+#include <cctype>
 #include <sstream>
 #include <dirent.h>
 #include <unistd.h>
@@ -101,6 +103,27 @@ namespace gleaf::fs
         rmdir(Path.c_str());
     }
 
+    bool IsFileBinary(std::string Path)
+    {
+        if(GetFileSize(Path) == 0) return true;
+        bool bin = false;
+        FILE *f = fopen(Path.c_str(), "r");
+        if(f)
+        {
+            int ch = 0;
+            while((ch = fgetc(f)) != EOF)
+            {
+                if(!isascii(ch) || (iscntrl(ch) && !isspace(ch)))
+                {
+                    bin = true;
+                    break;
+                }
+            }
+        }
+        fclose(f);
+        return bin;
+    }
+
     std::vector<u8> ReadFile(std::string Path)
     {
         std::vector<u8> file;
@@ -115,6 +138,30 @@ namespace gleaf::fs
         }
         fclose(fle);
         return file;
+    }
+
+    std::vector<std::string> ReadFileLines(std::string Path)
+    {
+        std::vector<std::string> data;
+        std::ifstream ifs(Path);
+        if(ifs.good())
+        {
+            std::string tmpline;
+            while(!ifs.eof())
+            {
+                getline(ifs, tmpline);
+                std::string tab = "\t";
+                while(true)
+                {
+                    size_t spos = tmpline.find(tab);
+                    if(spos == std::string::npos) break;
+                    tmpline.replace(spos, tab.length(), "    ");
+                }
+                data.push_back(tmpline);
+            }
+        }
+        ifs.close();
+        return data;
     }
 
     void WriteFile(std::string Path, std::vector<u8> Data)
