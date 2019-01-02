@@ -50,6 +50,7 @@ namespace gleaf::ui
             void fsItems_Click();
             void fsItems_Click_Y();
             gleaf::fs::Explorer *GetExplorer();
+            std::string LoadPathSwkbd(std::string Guide, std::string Initial);
         private:
             gleaf::fs::Explorer *gexp;
             std::vector<std::string> elems;

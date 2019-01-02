@@ -215,46 +215,46 @@ namespace gleaf::ui
             msg += "?";
             msg += "\n\nFile size: " + fs::FormatSize(fs::GetFileSize(fullitm));
             pu::Dialog *dlg = new pu::Dialog("File options", msg);
-            u32 copt = 4;
+            u32 copt = 5;
             if(ext == "nsp")
             {
                 dlg->AddOption("Install");
-                dlg->AddOption("Install and delete");
                 copt = 6;
             }
             else if(ext == "nro")
             {
                 dlg->AddOption("Launch");
-                copt = 5;
+                copt = 6;
             }
             else if(ext == "tik")
             {
                 dlg->AddOption("Import");
-                copt = 5;
+                copt = 6;
             }
             else if(ext == "nxtheme")
             {
                 dlg->AddOption("Install");
-                copt = 5;
+                copt = 6;
             }
             else if(ext == "nca")
             {
                 dlg->AddOption("Extract");
-                copt = 5;
+                copt = 6;
             }
             else if(ext == "nacp")
             {
                 dlg->AddOption("View information");
-                copt = 5;
+                copt = 6;
             }
             else if(!bin)
             {
                 dlg->AddOption("View text");
-                copt = 5;
+                copt = 6;
             }
             dlg->AddOption("View hex");
             dlg->AddOption("Copy");
             dlg->AddOption("Delete");
+            dlg->AddOption("Rename");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
@@ -264,8 +264,6 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                    case 1:
-                        bool del = (sopt == 1);
                         dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
                         dlg->AddOption("SD card");
                         dlg->AddOption("Console memory (NAND)");
@@ -411,7 +409,7 @@ namespace gleaf::ui
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 1)) return;
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
-                        mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), del, fullitm);
+                        mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), false, fullitm);
                         this->UpdateElements();
                         break;
                 }
@@ -432,7 +430,7 @@ namespace gleaf::ui
                         dlg->AddOption("Launch");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
-                        if(!dlg->UserCancelled() || dlg->GetSelectedIndex() == 0)
+                        if(!dlg->UserCancelled() || (dlg->GetSelectedIndex() == 0))
                         {
                             envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
                             mainapp->Close();
@@ -649,20 +647,44 @@ namespace gleaf::ui
                         break;
                 }
             }
-            u32 viewopt = copt - 4;
-            u32 copyopt = copt - 3;
-            u32 delopt = copt - 2;
+            u32 viewopt = copt - 5;
+            u32 copyopt = copt - 4;
+            u32 delopt = copt - 3;
+            u32 renopt = copt - 2;
             if(sopt == viewopt)
             {
                 mainapp->LoadLayout(mainapp->GetFileContentLayout());
                 mainapp->GetFileContentLayout()->LoadFile(fullitm, this, true);
             }
             else if(sopt == copyopt) UpdateClipboard(fullitm);
-            else if(sopt == delopt) if(this->WarnNANDWriteAccess())
+            else if(sopt == delopt)
             {
-                fs::DeleteFile(fullitm);
-                mainapp->UpdateFooter("File deleted: \'" + fullitm + "\'");
-                this->UpdateElements();
+                if(this->WarnNANDWriteAccess())
+                {
+                    fs::DeleteFile(fullitm);
+                    mainapp->UpdateFooter("File deleted: \'" + fullitm + "\'");
+                    this->UpdateElements();
+                }
+            }
+            else if(sopt == renopt)
+            {
+                std::string kbdt = this->LoadPathSwkbd("Rename file", itm);
+                if(kbdt != "")
+                {
+                    if(kbdt == itm) return;
+                    std::string newren = this->gexp->FullPathFor(kbdt);
+                    if(fs::IsFile(newren) || fs::IsDirectory(newren)) mainapp->UpdateFooter("A file or directory with this name already exists.");
+                    else if(this->WarnNANDWriteAccess())
+                    {
+                        int rc = rename(fullitm.c_str(), newren.c_str());
+                        if(rc) mainapp->UpdateFooter("There was an error trying to rename the file.");
+                        else
+                        {
+                            mainapp->UpdateFooter("A file was renamed.");
+                            this->UpdateElements();
+                        }
+                    }
+                }
             }
         }
     }
@@ -679,10 +701,11 @@ namespace gleaf::ui
             dlg->AddOption("Browse");
             dlg->AddOption("Copy");
             dlg->AddOption("Delete");
+            dlg->AddOption("Rename");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 3)) return;
+            if(dlg->UserCancelled() || (sopt == 4)) return;
             switch(sopt)
             {
                 case 0:
@@ -699,6 +722,22 @@ namespace gleaf::ui
                         this->UpdateElements();
                     }
                     break;
+                case 3:
+                    std::string kbdt = this->LoadPathSwkbd("Rename directory", itm);
+                    if(kbdt != "")
+                    {
+                        if(kbdt == itm) return;
+                        std::string newren = this->gexp->FullPathFor(kbdt);
+                        if(fs::IsFile(newren) || fs::IsDirectory(newren)) mainapp->UpdateFooter("A file or directory with this name already exists.");
+                        else if(this->WarnNANDWriteAccess())
+                        {
+                            int rc = rename(fullitm.c_str(), newren.c_str());
+                            if(rc) mainapp->UpdateFooter("There was an error trying to rename the directory.");
+                            else mainapp->UpdateFooter("A directory was renamed.");
+                            this->UpdateElements();
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -706,6 +745,24 @@ namespace gleaf::ui
     fs::Explorer *PartitionBrowserLayout::GetExplorer()
     {
         return this->gexp;
+    }
+
+    std::string PartitionBrowserLayout::LoadPathSwkbd(std::string Guide, std::string Initial)
+    {
+        std::string out = "";
+        char tmpout[FS_MAX_PATH] = { 0 };
+        SwkbdConfig kbd;
+        Result rc = swkbdCreate(&kbd, 0);
+        if(rc == 0)
+        {
+            swkbdConfigMakePresetDefault(&kbd);
+            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.c_str());
+            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.c_str());
+            rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
+            if(rc == 0) out = std::string(tmpout);
+        }
+        swkbdClose(&kbd);
+        return out;
     }
 
     FileContentLayout::FileContentLayout()
@@ -1723,6 +1780,36 @@ namespace gleaf::ui
             }
             else mainapp->UpdateFooter("Clipboard is not selected.");
         }
+        else if(Down & KEY_L)
+        {
+            std::string cfile = this->sdBrowser->LoadPathSwkbd("Create file", "");
+            if(cfile != "")
+            {
+                std::string ffile = this->sdBrowser->GetExplorer()->FullPathFor(cfile);
+                if(fs::IsFile(ffile) || fs::IsDirectory(ffile)) mainapp->UpdateFooter("A file or directory with this name already exists.");
+                else
+                {
+                    fs::CreateFile(ffile);
+                    mainapp->UpdateFooter("A file was created: \'" + ffile + "\'");
+                    this->sdBrowser->UpdateElements();
+                }
+            }
+        }
+        else if(Down & KEY_R)
+        {
+            std::string cdir = this->sdBrowser->LoadPathSwkbd("Create directory", "");
+            if(cdir != "")
+            {
+                std::string fdir = this->sdBrowser->GetExplorer()->FullPathFor(cdir);
+                if(fs::IsFile(fdir) || fs::IsDirectory(fdir)) mainapp->UpdateFooter("A file or directory with this name already exists.");
+                else
+                {
+                    fs::CreateDirectory(fdir);
+                    mainapp->UpdateFooter("A directory was created: \'" + fdir + "\'");
+                    this->sdBrowser->UpdateElements();
+                }
+            }
+        }
     }
 
     void MainApplication::nandBrowser_Input(u64 Down, u64 Up, u64 Held)
@@ -1766,6 +1853,36 @@ namespace gleaf::ui
                 }
             }
             else mainapp->UpdateFooter("Couldn't paste clipboard path. There is nothing selected to paste.");
+        }
+        else if(Down & KEY_L)
+        {
+            std::string cfile = this->nandBrowser->LoadPathSwkbd("Create file", "");
+            if(cfile != "")
+            {
+                std::string ffile = this->nandBrowser->GetExplorer()->FullPathFor(cfile);
+                if(fs::IsFile(ffile) || fs::IsDirectory(ffile)) mainapp->UpdateFooter("A file or directory with this name already exists.");
+                else if(this->nandBrowser->WarnNANDWriteAccess())
+                {
+                    fs::CreateFile(ffile);
+                    mainapp->UpdateFooter("A file was created: \'" + ffile + "\'");
+                    this->nandBrowser->UpdateElements();
+                }
+            }
+        }
+        else if(Down & KEY_R)
+        {
+            std::string cdir = this->nandBrowser->LoadPathSwkbd("Create directory", "");
+            if(cdir != "")
+            {
+                std::string fdir = this->nandBrowser->GetExplorer()->FullPathFor(cdir);
+                if(fs::IsFile(fdir) || fs::IsDirectory(fdir)) mainapp->UpdateFooter("A file or directory with this name already exists.");
+                else if(this->nandBrowser->WarnNANDWriteAccess())
+                {
+                    fs::CreateDirectory(fdir);
+                    mainapp->UpdateFooter("A directory was created: \'" + fdir + "\'");
+                    this->nandBrowser->UpdateElements();
+                }
+            }
         }
     }
 
