@@ -54,7 +54,7 @@ namespace Goldtree.Lib
             Console.Write(Description);
             Console.WriteLine();
             Console.Write("    ");
-            Console.Write("Copyright (C) 2018 ");
+            Console.Write("Copyright (C) 2018 - 2019");
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.Write("-");
             Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -127,7 +127,7 @@ namespace Goldtree.Lib
             switch(rc)
             {
                 case CommandStart _:
-                    Log.Log("Goldleaf is ready for the installation. Preparing everything...");
+                    Log.Log("Goldleaf has received the name of the file.");
                     return true;
                 case CommandFinish _:
                     Error.Log("Goldleaf has canceled the installation.");
@@ -150,7 +150,7 @@ namespace Goldtree.Lib
                 using (BinaryReader br = new BinaryReader(fs))
                 {
                     Command ccmd = Command.Receive(usb);
-                    while(!ccmd.MagicOk() || ccmd.IsCommandId(CommandId.Finish))
+                    while(!ccmd.MagicOk() || !ccmd.IsCommandId(CommandId.Finish))
                     {
                         if (!ccmd.MagicOk())
                         {

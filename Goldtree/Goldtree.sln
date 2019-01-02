@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree", "Goldtree\Goldtree.csproj", "{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree", "Goldtree\Goldtree.csproj", "{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Core", "Goldtree.Core\Goldtree.Core.csproj", "{EEF7AD35-3F26-478E-93BC-CA266B45777E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Lib.UsbK", "Goldtree.Lib.UsbK\Goldtree.Lib.UsbK.csproj", "{63C78FA3-22D0-4852-A77F-EA96654F796F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Lib", "Goldtree.Lib\Goldtree.Lib.csproj", "{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Lib", "Goldtree.Lib\Goldtree.Lib.csproj", "{E4FA897A-AF3A-498A-8E74-AC633DB89667}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree.Lib.UsbK", "Goldtree.Lib.UsbK\Goldtree.Lib.UsbK.csproj", "{7852BD03-BA88-4754-8689-62631B8F6F80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Core", "Goldtree.Core\Goldtree.Core.csproj", "{5B55C617-5C2A-422D-A20B-7E876AAE544B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +21,18 @@ Global
 		{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EEF7AD35-3F26-478E-93BC-CA266B45777E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EEF7AD35-3F26-478E-93BC-CA266B45777E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EEF7AD35-3F26-478E-93BC-CA266B45777E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EEF7AD35-3F26-478E-93BC-CA266B45777E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7852BD03-BA88-4754-8689-62631B8F6F80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7852BD03-BA88-4754-8689-62631B8F6F80}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7852BD03-BA88-4754-8689-62631B8F6F80}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7852BD03-BA88-4754-8689-62631B8F6F80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63C78FA3-22D0-4852-A77F-EA96654F796F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63C78FA3-22D0-4852-A77F-EA96654F796F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63C78FA3-22D0-4852-A77F-EA96654F796F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63C78FA3-22D0-4852-A77F-EA96654F796F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4FA897A-AF3A-498A-8E74-AC633DB89667}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4FA897A-AF3A-498A-8E74-AC633DB89667}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4FA897A-AF3A-498A-8E74-AC633DB89667}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4FA897A-AF3A-498A-8E74-AC633DB89667}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B55C617-5C2A-422D-A20B-7E876AAE544B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B55C617-5C2A-422D-A20B-7E876AAE544B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B55C617-5C2A-422D-A20B-7E876AAE544B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B55C617-5C2A-422D-A20B-7E876AAE544B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,6 +12,7 @@ namespace gtree
 {
     public class Program
     {
+        [STAThread]
         public static void Main(string[] Args)
         {
             CLI.Instance.Initialize();
