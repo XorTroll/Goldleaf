@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Goldtree.Lib.Commands;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -22,6 +23,12 @@ namespace Goldtree.Lib
             this.CommandId = CommandId;
         }
 
+        protected Command(Command other)
+        {
+            this.Magic = other.Magic;
+            this.CommandId = other.CommandId;
+        }
+
         public bool MagicOk()
         {
             return (Magic == GLUC);
@@ -39,6 +46,37 @@ namespace Goldtree.Lib
             fcmd.AddRange(emg);
             fcmd.AddRange(BitConverter.GetBytes((uint)CommandId));
             return fcmd.ToArray();
+        }
+
+        public virtual void Send(IUsb usb)
+        {
+            usb.Write(this);
+        }
+
+        public static Command Receive(IUsb usb)
+        {
+            Command result = usb.Read();
+            if (result == null)
+                return null;
+
+            switch(result.CommandId)
+            {
+                case CommandId.ConnectionResponse:
+                    return new CommandConnectionResponse(result);
+                case CommandId.Finish:
+                    return new CommandFinish(result);
+                case CommandId.Start:
+                    return new CommandStart(result);
+                case CommandId.NSPContent:
+                    return new CommandNSPContent(result, usb);
+                case CommandId.NSPTicket:
+                    return new CommandNSPTicket(result);
+                case CommandId.NSPCert:
+                    return new CommandNSPCert(result);
+                default:
+                    return result;
+            }
+
         }
     }
 }

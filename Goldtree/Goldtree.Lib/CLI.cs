@@ -1,4 +1,5 @@
-﻿using LibHac;
+﻿using Goldtree.Lib.Commands;
+using LibHac;
 using LibHac.IO;
 using System;
 using System.Collections.Generic;
@@ -83,56 +84,57 @@ namespace Goldtree.Lib
 
         public bool ConnectToGoldleaf(IUsb usb)
         {
-            Command c = new Command(CommandId.ConnectionRequest);
-            usb.Write(c);
-            Log.Log("Attempting to connect to Goldleaf via USB...");
-            Command rc = usb.Read();
+            Command c = new CommandConnectionRequest();
+            c.Send(usb);
 
+            Log.Log("Attempting to connect to Goldleaf via USB...");
+            Command rc = Command.Receive(usb);
             if (!rc.MagicOk())
             {
                 Error.Log("An invalid command was received. Are you sure Goldleaf is active?");
                 return false;
             }
 
-            if (rc.IsCommandId(CommandId.ConnectionResponse))
-                return true;
-            else if (rc.IsCommandId(CommandId.Finish))
-                Error.Log("Goldleaf has canceled the installation.");
-            else
-                Error.Log("An invalid command was received. Are you sure Goldleaf is active?");
+            switch(rc)
+            {
+                case CommandConnectionResponse _:
+                    return true;
+                case CommandFinish _:
+                    Error.Log("Goldleaf has canceled the installation.");
+                    return false;
+                default:
+                    Error.Log("An invalid command was received. Are you sure Goldleaf is active?");
+                    return false;
 
-            return false;
+            }
         }
 
         public bool SendFileName(IUsb usb, string file)
         {
             string nspname = Path.GetFileName(file);
-            Command c = new Command(CommandId.NSPName);
-            usb.Write(c);
-            usb.Write((uint)nspname.Length);
-            usb.Write(nspname);
+
+            Command c = new CommandNSPName(nspname);
+            c.Send(usb);
+
             Log.Log("Selected NSP's name was sent to Goldleaf. Waiting for install approval from Goldleaf...");
-            Command rc2 = usb.Read();
-            if (!rc2.MagicOk())
+            Command rc = Command.Receive(usb);
+            if (!rc.MagicOk())
             {
                 Error.Log("An invalid command was received. Are you sure Goldleaf is active?");
                 return false;
             }
 
-            if (rc2.IsCommandId(CommandId.Start))
+            switch(rc)
             {
-                Log.Log("Goldleaf is ready for the installation. Preparing everything...");
-                return true;
-            }
-            else if (rc2.IsCommandId(CommandId.Finish))
-            {
-                Error.Log("Goldleaf has canceled the installation.");
-                return false;
-            }
-            else
-            {
-                Error.Log("An invalid command was received. Are you sure Goldleaf is active?");
-                return false;
+                case CommandStart _:
+                    Log.Log("Goldleaf is ready for the installation. Preparing everything...");
+                    return true;
+                case CommandFinish _:
+                    Error.Log("Goldleaf has canceled the installation.");
+                    return false;
+                default:
+                    Error.Log("An invalid command was received. Are you sure Goldleaf is active?");
+                    return false;
             }
         }
 
@@ -141,20 +143,13 @@ namespace Goldtree.Lib
             Log.Log("Goldleaf is ready for the installation. Preparing everything...");
             try
             {
-                Pfs pnsp;
-
-                using (FileStream fs = new FileStream(fileName, FileMode.Open))
-                using (StreamStorage ist = new StreamStorage(fs, true))
-                {
-                    pnsp = new Pfs(ist);
-                }
-
+                Pfs pnsp = ReadPnsp(fileName);
                 var (tikIdx, certIdx) = SendNSPData(usb, pnsp);
 
                 using (FileStream fs = new FileStream(fileName, FileMode.Open))
                 using (BinaryReader br = new BinaryReader(fs))
                 {
-                    Command ccmd = usb.Read();
+                    Command ccmd = Command.Receive(usb);
                     while(!ccmd.MagicOk() || ccmd.IsCommandId(CommandId.Finish))
                     {
                         if (!ccmd.MagicOk())
@@ -163,12 +158,11 @@ namespace Goldtree.Lib
                             return false;
                         }
 
-                        switch (ccmd.CommandId)
+                        switch (ccmd)
                         {
-                            case CommandId.NSPContent:
-                                uint idx = usb.ReadInt32();
-                                Log.Log("Sending content \'" + pnsp.Files[idx].Name + "\'... (" + (idx + 1) + " of " + pnsp.Files.Length + ")");
-                                PfsFileEntry ent = pnsp.Files[idx];
+                            case CommandNSPContent data:
+                                Log.Log("Sending content \'" + pnsp.Files[data.Index].Name + "\'... (" + (data.Index + 1) + " of " + pnsp.Files.Length + ")");
+                                PfsFileEntry ent = pnsp.Files[data.Index];
                                 long rsize = 1048576;
                                 long coffset = pnsp.HeaderSize + ent.Offset;
                                 long toread = ent.Size;
@@ -178,16 +172,15 @@ namespace Goldtree.Lib
                                 {
                                     if (rsize >= ent.Size) rsize = ent.Size;
                                     int tor = (int)Math.Min(rsize, toread);
-                                    bufb = new byte[tor];
                                     br.BaseStream.Position = coffset;
-                                    tmpread = br.Read(bufb, 0, bufb.Length);
+                                    bufb = br.ReadBytes(tor);
                                     usb.Write(bufb);
-                                    coffset += tmpread;
-                                    toread -= tmpread;
+                                    coffset += tor;
+                                    toread -= tor;
                                 }
                                 Log.Log("Content was sent to Goldleaf.");
                                 break;
-                            case CommandId.NSPTicket:
+                            case CommandNSPTicket _:
                                 Log.Log("Sending ticket file...");
                                 PfsFileEntry tik = pnsp.Files[tikIdx];
                                 br.BaseStream.Seek(pnsp.HeaderSize + tik.Offset, SeekOrigin.Begin);
@@ -195,7 +188,7 @@ namespace Goldtree.Lib
                                 usb.Write(file);
                                 Log.Log("Ticket was sent to Goldleaf.");
                                 break;
-                            case CommandId.NSPCert:
+                            case CommandNSPCert _:
                                 Log.Log("Sending certificate file...");
                                 PfsFileEntry cert = pnsp.Files[certIdx];
                                 br.BaseStream.Seek(pnsp.HeaderSize + cert.Offset, SeekOrigin.Begin);
@@ -208,7 +201,7 @@ namespace Goldtree.Lib
                                 return false;
                         }
 
-                        ccmd = usb.Read();
+                        ccmd = Command.Receive(usb);
                     }
 
                     return true;
@@ -221,29 +214,29 @@ namespace Goldtree.Lib
             }
         }
 
+        private Pfs ReadPnsp(string filename)
+        {
+            using (FileStream fs = new FileStream(filename, FileMode.Open))
+            using (StreamStorage ist = new StreamStorage(fs, true))
+            {
+                return new Pfs(ist);
+            }
+        }
+
         private (int tikIdx, int certIdx) SendNSPData(IUsb usb, Pfs pnsp)
         {
-            uint filecount = (uint)pnsp.Files.Length;
-            Command c = new Command(CommandId.NSPData);
-            usb.Write(c);
-            usb.Write(filecount);
+            Command c = new CommandNSPData(pnsp);
+            c.Send(usb);
+
             int tikIdx = -1;
             int certIdx = -1;
             for (int i = 0; i < pnsp.Files.Length; i++)
             {
-                PfsFileEntry file = pnsp.Files[i];
+                string fileExt = Path.GetExtension(pnsp.Files[i].Name).Replace(".", "").ToLower();
 
-                ulong offset = (ulong)pnsp.HeaderSize + (ulong)file.Offset;
-                ulong size = (ulong)file.Size;
-                uint len = (uint)file.Name.Length;
-                usb.Write(len);
-                usb.Write(file.Name);
-                usb.Write(offset);
-                usb.Write(size);
-
-                if (Path.GetExtension(file.Name).Replace(".", "").ToLower() == "tik")
+                if (fileExt == "tik")
                     tikIdx = i;
-                else if (Path.GetExtension(file.Name).Replace(".", "").ToLower() == "cert")
+                else if (fileExt == "cert")
                     certIdx = i;
             }
 
@@ -252,7 +245,8 @@ namespace Goldtree.Lib
 
         public void SendFinish(IUsb usb)
         {
-            usb.Write(new Command(CommandId.Finish));
+            Command c = new CommandFinish();
+            c.Send(usb);
         }
     }
 }
