@@ -1,7 +1,5 @@
-﻿using gtree;
-using LibHac;
+﻿using LibHac;
 using LibHac.IO;
-using libusbK;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -69,28 +67,26 @@ namespace Goldtree.Lib
             Warn.Log("Make sure to open Goldtree after having launched Goldleaf on your console. Waiting for connection...");
         }
 
-        public UsbK GetUsb()
+        public bool ConnectUsb(IUsb usb)
         {
             try
             {
-                KLST_PATTERN_MATCH pat = new KLST_PATTERN_MATCH { DeviceID = @"USB\VID_057E&PID_3000" };
-                LstK lst = new LstK(0, ref pat);
-                lst.MoveNext(out KLST_DEVINFO_HANDLE dinfo);
-                return new UsbK(dinfo);
+                usb.Connect(@"USB\VID_057E&PID_3000");
+                return true;
             }
             catch
             {
                 Error.Log("No USB connection was found. Make sure you have Goldleaf open before running Goldtree.");
-                return null;
+                return false;
             }
         }
 
-        public bool ConnectToGoldleaf(UsbK Usb)
+        public bool ConnectToGoldleaf(IUsb usb)
         {
             Command c = new Command(CommandId.ConnectionRequest);
-            Usb.Write(c);
+            usb.Write(c);
             Log.Log("Attempting to connect to Goldleaf via USB...");
-            Command rc = Usb.Read();
+            Command rc = usb.Read();
 
             if (!rc.MagicOk())
             {
@@ -108,7 +104,7 @@ namespace Goldtree.Lib
             return false;
         }
 
-        public bool SendFileName(UsbK usb, string file)
+        public bool SendFileName(IUsb usb, string file)
         {
             string nspname = Path.GetFileName(file);
             Command c = new Command(CommandId.NSPName);
@@ -140,7 +136,7 @@ namespace Goldtree.Lib
             }
         }
 
-        public bool SendFileContent(UsbK usb, string fileName)
+        public bool SendFileContent(IUsb usb, string fileName)
         {
             Log.Log("Goldleaf is ready for the installation. Preparing everything...");
             try
@@ -170,7 +166,7 @@ namespace Goldtree.Lib
                         switch (ccmd.CommandId)
                         {
                             case CommandId.NSPContent:
-                                usb.Read(out uint idx);
+                                uint idx = usb.ReadInt32();
                                 Log.Log("Sending content \'" + pnsp.Files[idx].Name + "\'... (" + (idx + 1) + " of " + pnsp.Files.Length + ")");
                                 PfsFileEntry ent = pnsp.Files[idx];
                                 long rsize = 1048576;
@@ -225,7 +221,7 @@ namespace Goldtree.Lib
             }
         }
 
-        private (int tikIdx, int certIdx) SendNSPData(UsbK usb, Pfs pnsp)
+        private (int tikIdx, int certIdx) SendNSPData(IUsb usb, Pfs pnsp)
         {
             uint filecount = (uint)pnsp.Files.Length;
             Command c = new Command(CommandId.NSPData);
@@ -254,10 +250,9 @@ namespace Goldtree.Lib
             return (tikIdx, certIdx);
         }
 
-        public void SendFinish(UsbK usb)
+        public void SendFinish(IUsb usb)
         {
-            Command c = new Command(CommandId.Finish);
-            usb.Write(c);
+            usb.Write(new Command(CommandId.Finish));
         }
     }
 }

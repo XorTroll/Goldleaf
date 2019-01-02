@@ -5,9 +5,11 @@ VisualStudioVersion = 15.0.28307.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree", "Goldtree\Goldtree.csproj", "{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree.Core", "Goldtree.Core\Goldtree.Core.csproj", "{EEF7AD35-3F26-478E-93BC-CA266B45777E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Core", "Goldtree.Core\Goldtree.Core.csproj", "{EEF7AD35-3F26-478E-93BC-CA266B45777E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree.Lib", "Goldtree.Lib\Goldtree.Lib.csproj", "{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldtree.Lib", "Goldtree.Lib\Goldtree.Lib.csproj", "{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree.Lib.UsbK", "Goldtree.Lib.UsbK\Goldtree.Lib.UsbK.csproj", "{7852BD03-BA88-4754-8689-62631B8F6F80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA144327-DC7B-4925-BA3C-85F6D8B9CFB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7852BD03-BA88-4754-8689-62631B8F6F80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7852BD03-BA88-4754-8689-62631B8F6F80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7852BD03-BA88-4754-8689-62631B8F6F80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7852BD03-BA88-4754-8689-62631B8F6F80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

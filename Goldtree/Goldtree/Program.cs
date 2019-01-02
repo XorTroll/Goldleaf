@@ -6,6 +6,7 @@ using libusbK;
 using LibHac;
 using LibHac.IO;
 using Goldtree.Lib;
+using Goldtree.Lib.UsbK;
 
 namespace gtree
 {
@@ -15,7 +16,8 @@ namespace gtree
         {
             CLI.Instance.Initialize();
 
-            UsbK usb = CLI.Instance.GetUsb();
+            Usb usb = new Usb();
+            CLI.Instance.ConnectUsb(usb);
             try
             {
                 bool success = CLI.Instance.ConnectToGoldleaf(usb);
