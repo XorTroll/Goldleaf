@@ -65,7 +65,6 @@ namespace gleaf::ui
     {
         mainapp->GetSDBrowserLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
-        current_cwd = mainapp->GetSDBrowserLayout()->GetExplorer()->GetCwd();
     }
 
     void MainMenuLayout::nandMenuItem_Click()
@@ -84,7 +83,6 @@ namespace gleaf::ui
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 3) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
-        current_cwd = mainapp->GetNANDBrowserLayout()->GetExplorer()->GetCwd();
     }
 
     void MainMenuLayout::usbMenuItem_Click()
@@ -1643,7 +1641,7 @@ namespace gleaf::ui
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
-        this->pathBrowsed = new pu::element::TextBlock(40, 140, "");
+        this->pathBrowsed = new pu::element::TextBlock(40, 135, "");
         this->pathBrowsed->SetColor({ 222, 167, 5, 255 }); // #DEA705
         this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
@@ -1765,7 +1763,7 @@ namespace gleaf::ui
             if(this->sdBrowser->GoBack()) this->sdBrowser->UpdateElements();
             else {
                 this->LoadLayout(this->mainMenu);
-                SetPathBrowsed("");
+                current_cwd = "";
             }
         }
         else if(Down & KEY_X)
@@ -1842,7 +1840,7 @@ namespace gleaf::ui
             if(this->nandBrowser->GoBack()) this->nandBrowser->UpdateElements();
             else {
                 this->LoadLayout(this->mainMenu);
-                SetPathBrowsed("");
+                current_cwd = "";
             }
         }
         else if(Down & KEY_X)
