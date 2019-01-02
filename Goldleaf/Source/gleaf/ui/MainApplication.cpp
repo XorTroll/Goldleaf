@@ -5,6 +5,7 @@ namespace gleaf::ui
 {
     MainApplication *mainapp;
     std::string clipboard;
+    std::string current_cwd = "";
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -64,6 +65,7 @@ namespace gleaf::ui
     {
         mainapp->GetSDBrowserLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
+        current_cwd = mainapp->GetSDBrowserLayout()->GetExplorer()->GetCwd();
     }
 
     void MainMenuLayout::nandMenuItem_Click()
@@ -82,6 +84,7 @@ namespace gleaf::ui
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 3) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
+        current_cwd = mainapp->GetNANDBrowserLayout()->GetExplorer()->GetCwd();
     }
 
     void MainMenuLayout::usbMenuItem_Click()
@@ -140,6 +143,7 @@ namespace gleaf::ui
 
     void PartitionBrowserLayout::UpdateElements()
     {
+        current_cwd = this->gexp->GetCwd();
         if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
@@ -1602,6 +1606,14 @@ namespace gleaf::ui
         this->AddChild(this->modeText);
     }
 
+    void MainApplication::SetPathBrowsed(std::string path) {
+        pathBrowsed->SetText(path);
+    }
+
+    std::string MainApplication::GetPathBrowsed() {
+        return pathBrowsed->GetText();
+    }
+
     MainApplication::MainApplication() : pu::Application()
     {
         this->SetBackgroundColor({ 235, 235, 235, 255 });
@@ -1631,6 +1643,8 @@ namespace gleaf::ui
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
+        this->pathBrowsed = new pu::element::TextBlock(40, 140, "");
+        this->pathBrowsed->SetColor({ 222, 167, 5, 255 }); // #DEA705
         this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
@@ -1647,6 +1661,8 @@ namespace gleaf::ui
         this->ticketManager->AddChild(this->bannerImage);
         this->cfwConfig->AddChild(this->bannerImage);
         this->sysInfo->AddChild(this->bannerImage);
+        this->sdBrowser->AddChild(this->pathBrowsed);
+        this->nandBrowser->AddChild(this->pathBrowsed);
         this->mainMenu->AddChild(this->timeText);
         this->sdBrowser->AddChild(this->timeText);
         this->nandBrowser->AddChild(this->timeText);
@@ -1709,6 +1725,7 @@ namespace gleaf::ui
         std::string dtime = horizon::GetCurrentTime();
         u32 blv = horizon::GetBatteryLevel();
         bool isch = horizon::IsCharging();
+        std::string pre_cwd = GetPathBrowsed();
         if((this->preblv != blv) || this->vfirst)
         {
             if(blv <= 10) this->batteryImage->SetImage("romfs:/Battery/0.png");
@@ -1735,6 +1752,9 @@ namespace gleaf::ui
             this->timeText->SetText(dtime);
             this->pretime = dtime;
         }
+        if(pre_cwd != current_cwd) {
+            SetPathBrowsed(current_cwd);
+        }
         if(this->vfirst) this->vfirst = false;
     }
 
@@ -1743,7 +1763,10 @@ namespace gleaf::ui
         if(Down & KEY_B)
         {
             if(this->sdBrowser->GoBack()) this->sdBrowser->UpdateElements();
-            else this->LoadLayout(this->mainMenu);
+            else {
+                this->LoadLayout(this->mainMenu);
+                SetPathBrowsed("");
+            }
         }
         else if(Down & KEY_X)
         {
@@ -1817,7 +1840,10 @@ namespace gleaf::ui
         if(Down & KEY_B)
         {
             if(this->nandBrowser->GoBack()) this->nandBrowser->UpdateElements();
-            else this->LoadLayout(this->mainMenu);
+            else {
+                this->LoadLayout(this->mainMenu);
+                SetPathBrowsed("");
+            }
         }
         else if(Down & KEY_X)
         {

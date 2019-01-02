@@ -190,6 +190,8 @@ namespace gleaf::ui
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
             void OnInput(u64 Down, u64 Up, u64 Held);
+            void SetPathBrowsed(std::string path);
+            std::string GetPathBrowsed();
             MainMenuLayout *GetMainMenuLayout();
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
@@ -224,6 +226,7 @@ namespace gleaf::ui
             pu::element::Image *batteryImage;
             pu::element::Image *batteryChargeImage;
             pu::element::TextBlock *footerText;
+            pu::element::TextBlock *pathBrowsed;
     };
 
     void UpdateClipboard(std::string Path);
