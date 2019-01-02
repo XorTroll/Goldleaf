@@ -1,0 +1,7 @@
+
+*.json
+*.d
+*.o
+*.lst
+*.map
+*.dat
