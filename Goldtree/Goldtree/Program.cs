@@ -51,6 +51,7 @@ namespace gtree
                 else
                 {
                     filename = args[0];
+                    CLI.IsArgumentsOnly = true;
                 }
 
                 success = cli.SendFile(filename);
@@ -64,8 +65,7 @@ namespace gtree
             }
 
             CLI.Log.Log("The installation has finished. Press ENTER to close Goldtree, or any other key to start another USB installation.", true);
-            ConsoleKeyInfo ki = Console.ReadKey();
-            if (ki.Key != ConsoleKey.Enter)
+            if (!CLI.IsArgumentsOnly && Console.ReadKey().Key != ConsoleKey.Enter)
                 Main(args);
             else
                 cli.SendFinish();

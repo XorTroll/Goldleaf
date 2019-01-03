@@ -28,8 +28,10 @@ namespace Goldtree.Lib
             if (Close)
             {
                 Console.WriteLine("Press any key to exit...");
-                Console.ReadKey();
-                Environment.Exit(1);
+                if (!CLI.IsArgumentsOnly)
+                {
+                    Console.ReadKey();
+                }
             }
         }
 

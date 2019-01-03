@@ -17,6 +17,8 @@ namespace Goldtree.Lib
         public static readonly Logger Warn = new Logger("Warn", ConsoleColor.Yellow);
         public static readonly Logger Error = new Logger("Error", ConsoleColor.Red, true);
 
+        public static bool IsArgumentsOnly { get; set; }
+
         private IUsb usb;
 
         public CLI(IUsb usb)
