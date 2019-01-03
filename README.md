@@ -48,7 +48,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
   - NRO (Nintendo Relocatable Object)
 
-    Officially is treated as a dynamic library object, similar to DLLs on Windows. This are loaded dynamically by applications at runtime.
+    Officially is treated as a dynamic library object, similar to DLLs on Windows. These are loaded dynamically by applications at runtime.
 
     Homebrew uses them as executable binaries because as they can contain multiple data sections, we can use them to load extra info such as NACP (title, author and version), an icon, or even RomFs data to access at runtime.
 
@@ -118,7 +118,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
 - CFW configuration
 
-  This is mostly a useful menu for checking which CFWs are in the SD card and whichof them have any Home Menu modifications, meaning that a theme is probably installed there.
+  This is mostly a useful menu for checking which CFWs are on the SD card and whichof them have any Home Menu modifications, meaning that a theme is probably installed there.
 
   You can delete any Home Menu modifications of a certain CFW after selecting a CFW.
 
