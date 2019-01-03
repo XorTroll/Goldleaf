@@ -15,13 +15,13 @@ namespace gtree
         [STAThread]
         public static void Main(string[] Args)
         {
-            CLI.Instance.Initialize();
+            CLI cli = new CLI(new Usb());
 
-            Usb usb = new Usb();
-            CLI.Instance.ConnectUsb(usb);
+            cli.Initialize();
+            cli.ConnectUsb();
             try
             {
-                bool success = CLI.Instance.ConnectToGoldleaf(usb);
+                bool success = cli.ConnectToGoldleaf();
                 if (!success)
                     return;
 
@@ -37,18 +37,14 @@ namespace gtree
 
                 if (fd.ShowDialog() != DialogResult.OK)
                 {
-                    CLI.Instance.SendFinish(usb);
+                    cli.SendFinish();
                     CLI.Error.Log("The dialog was closed without selecting a NSP, or another error ocurred. Reopen Goldleaf and Goldtree and try again.");
                     return;
                 }
 
                 string filename = fd.FileName;
 
-                success = CLI.Instance.SendFileName(usb, filename);
-                if (!success)
-                    return;
-
-                success = CLI.Instance.SendFileContent(usb, filename);
+                success = cli.SendFile(filename);
                 if (!success)
                     return;
             }
@@ -63,7 +59,7 @@ namespace gtree
             if (ki.Key != ConsoleKey.Enter)
                 Main(Args);
             else
-                CLI.Instance.SendFinish(usb);
+                cli.SendFinish();
         }
     }
 }

@@ -17,17 +17,11 @@ namespace Goldtree.Lib
         public static readonly Logger Warn = new Logger("Warn", ConsoleColor.Yellow);
         public static readonly Logger Error = new Logger("Error", ConsoleColor.Red, true);
 
+        private IUsb usb;
 
-        private static CLI instance;
-
-        public static CLI Instance
+        public CLI(IUsb usb)
         {
-            get
-            {
-                if (instance == null)
-                    instance = new CLI();
-                return instance;
-            }
+            this.usb = usb;
         }
 
         public void Initialize()
@@ -68,7 +62,7 @@ namespace Goldtree.Lib
             Warn.Log("Make sure to open Goldtree after having launched Goldleaf on your console. Waiting for connection...");
         }
 
-        public bool ConnectUsb(IUsb usb)
+        public bool ConnectUsb()
         {
             try
             {
@@ -82,7 +76,7 @@ namespace Goldtree.Lib
             }
         }
 
-        public bool ConnectToGoldleaf(IUsb usb)
+        public bool ConnectToGoldleaf()
         {
             Command c = new CommandConnectionRequest();
             c.Send(usb);
@@ -109,7 +103,34 @@ namespace Goldtree.Lib
             }
         }
 
-        public bool SendFileName(IUsb usb, string file)
+        public bool SendFile(string file)
+        {
+            if (!file.ToLower().EndsWith(".nsp"))
+            {
+                SendFinish();
+                Error.Log("The selected file has to end with '.nsp'.");
+                return false;
+            }
+
+            if (!File.Exists(file))
+            {
+                SendFinish();
+                Error.Log("The selected file does not exist.");
+                return false;
+            }
+
+            bool success = SendFileName(file);
+            if (!success)
+                return false;
+
+            success = SendFileContent(file);
+            if (!success)
+                return false;
+
+            return true;
+        }
+
+        public bool SendFileName(string file)
         {
             string nspname = Path.GetFileName(file);
 
@@ -138,13 +159,13 @@ namespace Goldtree.Lib
             }
         }
 
-        public bool SendFileContent(IUsb usb, string fileName)
+        public bool SendFileContent(string fileName)
         {
             Log.Log("Goldleaf is ready for the installation. Preparing everything...");
             try
             {
                 Pfs pnsp = ReadPnsp(fileName);
-                var (tikIdx, certIdx) = SendNSPData(usb, pnsp);
+                var (tikIdx, certIdx) = SendNSPData(pnsp);
 
                 using (FileStream fs = new FileStream(fileName, FileMode.Open))
                 using (BinaryReader br = new BinaryReader(fs))
@@ -223,7 +244,7 @@ namespace Goldtree.Lib
             }
         }
 
-        private (int tikIdx, int certIdx) SendNSPData(IUsb usb, Pfs pnsp)
+        private (int tikIdx, int certIdx) SendNSPData(Pfs pnsp)
         {
             Command c = new CommandNSPData(pnsp);
             c.Send(usb);
@@ -243,7 +264,7 @@ namespace Goldtree.Lib
             return (tikIdx, certIdx);
         }
 
-        public void SendFinish(IUsb usb)
+        public void SendFinish()
         {
             Command c = new CommandFinish();
             c.Send(usb);
