@@ -118,7 +118,7 @@ Removing tickets from installed contents will make the system not to be able to 
 
 - CFW configuration
 
-  This is mostly a useful menu for checking which CFWs are on the SD card and whichof them have any Home Menu modifications, meaning that a theme is probably installed there.
+  This is mostly a useful menu for checking which CFWs are on the SD card and which of them have any Home Menu modifications, meaning that a theme is probably installed there.
 
   You can delete any Home Menu modifications of a certain CFW after selecting a CFW.
 
