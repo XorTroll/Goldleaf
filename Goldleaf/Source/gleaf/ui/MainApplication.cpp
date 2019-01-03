@@ -142,6 +142,11 @@ namespace gleaf::ui
     void PartitionBrowserLayout::UpdateElements()
     {
         current_cwd = this->gexp->GetCwd();
+        if (current_cwd.length() > 70) 
+        {
+            current_cwd = current_cwd.substr(0,70);
+            current_cwd += "...";
+        }
         if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
