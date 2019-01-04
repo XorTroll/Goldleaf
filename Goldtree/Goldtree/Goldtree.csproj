@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <ApplicationIcon />
   </PropertyGroup>
 
@@ -19,7 +19,14 @@
     <ProjectReference Include="..\Goldtree.Lib\Goldtree.Lib.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net\d'))">
+    <DefineConstants>NETFRAMEWORK</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^netcoreapp\d'))">
+    <DefineConstants>NETCORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(DefineConstants.Contains(NETFRAMEWORK))">
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 

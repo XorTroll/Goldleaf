@@ -1,12 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Windows.Forms;
 using libusbK;
 using LibHac;
 using LibHac.IO;
 using Goldtree.Lib;
 using Goldtree.Lib.UsbK;
+#if NETFRAMEWORK
+using System.Windows.Forms;
+#endif
 
 namespace gtree
 {
@@ -35,6 +37,7 @@ namespace gtree
 
                 if (args.Length == 0)
                 {
+#if NETFRAMEWORK
                     OpenFileDialog fd = new OpenFileDialog()
                     {
                         Title = "Select NSP to send to Goldleaf via USB",
@@ -50,6 +53,10 @@ namespace gtree
                     }
 
                     filename = fd.FileName;
+#else
+                    Console.Write("> ");
+                    filename = Console.ReadLine(); 
+#endif
                 }
                 else
                 {
