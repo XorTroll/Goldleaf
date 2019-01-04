@@ -28,10 +28,10 @@ namespace gleaf::horizon
         fsOpenBisFileSystem(&nandfs, 31, "");
         fsdevMountDevice("qnand", nandfs);
         std::string path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001000);
-        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
+        bool ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
         if(!ex) return ex;
         path = "qnand:/Contents/registered/" + gleaf::horizon::GetTitleNCAPath(0x0100000000001013);
-        ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
+        ex = gleaf::hactool::Process(path, gleaf::hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
         fsdevUnmountDevice("qnand");
         return ex;
     }

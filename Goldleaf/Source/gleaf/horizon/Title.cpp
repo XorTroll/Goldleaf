@@ -88,10 +88,8 @@ namespace gleaf::horizon
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
-                        
-                        // delete lent;
                     }
-                    delete cdata;
+                    free(cdata);
                     titles.push_back(title);
                 }
             }
@@ -134,9 +132,8 @@ namespace gleaf::horizon
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
-                        // delete lent;
                     }
-                    delete cdata;
+                    free(cdata);
                     titles.push_back(title);
                 }
             }
@@ -179,9 +176,8 @@ namespace gleaf::horizon
                             fwrite(&cdata->nacp, sizeof(NacpStruct), 1, f);
                             fclose(f);
                         }
-                        // delete lent;
                     }
-                    delete cdata;
+                    free(cdata);
                     titles.push_back(title);
                 }
             }
@@ -207,8 +203,8 @@ namespace gleaf::horizon
         if(pc > 0) vprids = std::vector<es::RightsId>(prids, prids + pc); 
         if(cc > 0) for(u32 i = 0; i < vcrids.size(); i++) tickets.push_back({ vcrids[i], gleaf::horizon::TicketType::Common });
         if(pc > 0) for(u32 i = 0; i < vprids.size(); i++) tickets.push_back({ vprids[i], gleaf::horizon::TicketType::Personalized });
-        delete crids;
-        delete prids;
+        free(crids);
+        free(prids);
         return tickets;
     }
 

@@ -9,4 +9,5 @@
 */
 
 #pragma once
-#include <gleaf/hactool/Hactool.hpp>
+#include <gleaf/dump/DebugTypes.hpp>
+#include <gleaf/dump/Dump.hpp>

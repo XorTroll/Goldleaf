@@ -58,6 +58,31 @@ namespace gleaf::fs
         ifs.close();
     }
 
+    void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback)
+    {
+        FILE *f = fopen(Path.c_str(), "rb");
+        FILE *of = fopen(NewPath.c_str(), "wb");
+        fseek(f, 0, SEEK_END);
+        u64 fsize = ftell(f);
+        rewind(f);
+        u64 szrem = fsize;
+        u64 read = 0;
+        while(szrem)
+        {
+            u64 rsize = std::min((u64)1048576, szrem);
+            u8 *data = (u8*)malloc(sizeof(u8) * rsize);
+            fread(data, 1, rsize, f);
+            fwrite(data, 1, rsize, of);
+            szrem -= rsize;
+            read += rsize;
+            u8 perc = ((double)((double)read / (double)fsize) * 100.0);
+            Callback(perc);
+            free(data);
+        }
+        fclose(of);
+        fclose(f);
+    }
+
     void CopyDirectory(std::string Dir, std::string NewDir)
     {
         mkdir(NewDir.c_str(), 777);
@@ -154,7 +179,7 @@ namespace gleaf::fs
             {
                 getline(ifs, tmpline);
                 if(ifs.eof()) break;
-                if(tmpo < LineOffset)
+                if((tmpo < LineOffset) && (LineOffset != 0))
                 {
                     tmpo++;
                     continue;
