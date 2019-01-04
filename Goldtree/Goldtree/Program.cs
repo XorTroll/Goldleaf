@@ -18,10 +18,13 @@ namespace gtree
             CLI cli = new CLI(new Usb());
 
             cli.Initialize();
-            cli.ConnectUsb();
+            bool success = cli.ConnectUsb();
+            if (!success)
+                return;
+
             try
             {
-                bool success = cli.ConnectToGoldleaf();
+                success = cli.ConnectToGoldleaf();
                 if (!success)
                     return;
 
