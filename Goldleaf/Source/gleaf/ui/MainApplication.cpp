@@ -6,6 +6,7 @@ namespace gleaf::ui
     MainApplication *mainapp;
     std::string clipboard;
     std::string current_cwd = "";
+    u32 cwd_fsize = 23;
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -142,9 +143,10 @@ namespace gleaf::ui
     void PartitionBrowserLayout::UpdateElements()
     {
         current_cwd = this->gexp->GetCwd();
-        if (current_cwd.length() > 70) 
+        size_t max_chars = 220 - 6*cwd_fsize;
+        if (current_cwd.length() > max_chars) 
         {
-            current_cwd = current_cwd.substr(0,70);
+            current_cwd = current_cwd.substr(0,max_chars);
             current_cwd += "...";
         }
         if(!this->elems.empty()) this->elems.clear();
@@ -1646,8 +1648,9 @@ namespace gleaf::ui
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
-        this->pathBrowsed = new pu::element::TextBlock(40, 135, "");
-        this->pathBrowsed->SetColor({ 222, 167, 5, 255 }); // #DEA705
+        this->pathBrowsed = new pu::element::TextBlock(15, 135, "", cwd_fsize);
+        //this->pathBrowsed->SetColor({ 222, 167, 5, 255 }); // #dea705 goldleaf yellow
+        this->pathBrowsed->SetColor({ 178, 134, 4, 255 }); // #b28604 25% darker ^
         this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
         this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
         this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
