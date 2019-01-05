@@ -52,7 +52,7 @@ namespace gleaf::ui
         if(isel == this->sdcardMenuItem) info = "Browse the SD card. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->nandMenuItem) info = "Browse NAND. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
-        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
+        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information, dump them as NSPs or uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
         else if(isel == this->cfwConfigMenuItem) info = "Browse which CFWs are available to install themes of if there is any theme installed.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
@@ -483,9 +483,6 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                        bool hasatmos = gleaf::fs::IsDirectory("sdmc:/atmosphere");
-                        bool hasreinx = gleaf::fs::IsDirectory("sdmc:/ReiNX");
-                        bool hassxos = gleaf::fs::IsDirectory("sdmc:/sxos");
                         dlg = new pu::Dialog("Select CFW", "Select CFW on which to install the theme.");
                         std::vector<std::string> cfws = GetSdCardCFWNames();
                         for(u32 i = 0; i < cfws.size(); i++) dlg->AddOption(cfws[i]);
@@ -575,7 +572,7 @@ namespace gleaf::ui
                         if(xexefs) ext.ExeFs = fullitm + ".ExeFs";
                         if(xromfs) ext.RomFs = fullitm + ".RomFs";
                         if(xlogo) ext.Logo = fullitm + ".Section0";
-                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
+                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
                         std::string msg = "The content extraction failed.\nAre you sure the NCA is valid (and that it doesn't require a titlekey) or that you have all the necessary keys?";
                         if(ok) msg = "The NCA extraction succeeded.\nAll the selected partitions were extracted (if they existed within the NCA)";
                         dlg = new pu::Dialog("NCA extraction", msg);
@@ -591,8 +588,6 @@ namespace gleaf::ui
                 {
                     case 0:
                         u8 *rnacp = fs::ReadFile(fullitm).data();
-                        u32 *rnacp32 = (u32*)rnacp;
-                        u64 *rnacp64 = (u64*)rnacp;
                         NacpStruct *snacp = (NacpStruct*)rnacp;
                         NacpLanguageEntry *lent = NULL;
                         nacpGetLanguageEntry(snacp, &lent);
@@ -622,9 +617,9 @@ namespace gleaf::ui
                         else msg += "<unknown value>";
                         u8 vidc = rnacp[0x3035];
                         msg += "\nSupports capturing video? ";
-                        if(scrc == 0) msg += "No";
-                        else if(scrc == 1) msg += "Yes (manually)";
-                        else if(scrc == 2) msg += "Yes";
+                        if(vidc == 0) msg += "No";
+                        else if(vidc == 1) msg += "Yes (manually)";
+                        else if(vidc == 2) msg += "Yes";
                         else msg += "<unknown value>";
                         u8 logom = rnacp[0x30f0];
                         msg += "\nLogo type: ";
@@ -867,7 +862,11 @@ namespace gleaf::ui
             if(Delete) mainapp->UpdateFooter("The NSP was successfully installed and deleted.");
         }
         else mainapp->UpdateFooter("An error ocurred installing the NSP.");
-        if(Delete) fs::DeleteFile(Input);
+        if(Delete)
+        {
+            fs::DeleteFile(Input);
+            mainapp->GetSDBrowserLayout()->UpdateElements();
+        }
         mainapp->LoadLayout(Prev);
         mainapp->CallForRender();
     }
@@ -1378,28 +1377,63 @@ namespace gleaf::ui
             mainapp->ShowDialog(dlg);
             return;
         }
-        dlg->AddOption("Uninstall");
+        dlg->AddOption("Title options");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
         if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
-            dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?");
-            dlg->AddOption("Yes");
+            dlg = new pu::Dialog("Title options", "What would you like to do with the selected title?");
+            dlg->AddOption("Dump NSP");
+            dlg->AddOption("Uninstall");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1)) return;
+            if(dlg->UserCancelled() || (sopt == 2)) return;
             else
             {
-                Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
-                std::string resstr = "The title was successfully uninstalled from this console.";
-                if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
-                dlg = new pu::Dialog("Title uninstall", resstr);
-                dlg->AddOption("Ok");
-                mainapp->ShowDialog(dlg);
-                if(rc == 0) this->UpdateElements();
+                if(sopt == 0)
+                {
+                    dlg = new pu::Dialog("Title dump", "Are you sure you want to dump the selected title?\nTitle dumping can be unstable, so do this at your own risk.\n\nIMPORTANT: DON'T dump +4GB titles if you're using FAT32.");
+                    dlg->AddOption("Yes");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 1)) return;
+                    else
+                    {
+                        if(!HasKeyFile())
+                        {
+                            dlg = new pu::Dialog("Title dump error", "External keys are required to dump a title as a NSP.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
+                            dlg->AddOption("Ok");
+                            mainapp->ShowDialog(dlg);
+                            return;
+                        }
+                        mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
+                        mainapp->GetTitleDumperLayout()->StartDump(seltit);
+                        mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+                    }
+                }
+                else if(sopt == 1)
+                {
+                    dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the selected title?");
+                    dlg->AddOption("Yes");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 1)) return;
+                    else
+                    {
+                        Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
+                        std::string resstr = "The title was successfully uninstalled from this console.";
+                        if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
+                        dlg = new pu::Dialog("Title uninstall", resstr);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        if(rc == 0) this->UpdateElements();
+                    }
+                }
             }
         }
     }
@@ -1407,6 +1441,303 @@ namespace gleaf::ui
     std::vector<horizon::Title> TitleManagerLayout::GetTitles()
     {
         return this->titles;
+    }
+
+    TitleDumperLayout::TitleDumperLayout()
+    {
+        this->dumpText = new pu::element::TextBlock(300, 300, "Starting NSP dump...");
+        this->ncaBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->ncaBar->SetVisible(false);
+        this->AddChild(this->dumpText);
+        this->AddChild(this->ncaBar);
+    }
+
+    void TitleDumperLayout::StartDump(horizon::Title &Target)
+    {
+        EnsureDirectories();
+        this->dumpText->SetText("Starting title dump...");
+        mainapp->CallForRender();
+        FsStorageId stid = dump::GetApplicationLocation(Target.ApplicationId);
+        if(stid == FsStorageId_NandUser)
+        {
+            FsFileSystem bisfs;
+            Result rc = fsOpenBisFileSystem(&bisfs, 30, "");
+            if(rc != 0)
+            {
+                pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error mounting NAND filesystem.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+                return;
+            }
+            fsdevMountDevice("glduser", bisfs);
+        }
+        std::string fappid = horizon::FormatApplicationId(Target.ApplicationId);
+        std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
+        fs::CreateDirectory(outdir);
+        this->dumpText->SetText("Terminating ES process...");
+        mainapp->CallForRender();
+        u32 esf = dump::TerminateES();
+        this->dumpText->SetText("Accessing ticket data...");
+        mainapp->CallForRender();
+        std::string tkey = dump::GetTitleKeyAndExportTicketData(Target.ApplicationId);
+        this->dumpText->SetText("Initializing NCM services and retrieving NCAs...");
+        mainapp->CallForRender();
+        bool istkey = (tkey != "");
+        dump::RelaunchES(esf);
+        NcmContentStorage cst;
+        Result rc = ncmOpenContentStorage(stid, &cst);
+        if(rc != 0)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error creating a NCM content storage.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        NcmContentMetaDatabase cmdb;
+        rc = ncmOpenContentMetaDatabase(stid, &cmdb);
+        if(rc != 0)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error creating a NCM meta database.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        NcmMetaRecord mrec;
+        bool ok = dump::GetMetaRecord(&cmdb, Target.ApplicationId, &mrec);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting a meta record of the title.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string nspn = dump::GetFormattedOutputName(&mrec);
+        NcmNcaId program;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting Program NCA.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string sprogram = dump::GetNCAIdPath(&cst, &program);
+
+        NcmNcaId meta;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting Meta CNMT NCA.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string smeta = dump::GetNCAIdPath(&cst, &meta);
+
+        NcmNcaId control;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting Control NCA.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string scontrol = dump::GetNCAIdPath(&cst, &control);
+
+        NcmNcaId linfo;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
+        bool haslinfo = ok;
+        std::string slinfo;
+        if(ok) slinfo = dump::GetNCAIdPath(&cst, &linfo);
+
+        NcmNcaId hoff;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::OfflineHtml, &hoff);
+        bool hashoff = ok;
+        std::string shoff;
+        if(ok) shoff = dump::GetNCAIdPath(&cst, &hoff);
+        std::string xprogram = sprogram;
+        std::string xmeta = smeta;
+        std::string xcontrol = scontrol;
+        std::string xlinfo = slinfo;
+        std::string xhoff = shoff;
+
+        if(stid == FsStorageId_SdCard)
+        {
+            xprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
+            this->ncaBar->SetVisible(true);
+            dump::DecryptCopyNAX0ToNCA(&cst, program, xprogram, [&](u8 p)
+            {
+                this->dumpText->SetText("Decrypting and exporting Program NCA...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
+            this->ncaBar->SetVisible(true);
+            dump::DecryptCopyNAX0ToNCA(&cst, meta, xmeta, [&](u8 p)
+            {
+                this->dumpText->SetText("Decrypting and exporting Meta CNMT NCA...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
+            this->ncaBar->SetVisible(true);
+            dump::DecryptCopyNAX0ToNCA(&cst, control, xcontrol, [&](u8 p)
+            {
+                this->dumpText->SetText("Decrypting and exporting Control NCA...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            if(haslinfo)
+            {
+                xlinfo = outdir + "/" + horizon::GetStringFromNCAId(linfo) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, linfo, xlinfo, [&](u8 p)
+                {
+                    this->dumpText->SetText("Decrypting and exporting LegalInfo NCA...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
+            if(hashoff)
+            {
+                xhoff = outdir + "/" + horizon::GetStringFromNCAId(hoff) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, hoff, xhoff, [&](u8 p)
+                {
+                    this->dumpText->SetText("Decrypting and exporting Offline Html NCA...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
+        }
+        if(stid == FsStorageId_NandUser)
+        {
+            xprogram = "glduser:/Contents/" + xprogram.substr(15);
+            std::string txprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
+            this->ncaBar->SetVisible(true);
+            fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
+            {
+                this->dumpText->SetText("Copying Program NCA from NAND memory...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xprogram = txprogram;
+            xmeta = "glduser:/Contents/" + xmeta.substr(15);
+            std::string txmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
+            this->ncaBar->SetVisible(true);
+            fs::CopyFileProgress(xmeta, txmeta, [&](u8 p)
+            {
+                this->dumpText->SetText("Copying Meta CNMT NCA from NAND memory...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xmeta = txmeta;
+            xcontrol = "glduser:/Contents/" + xcontrol.substr(15);
+            std::string txcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
+            this->ncaBar->SetVisible(true);
+            fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
+            {
+                this->dumpText->SetText("Copying Control NCA from NAND memory...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xcontrol = txcontrol;
+            if(haslinfo)
+            {
+                xlinfo = "glduser:/Contents/" + xlinfo.substr(15);
+                std::string txlinfo = outdir + "/" + horizon::GetStringFromNCAId(linfo) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xlinfo, txlinfo, [&](u8 p)
+                {
+                    this->dumpText->SetText("Copying LegalInfo NCA from NAND memory...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xlinfo = txlinfo;
+            }
+            if(hashoff)
+            {
+                xhoff = "glduser:/Contents/" + xhoff.substr(15);
+                std::string txhoff = outdir + "/" + horizon::GetStringFromNCAId(hoff) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xhoff, txhoff, [&](u8 p)
+                {
+                    this->dumpText->SetText("Copying Offline Html NCA from NAND memory...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xhoff = txhoff;
+            }
+            fsdevUnmountDevice("glduser");
+        }
+        std::string info;
+        bool istkey2 = dump::HasTitleKeyCrypto(xprogram);
+        if(istkey)
+        {
+            if(istkey2) info = "The title is titlekey encrypted. The NSP will contain a ticket and a cert.";
+            else info = "The title doesn't seem to require a titlekey, but the ticket and the cert will be included anyway.";
+        }
+        else
+        {
+            if(istkey2) info = "The title requires a titlekey but it was not found.\nThe NSP will be created, but it won't be playable without the required ticket.";
+            else info = "The title doesn't need a titlekey, so the rest will be really easy.";
+        }
+        this->dumpText->SetText(info += "\n\nBuilding NSP...");
+        mainapp->CallForRender();
+        int outfd = dup(STDOUT_FILENO);
+        int errfd = dup(STDERR_FILENO);
+        freopen("sdmc:/goldleaf/dump/temp/hacpack_stdout.log", "w", stdout);
+        freopen("sdmc:/goldleaf/dump/temp/hacpack_stderr.log", "w", stderr);
+        ok = hacpack::Process("sdmc:/goldleaf/dump/out", hacpack::Build::MakeNSP(Target.ApplicationId, outdir), hacpack::PackageFormat::NSP, GetKeyFilePath());
+        fclose(stdout);
+        fclose(stderr);
+        dup2(outfd, STDOUT_FILENO);
+        dup2(errfd, STDERR_FILENO);
+        stdout = fdopen(STDOUT_FILENO, "w");
+        stderr = fdopen(STDERR_FILENO, "w");
+        close(outfd);
+        close(errfd);
+        if(ok) rename(("sdmc:/goldleaf/dump/out/" + fappid + ".nsp").c_str(), ("sdmc:/goldleaf/dump/out/" + nspn).c_str());
+        std::string fout = "sdmc:/goldleaf/dump/out/" + nspn;
+        if(!ok || !fs::IsFile(fout))
+        {
+            std::string msg = "There was an error building the NSP.";
+            if(fs::IsFile("sdmc:/goldleaf/dump/out/" + fappid + ".nsp"))
+            {
+                msg = "There was an error renaming the NSP.\nIt should be at: 'sdmc:/goldleaf/dump/out/" + fappid + ".nsp'";
+                fout = "sdmc:/goldleaf/dump/out/" + fappid + ".nsp";
+            }
+            pu::Dialog *dlg = new pu::Dialog("Title dump", msg);
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+        }
+        fs::DeleteDirectory("sdmc:/goldleaf/dump/temp");
+        fs::DeleteDirectory(outdir);
+        if(ok) mainapp->UpdateFooter("The title was dumped: '" + fout + "'");
+        else mainapp->UpdateFooter("There was an error dumping the title.");
+        pu::Dialog *dlg = new pu::Dialog("Title dump warning", "The dump has finished, but title dumps break ETicket services.\nTicket-related things will be broken in any homebrew.\nA reboot is recommended: dump all the titles you want, then press ZL or ZR to reboot the console anytime.");
+        dlg->AddOption("Ok");
+        mainapp->ShowDialog(dlg);
+        serviceClose(&cst.s);
+        serviceClose(&cmdb.s);
     }
 
     TicketManagerLayout::TicketManagerLayout() : pu::Layout()
@@ -1618,6 +1949,7 @@ namespace gleaf::ui
         this->themeInstall = new ThemeInstallLayout();
         this->titleManager = new TitleManagerLayout();
         this->titleManager->SetOnInput(std::bind(&MainApplication::titleManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->titleDump = new TitleDumperLayout();
         this->ticketManager = new TicketManagerLayout();
         this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->cfwConfig = new CFWConfigLayout();
@@ -1644,6 +1976,7 @@ namespace gleaf::ui
         this->usbInstall->AddChild(this->bannerImage);
         this->themeInstall->AddChild(this->bannerImage);
         this->titleManager->AddChild(this->bannerImage);
+        this->titleDump->AddChild(this->bannerImage);
         this->ticketManager->AddChild(this->bannerImage);
         this->cfwConfig->AddChild(this->bannerImage);
         this->sysInfo->AddChild(this->bannerImage);
@@ -1655,6 +1988,7 @@ namespace gleaf::ui
         this->usbInstall->AddChild(this->timeText);
         this->themeInstall->AddChild(this->timeText);
         this->titleManager->AddChild(this->timeText);
+        this->titleDump->AddChild(this->timeText);
         this->ticketManager->AddChild(this->timeText);
         this->cfwConfig->AddChild(this->timeText);
         this->sysInfo->AddChild(this->timeText);
@@ -1667,6 +2001,7 @@ namespace gleaf::ui
         this->usbInstall->AddChild(this->batteryImage);
         this->themeInstall->AddChild(this->batteryImage);
         this->titleManager->AddChild(this->batteryImage);
+        this->titleDump->AddChild(this->batteryImage);
         this->ticketManager->AddChild(this->batteryImage);
         this->cfwConfig->AddChild(this->batteryImage);
         this->sysInfo->AddChild(this->batteryImage);
@@ -1679,6 +2014,7 @@ namespace gleaf::ui
         this->usbInstall->AddChild(this->batteryChargeImage);
         this->themeInstall->AddChild(this->batteryChargeImage);
         this->titleManager->AddChild(this->batteryChargeImage);
+        this->titleDump->AddChild(this->batteryChargeImage);
         this->ticketManager->AddChild(this->batteryChargeImage);
         this->cfwConfig->AddChild(this->batteryChargeImage);
         this->sysInfo->AddChild(this->batteryChargeImage);
@@ -1691,6 +2027,7 @@ namespace gleaf::ui
         this->usbInstall->AddChild(this->footerText);
         this->themeInstall->AddChild(this->footerText);
         this->titleManager->AddChild(this->footerText);
+        this->titleDump->AddChild(this->footerText);
         this->ticketManager->AddChild(this->footerText);
         this->cfwConfig->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
@@ -1970,6 +2307,11 @@ namespace gleaf::ui
     TitleManagerLayout *MainApplication::GetTitleManagerLayout()
     {
         return this->titleManager;
+    }
+
+    TitleDumperLayout *MainApplication::GetTitleDumperLayout()
+    {
+        return this->titleDump;
     }
 
     TicketManagerLayout *MainApplication::GetTicketManagerLayout()

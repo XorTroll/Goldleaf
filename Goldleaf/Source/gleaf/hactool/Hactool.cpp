@@ -1,11 +1,15 @@
-#include <gleaf/hactool/Process.hpp>
-#include <gleaf/fs.hpp>
+#include "Hactool.hpp"
+#include <iostream>
+#include <unistd.h>
+#include <fstream>
+using namespace std;
 
 namespace gleaf::hactool
 {
     Extraction Extraction::MakeExeFs(std::string OutExeFs)
     {
         Extraction ext;
+        ext.HasTitleKey = false;
         ext.DoExeFs = true;
         ext.DoRomFs = false;
         ext.DoLogo = false;
@@ -16,6 +20,7 @@ namespace gleaf::hactool
     Extraction Extraction::MakeRomFs(std::string OutRomFs)
     {
         Extraction ext;
+        ext.HasTitleKey = false;
         ext.DoExeFs = false;
         ext.DoRomFs = true;
         ext.DoLogo = false;
@@ -26,6 +31,7 @@ namespace gleaf::hactool
     Extraction Extraction::MakeLogo(std::string OutLogo)
     {
         Extraction ext;
+        ext.HasTitleKey = false;
         ext.DoExeFs = false;
         ext.DoRomFs = false;
         ext.DoLogo = true;
@@ -33,10 +39,46 @@ namespace gleaf::hactool
         return ext;
     }
 
-    bool Process(std::string Input, Extraction Mode, ExtractionFormat Format, std::string KeyFile)
+    Extraction Extraction::OnlyInformation()
     {
-        if(!gleaf::fs::IsFile(Input)) return false;
-        if(!gleaf::fs::IsFile(KeyFile)) return false;
+        Extraction ext;
+        ext.HasTitleKey = false;
+        ext.DoExeFs = false;
+        ext.DoRomFs = false;
+        ext.DoLogo = false;
+        return ext;
+    }
+
+    std::string NCATypeToString(NCAType NCA)
+    {
+        std::string type = "<unknown type>";
+        switch(NCA)
+        {
+            case NCAType::Program:
+                type = "Program";
+                break;
+            case NCAType::Meta:
+                type = "Meta (CNMT)";
+                break;
+            case NCAType::Control:
+                type = "Control";
+                break;
+            case NCAType::Manual:
+                type = "HTML Manual";
+                break;
+            case NCAType::Data:
+                type = "Data";
+                break;
+            case NCAType::AOCData:
+                type = "AOC";
+                break;
+        }
+        return type;
+    }
+
+    ProcessResult Process(std::string Input, Extraction Mode, ExtractionFormat Format, std::string KeyFile)
+    {
+        ProcessResult proc = { NCAType::Data, 0, true };
         hactool_ctx_t tool_ctx;
         hactool_ctx_t base_ctx; /* Context for base NCA, if used. */
         nca_ctx_t nca_ctx;
@@ -46,7 +88,7 @@ namespace gleaf::hactool
         memset(&base_ctx, 0, sizeof(base_ctx));
         filepath_init(&keypath);
         nca_ctx.tool_ctx = &tool_ctx;
-        nca_ctx.is_cli_target = false;
+        nca_ctx.is_cli_target = true;
         nca_ctx.tool_ctx->file_type = FILETYPE_NCA;
         base_ctx.file_type = FILETYPE_NCA; 
         nca_ctx.tool_ctx->action = ACTION_INFO | ACTION_EXTRACT;
@@ -63,27 +105,28 @@ namespace gleaf::hactool
                 nca_ctx.tool_ctx->file_type = FILETYPE_PFS0;
                 break;
         }
+        filepath_set(&keypath, KeyFile.c_str());
+        if(Mode.HasTitleKey)
+        {
+            parse_hex_key(nca_ctx.tool_ctx->settings.cli_titlekey, Mode.TitleKey.c_str(), 16);
+            nca_ctx.tool_ctx->settings.has_cli_titlekey = 1;
+        }
         if(Mode.DoExeFs)
         {
-            if(Mode.ExeFs == "") return false;
-            nca_ctx.tool_ctx->settings.exefs_dir_path.enabled = 1;
             filepath_set(&nca_ctx.tool_ctx->settings.exefs_dir_path.path, Mode.ExeFs.c_str());
+            nca_ctx.tool_ctx->settings.exefs_dir_path.enabled = 1;
         }
         if(Mode.DoRomFs)
         {
-            if(Mode.RomFs == "") return false;
-            nca_ctx.tool_ctx->settings.romfs_dir_path.enabled = 1;
             filepath_set(&nca_ctx.tool_ctx->settings.romfs_dir_path.path, Mode.RomFs.c_str());
+            nca_ctx.tool_ctx->settings.romfs_dir_path.enabled = 1;
         }
         if(Mode.DoLogo)
         {
-            if(Mode.Logo == "") return false;
-            filepath_set(&nca_ctx.tool_ctx->settings.section_dir_paths[0], Mode.Logo.c_str());
+            filepath_set(&nca_ctx.tool_ctx->settings.section_dir_paths[2], Mode.Logo.c_str());
         }
-        filepath_set(&keypath, KeyFile.c_str());
         FILE *keyfile = NULL;
         if(keypath.valid == VALIDITY_VALID) keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
-
         if(keyfile != NULL)
         {
             extkeys_initialize_keyset(&tool_ctx.settings.keyset, keyfile);
@@ -100,7 +143,7 @@ namespace gleaf::hactool
 
         if ((tool_ctx.file = fopen(Input.c_str(), "rb")) == NULL && tool_ctx.file_type != FILETYPE_BOOT0) {
             fprintf(stderr, "unable to open: %s\n", strerror(errno));
-            return false;
+            { proc.Ok = false; return proc; }
         }
         
         switch (tool_ctx.file_type) {
@@ -119,7 +162,7 @@ namespace gleaf::hactool
                     }
                     if (found_romfs == 0) {
                         fprintf(stderr, "Unable to locate RomFS in base NCA!\n");
-                        return false;
+                        { proc.Ok = false; return proc; }
                     }
                 }
 
@@ -187,11 +230,14 @@ namespace gleaf::hactool
                 memset(&raw_hdr, 0, sizeof(raw_hdr));
                 if (fread(&raw_hdr, 1, sizeof(raw_hdr), tool_ctx.file) != sizeof(raw_hdr)) {
                     fprintf(stderr, "Failed to read NPDM header!\n");
-                    return false;
+                    proc.Ok = false;
+                    return proc;
                 }
                 if (raw_hdr.magic != MAGIC_META) {
                     fprintf(stderr, "NPDM seems corrupt!\n");
-                    return false;
+                    proc.Ok = false;
+                    return proc;
+
                 }
                 uint64_t npdm_size = raw_hdr.aci0_size + raw_hdr.aci0_offset;
                 if (raw_hdr.acid_offset + raw_hdr.acid_size > npdm_size) {
@@ -201,11 +247,13 @@ namespace gleaf::hactool
                 npdm_t *npdm = (npdm_t*)malloc(npdm_size);
                 if (npdm == NULL) {
                     fprintf(stderr, "Failed to allocate NPDM!\n");
-                    return false;
+                    proc.Ok = false;
+                    return proc;
                 }
                 if (fread(npdm, 1, npdm_size, tool_ctx.file) != npdm_size) {
                     fprintf(stderr, "Failed to read NPDM!\n");
-                    return false;
+                    proc.Ok = false;
+                    return proc;
                 }
                 npdm_process(npdm, &tool_ctx);
                 break;
@@ -304,7 +352,8 @@ namespace gleaf::hactool
                     fseek(tool_ctx.file, 0x180000 + 0x200 * i, SEEK_SET);
                     if (fread(&new_keyset.encrypted_keyblobs[i], sizeof(new_keyset.encrypted_keyblobs[i]), 1, tool_ctx.file) != 1) {
                         fprintf(stderr, "Error: Failed to read encrypted_keyblob_%02x from boot0!\n", i);
-                        return false;
+                        proc.Ok = false;
+                        return proc;
                     }
                 }
                 printf("Deriving keys...\n");
@@ -316,7 +365,8 @@ namespace gleaf::hactool
             }
             default: {
                 fprintf(stderr, "Unknown File Type!\n\n");
-                return false;
+                proc.Ok = false;
+                return proc;
             }
         }
         
@@ -327,8 +377,14 @@ namespace gleaf::hactool
         if (tool_ctx.file != NULL) {
             fclose(tool_ctx.file);
         }
-        printf("Done!\n");
-
-        return true;
+        if(_htrc() == 1) proc.Ok = false;
+        else switch(Format)
+        {
+            case ExtractionFormat::NCA:
+                proc.AppId = nca_ctx.header.title_id;
+                proc.NCA = static_cast<NCAType>(nca_ctx.header.content_type);
+                break;
+        }
+        return proc;
     }
 }

@@ -11,6 +11,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <functional>
 #include <switch.h>
 
 namespace gleaf::fs
@@ -30,6 +31,7 @@ namespace gleaf::fs
     void CreateFile(std::string Path);
     void CreateDirectory(std::string Path);
     void CopyFile(std::string Path, std::string NewPath);
+    void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback);
     void CopyDirectory(std::string Dir, std::string NewDir);
     void DeleteFile(std::string Path);
     void DeleteDirectory(std::string Path);

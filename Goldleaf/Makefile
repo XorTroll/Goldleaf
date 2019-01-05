@@ -40,9 +40,9 @@ TARGET      := Goldleaf
 ICON		:= Control/icon_AmericanEnglish.dat
 
 BUILD       := Build
-SOURCES     := Source Source/gleaf Source/gleaf/es Source/gleaf/fs Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/lyt Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/sarc Source/gleaf/theme Source/gleaf/ui Source/gleaf/usb
+SOURCES     := Source Source/gleaf Source/gleaf/dump Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/lyt Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/sarc Source/gleaf/theme Source/gleaf/ui Source/gleaf/usb
 DATA        := Data
-INCLUDES    := Include Include/gleaf Include/gleaf/es Include/gleaf/fs Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/lyt Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/sarc Include/gleaf/theme Include/gleaf/ui Include/gleaf/usb
+INCLUDES    := Include Include/gleaf Include/gleaf/dump Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/lyt Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/sarc Include/gleaf/theme Include/gleaf/ui Include/gleaf/usb
 EXEFS_SRC   := ExeFs
 ROMFS       := RomFs
 
@@ -62,7 +62,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lpu -lhactool -lmbedtls -lmbedcrypto -lmbedx509 -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs` -lnx
+LIBS	:=  -lnx -lpu -lhactool -lhacpack -lmbedtls -lmbedcrypto -lmbedx509 -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
 
 
@@ -70,7 +70,7 @@ LIBS	:=  -lpu -lhactool -lmbedtls -lmbedcrypto -lmbedx509 -lfreetype -lSDL2_ttf 
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/External
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/External/pu $(CURDIR)/External/json $(CURDIR)/External/hactool $(CURDIR)/External/hacpack $(CURDIR)/External/mbedtls
 
 
 #---------------------------------------------------------------------------------

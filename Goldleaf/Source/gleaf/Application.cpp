@@ -6,7 +6,7 @@ namespace gleaf
     void Initialize()
     {
         void *haddr;
-        if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) fatalSimple(MAKERESULT(199, 199));
+        if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) exit(1);
         if(R_FAILED(ncm::Initialize())) exit(1);
         if(R_FAILED(ncmInitialize())) exit(1);
         if(R_FAILED(ns::Initialize())) exit(1);
@@ -38,6 +38,9 @@ namespace gleaf
         fs::CreateDirectory("sdmc:/goldleaf/meta");
         fs::CreateDirectory("sdmc:/goldleaf/title");
         fs::CreateDirectory("sdmc:/goldleaf/qlaunch");
+        fs::CreateDirectory("sdmc:/goldleaf/dump");
+        fs::CreateDirectory("sdmc:/goldleaf/dump/temp");
+        fs::CreateDirectory("sdmc:/goldleaf/dump/out");
     }
 
     bool IsApplication()
