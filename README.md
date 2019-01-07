@@ -26,7 +26,7 @@ Goldleaf simply provides support for a normal NSP and/or ticket installation. Th
 
 Goldleaf gives the user the possibility to modify NAND files, by deleting them or allowing to copy new files there.
 
-This can be dangerous, as deleting NCAs from the NAND contents can lead to unfixable errors. Image deleting all the EXE and DLL files from System32 folder. Well, the result would be similar.
+This can be dangerous, as deleting NCAs from the NAND contents can lead to unfixable errors. Imagine deleting all the EXE and DLL files from System32 folder. Well, the result would be similar.
 
 Removing tickets from installed contents will make the system not to be able to recognise them as "legit" purchased, so it will refuse to launch them (in many cases, but NOT all cases)
 
