@@ -83,10 +83,15 @@ namespace gleaf
     {
         std::string path = "";
         std::vector<std::string> knames = GetKeyFilePossibleNames();
-        for(u32 i = 0; i < knames.size(); i++) if(fs::IsFile("sdmc:/goldleaf/" + knames[i]))
-        {
-            path = "sdmc:/goldleaf/" + knames[i];
-            break;
+        for(u32 i = 0; i < knames.size(); i++) {
+            if(fs::IsFile("sdmc:/goldleaf/" + knames[i])) {
+                path = "sdmc:/goldleaf/" + knames[i];
+                break;
+            }
+            if(fs::IsFile("sdmc:/switch/" + knames[i])) {
+                path = "sdmc:/switch/" + knames[i];
+                break;
+            }
         }
         return path;
     }
