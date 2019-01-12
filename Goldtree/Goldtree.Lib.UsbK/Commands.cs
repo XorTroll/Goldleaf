@@ -31,7 +31,7 @@ namespace Goldtree.Lib.UsbK
 
         public static void Write(this libusbK.UsbK USB, string Data)
         {
-            USB.Write(Encoding.UTF8.GetBytes(Data));
+            USB.Write(Encoding.ASCII.GetBytes(Data));
         }
     }
 
@@ -66,7 +66,7 @@ namespace Goldtree.Lib.UsbK
 
         public static void Read(this libusbK.UsbK USB, out string Data, uint Length)
         {
-            Data = Encoding.UTF8.GetString(USB.Read((int)Length));
+            Data = Encoding.ASCII.GetString(USB.Read((int)Length));
         }
     }
 
