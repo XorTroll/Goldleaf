@@ -28,6 +28,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace libusbK
 {
@@ -253,6 +254,26 @@ namespace libusbK
             AllKFunctions.LstK_MoveNext(mHandleStruct, out DeviceInfo);
     }
 
+    [Serializable]
+    public class DriverLoadException : Exception
+    {
+        public DriverLoadException() { }
+
+        public DriverLoadException(string name)
+            : base(String.Format("Could not load the driver."))
+        { }
+    }
+
+    [Serializable]
+    public class DriverInitException : Exception
+    {
+        public DriverInitException() { }
+
+        public DriverInitException(string name)
+            : base(String.Format("Could not initialize the driver."))
+        { }
+    }
+
     public class UsbK
     {
         protected KUSB_DRIVER_API driverAPI;
@@ -261,9 +282,9 @@ namespace libusbK
         public UsbK(KLST_DEVINFO_HANDLE DevInfo)
         {
             var success = AllKFunctions.LibK_LoadDriverAPI(out driverAPI, DevInfo.DriverID);
-            if (!success) throw new Exception();
+            if (!success) throw new libusbK.DriverLoadException();
             success = driverAPI.Init(out mHandleStruct, DevInfo);
-            if (!success) throw new Exception();
+            if (!success) throw new libusbK.DriverInitException();
         }
 
         public virtual bool ControlTransfer(WINUSB_SETUP_PACKET SetupPacket, Array Buffer, int BufferLength, out int LengthTransferred, IntPtr Overlapped) =>
@@ -276,6 +297,6 @@ namespace libusbK
             driverAPI.SetAltInterface(mHandleStruct, NumberOrIndex, IsIndex, AltSettingNumber);
 
         public virtual bool WritePipe(byte PipeID, Array Buffer, int BufferLength, out int LengthTransferred, IntPtr Overlapped) => 
-            driverAPI.WritePipe(mHandleStruct, PipeID, Marshal.UnsafeAddrOfPinnedArrayElement(Buffer, 0), BufferLength, out LengthTransferred, Overlapped);     
+            driverAPI.WritePipe(mHandleStruct, PipeID, Marshal.UnsafeAddrOfPinnedArrayElement(Buffer, 0), BufferLength, out LengthTransferred, Overlapped);
     }
 }

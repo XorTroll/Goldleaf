@@ -36,7 +36,7 @@
     <ApplicationIcon>gtree.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>gtree.Program</StartupObject>
+    <StartupObject>gtree.GoldTree</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LibHac, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -70,6 +70,11 @@
     <Compile Include="libusbK.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Messages1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Messages.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -77,6 +82,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="gtree.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Messages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
