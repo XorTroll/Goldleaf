@@ -17,7 +17,6 @@
 #include <gleaf/es.hpp>
 #include <gleaf/fs.hpp>
 #include <gleaf/hactool.hpp>
-#include <gleaf/hacpack.hpp>
 #include <gleaf/horizon.hpp>
 #include <gleaf/lyt.hpp>
 #include <gleaf/ncm.hpp>

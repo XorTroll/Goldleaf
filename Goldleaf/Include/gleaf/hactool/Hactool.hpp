@@ -16,16 +16,16 @@
 
 extern "C"
 {
-    #include <hactool/types.h>
-    #include <hactool/utils.h>
-    #include <hactool/settings.h>
-    #include <hactool/pki.h>
-    #include <hactool/nca.h>
-    #include <hactool/xci.h>
-    #include <hactool/nax0.h>
-    #include <hactool/extkeys.h>
-    #include <hactool/packages.h>
-    #include <hactool/nso.h>
+    #include <types.h>
+    #include <utils.h>
+    #include <settings.h>
+    #include <pki.h>
+    #include <nca.h>
+    #include <xci.h>
+    #include <nax0.h>
+    #include <extkeys.h>
+    #include <packages.h>
+    #include <nso.h>
 }
 
 namespace gleaf::hactool

@@ -1,16 +1,12 @@
 #include <gleaf/usb/Commands.hpp>
 #include <gleaf/usb/Communications.hpp>
-#include <gleaf/ui.hpp>
 #include <malloc.h>
 #include <algorithm>
 
-namespace gleaf::ui
-{
-    extern gleaf::ui::MainApplication *mainapp;
-}
-
 namespace gleaf::usb
 {
+    Mutex usbmtx;
+
     bool Command::MagicOk()
     {
         return (this->Magic == GLUC);
@@ -35,7 +31,7 @@ namespace gleaf::usb
         Command cmd = MakeCommand(CommandId::NSPContent);
         WriteCommand(cmd);
         Write32(args->Index);
-        u64 rsize = 1048576;
+        u64 rsize = 0x800000;
         u8 *data = (u8*)memalign(0x1000, rsize);
         u64 szrem = args->Size;
         size_t tmpread = 0;

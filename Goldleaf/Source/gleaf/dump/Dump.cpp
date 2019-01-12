@@ -94,7 +94,7 @@ namespace gleaf::dump
         es::Initialize();
     }
 
-    std::string GetTitleKeyAndExportTicketData(u64 ApplicationId)
+    std::string GetTitleKeyData(u64 ApplicationId, bool ExportData)
     {
         std::string tkey = "";
         std::string orid = "";
@@ -142,9 +142,12 @@ namespace gleaf::dump
             if(fappid == tid)
             {
                 orid = rid;
-                FILE *tikf = fopen((outdir + "/" + rid + ".tik").c_str(), "wb");
-                fwrite(ticket, 1, 0x400, tikf);
-                fclose(tikf);
+                if(ExportData)
+                {
+                    FILE *tikf = fopen((outdir + "/" + rid + ".tik").c_str(), "wb");
+                    fwrite(ticket, 1, 0x400, tikf);
+                    fclose(tikf);
+                }
                 tkey = etkey;
                 free(ticket);
                 break;
@@ -154,7 +157,7 @@ namespace gleaf::dump
         fclose(f);
         fsdevUnmountDevice("escommon");
         // If we found a tkey export the cert too!
-        if(tkey != "")
+        if(ExportData && (tkey != ""))
         {
             FsFileSystem css;
             do
@@ -249,26 +252,5 @@ namespace gleaf::dump
         bool ex = fs::IsDirectory("sdmc:/goldleaf/dump/temp/tfs");
         if(ex) fs::DeleteDirectory("sdmc:/goldleaf/dump/temp/tfs");
         return !ex;
-    }
-
-    std::string GetFormattedOutputName(NcmMetaRecord *Rec)
-    {
-        std::string name;
-        NsApplicationControlData* cdata = (NsApplicationControlData*)malloc(sizeof(NsApplicationControlData));
-        size_t csize = 0;
-        Result rc = nsGetApplicationControlData(1, Rec->titleId, cdata, sizeof(NsApplicationControlData), &csize);
-        if((rc == 0) && !(csize < sizeof(cdata->nacp)))
-        {
-            NacpLanguageEntry *lent;
-            nacpGetLanguageEntry(&cdata->nacp, &lent);
-            name = std::string(lent->name);
-            name += " [";
-            name += horizon::FormatApplicationId(Rec->titleId);
-            name += "][v";
-            name += std::to_string(Rec->version);
-            name += "].nsp";
-        }
-        free(cdata);
-        return name;
     }
 }

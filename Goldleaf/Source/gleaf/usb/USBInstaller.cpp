@@ -1,14 +1,9 @@
 #include <gleaf/usb/USBInstaller.hpp>
 #include <gleaf/nsp/Installer.hpp>
 #include <gleaf/usb/Communications.hpp>
-#include <gleaf/ui.hpp>
+#include <malloc.h>
 #include <gleaf/fs.hpp>
 #include <threads.h>
-
-namespace gleaf::ui
-{
-    extern gleaf::ui::MainApplication *mainapp;
-}
 
 namespace gleaf::usb
 {
@@ -55,6 +50,7 @@ namespace gleaf::usb
             { 
                 cnmtdata = cnt;
                 this->ProcessContent(i, [&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed){});
+                break;
             }
         }
         NcmNcaId cnmtid = horizon::GetNCAIdFromString(cnmtdata.Name);
@@ -197,21 +193,21 @@ namespace gleaf::usb
                     if((tnew - tstart) >= freq)
                     {
                         size_t bnsize = bphw.GetSizeBuffered();
-                        double mbbuf = ((bnsize / 1048576.0) - (bssize / 1048576.0));
+                        double mbbuf = ((bnsize / 1000000.0) - (bssize / 1000000.0));
                         double dtime = ((double)(tnew - tstart) / (double)freq);
                         speed = (mbbuf / dtime);
                         tstart = tnew;
                         bssize = bnsize;
                     }
-                    u64 mbtotal = (bphw.GetTotalDataSize() / 1048576);
-                    u64 mbdlsz = (bphw.GetSizeBuffered() / 1048576);
+                    u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
+                    u64 mbdlsz = (bphw.GetSizeBuffered() / 1000000);
                     int perc = (int)(((double)bphw.GetSizeBuffered() / (double)bphw.GetTotalDataSize()) * 100.0);
                     Callback(name, Index, cnts.size(), perc, speed);
                 }
-                u64 mbtotal = (bphw.GetTotalDataSize() / 1048576);
+                u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
                 while(!bphw.IsPlaceHolderComplete())
                 {
-                    u64 mbinsz = (bphw.GetSizeWrittenToPlaceHolder() / 1048576);
+                    u64 mbinsz = (bphw.GetSizeWrittenToPlaceHolder() / 1000000);
                     int perc = (int)(((double)bphw.GetSizeWrittenToPlaceHolder() / (double)bphw.GetTotalDataSize()) * 100.0);
                     // Callback(name, Index, cnts.size(), perc, speed);
                 }

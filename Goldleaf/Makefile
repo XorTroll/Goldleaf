@@ -33,7 +33,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.2
+APP_VERSION := 0.3
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
@@ -62,7 +62,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lnx -lpu -lhactool -lhacpack -lmbedtls -lmbedcrypto -lmbedx509 -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBS	:=  -lnx -lpu -lhactool -lmbedcrypto -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
 
 
@@ -70,7 +70,7 @@ LIBS	:=  -lnx -lpu -lhactool -lhacpack -lmbedtls -lmbedcrypto -lmbedx509 -lfreet
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/External/pu $(CURDIR)/External/json $(CURDIR)/External/hactool $(CURDIR)/External/hacpack $(CURDIR)/External/mbedtls
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/External/pu $(CURDIR)/External/json $(CURDIR)/External/hactool $(CURDIR)/External/mbedtls
 
 
 #---------------------------------------------------------------------------------

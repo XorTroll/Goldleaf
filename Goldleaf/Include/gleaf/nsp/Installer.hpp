@@ -26,7 +26,6 @@ namespace gleaf::nsp
     {
         public:
             Installer(Destination Location, std::string Input, bool IgnoreVersion);
-            ~Installer();
             InstallerResult ProcessRecords();
             InstallerResult WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback);
             NacpStruct *GetNACP();

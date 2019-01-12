@@ -14,6 +14,7 @@
 #include <switch.h>
 #include <unistd.h>
 #include <json.hpp>
+#include <pu/Plutonium>
 
 namespace gleaf
 {

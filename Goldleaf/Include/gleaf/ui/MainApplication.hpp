@@ -76,6 +76,16 @@ namespace gleaf::ui
             pu::Layout *prev;
     };
 
+    class CopyLayout : public pu::Layout
+    {
+        public:
+            CopyLayout();
+            void StartCopy(std::string Path, std::string NewPath, bool Directory, pu::Layout *Prev);
+        private:
+            pu::element::TextBlock *infoText;
+            pu::element::ProgressBar *copyBar;
+    };
+
     class InstallLayout : public pu::Layout
     {
         public:
@@ -181,7 +191,6 @@ namespace gleaf::ui
             AboutLayout();
         private:
             pu::element::Image *logoImage;
-            pu::element::TextBlock *modeText;
     };
 
     class MainApplication : public pu::Application
@@ -190,9 +199,12 @@ namespace gleaf::ui
             MainApplication();
             void UpdateFooter(std::string Text);
             void UpdateValues();
+            void LoadMenuData(std::string Name, std::string ImageName, std::string TempHead);
+            void LoadMenuHead(std::string Head);
+            void UnloadMenuData();
             void sdBrowser_Input(u64 Down, u64 Up, u64 Held);
             void nandBrowser_Input(u64 Down, u64 Up, u64 Held);
-            void plainFile_Input(u64 Down, u64 Up, u64 Held);
+            void fileContent_Input(u64 Down, u64 Up, u64 Held);
             void usbInstall_Input(u64 Down, u64 Up, u64 Held);
             void titleManager_Input(u64 Down, u64 Up, u64 Held);
             void ticketManager_Input(u64 Down, u64 Up, u64 Held);
@@ -204,6 +216,7 @@ namespace gleaf::ui
             PartitionBrowserLayout *GetSDBrowserLayout();
             PartitionBrowserLayout *GetNANDBrowserLayout();
             FileContentLayout *GetFileContentLayout();
+            CopyLayout *GetCopyLayout();
             InstallLayout *GetInstallLayout();
             USBInstallLayout *GetUSBInstallLayout();
             ThemeInstallLayout *GetThemeInstallLayout();
@@ -222,6 +235,7 @@ namespace gleaf::ui
             PartitionBrowserLayout *sdBrowser;
             PartitionBrowserLayout *nandBrowser;
             FileContentLayout *fileContent;
+            CopyLayout *copy;
             InstallLayout *nspInstall;
             USBInstallLayout *usbInstall;
             ThemeInstallLayout *themeInstall;
@@ -231,10 +245,15 @@ namespace gleaf::ui
             CFWConfigLayout *cfwConfig;
             SystemInfoLayout *sysInfo;
             AboutLayout *about;
-            pu::element::Image *bannerImage;
+            pu::element::Image *baseImage;
             pu::element::TextBlock *timeText;
+            pu::element::TextBlock *batteryText;
             pu::element::Image *batteryImage;
             pu::element::Image *batteryChargeImage;
+            pu::element::Image *menuBanner;
+            pu::element::Image *menuImage;
+            pu::element::TextBlock *menuNameText;
+            pu::element::TextBlock *menuHeadText;
             pu::element::TextBlock *footerText;
     };
 

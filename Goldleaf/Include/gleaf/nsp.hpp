@@ -9,4 +9,5 @@
 */
 
 #pragma once
+#include <gleaf/nsp/Builder.hpp>
 #include <gleaf/nsp/Installer.hpp>

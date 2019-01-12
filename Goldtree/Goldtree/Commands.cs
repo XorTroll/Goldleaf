@@ -43,7 +43,7 @@ namespace gtree
 
         public static void Write(this UsbK USB, string Data)
         {
-            USB.Write(Encoding.UTF8.GetBytes(Data));
+            USB.Write(Encoding.ASCII.GetBytes(Data));
         }
     }
 
@@ -78,7 +78,7 @@ namespace gtree
 
         public static void Read(this UsbK USB, out string Data, uint Length)
         {
-            Data = Encoding.UTF8.GetString(USB.Read((int)Length));
+            Data = Encoding.ASCII.GetString(USB.Read((int)Length));
         }
     }
 

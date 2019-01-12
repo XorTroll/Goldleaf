@@ -18,9 +18,8 @@ namespace gleaf::dump
     FsStorageId GetApplicationLocation(u64 ApplicationId);
     u32 TerminateES();
     void RelaunchES(u32 ESFlags);
-    std::string GetTitleKeyAndExportTicketData(u64 ApplicationId);
+    std::string GetTitleKeyData(u64 ApplicationId, bool ExportData);
     std::string GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id);
     bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmMetaRecord *rec, u64 ApplicationId, NCAType Type, NcmNcaId *out);
     bool HasTitleKeyCrypto(std::string NCAPath);
-    std::string GetFormattedOutputName(NcmMetaRecord *Rec);
 }

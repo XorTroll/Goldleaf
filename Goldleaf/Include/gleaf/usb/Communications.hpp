@@ -13,7 +13,6 @@
 
 namespace gleaf::usb
 {
-    bool WaitForConnection(u64 Timeout = UINT64_MAX);
     size_t Read(void *Out, size_t Size);
     Command ReadCommand();
     u32 Read32();
