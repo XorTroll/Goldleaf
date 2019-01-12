@@ -88,7 +88,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::usbMenuItem_Click()
     {
-        pu::Dialog *dlg = new pu::Dialog("Start USB installation", "Woudl you like to use USB installation?\nIt's currently unstable, and might not work due to weird bugs.\nProceed with caution if so.");
+        pu::Dialog *dlg = new pu::Dialog("Start USB installation", "Would you like to use USB installation?\nIt's currently unstable, and might not work due to weird bugs.\nProceed with caution if so.");
         dlg->AddOption("Start");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
