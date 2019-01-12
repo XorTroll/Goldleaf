@@ -41,7 +41,7 @@ namespace Goldtree.Lib.Test
             this.writeHandler = (_, value) => output.Add(value);
         }
 
-        public void Connect(string deviceId)
+        public void Connect(int vid, int pid)
         {
             Assert.IsFalse(connected, "Usb is already connected.");
             connected = true;

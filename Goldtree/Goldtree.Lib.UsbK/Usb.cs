@@ -11,8 +11,10 @@ namespace Goldtree.Lib.UsbK
     {
         private libusbK.UsbK usb;
 
-        public void Connect(string deviceId)
+        public void Connect(int vid, int pid)
         {
+            string deviceId = $@"USB\VID_{vid.ToString("4X")}&PID_{pid.ToString("4X")}";
+
             KLST_PATTERN_MATCH pat = new KLST_PATTERN_MATCH { DeviceID = deviceId };
             LstK lst = new LstK(0, ref pat);
             lst.MoveNext(out KLST_DEVINFO_HANDLE dinfo);

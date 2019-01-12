@@ -68,7 +68,7 @@ namespace Goldtree.Lib
         {
             try
             {
-                usb.Connect(@"USB\VID_057E&PID_3000");
+                usb.Connect(0x057E, 0x3000);
                 return true;
             }
             catch

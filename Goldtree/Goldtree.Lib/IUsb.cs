@@ -6,7 +6,7 @@ namespace Goldtree.Lib
 {
     public interface IUsb
     {
-        void Connect(string deviceId);
+        void Connect(int vid, int pid);
 
         void Write(Command command);
         void Write(uint value);
