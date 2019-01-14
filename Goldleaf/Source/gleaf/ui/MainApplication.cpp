@@ -54,7 +54,7 @@ namespace gleaf::ui
         if(isel == this->sdcardMenuItem) info = "Browse the SD card. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->nandMenuItem) info = "Browse NAND. Press A to view file options or to browse a directory, X to paste clipboard or Y to view directory options.";
         else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
-        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information and uninstall them.";
+        else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information, dump them as NSPs or uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
         else if(isel == this->cfwConfigMenuItem) info = "Browse which CFWs are available to install themes of if there is any theme installed.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
@@ -64,6 +64,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::sdcardMenuItem_Click()
     {
+        mainapp->LoadMenuData("SD card", "SdCard", mainapp->GetSDBrowserLayout()->GetExplorer()->GetCwd());
         mainapp->GetSDBrowserLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
     }
@@ -83,17 +84,26 @@ namespace gleaf::ui
         else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 3) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
+        mainapp->LoadMenuData("NAND", "NAND", mainapp->GetNANDBrowserLayout()->GetExplorer()->GetCwd());
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
     }
 
     void MainMenuLayout::usbMenuItem_Click()
     {
+        pu::Dialog *dlg = new pu::Dialog("Start USB installation", "Woudl you like to use USB installation?\nIt's currently unstable, and might not work due to weird bugs.\nProceed with caution if so.");
+        dlg->AddOption("Start");
+        dlg->AddOption("Cancel");
+        mainapp->ShowDialog(dlg);
+        u32 sopt = dlg->GetSelectedIndex();
+        if(dlg->UserCancelled() || (sopt == 1)) return;
+        mainapp->LoadMenuData("USB installation", "USB", "Preparing USB install...");
         mainapp->LoadLayout(mainapp->GetUSBInstallLayout());
         mainapp->GetUSBInstallLayout()->StartUSBConnection();
     }
 
     void MainMenuLayout::titleMenuItem_Click()
     {
+        mainapp->LoadMenuData("Titles", "Storage", "Searching for installed titles...");
         EnsureDirectories();
         mainapp->GetTitleManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
@@ -101,27 +111,31 @@ namespace gleaf::ui
 
     void MainMenuLayout::ticketMenuItem_Click()
     {
+        mainapp->LoadMenuData("Tickets", "Ticket", "Searching for imported tickets...");
         mainapp->GetTicketManagerLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
-        pu::Dialog *dlg = new pu::Dialog("Removing tickets (warning)", "Removing tickets can be dangerous.\nIf tickets from installed apps get removed, the title won't probably work.");
+        pu::Dialog *dlg = new pu::Dialog("Removing tickets", "Removing tickets can be dangerous.\nIf tickets from installed titles get removed, they won't probably work.");
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
     }
 
     void MainMenuLayout::cfwConfigMenuItem_Click()
     {
+        mainapp->LoadMenuData("CFW and themes", "CFW", "Searching for CFWs on the SD card...");
         mainapp->GetCFWConfigLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetCFWConfigLayout());
     }
 
     void MainMenuLayout::sysinfoMenuItem_Click()
     {
+        mainapp->LoadMenuData("System information", "Settings", "Loading settings and information of the system...");
         mainapp->GetSystemInfoLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSystemInfoLayout());
     }
 
     void MainMenuLayout::aboutMenuItem_Click()
     {
+        mainapp->LoadMenuData("Goldleaf v0.3", "Info", (IsApplication() ? "Running as an installed title." : "Running as a homebrew NRO binary."));
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 
@@ -152,6 +166,7 @@ namespace gleaf::ui
         if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
+        mainapp->LoadMenuHead(this->gexp->GetCwd());
         if(this->elems.empty())
         {
             this->browseMenu->SetVisible(false);
@@ -492,9 +507,6 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                        bool hasatmos = gleaf::fs::IsDirectory("sdmc:/atmosphere");
-                        bool hasreinx = gleaf::fs::IsDirectory("sdmc:/ReiNX");
-                        bool hassxos = gleaf::fs::IsDirectory("sdmc:/sxos");
                         dlg = new pu::Dialog("Select CFW", "Select CFW on which to install the theme.");
                         std::vector<std::string> cfws = GetSdCardCFWNames();
                         for(u32 i = 0; i < cfws.size(); i++) dlg->AddOption(cfws[i]);
@@ -584,7 +596,7 @@ namespace gleaf::ui
                         if(xexefs) ext.ExeFs = fullitm + ".ExeFs";
                         if(xromfs) ext.RomFs = fullitm + ".RomFs";
                         if(xlogo) ext.Logo = fullitm + ".Section0";
-                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath());
+                        bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
                         std::string msg = "The content extraction failed.\nAre you sure the NCA is valid (and that it doesn't require a titlekey) or that you have all the necessary keys?";
                         if(ok) msg = "The NCA extraction succeeded.\nAll the selected partitions were extracted (if they existed within the NCA)";
                         dlg = new pu::Dialog("NCA extraction", msg);
@@ -600,8 +612,6 @@ namespace gleaf::ui
                 {
                     case 0:
                         u8 *rnacp = fs::ReadFile(fullitm).data();
-                        u32 *rnacp32 = (u32*)rnacp;
-                        u64 *rnacp64 = (u64*)rnacp;
                         NacpStruct *snacp = (NacpStruct*)rnacp;
                         NacpLanguageEntry *lent = NULL;
                         nacpGetLanguageEntry(snacp, &lent);
@@ -631,9 +641,9 @@ namespace gleaf::ui
                         else msg += "<unknown value>";
                         u8 vidc = rnacp[0x3035];
                         msg += "\nSupports capturing video? ";
-                        if(scrc == 0) msg += "No";
-                        else if(scrc == 1) msg += "Yes (manually)";
-                        else if(scrc == 2) msg += "Yes";
+                        if(vidc == 0) msg += "No";
+                        else if(vidc == 1) msg += "Yes (manually)";
+                        else if(vidc == 2) msg += "Yes";
                         else msg += "<unknown value>";
                         u8 logom = rnacp[0x30f0];
                         msg += "\nLogo type: ";
@@ -660,7 +670,7 @@ namespace gleaf::ui
             u32 copyopt = copt - 4;
             u32 delopt = copt - 3;
             u32 renopt = copt - 2;
-            if(sopt == viewopt)
+            if((sopt == viewopt) && (fs::GetFileSize(fullitm) > 0))
             {
                 mainapp->LoadLayout(mainapp->GetFileContentLayout());
                 mainapp->GetFileContentLayout()->LoadFile(fullitm, this, true);
@@ -776,7 +786,7 @@ namespace gleaf::ui
 
     FileContentLayout::FileContentLayout()
     {
-        this->cntText = new pu::element::TextBlock(25, 150, "");
+        this->cntText = new pu::element::TextBlock(25, 180, "");
         this->cntText->SetFont(pu::render::LoadFont("romfs:/Consolas.ttf", 25));
         this->AddChild(this->cntText);
         this->loffset = 0;
@@ -794,8 +804,8 @@ namespace gleaf::ui
     void FileContentLayout::Update()
     {
         std::vector<std::string> lines;
-        if(this->mode) lines = fs::ReadFileFormatHex(this->pth, this->loffset, 20);
-        else lines = fs::ReadFileLines(this->pth, this->loffset, 20);
+        if(this->mode) lines = fs::ReadFileFormatHex(this->pth, this->loffset, 19);
+        else lines = fs::ReadFileLines(this->pth, this->loffset, 19);
         if(lines.empty())
         {
             this->loffset--;
@@ -830,6 +840,50 @@ namespace gleaf::ui
     pu::Layout *FileContentLayout::GetPreviousLayout()
     {
         return this->prev;
+    }
+
+    CopyLayout::CopyLayout()
+    {
+        this->infoText = new pu::element::TextBlock(400, 300, "Starting copy...");
+        this->copyBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->AddChild(this->infoText);
+        this->AddChild(this->copyBar);
+    }
+
+    void CopyLayout::StartCopy(std::string Path, std::string NewPath, bool Directory, pu::Layout *Prev)
+    {
+        if(Directory)
+        {
+            fs::CopyDirectoryProgress(Path, NewPath, [&](u8 p)
+            {
+                this->copyBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            mainapp->UpdateFooter("Directory copied: '" + NewPath + "'");
+        }
+        else
+        {
+            if(fs::IsFile(NewPath))
+            {
+                pu::Dialog *dlg = new pu::Dialog("File copy", "Another file exists with the same name.\nIf you want to continue, the file will be overwritten.");
+                dlg->AddOption("Overwrite");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                if(dlg->UserCancelled() || (sopt == 1))
+                {
+                    mainapp->LoadLayout(Prev);
+                    return;
+                }
+            }
+            fs::CopyFileProgress(Path, NewPath, [&](u8 p)
+            {
+                this->copyBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            mainapp->UpdateFooter("File copied: '" + NewPath + "'");
+        }
+        mainapp->LoadLayout(Prev);
     }
 
     InstallLayout::InstallLayout() : pu::Layout()
@@ -876,7 +930,11 @@ namespace gleaf::ui
             if(Delete) mainapp->UpdateFooter("The NSP was successfully installed and deleted.");
         }
         else mainapp->UpdateFooter("An error ocurred installing the NSP.");
-        if(Delete) fs::DeleteFile(Input);
+        if(Delete)
+        {
+            fs::DeleteFile(Input);
+            mainapp->GetSDBrowserLayout()->UpdateElements();
+        }
         mainapp->LoadLayout(Prev);
         mainapp->CallForRender();
     }
@@ -961,15 +1019,17 @@ namespace gleaf::ui
             hidScanInput();
             if(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)
             {
+                mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                 return;
             }
             Result rc = usbDsWaitReady(U64_MAX);
             if(rc == 0) break;
-            else if((rc & 0x3FFFFF) != 0xEA01)
+            else if((rc & 0x3fffff) != 0xea01)
             {
                 mainapp->UpdateFooter("USB failed to connect. Try again!");
                 mainapp->CallForRender();
+                mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                 return;
             }
@@ -1002,6 +1062,7 @@ namespace gleaf::ui
                         if(dlg->UserCancelled() || (sopt == 1))
                         {
                             usb::WriteCommand(fcmd);
+                            mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
@@ -1014,6 +1075,7 @@ namespace gleaf::ui
                         if(dlg->UserCancelled() || ( sopt == 2))
                         {
                             usb::WriteCommand(fcmd);
+                            mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
@@ -1029,6 +1091,7 @@ namespace gleaf::ui
                         if(dlg->UserCancelled() || (sopt == 2))
                         {
                             usb::WriteCommand(fcmd);
+                            mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
@@ -1046,6 +1109,7 @@ namespace gleaf::ui
                             if(IsApplication()) appletEndBlockingHomeButton();
                             mainapp->GetInstallLayout()->LogError(rc);
                             usb::WriteCommand(fcmd);
+                            mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
@@ -1057,6 +1121,7 @@ namespace gleaf::ui
                             if(IsApplication()) appletEndBlockingHomeButton();
                             mainapp->GetInstallLayout()->LogError(rc);
                             usb::WriteCommand(fcmd);
+                            mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
@@ -1077,6 +1142,7 @@ namespace gleaf::ui
                         {
                             mainapp->GetInstallLayout()->LogError(rc);
                             usb::WriteCommand(fcmd);
+                            mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
@@ -1109,6 +1175,7 @@ namespace gleaf::ui
             usb::WriteCommand(fcmd);
             mainapp->UpdateFooter("An invalid command was received. Are you sure you're using Goldtree?");
         }
+        mainapp->UnloadMenuData();
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }
 
@@ -1324,7 +1391,6 @@ namespace gleaf::ui
         this->titlesMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
         this->titlesMenu->SetCooldownEnabled(true);
         this->notTitlesText = new pu::element::TextBlock(450, 400, "No titles were found for this console.");
-        this->UpdateElements();
         this->AddChild(this->notTitlesText);
         this->AddChild(this->titlesMenu);
     }
@@ -1333,6 +1399,7 @@ namespace gleaf::ui
     {
         if(!this->titles.empty()) this->titles.clear();
         this->titles = horizon::GetAllSystemTitles();
+        mainapp->LoadMenuHead("Found " + std::to_string(this->titles.size()) + " titles on this console.");
         this->titlesMenu->ClearItems();
         this->titlesMenu->SetCooldownEnabled(true);
         if(this->titles.empty())
@@ -1387,28 +1454,63 @@ namespace gleaf::ui
             mainapp->ShowDialog(dlg);
             return;
         }
-        dlg->AddOption("Uninstall");
+        dlg->AddOption("Title options");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
         if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
-            dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the previously selected title?");
-            dlg->AddOption("Yes");
+            dlg = new pu::Dialog("Title options", "What would you like to do with the selected title?");
+            dlg->AddOption("Dump NSP");
+            dlg->AddOption("Uninstall");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
-            if(dlg->UserCancelled() || (sopt == 1)) return;
+            if(dlg->UserCancelled() || (sopt == 2)) return;
             else
             {
-                Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
-                std::string resstr = "The title was successfully uninstalled from this console.";
-                if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
-                dlg = new pu::Dialog("Title uninstall", resstr);
-                dlg->AddOption("Ok");
-                mainapp->ShowDialog(dlg);
-                if(rc == 0) this->UpdateElements();
+                if(sopt == 0)
+                {
+                    dlg = new pu::Dialog("Title dump", "Are you sure you want to dump the selected title?\nTitle dumping can be unstable, so do this at your own risk.\n\nIMPORTANT: DON'T dump +4GB titles if you're using FAT32.");
+                    dlg->AddOption("Yes");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 1)) return;
+                    else
+                    {
+                        if(!HasKeyFile())
+                        {
+                            dlg = new pu::Dialog("Title dump error", "External keys are required to dump a title as a NSP.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
+                            dlg->AddOption("Ok");
+                            mainapp->ShowDialog(dlg);
+                            return;
+                        }
+                        mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
+                        mainapp->GetTitleDumperLayout()->StartDump(seltit);
+                        mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+                    }
+                }
+                else if(sopt == 1)
+                {
+                    dlg = new pu::Dialog("Title uninstall", "Are you sure you want to uninstall the selected title?");
+                    dlg->AddOption("Yes");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 1)) return;
+                    else
+                    {
+                        Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
+                        std::string resstr = "The title was successfully uninstalled from this console.";
+                        if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
+                        dlg = new pu::Dialog("Title uninstall", resstr);
+                        dlg->AddOption("Ok");
+                        mainapp->ShowDialog(dlg);
+                        if(rc == 0) this->UpdateElements();
+                    }
+                }
             }
         }
     }
@@ -1418,11 +1520,283 @@ namespace gleaf::ui
         return this->titles;
     }
 
+    TitleDumperLayout::TitleDumperLayout()
+    {
+        this->dumpText = new pu::element::TextBlock(300, 300, "Starting NSP dump...");
+        this->ncaBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->ncaBar->SetVisible(false);
+        this->AddChild(this->dumpText);
+        this->AddChild(this->ncaBar);
+    }
+
+    void TitleDumperLayout::StartDump(horizon::Title &Target)
+    {
+        EnsureDirectories();
+        this->dumpText->SetText("Starting title dump...");
+        mainapp->CallForRender();
+        FsStorageId stid = dump::GetApplicationLocation(Target.ApplicationId);
+        if(stid == FsStorageId_NandUser)
+        {
+            FsFileSystem bisfs;
+            Result rc = fsOpenBisFileSystem(&bisfs, 30, "");
+            if(rc != 0)
+            {
+                pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error mounting NAND filesystem.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+                return;
+            }
+            fsdevMountDevice("glduser", bisfs);
+        }
+        std::string fappid = horizon::FormatApplicationId(Target.ApplicationId);
+        std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
+        fs::CreateDirectory(outdir);
+        this->dumpText->SetText("Terminating ES process...");
+        mainapp->CallForRender();
+        u32 esf = dump::TerminateES();
+        this->dumpText->SetText("Accessing ticket data...");
+        mainapp->CallForRender();
+        std::string tkey = dump::GetTitleKeyData(Target.ApplicationId, true);
+        this->dumpText->SetText("Initializing NCM services and retrieving NCAs...");
+        mainapp->CallForRender();
+        bool istkey = (tkey != "");
+        dump::RelaunchES(esf);
+        NcmContentStorage cst;
+        Result rc = ncmOpenContentStorage(stid, &cst);
+        if(rc != 0)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error creating a NCM content storage.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        NcmContentMetaDatabase cmdb;
+        rc = ncmOpenContentMetaDatabase(stid, &cmdb);
+        if(rc != 0)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error creating a NCM meta database.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        NcmMetaRecord mrec;
+        bool ok = dump::GetMetaRecord(&cmdb, Target.ApplicationId, &mrec);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting a meta record of the title.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        NcmNcaId program;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting Program NCA.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string sprogram = dump::GetNCAIdPath(&cst, &program);
+        NcmNcaId meta;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting Meta CNMT NCA.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string smeta = dump::GetNCAIdPath(&cst, &meta);
+        NcmNcaId control;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
+        if(!ok)
+        {
+            pu::Dialog *dlg = new pu::Dialog("Title dump error", "Error getting Control NCA.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+            mainapp->LoadLayout(mainapp->GetTitleManagerLayout());
+            return;
+        }
+        std::string scontrol = dump::GetNCAIdPath(&cst, &control);
+        NcmNcaId linfo;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
+        bool haslinfo = ok;
+        std::string slinfo;
+        if(ok) slinfo = dump::GetNCAIdPath(&cst, &linfo);
+        NcmNcaId hoff;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::OfflineHtml, &hoff);
+        bool hashoff = ok;
+        std::string shoff;
+        if(ok) shoff = dump::GetNCAIdPath(&cst, &hoff);
+        std::string xprogram = sprogram;
+        std::string xmeta = smeta;
+        std::string xcontrol = scontrol;
+        std::string xlinfo = slinfo;
+        std::string xhoff = shoff;
+        if(stid == FsStorageId_SdCard)
+        {
+            xprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
+            this->ncaBar->SetVisible(true);
+            dump::DecryptCopyNAX0ToNCA(&cst, program, xprogram, [&](u8 p)
+            {
+                this->dumpText->SetText("Decrypting and exporting Program NCA...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
+            this->ncaBar->SetVisible(true);
+            dump::DecryptCopyNAX0ToNCA(&cst, meta, xmeta, [&](u8 p)
+            {
+                this->dumpText->SetText("Decrypting and exporting Meta CNMT NCA...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
+            this->ncaBar->SetVisible(true);
+            dump::DecryptCopyNAX0ToNCA(&cst, control, xcontrol, [&](u8 p)
+            {
+                this->dumpText->SetText("Decrypting and exporting Control NCA...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            if(haslinfo)
+            {
+                xlinfo = outdir + "/" + horizon::GetStringFromNCAId(linfo) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, linfo, xlinfo, [&](u8 p)
+                {
+                    this->dumpText->SetText("Decrypting and exporting LegalInfo NCA...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
+            if(hashoff)
+            {
+                xhoff = outdir + "/" + horizon::GetStringFromNCAId(hoff) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, hoff, xhoff, [&](u8 p)
+                {
+                    this->dumpText->SetText("Decrypting and exporting Offline Html NCA...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
+        }
+        if(stid == FsStorageId_NandUser)
+        {
+            xprogram = "glduser:/Contents/" + xprogram.substr(15);
+            std::string txprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
+            this->ncaBar->SetVisible(true);
+            fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
+            {
+                this->dumpText->SetText("Copying Program NCA from NAND memory...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xprogram = txprogram;
+            xmeta = "glduser:/Contents/" + xmeta.substr(15);
+            std::string txmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
+            this->ncaBar->SetVisible(true);
+            fs::CopyFileProgress(xmeta, txmeta, [&](u8 p)
+            {
+                this->dumpText->SetText("Copying Meta CNMT NCA from NAND memory...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xmeta = txmeta;
+            xcontrol = "glduser:/Contents/" + xcontrol.substr(15);
+            std::string txcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
+            this->ncaBar->SetVisible(true);
+            fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
+            {
+                this->dumpText->SetText("Copying Control NCA from NAND memory...");
+                this->ncaBar->SetProgress(p);
+                mainapp->CallForRender();
+            });
+            this->ncaBar->SetVisible(false);
+            xcontrol = txcontrol;
+            if(haslinfo)
+            {
+                xlinfo = "glduser:/Contents/" + xlinfo.substr(15);
+                std::string txlinfo = outdir + "/" + horizon::GetStringFromNCAId(linfo) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xlinfo, txlinfo, [&](u8 p)
+                {
+                    this->dumpText->SetText("Copying LegalInfo NCA from NAND memory...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xlinfo = txlinfo;
+            }
+            if(hashoff)
+            {
+                xhoff = "glduser:/Contents/" + xhoff.substr(15);
+                std::string txhoff = outdir + "/" + horizon::GetStringFromNCAId(hoff) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xhoff, txhoff, [&](u8 p)
+                {
+                    this->dumpText->SetText("Copying Offline Html NCA from NAND memory...");
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xhoff = txhoff;
+            }
+            fsdevUnmountDevice("glduser");
+        }
+        std::string info;
+        bool istkey2 = dump::HasTitleKeyCrypto(xprogram);
+        if(istkey)
+        {
+            if(istkey2) info = "The title is titlekey encrypted. The NSP will contain a ticket and a cert.";
+            else info = "The title doesn't seem to require a titlekey, but the ticket and the cert will be included anyway.";
+        }
+        else
+        {
+            if(istkey2) info = "The title requires a titlekey but it was not found.\nThe NSP will be created, but it won't be playable without the required ticket.";
+            else info = "The title doesn't need a titlekey, so the rest will be really easy.";
+        }
+        this->dumpText->SetText(info += "\n\nStarting final NSP build...");
+        mainapp->CallForRender();
+        std::string fout = "sdmc:/goldleaf/dump/out/" + fappid + ".nsp";
+        this->ncaBar->SetVisible(true);
+        int qi = nsp::BuildPFS(outdir, fout, [&](u8 p)
+        {
+            this->dumpText->SetText("Building final NSP from exported contents...");
+            this->ncaBar->SetProgress(p);
+            mainapp->CallForRender();
+        });
+        ok = (qi == 0);
+        fs::DeleteDirectory("sdmc:/goldleaf/dump/temp");
+        fs::DeleteDirectory(outdir);
+        if(ok) mainapp->UpdateFooter("Title dumped as NSP: '" + fout + "'");
+        else mainapp->UpdateFooter("There was an error dumping the title.");
+        pu::Dialog *dlg = new pu::Dialog("Title dump warning", "The dump has finished, but title dumps break ETicket services.\nTicket-related things will be broken in any homebrew.\nA reboot is recommended: dump all the titles you want, then press ZL or ZR to reboot the console anytime.");
+        dlg->AddOption("Ok");
+        mainapp->ShowDialog(dlg);
+        serviceClose(&cst.s);
+        serviceClose(&cmdb.s);
+    }
+
     TicketManagerLayout::TicketManagerLayout() : pu::Layout()
     {
         this->ticketsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
         this->notTicketsText = new pu::element::TextBlock(450, 400, "No tickets were found for this console.");
-        this->UpdateElements();
         this->AddChild(this->notTicketsText);
         this->AddChild(this->ticketsMenu);
     }
@@ -1431,6 +1805,7 @@ namespace gleaf::ui
     {
         if(!this->tickets.empty()) this->tickets.clear();
         this->tickets = horizon::GetAllSystemTickets();
+        mainapp->LoadMenuHead("Found " + std::to_string(this->tickets.size()) + " tickets on this console.");
         this->ticketsMenu->ClearItems();
         this->ticketsMenu->SetCooldownEnabled(true);
         if(this->tickets.empty())
@@ -1465,8 +1840,9 @@ namespace gleaf::ui
     {
         horizon::Ticket seltick = this->tickets[this->ticketsMenu->GetSelectedIndex()];
         std::string info = "Information about selected ticket:\n\n\n";
-        info += "Application Id: " + horizon::FormatApplicationId(seltick.GetApplicationId());
-        info += "\nKey generation: " + std::to_string(seltick.GetKeyGeneration());
+        u64 tappid = seltick.GetApplicationId();
+        info += "Application Id: " + horizon::FormatApplicationId(tappid);
+        info += "\nKey generation: " + std::to_string(tappid);
         pu::Dialog *dlg = new pu::Dialog("Installed ticket information", info);
         dlg->AddOption("Remove ticket");
         dlg->AddOption("Cancel");
@@ -1475,7 +1851,7 @@ namespace gleaf::ui
         if(dlg->UserCancelled() || (sopt == 1)) return;
         else
         {
-            dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the previously selected ticket?");
+            dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the selected ticket?");
             dlg->AddOption("Yes");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
@@ -1486,10 +1862,8 @@ namespace gleaf::ui
                 Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
                 std::string resstr = "The ticket was successfully removed from this console.";
                 if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
-                dlg = new pu::Dialog("Ticket uninstall", resstr);
-                dlg->AddOption("Ok");
-                mainapp->ShowDialog(dlg);
-                if(rc == 0) this->UpdateElements();
+                else this->UpdateElements();
+                mainapp->UpdateFooter(resstr);
             }
         }
     }
@@ -1499,13 +1873,13 @@ namespace gleaf::ui
         this->cfwsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
         this->cfws = GetSdCardCFWs();
         this->cfwnms = GetSdCardCFWNames();
-        this->UpdateElements();
         this->AddChild(this->cfwsMenu);
     }
 
     void CFWConfigLayout::UpdateElements()
     {
         this->cfwsMenu->ClearItems();
+        mainapp->LoadMenuHead("Found " + std::to_string(this->cfws.size()) + " CFWs on the SD card.");
         for(u32 i = 0; i < this->cfws.size(); i++) if(gleaf::fs::IsDirectory("sdmc:/" + this->cfws[i]))
         {
             pu::element::MenuItem *itm = new pu::element::MenuItem(this->cfwnms[i]);
@@ -1561,7 +1935,6 @@ namespace gleaf::ui
         this->userBar = new pu::element::ProgressBar(450, 515, 300, 30);
         this->systemText = new pu::element::TextBlock(805, 480, "NAND (SYSTEM partition)");
         this->systemBar = new pu::element::ProgressBar(800, 515, 300, 30);
-        this->UpdateElements();
         this->AddChild(this->fwText);
         this->AddChild(this->sdText);
         this->AddChild(this->sdBar);
@@ -1605,10 +1978,8 @@ namespace gleaf::ui
 
     AboutLayout::AboutLayout()
     {
-        this->logoImage = new pu::element::Image(85, 104, "romfs:/Logo.png");
-        this->modeText = new pu::element::TextBlock(335, 580, (IsApplication() ? "Goldleaf is running as an installed title." : "Goldleaf is running as a homebrew NRO binary."));
+        this->logoImage = new pu::element::Image(85, 150, "romfs:/Logo.png");
         this->AddChild(this->logoImage);
-        this->AddChild(this->modeText);
     }
 
     void MainApplication::SetPathBrowsed(std::string path) {
@@ -1622,19 +1993,37 @@ namespace gleaf::ui
     MainApplication::MainApplication() : pu::Application()
     {
         this->SetBackgroundColor({ 235, 235, 235, 255 });
+        this->preblv = 0;
+        this->preisch = false;
+        this->pretime = "";
+        this->vfirst = true;
+        this->baseImage = new pu::element::Image(0, 0, "romfs:/Base.png");
+        this->timeText = new pu::element::TextBlock(1124, 20, "00:00:00");
+        this->batteryText = new pu::element::TextBlock(1020, 24, "0%", 20);
+        this->batteryImage = new pu::element::Image(960, 10, "romfs:/Battery/0.png");
+        this->batteryChargeImage = new pu::element::Image(960, 10, "romfs:/Battery/Charge.png");
+        this->menuBanner = new pu::element::Image(0, 70, "romfs:/MenuBanner.png");
+        this->menuImage = new pu::element::Image(10, 67, "romfs:/Common/SdCard.png");
+        this->menuNameText = new pu::element::TextBlock(112, 90, "Name");
+        this->menuHeadText = new pu::element::TextBlock(112, 125, "Head", 20);
+        this->UnloadMenuData();
+        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf! You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...", 20);
+        this->UpdateValues();
         this->mainMenu = new MainMenuLayout();
         this->sdBrowser = new PartitionBrowserLayout(fs::Partition::SdCard);
         this->sdBrowser->SetOnInput(std::bind(&MainApplication::sdBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nandBrowser = new PartitionBrowserLayout(fs::Partition::NANDSystem);
         this->nandBrowser->SetOnInput(std::bind(&MainApplication::nandBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->fileContent = new FileContentLayout();
-        this->fileContent->SetOnInput(std::bind(&MainApplication::plainFile_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->fileContent->SetOnInput(std::bind(&MainApplication::fileContent_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->copy = new CopyLayout();
         this->nspInstall = new InstallLayout();
         this->usbInstall = new USBInstallLayout();
         this->usbInstall->SetOnInput(std::bind(&MainApplication::usbInstall_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->themeInstall = new ThemeInstallLayout();
         this->titleManager = new TitleManagerLayout();
         this->titleManager->SetOnInput(std::bind(&MainApplication::titleManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->titleDump = new TitleDumperLayout();
         this->ticketManager = new TicketManagerLayout();
         this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->cfwConfig = new CFWConfigLayout();
@@ -1643,52 +2032,58 @@ namespace gleaf::ui
         this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->about = new AboutLayout();
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->bannerImage = new pu::element::Image(35, 35, "romfs:/Banner.png");
-        this->preblv = 0;
-        this->preisch = false;
-        this->pretime = "";
-        this->vfirst = true;
-        this->pathBrowsed = new pu::element::TextBlock(15, 135, "", cwd_fsize);
-        //this->pathBrowsed->SetColor({ 222, 167, 5, 255 }); // #dea705 goldleaf yellow
-        this->pathBrowsed->SetColor({ 178, 134, 4, 255 }); // #b28604 25% darker ^
-        this->timeText = new pu::element::TextBlock(1070, 50, horizon::GetCurrentTime());
-        this->batteryImage = new pu::element::Image(1200, 35, "romfs:/Battery/0.png");
-        this->batteryChargeImage = new pu::element::Image(1200, 35, "romfs:/Battery/Charge.png");
-        this->UpdateValues();
-        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf! You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...", 20);
-        this->mainMenu->AddChild(this->bannerImage);
-        this->sdBrowser->AddChild(this->bannerImage);
-        this->nandBrowser->AddChild(this->bannerImage);
-        this->fileContent->AddChild(this->bannerImage);
-        this->nspInstall->AddChild(this->bannerImage);
-        this->usbInstall->AddChild(this->bannerImage);
-        this->themeInstall->AddChild(this->bannerImage);
-        this->titleManager->AddChild(this->bannerImage);
-        this->ticketManager->AddChild(this->bannerImage);
-        this->cfwConfig->AddChild(this->bannerImage);
-        this->sysInfo->AddChild(this->bannerImage);
-        this->sdBrowser->AddChild(this->pathBrowsed);
-        this->nandBrowser->AddChild(this->pathBrowsed);
+        this->mainMenu->AddChild(this->baseImage);
+        this->sdBrowser->AddChild(this->baseImage);
+        this->nandBrowser->AddChild(this->baseImage);
+        this->fileContent->AddChild(this->baseImage);
+        this->copy->AddChild(this->baseImage);
+        this->nspInstall->AddChild(this->baseImage);
+        this->usbInstall->AddChild(this->baseImage);
+        this->themeInstall->AddChild(this->baseImage);
+        this->titleManager->AddChild(this->baseImage);
+        this->titleDump->AddChild(this->baseImage);
+        this->ticketManager->AddChild(this->baseImage);
+        this->cfwConfig->AddChild(this->baseImage);
+        this->sysInfo->AddChild(this->baseImage);
+        this->about->AddChild(this->baseImage);
         this->mainMenu->AddChild(this->timeText);
         this->sdBrowser->AddChild(this->timeText);
         this->nandBrowser->AddChild(this->timeText);
         this->fileContent->AddChild(this->timeText);
+        this->copy->AddChild(this->timeText);
         this->nspInstall->AddChild(this->timeText);
         this->usbInstall->AddChild(this->timeText);
         this->themeInstall->AddChild(this->timeText);
         this->titleManager->AddChild(this->timeText);
+        this->titleDump->AddChild(this->timeText);
         this->ticketManager->AddChild(this->timeText);
         this->cfwConfig->AddChild(this->timeText);
         this->sysInfo->AddChild(this->timeText);
         this->about->AddChild(this->timeText);
+        this->mainMenu->AddChild(this->batteryText);
+        this->sdBrowser->AddChild(this->batteryText);
+        this->nandBrowser->AddChild(this->batteryText);
+        this->fileContent->AddChild(this->batteryText);
+        this->copy->AddChild(this->batteryText);
+        this->nspInstall->AddChild(this->batteryText);
+        this->usbInstall->AddChild(this->batteryText);
+        this->themeInstall->AddChild(this->batteryText);
+        this->titleManager->AddChild(this->batteryText);
+        this->titleDump->AddChild(this->batteryText);
+        this->ticketManager->AddChild(this->batteryText);
+        this->cfwConfig->AddChild(this->batteryText);
+        this->sysInfo->AddChild(this->batteryText);
+        this->about->AddChild(this->batteryText);
         this->mainMenu->AddChild(this->batteryImage);
         this->sdBrowser->AddChild(this->batteryImage);
         this->nandBrowser->AddChild(this->batteryImage);
         this->fileContent->AddChild(this->batteryImage);
+        this->copy->AddChild(this->batteryImage);
         this->nspInstall->AddChild(this->batteryImage);
         this->usbInstall->AddChild(this->batteryImage);
         this->themeInstall->AddChild(this->batteryImage);
         this->titleManager->AddChild(this->batteryImage);
+        this->titleDump->AddChild(this->batteryImage);
         this->ticketManager->AddChild(this->batteryImage);
         this->cfwConfig->AddChild(this->batteryImage);
         this->sysInfo->AddChild(this->batteryImage);
@@ -1697,22 +2092,69 @@ namespace gleaf::ui
         this->sdBrowser->AddChild(this->batteryChargeImage);
         this->nandBrowser->AddChild(this->batteryChargeImage);
         this->fileContent->AddChild(this->batteryChargeImage);
+        this->copy->AddChild(this->batteryChargeImage);
         this->nspInstall->AddChild(this->batteryChargeImage);
         this->usbInstall->AddChild(this->batteryChargeImage);
         this->themeInstall->AddChild(this->batteryChargeImage);
         this->titleManager->AddChild(this->batteryChargeImage);
+        this->titleDump->AddChild(this->batteryChargeImage);
         this->ticketManager->AddChild(this->batteryChargeImage);
         this->cfwConfig->AddChild(this->batteryChargeImage);
         this->sysInfo->AddChild(this->batteryChargeImage);
         this->about->AddChild(this->batteryChargeImage);
+        this->mainMenu->AddChild(this->menuImage);
+        this->sdBrowser->AddChild(this->menuImage);
+        this->nandBrowser->AddChild(this->menuImage);
+        this->fileContent->AddChild(this->menuImage);
+        this->copy->AddChild(this->menuImage);
+        this->nspInstall->AddChild(this->menuImage);
+        this->usbInstall->AddChild(this->menuImage);
+        this->themeInstall->AddChild(this->menuImage);
+        this->titleManager->AddChild(this->menuImage);
+        this->titleDump->AddChild(this->menuImage);
+        this->ticketManager->AddChild(this->menuImage);
+        this->cfwConfig->AddChild(this->menuImage);
+        this->sysInfo->AddChild(this->menuImage);
+        this->about->AddChild(this->menuImage);
+        this->mainMenu->AddChild(this->menuBanner);
+        this->mainMenu->AddChild(this->menuNameText);
+        this->sdBrowser->AddChild(this->menuNameText);
+        this->nandBrowser->AddChild(this->menuNameText);
+        this->fileContent->AddChild(this->menuNameText);
+        this->copy->AddChild(this->menuNameText);
+        this->nspInstall->AddChild(this->menuNameText);
+        this->usbInstall->AddChild(this->menuNameText);
+        this->themeInstall->AddChild(this->menuNameText);
+        this->titleManager->AddChild(this->menuNameText);
+        this->titleDump->AddChild(this->menuNameText);
+        this->ticketManager->AddChild(this->menuNameText);
+        this->cfwConfig->AddChild(this->menuNameText);
+        this->sysInfo->AddChild(this->menuNameText);
+        this->about->AddChild(this->menuNameText);
+        this->mainMenu->AddChild(this->menuHeadText);
+        this->sdBrowser->AddChild(this->menuHeadText);
+        this->nandBrowser->AddChild(this->menuHeadText);
+        this->fileContent->AddChild(this->menuHeadText);
+        this->copy->AddChild(this->menuHeadText);
+        this->nspInstall->AddChild(this->menuHeadText);
+        this->usbInstall->AddChild(this->menuHeadText);
+        this->themeInstall->AddChild(this->menuHeadText);
+        this->titleManager->AddChild(this->menuHeadText);
+        this->titleDump->AddChild(this->menuHeadText);
+        this->ticketManager->AddChild(this->menuHeadText);
+        this->cfwConfig->AddChild(this->menuHeadText);
+        this->sysInfo->AddChild(this->menuHeadText);
+        this->about->AddChild(this->menuHeadText);
         this->mainMenu->AddChild(this->footerText);
         this->sdBrowser->AddChild(this->footerText);
         this->nandBrowser->AddChild(this->footerText);
         this->fileContent->AddChild(this->footerText);
+        this->copy->AddChild(this->footerText);
         this->nspInstall->AddChild(this->footerText);
         this->usbInstall->AddChild(this->footerText);
         this->themeInstall->AddChild(this->footerText);
         this->titleManager->AddChild(this->footerText);
+        this->titleDump->AddChild(this->footerText);
         this->ticketManager->AddChild(this->footerText);
         this->cfwConfig->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
@@ -1745,6 +2187,7 @@ namespace gleaf::ui
             else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage("romfs:/Battery/80.png");
             else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage("romfs:/Battery/90.png");
             else if(blv == 100) this->batteryImage->SetImage("romfs:/Battery/100.png");
+            this->batteryText->SetText(std::to_string(blv) + "%");
             this->preblv = blv;
         }
         if((this->preisch != isch) || this->vfirst)
@@ -1764,14 +2207,46 @@ namespace gleaf::ui
         if(this->vfirst) this->vfirst = false;
     }
 
+    void MainApplication::LoadMenuData(std::string Name, std::string ImageName, std::string TempHead)
+    {
+        if(this->menuImage != NULL)
+        {
+            this->menuImage->SetVisible(true);
+            this->menuImage->SetImage("romfs:/Common/" + ImageName + ".png");
+        }
+        if(this->menuNameText != NULL)
+        {
+            this->menuNameText->SetVisible(true);
+            this->menuNameText->SetText(Name);
+        }
+        if(this->menuHeadText != NULL)
+        {
+            this->menuHeadText->SetVisible(true);
+            this->LoadMenuHead(TempHead);
+        }
+    }
+
+    void MainApplication::LoadMenuHead(std::string Head)
+    {
+        if(this->menuHeadText != NULL) this->menuHeadText->SetText(Head);
+    }
+
+    void MainApplication::UnloadMenuData()
+    {
+        this->menuImage->SetVisible(false);
+        this->menuNameText->SetVisible(false);
+        this->menuHeadText->SetVisible(false);
+    }
+
     void MainApplication::sdBrowser_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B)
         {
             if(this->sdBrowser->GoBack()) this->sdBrowser->UpdateElements();
-            else {
+            else
+            {
+                this->UnloadMenuData();
                 this->LoadLayout(this->mainMenu);
-                current_cwd = "";
             }
         }
         else if(Down & KEY_X)
@@ -1779,7 +2254,6 @@ namespace gleaf::ui
             if(clipboard != "")
             {
                 bool cdir = fs::IsDirectory(clipboard);
-                
                 pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?");
                 if(cdir) dlg->SetIcon("romfs:/FileSystem/Directory.png", 1150, 30);
                 else
@@ -1800,10 +2274,9 @@ namespace gleaf::ui
                 if(sopt == 0)
                 {
                     std::string cname = fs::GetFileName(clipboard);
-                    if(cdir) fs::CopyDirectory(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
-                    else fs::CopyFile(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname));
+                    mainapp->LoadLayout(mainapp->GetCopyLayout());
+                    mainapp->GetCopyLayout()->StartCopy(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname), cdir, this->sdBrowser);
                     this->sdBrowser->UpdateElements();
-                    mainapp->UpdateFooter("A " + std::string(cdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
             }
@@ -1846,9 +2319,10 @@ namespace gleaf::ui
         if(Down & KEY_B)
         {
             if(this->nandBrowser->GoBack()) this->nandBrowser->UpdateElements();
-            else {
+            else
+            {
+                this->UnloadMenuData();
                 this->LoadLayout(this->mainMenu);
-                current_cwd = "";
             }
         }
         else if(Down & KEY_X)
@@ -1877,10 +2351,9 @@ namespace gleaf::ui
                 if((sopt == 0) && this->nandBrowser->WarnNANDWriteAccess())
                 {
                     std::string cname = fs::GetFileName(clipboard);
-                    if(cdir) fs::CopyDirectory(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
-                    else fs::CopyFile(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname));
+                    mainapp->LoadLayout(mainapp->GetCopyLayout());
+                    mainapp->GetCopyLayout()->StartCopy(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname), cdir, this->nandBrowser);
                     this->nandBrowser->UpdateElements();
-                    mainapp->UpdateFooter("A " + std::string(cdir ? "directory" : "file") + " was copied: \'" + clipboard + "\'");
                     clipboard = "";
                 }
             }
@@ -1920,10 +2393,14 @@ namespace gleaf::ui
 
     void MainApplication::usbInstall_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
     }
 
-    void MainApplication::plainFile_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::fileContent_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B) this->LoadLayout(this->fileContent->GetPreviousLayout());
         else if((Down & KEY_DDOWN) || (Down & KEY_LSTICK_DOWN) || (Held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
@@ -1932,27 +2409,47 @@ namespace gleaf::ui
 
     void MainApplication::titleManager_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
     }
 
     void MainApplication::ticketManager_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
     }
 
     void MainApplication::cfwConfig_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->mainMenu);
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
     }
 
     void MainApplication::sysInfo_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down) this->LoadLayout(this->mainMenu);
+        if(Down)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
     }
 
     void MainApplication::about_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down) this->LoadLayout(this->mainMenu);
+        if(Down)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
     }
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
@@ -1984,6 +2481,11 @@ namespace gleaf::ui
         return this->fileContent;
     }
 
+    CopyLayout *MainApplication::GetCopyLayout()
+    {
+        return this->copy;
+    }
+
     InstallLayout *MainApplication::GetInstallLayout()
     {
         return this->nspInstall;
@@ -2002,6 +2504,11 @@ namespace gleaf::ui
     TitleManagerLayout *MainApplication::GetTitleManagerLayout()
     {
         return this->titleManager;
+    }
+
+    TitleDumperLayout *MainApplication::GetTitleDumperLayout()
+    {
+        return this->titleDump;
     }
 
     TicketManagerLayout *MainApplication::GetTicketManagerLayout()

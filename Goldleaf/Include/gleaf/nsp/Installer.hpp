@@ -1,9 +1,9 @@
 
 /*
 
-    Goldleaf - Nintendo Switch title manager homebrew
+    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
 
-    Copyright 2018 - Goldleaf project, developed by XorTroll
+    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
     This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
 
 */
@@ -26,7 +26,6 @@ namespace gleaf::nsp
     {
         public:
             Installer(Destination Location, std::string Input, bool IgnoreVersion);
-            ~Installer();
             InstallerResult ProcessRecords();
             InstallerResult WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback);
             NacpStruct *GetNACP();

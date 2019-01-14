@@ -52,10 +52,37 @@ namespace gleaf::fs
     void CopyFile(std::string Path, std::string NewPath)
     {
         std::ifstream ifs(Path);
+        fs::DeleteFile(NewPath);
         std::ofstream ofs(NewPath);
         if(ifs.good() && ofs.good()) ofs << ifs.rdbuf();
         ofs.close();
         ifs.close();
+    }
+
+    void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback)
+    {
+        FILE *f = fopen(Path.c_str(), "rb");
+        fs::DeleteFile(NewPath);
+        FILE *of = fopen(NewPath.c_str(), "wb");
+        fseek(f, 0, SEEK_END);
+        u64 fsize = ftell(f);
+        rewind(f);
+        u64 szrem = fsize;
+        u64 read = 0;
+        while(szrem)
+        {
+            u64 rsize = std::min((u64)8388608, szrem);
+            u8 *data = (u8*)malloc(sizeof(u8) * rsize);
+            fread(data, 1, rsize, f);
+            fwrite(data, 1, rsize, of);
+            szrem -= rsize;
+            read += rsize;
+            u8 perc = ((double)((double)read / (double)fsize) * 100.0);
+            Callback(perc);
+            free(data);
+        }
+        fclose(of);
+        fclose(f);
     }
 
     void CopyDirectory(std::string Dir, std::string NewDir)
@@ -74,6 +101,27 @@ namespace gleaf::fs
                 std::string dto = NewDir + "/" + nd;
                 if(gleaf::fs::IsFile(dfrom)) CopyFile(dfrom, dto);
                 else CopyDirectory(dfrom, dto);
+            }
+        }
+        closedir(from);
+    }
+
+    void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback)
+    {
+        mkdir(NewDir.c_str(), 777);
+        DIR *from = opendir(Dir.c_str());
+        if(from)
+        {
+            struct dirent *dent;
+            while(true)
+            {
+                dent = readdir(from);
+                if(dent == NULL) break;
+                std::string nd = dent->d_name;
+                std::string dfrom = Dir + "/" + nd;
+                std::string dto = NewDir + "/" + nd;
+                if(gleaf::fs::IsFile(dfrom)) CopyFileProgress(dfrom, dto, Callback);
+                else CopyDirectoryProgress(dfrom, dto, Callback);
             }
         }
         closedir(from);
@@ -154,7 +202,7 @@ namespace gleaf::fs
             {
                 getline(ifs, tmpline);
                 if(ifs.eof()) break;
-                if(tmpo < LineOffset)
+                if((tmpo < LineOffset) && (LineOffset != 0))
                 {
                     tmpo++;
                     continue;
