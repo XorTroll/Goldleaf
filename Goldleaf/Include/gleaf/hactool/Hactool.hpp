@@ -1,9 +1,9 @@
 
 /*
 
-    Goldleaf - Nintendo Switch title manager homebrew
+    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
 
-    Copyright © 2018 - Goldleaf project, developed by XorTroll
+    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
     This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
 
     Code ported from SciresM's source
@@ -16,16 +16,16 @@
 
 extern "C"
 {
-    #include <hactool/types.h>
-    #include <hactool/utils.h>
-    #include <hactool/settings.h>
-    #include <hactool/pki.h>
-    #include <hactool/nca.h>
-    #include <hactool/xci.h>
-    #include <hactool/nax0.h>
-    #include <hactool/extkeys.h>
-    #include <hactool/packages.h>
-    #include <hactool/nso.h>
+    #include <types.h>
+    #include <utils.h>
+    #include <settings.h>
+    #include <pki.h>
+    #include <nca.h>
+    #include <xci.h>
+    #include <nax0.h>
+    #include <extkeys.h>
+    #include <packages.h>
+    #include <nso.h>
 }
 
 namespace gleaf::hactool

@@ -1,12 +1,19 @@
 #include <gleaf/Goldleaf>
 #include <sys/stat.h>
 
+extern char *fake_heap_end;
+
 namespace gleaf
 {
+    static void *ghaddr;
+
     void Initialize()
     {
-        void *haddr;
-        if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) exit(1);
+        if(!IsApplication())
+        {
+            if(R_FAILED(svcSetHeapSize(&ghaddr, 0x10000000))) exit(1);
+            fake_heap_end = (char*)ghaddr + 0x10000000;
+        }
         if(R_FAILED(ncm::Initialize())) exit(1);
         if(R_FAILED(ncmInitialize())) exit(1);
         if(R_FAILED(ns::Initialize())) exit(1);
@@ -30,6 +37,7 @@ namespace gleaf
         nsExit();
         ncm::Finalize();
         ncmExit();
+        if(!IsApplication()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
     }
 
     void EnsureDirectories()
@@ -79,13 +87,14 @@ namespace gleaf
     {
         return (GetKeyFilePath() != "");
     }
+
     std::string GetKeyFilePath()
     {
         std::string path = "";
         std::vector<std::string> knames = GetKeyFilePossibleNames();
-        for(u32 i = 0; i < knames.size(); i++) if(fs::IsFile("sdmc:/goldleaf/" + knames[i]))
+        for(u32 i = 0; i < knames.size(); i++) if(fs::IsFile("sdmc:/switch/" + knames[i]))
         {
-            path = "sdmc:/goldleaf/" + knames[i];
+            path = "sdmc:/switch/" + knames[i];
             break;
         }
         return path;

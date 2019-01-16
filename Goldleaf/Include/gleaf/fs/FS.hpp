@@ -1,9 +1,9 @@
 
 /*
 
-    Goldleaf - Nintendo Switch title manager homebrew
+    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
 
-    Copyright 2018 - Goldleaf project, developed by XorTroll
+    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
     This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
 
 */
@@ -33,9 +33,11 @@ namespace gleaf::fs
     void CopyFile(std::string Path, std::string NewPath);
     void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback);
     void CopyDirectory(std::string Dir, std::string NewDir);
+    void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback);
     void DeleteFile(std::string Path);
     void DeleteDirectory(std::string Path);
     bool IsFileBinary(std::string Path);
+
     std::vector<u8> ReadFile(std::string Path);
     std::vector<std::string> ReadFileLines(std::string Path, u32 LineOffset, u32 LineCount);
     std::vector<std::string> ReadFileFormatHex(std::string Path, u32 LineOffset, u32 LineCount);

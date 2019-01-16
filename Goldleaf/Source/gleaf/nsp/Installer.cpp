@@ -152,10 +152,6 @@ namespace gleaf::nsp
         }
         fsFileClose(&fcnmtfile);
         fsFsClose(&cnmtfs);
-    }
-
-    Installer::~Installer()
-    {
         fsdevUnmountDevice("gnsp");
     }
 
@@ -376,5 +372,6 @@ namespace gleaf::nsp
     void Installer::Finalize()
     {
         fsFsClose(&this->idfs);
+        free(this->nacps);
     }
 }
