@@ -20,7 +20,7 @@ Installing NSPs can be dangerous. If you want to avoid ban risk as much as you c
 
 Despite having some ways to "prevent" some risks, don't install NSPs if you want to be safe.
 
-Official NSPs won't be safer, any kind of NSP installed unoficially (by Goldleaf or other installers) has ban risks.
+Official NSPs won't be safer, any kind of NSP installed unofficially (by Goldleaf or other installers) has ban risks.
 
 Despite being official ones, it's always recommended to install only stdcrypto NSPs, those NSPs which don't have nor need a ticket to work. Official titles would need to be reencrypted, but unofficial NSPs, such as homebrew ones, are already stdcrypto.
 
