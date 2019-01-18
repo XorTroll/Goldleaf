@@ -24,6 +24,7 @@ namespace gleaf::ui
             void usbMenuItem_Click();
             void titleMenuItem_Click();
             void ticketMenuItem_Click();
+            void webMenuItem_Click();
             void cfwConfigMenuItem_Click();
             void sysinfoMenuItem_Click();
             void aboutMenuItem_Click();
@@ -34,6 +35,7 @@ namespace gleaf::ui
             pu::element::MenuItem *usbMenuItem;
             pu::element::MenuItem *titleMenuItem;
             pu::element::MenuItem *ticketMenuItem;
+            pu::element::MenuItem *webMenuItem;
             pu::element::MenuItem *cfwConfigMenuItem;
             pu::element::MenuItem *sysinfoMenuItem;
             pu::element::MenuItem *aboutMenuItem;

@@ -25,6 +25,9 @@ namespace gleaf::ui
         this->ticketMenuItem = new pu::element::MenuItem("Manage imported tickets");
         this->ticketMenuItem->SetIcon("romfs:/Common/Ticket.png");
         this->ticketMenuItem->AddOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
+        this->webMenuItem = new pu::element::MenuItem("Browse the internet");
+        this->webMenuItem->SetIcon("romfs:/Common/Browser.png");
+        this->webMenuItem->AddOnClick(std::bind(&MainMenuLayout::webMenuItem_Click, this));
         this->cfwConfigMenuItem = new pu::element::MenuItem("CFW configuration");
         this->cfwConfigMenuItem->SetIcon("romfs:/Common/CFW.png");
         this->cfwConfigMenuItem->AddOnClick(std::bind(&MainMenuLayout::cfwConfigMenuItem_Click, this));
@@ -39,6 +42,7 @@ namespace gleaf::ui
         this->optionMenu->AddItem(this->usbMenuItem);
         this->optionMenu->AddItem(this->titleMenuItem);
         this->optionMenu->AddItem(this->ticketMenuItem);
+        this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->cfwConfigMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
@@ -54,6 +58,7 @@ namespace gleaf::ui
         else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
         else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information, dump them as NSPs or uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
+        else if(isel == this->webMenuItem) info = "Browse a webpage via the console's web-applet.";
         else if(isel == this->cfwConfigMenuItem) info = "Browse which CFWs are available to install themes of if there is any theme installed.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
         else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf. You can check Goldleaf's version there.";
@@ -115,6 +120,49 @@ namespace gleaf::ui
         pu::Dialog *dlg = new pu::Dialog("Removing tickets", "Removing tickets can be dangerous.\nIf tickets from installed titles get removed, they won't probably work.");
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
+    }
+
+    void MainMenuLayout::webMenuItem_Click()
+    {
+        if(IsApplication())
+        {
+            char tmpout[FS_MAX_PATH] = { 0 };
+            std::string out = "";
+            SwkbdConfig kbd;
+            Result rc = swkbdCreate(&kbd, 0);
+            if(rc == 0)
+            {
+                swkbdConfigMakePresetDefault(&kbd);
+                swkbdConfigSetGuideText(&kbd, "Select webpage to navigate to.");
+                swkbdConfigSetInitialText(&kbd, "https://dns.switchbru.com/");
+                rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
+                if(rc == 0) out = std::string(tmpout);
+            }
+            swkbdClose(&kbd);
+            if(out == "") return;
+            AppletHolder aph;
+            AppletStorage hast1;
+            LibAppletArgs args;
+            appletCreateLibraryApplet(&aph, AppletId_web, LibAppletMode_AllForeground);
+            libappletArgsCreate(&args, 0x50000);
+            libappletArgsPush(&args, &aph);
+            appletCreateStorage(&hast1, 8192);
+            u8 indata[8192] = { 0 };
+            *(u64*)&indata[4] = 281530811285509;
+            *(u64*)&indata[17] = 201326593;
+            *(u8*)&indata[16] = 1;
+            *(u16*)indata = 2;
+            strcpy((char*)&indata[25], tmpout);
+            appletStorageWrite(&hast1, 0, indata, 8192);
+            appletHolderPushInData(&aph, &hast1);
+            appletHolderStart(&aph);
+            appletHolderJoin(&aph);
+        }
+        else
+        {
+            pu::Dialog *dlg = new pu::Dialog("Web browsing", "The console's web-applet (the web browser title) can only be used as an application.");
+            dlg->AddOption("Ok");
+        }
     }
 
     void MainMenuLayout::cfwConfigMenuItem_Click()

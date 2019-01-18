@@ -5,8 +5,6 @@
 
 namespace gleaf::usb
 {
-    Mutex usbmtx;
-
     bool Command::MagicOk()
     {
         return (this->Magic == GLUC);
