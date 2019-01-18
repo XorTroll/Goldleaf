@@ -34,7 +34,8 @@ namespace gleaf::usb
         Read((void*)data, (sizeof(u8) * Length));
         char *cdata = reinterpret_cast<char*>(data);
         cdata[Length + 1] = '\0';
-        std::string str = std::string((char*)data);
+        std::string str = std::string(cdata);
+        free(cdata);
         return str;
     }
 

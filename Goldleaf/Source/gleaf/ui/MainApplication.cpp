@@ -58,7 +58,7 @@ namespace gleaf::ui
         else if(isel == this->usbMenuItem) info = "Install NSPs from a PC via USB, using Goldtree client.";
         else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information, dump them as NSPs or uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
-        else if(isel == this->webMenuItem) info = "Browse a webpage via the console's web-applet.";
+        else if(isel == this->webMenuItem) info = "Browse the internet using the console's web-applet. (hidden browser title)";
         else if(isel == this->cfwConfigMenuItem) info = "Browse which CFWs are available to install themes of if there is any theme installed.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
         else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf. You can check Goldleaf's version there.";
@@ -140,6 +140,18 @@ namespace gleaf::ui
             }
             swkbdClose(&kbd);
             if(out == "") return;
+            else
+            {
+                bool nothttp = (out.substr(0, 6) != "http:/");
+                bool nothttps = (out.substr(0, 7) != "https:/");
+                if(nothttp && nothttps)
+                {
+                    pu::Dialog *dlg = new pu::Dialog("Web browsing", "An invalid web page was selected.");
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    return;
+                }
+            }
             AppletHolder aph;
             AppletStorage hast1;
             LibAppletArgs args;
@@ -162,6 +174,7 @@ namespace gleaf::ui
         {
             pu::Dialog *dlg = new pu::Dialog("Web browsing", "The console's web-applet (the web browser title) can only be used as an application.");
             dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
         }
     }
 

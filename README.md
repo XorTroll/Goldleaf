@@ -138,6 +138,14 @@ Despite not being a really big issue, removing a ticket of a title which does re
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-crypto won't be playable.
 
+- **Internet browser**´
+
+  Goldleaf uses the console's internal browser title (the online web-applet) to let the user browse web pages.
+
+  For special reasons, the browser can only be used from the installable version:
+
+  - The web-applet attempts to find a file called `accessible-urls.txt` in the Offline Html NCA contents of the title calling it and won't work unless it finds this file, so applets cannot launch this applet properly.
+
 - **CFW and custom theme management**
 
   This is mostly a useful feature for checking which CFWs are on the SD card and which of them have any Home Menu modifications, meaning that a theme is probably installed there.
