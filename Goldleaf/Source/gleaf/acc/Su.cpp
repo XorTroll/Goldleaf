@@ -39,12 +39,12 @@ namespace gleaf::acc
         return rc;
     }
 
-    Result ProfileEditor::StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG)
+    Result ProfileEditor::StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG, size_t JPEGSize)
     {
         IpcCommand cmd;
         ipcInitialize(&cmd);
         ipcAddSendStatic(&cmd, UData, sizeof(AccountUserData), 0);
-        ipcAddSendBuffer(&cmd, JPEG, 0x20000, BufferType_Normal);
+        ipcAddSendBuffer(&cmd, JPEG, JPEGSize, BufferType_Normal);
         struct InRaw
         {
             u64 Magic;

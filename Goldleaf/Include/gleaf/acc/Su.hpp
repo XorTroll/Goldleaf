@@ -21,7 +21,7 @@ namespace gleaf::acc
         public:
             ProfileEditor(Service Srv);
             Result Store(AccountProfileBase *PBase, AccountUserData *UData);
-            Result StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG);
+            Result StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG, size_t JPEGSize);
             void Close();
         private:
             Service srv;

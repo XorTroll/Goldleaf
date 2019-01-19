@@ -51,6 +51,7 @@ namespace gleaf
         fs::CreateDirectory("sdmc:/goldleaf/title");
         fs::CreateDirectory("sdmc:/goldleaf/qlaunch");
         fs::CreateDirectory("sdmc:/goldleaf/dump");
+        fs::CreateDirectory("sdmc:/goldleaf/userdata");
         fs::CreateDirectory("sdmc:/goldleaf/dump/temp");
         fs::CreateDirectory("sdmc:/goldleaf/dump/out");
     }

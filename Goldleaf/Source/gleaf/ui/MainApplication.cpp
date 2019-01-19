@@ -246,6 +246,7 @@ namespace gleaf::ui
                     else if(ext == "nxtheme") mitm->SetIcon("romfs:/FileSystem/NXTheme.png");
                     else if(ext == "nca") mitm->SetIcon("romfs:/FileSystem/NCA.png");
                     else if(ext == "nacp") mitm->SetIcon("romfs:/FileSystem/NACP.png");
+                    else if(ext == "jpg") mitm->SetIcon("romfs:/FileSystem/JPEG.png");
                     else mitm->SetIcon("romfs:/FileSystem/File.png");
                 }
                 mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this));
@@ -289,6 +290,7 @@ namespace gleaf::ui
             else if(ext == "nxtheme") msg += "Home Menu theme file";
             else if(ext == "nca") msg += "NCA archive";
             else if(ext == "nacp") msg += "NACP data";
+            else if(ext == "jpg") msg += "JPEG icon";
             else msg += std::string(bin ? "binary" : "text") + " file";
             msg += "?";
             msg += "\n\nFile size: " + fs::FormatSize(fs::GetFileSize(fullitm));
@@ -322,6 +324,11 @@ namespace gleaf::ui
             else if(ext == "nacp")
             {
                 dlg->AddOption("View information");
+                copt = 6;
+            }
+            else if(ext == "jpg")
+            {
+                dlg->AddOption("Replace icon");
                 copt = 6;
             }
             else if(!bin)
@@ -707,6 +714,36 @@ namespace gleaf::ui
                         dlg = new pu::Dialog("NACP information", msg);
                         dlg->AddOption("Ok");
                         mainapp->ShowDialog(dlg);
+                        break;
+                }
+            }
+            else if(ext == "jpg") 
+            {
+                switch(sopt)
+                {
+                    case 0:
+                        u128 uid = AskForUser();
+                        if(uid == 0) return;
+                        dlg = new pu::Dialog("Accounts and custom icons", "Custom icons are one of the most dangerous ways to get banned, almost guaranteeing it.\nAre you sure you want to continue?");
+                        dlg->AddOption("Replace icon");
+                        dlg->AddOption("Cancel");
+                        mainapp->ShowDialog(dlg);
+                        sopt = dlg->GetSelectedIndex();
+                        if(dlg->UserCancelled() || (sopt == 1)) return;
+                        AccountProfile prf;
+                        AccountProfileBase pbase;
+                        AccountUserData udata;
+                        Result rc = accountGetProfile(&prf, uid);
+                        rc = accountProfileGet(&prf, &udata, &pbase);
+                        auto res = acc::GetProfileEditor(uid);
+                        rc = std::get<0>(res);
+                        acc::ProfileEditor *pedit = std::get<1>(res);
+                        std::vector<u8> vdata = fs::ReadFile(fullitm);
+                        rc = pedit->StoreWithImage(&pbase, &udata, vdata.data(), vdata.size());
+                        if(rc == 0) mainapp->UpdateFooter(std::string(pbase.username) + "'s icon has been updated.");
+                        else mainapp->UpdateFooter("An error ocurred updating the icon: " + horizon::FormatHex(rc));
+                        delete pedit;
+                        serviceClose(&prf.s);
                         break;
                 }
             }
@@ -1945,6 +1982,17 @@ namespace gleaf::ui
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
         }
         this->pred = std::get<1>(res);
+        std::string iconpth = "sdmc:/goldleaf/userdata/" + horizon::FormatHex128(UserId) + ".jpg";
+        fs::DeleteFile(iconpth);
+        size_t imgsz = 0;
+        size_t pimgsz = 0;
+        rc = accountProfileGetImageSize(&this->prf, &pimgsz);
+        u8 *img = (u8*)malloc(pimgsz);
+        rc = accountProfileLoadImage(&this->prf, img, pimgsz, &imgsz);
+        FILE *f = fopen(iconpth.c_str(), "wb");
+        if(rc == 0) fwrite(img, 0x20000, 1, f);
+        fclose(f);
+        free(img);
     }
 
     void AccountLayout::CleanData()
@@ -1982,12 +2030,31 @@ namespace gleaf::ui
 
     void AccountLayout::optsIcon_Click()
     {
-
+        std::string iconpth = "sdmc:/goldleaf/userdata/" + horizon::FormatHex128(this->uid) + ".jpg";
+        pu::Dialog *dlg = new pu::Dialog("Account icon", "If you want to replace the icon with another JPEG, you can to that from the file browsers.\n\nFor the actual icon, it has been exported here:\n\'" + iconpth + "\'");
+        dlg->AddOption("Ok");
+        mainapp->ShowDialog(dlg);
     }
 
     void AccountLayout::optsDelete_Click()
     {
-
+        pu::Dialog *dlg = new pu::Dialog("Account delete", "Are you sure you want to delete this account?");
+        dlg->AddOption("Delete");
+        dlg->AddOption("Cancel");
+        mainapp->ShowDialog(dlg);
+        u32 sopt = dlg->GetSelectedIndex();
+        if(sopt == 0)
+        {
+            Result rc = acc::DeleteUser(this->uid);
+            if(rc == 0)
+            {
+                mainapp->UpdateFooter("The account was successfully deleted from this console.");
+                this->CleanData();
+                mainapp->UnloadMenuData();
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            }
+            else mainapp->UpdateFooter("An error ocurred attempting to delete the account: " + horizon::FormatHex(rc));
+        }
     }
 
     CFWConfigLayout::CFWConfigLayout() : pu::Layout()
