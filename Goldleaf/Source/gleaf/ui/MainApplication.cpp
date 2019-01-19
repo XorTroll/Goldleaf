@@ -28,6 +28,9 @@ namespace gleaf::ui
         this->webMenuItem = new pu::element::MenuItem("Browse the internet");
         this->webMenuItem->SetIcon("romfs:/Common/Browser.png");
         this->webMenuItem->AddOnClick(std::bind(&MainMenuLayout::webMenuItem_Click, this));
+        this->accountMenuItem = new pu::element::MenuItem("Manage user accounts");
+        this->accountMenuItem->SetIcon("romfs:/Common/Accounts.png");
+        this->accountMenuItem->AddOnClick(std::bind(&MainMenuLayout::accountMenuItem_Click, this));
         this->cfwConfigMenuItem = new pu::element::MenuItem("CFW configuration");
         this->cfwConfigMenuItem->SetIcon("romfs:/Common/CFW.png");
         this->cfwConfigMenuItem->AddOnClick(std::bind(&MainMenuLayout::cfwConfigMenuItem_Click, this));
@@ -43,6 +46,7 @@ namespace gleaf::ui
         this->optionMenu->AddItem(this->titleMenuItem);
         this->optionMenu->AddItem(this->ticketMenuItem);
         this->optionMenu->AddItem(this->webMenuItem);
+        this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->cfwConfigMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
@@ -59,6 +63,7 @@ namespace gleaf::ui
         else if(isel == this->titleMenuItem) info = "Browse currently installed titles. You can view their information, dump them as NSPs or uninstall them.";
         else if(isel == this->ticketMenuItem) info = "Browse currently installed tickets. You can view their information and remove them.";
         else if(isel == this->webMenuItem) info = "Browse the internet using the console's web-applet. (hidden browser title)";
+        else if(isel == this->accountMenuItem) info = "Manage user accounts: rename, change icon, delete them...";
         else if(isel == this->cfwConfigMenuItem) info = "Browse which CFWs are available to install themes of if there is any theme installed.";
         else if(isel == this->sysinfoMenuItem) info = "Display information about this Nintendo Switch: current firmware and used space in NAND and SD card and firmware version.";
         else if(isel == this->aboutMenuItem) info = "Display information about Goldleaf. You can check Goldleaf's version there.";
@@ -133,7 +138,7 @@ namespace gleaf::ui
             if(rc == 0)
             {
                 swkbdConfigMakePresetDefault(&kbd);
-                swkbdConfigSetGuideText(&kbd, "Select webpage to navigate to.");
+                swkbdConfigSetGuideText(&kbd, "Select web page to browse.");
                 swkbdConfigSetInitialText(&kbd, "https://dns.switchbru.com/");
                 rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
                 if(rc == 0) out = std::string(tmpout);
@@ -172,10 +177,19 @@ namespace gleaf::ui
         }
         else
         {
-            pu::Dialog *dlg = new pu::Dialog("Web browsing", "The console's web-applet (the web browser title) can only be used as an application.");
+            pu::Dialog *dlg = new pu::Dialog("Web browsing", "For technical reasons, the console's hidden browser (the web-applet title) can only be used as an application.");
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
         }
+    }
+
+    void MainMenuLayout::accountMenuItem_Click()
+    {
+        u128 uid = AskForUser();
+        if(uid == 0) return;
+        mainapp->LoadMenuData("User accounts", "Accounts", "Processing user account...");
+        mainapp->GetAccountLayout()->Load(uid);
+        mainapp->LoadLayout(mainapp->GetAccountLayout());
     }
 
     void MainMenuLayout::cfwConfigMenuItem_Click()
@@ -739,7 +753,7 @@ namespace gleaf::ui
             }
             else if(sopt == renopt)
             {
-                std::string kbdt = this->LoadPathSwkbd("Rename file", itm);
+                std::string kbdt = AskForText("Rename file", itm);
                 if(kbdt != "")
                 {
                     if(kbdt == itm) return;
@@ -794,7 +808,7 @@ namespace gleaf::ui
                     }
                     break;
                 case 3:
-                    std::string kbdt = this->LoadPathSwkbd("Rename directory", itm);
+                    std::string kbdt = AskForText("Rename directory", itm);
                     if(kbdt != "")
                     {
                         if(kbdt == itm) return;
@@ -816,24 +830,6 @@ namespace gleaf::ui
     fs::Explorer *PartitionBrowserLayout::GetExplorer()
     {
         return this->gexp;
-    }
-
-    std::string PartitionBrowserLayout::LoadPathSwkbd(std::string Guide, std::string Initial)
-    {
-        std::string out = "";
-        char tmpout[FS_MAX_PATH] = { 0 };
-        SwkbdConfig kbd;
-        Result rc = swkbdCreate(&kbd, 0);
-        if(rc == 0)
-        {
-            swkbdConfigMakePresetDefault(&kbd);
-            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.c_str());
-            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.c_str());
-            rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
-            if(rc == 0) out = std::string(tmpout);
-        }
-        swkbdClose(&kbd);
-        return out;
     }
 
     FileContentLayout::FileContentLayout()
@@ -1920,6 +1916,81 @@ namespace gleaf::ui
         }
     }
 
+    AccountLayout::AccountLayout() : pu::Layout()
+    {
+        this->optsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
+        pu::element::MenuItem *itm = new pu::element::MenuItem("Rename");
+        itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
+        this->optsMenu->AddItem(itm);
+        pu::element::MenuItem *itm2 = new pu::element::MenuItem("Manage icon");
+        itm2->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
+        this->optsMenu->AddItem(itm2);
+        pu::element::MenuItem *itm3 = new pu::element::MenuItem("Delete account");
+        itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
+        this->optsMenu->AddItem(itm3);
+    }
+
+    void AccountLayout::Load(u128 UserId)
+    {
+        this->uid = UserId;
+        Result rc = accountGetProfile(&this->prf, UserId);
+        if(rc != 0)
+        {
+            mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+        }
+        rc = accountProfileGet(&this->prf, &this->udata, &this->pbase);
+        if(rc != 0)
+        {
+            mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+        }
+        auto res = acc::GetProfileEditor(UserId);
+        rc = std::get<0>(res);
+        if(rc != 0)
+        {
+            mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+        }
+        this->pred = std::get<1>(res);
+    }
+
+    void AccountLayout::CleanData()
+    {
+        this->uid = 0;
+        serviceClose(&this->prf.s);
+        delete this->pred;
+    }
+
+    void AccountLayout::optsRename_Click()
+    {
+        std::string name = AskForText("Select new account name.", "");
+        if(name != "")
+        {
+            if(name.length() <= 0x20)
+            {
+                strcpy(this->pbase.username, name.c_str());
+                Result rc = this->pred->Store(&this->pbase, &this->udata);
+                if(rc == 0)
+                {
+                    mainapp->LoadMenuHead("Loaded user: " + name);
+                    mainapp->UpdateFooter("Account was renamed to \'" + name + "\'.");
+                }
+            }
+            else mainapp->UpdateFooter("Error renaming user account. The name was too long.");
+        }
+    }
+
+    void AccountLayout::optsIcon_Click()
+    {
+
+    }
+
+    void AccountLayout::optsDelete_Click()
+    {
+
+    }
+
     CFWConfigLayout::CFWConfigLayout() : pu::Layout()
     {
         this->cfwsMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
@@ -2070,6 +2141,8 @@ namespace gleaf::ui
         this->titleDump = new TitleDumperLayout();
         this->ticketManager = new TicketManagerLayout();
         this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->account = new AccountLayout();
+        this->account->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->cfwConfig = new CFWConfigLayout();
         this->cfwConfig->SetOnInput(std::bind(&MainApplication::cfwConfig_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->sysInfo = new SystemInfoLayout();
@@ -2087,6 +2160,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->baseImage);
         this->titleDump->AddChild(this->baseImage);
         this->ticketManager->AddChild(this->baseImage);
+        this->account->AddChild(this->baseImage);
         this->cfwConfig->AddChild(this->baseImage);
         this->sysInfo->AddChild(this->baseImage);
         this->about->AddChild(this->baseImage);
@@ -2101,6 +2175,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->timeText);
         this->titleDump->AddChild(this->timeText);
         this->ticketManager->AddChild(this->timeText);
+        this->account->AddChild(this->timeText);
         this->cfwConfig->AddChild(this->timeText);
         this->sysInfo->AddChild(this->timeText);
         this->about->AddChild(this->timeText);
@@ -2115,6 +2190,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->batteryText);
         this->titleDump->AddChild(this->batteryText);
         this->ticketManager->AddChild(this->batteryText);
+        this->account->AddChild(this->batteryText);
         this->cfwConfig->AddChild(this->batteryText);
         this->sysInfo->AddChild(this->batteryText);
         this->about->AddChild(this->batteryText);
@@ -2129,6 +2205,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->batteryImage);
         this->titleDump->AddChild(this->batteryImage);
         this->ticketManager->AddChild(this->batteryImage);
+        this->account->AddChild(this->batteryImage);
         this->cfwConfig->AddChild(this->batteryImage);
         this->sysInfo->AddChild(this->batteryImage);
         this->about->AddChild(this->batteryImage);
@@ -2143,6 +2220,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->batteryChargeImage);
         this->titleDump->AddChild(this->batteryChargeImage);
         this->ticketManager->AddChild(this->batteryChargeImage);
+        this->account->AddChild(this->batteryChargeImage);
         this->cfwConfig->AddChild(this->batteryChargeImage);
         this->sysInfo->AddChild(this->batteryChargeImage);
         this->about->AddChild(this->batteryChargeImage);
@@ -2157,6 +2235,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->menuImage);
         this->titleDump->AddChild(this->menuImage);
         this->ticketManager->AddChild(this->menuImage);
+        this->account->AddChild(this->menuImage);
         this->cfwConfig->AddChild(this->menuImage);
         this->sysInfo->AddChild(this->menuImage);
         this->about->AddChild(this->menuImage);
@@ -2172,6 +2251,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->menuNameText);
         this->titleDump->AddChild(this->menuNameText);
         this->ticketManager->AddChild(this->menuNameText);
+        this->account->AddChild(this->menuNameText);
         this->cfwConfig->AddChild(this->menuNameText);
         this->sysInfo->AddChild(this->menuNameText);
         this->about->AddChild(this->menuNameText);
@@ -2186,6 +2266,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->menuHeadText);
         this->titleDump->AddChild(this->menuHeadText);
         this->ticketManager->AddChild(this->menuHeadText);
+        this->account->AddChild(this->menuHeadText);
         this->cfwConfig->AddChild(this->menuHeadText);
         this->sysInfo->AddChild(this->menuHeadText);
         this->about->AddChild(this->menuHeadText);
@@ -2200,6 +2281,7 @@ namespace gleaf::ui
         this->titleManager->AddChild(this->footerText);
         this->titleDump->AddChild(this->footerText);
         this->ticketManager->AddChild(this->footerText);
+        this->account->AddChild(this->footerText);
         this->cfwConfig->AddChild(this->footerText);
         this->sysInfo->AddChild(this->footerText);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
@@ -2324,7 +2406,7 @@ namespace gleaf::ui
         }
         else if(Down & KEY_L)
         {
-            std::string cfile = this->sdBrowser->LoadPathSwkbd("Create file", "");
+            std::string cfile = AskForText("Create file", "");
             if(cfile != "")
             {
                 std::string ffile = this->sdBrowser->GetExplorer()->FullPathFor(cfile);
@@ -2339,7 +2421,7 @@ namespace gleaf::ui
         }
         else if(Down & KEY_R)
         {
-            std::string cdir = this->sdBrowser->LoadPathSwkbd("Create directory", "");
+            std::string cdir = AskForText("Create directory", "");
             if(cdir != "")
             {
                 std::string fdir = this->sdBrowser->GetExplorer()->FullPathFor(cdir);
@@ -2401,7 +2483,7 @@ namespace gleaf::ui
         }
         else if(Down & KEY_L)
         {
-            std::string cfile = this->nandBrowser->LoadPathSwkbd("Create file", "");
+            std::string cfile = AskForText("Create file", "");
             if(cfile != "")
             {
                 std::string ffile = this->nandBrowser->GetExplorer()->FullPathFor(cfile);
@@ -2416,7 +2498,7 @@ namespace gleaf::ui
         }
         else if(Down & KEY_R)
         {
-            std::string cdir = this->nandBrowser->LoadPathSwkbd("Create directory", "");
+            std::string cdir = AskForText("Create directory", "");
             if(cdir != "")
             {
                 std::string fdir = this->nandBrowser->GetExplorer()->FullPathFor(cdir);
@@ -2461,6 +2543,16 @@ namespace gleaf::ui
         if(Down & KEY_B)
         {
             this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
+    }
+
+    void MainApplication::account_Input(u64 Down, u64 Up, u64 Held)
+    {
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->account->CleanData();
             this->LoadLayout(this->mainMenu);
         }
     }
@@ -2556,6 +2648,11 @@ namespace gleaf::ui
         return this->ticketManager;
     }
 
+    AccountLayout *MainApplication::GetAccountLayout()
+    {
+        return this->account;
+    }
+
     CFWConfigLayout *MainApplication::GetCFWConfigLayout()
     {
         return this->cfwConfig;
@@ -2599,6 +2696,50 @@ namespace gleaf::ui
                 bpcExit();
                 break;
         }
+    }
+
+    std::string AskForText(std::string Guide, std::string Initial)
+    {
+        std::string out = "";
+        char tmpout[FS_MAX_PATH] = { 0 };
+        SwkbdConfig kbd;
+        Result rc = swkbdCreate(&kbd, 0);
+        if(rc == 0)
+        {
+            swkbdConfigMakePresetDefault(&kbd);
+            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.c_str());
+            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.c_str());
+            rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
+            if(rc == 0) out = std::string(tmpout);
+        }
+        swkbdClose(&kbd);
+        free(tmpout);
+        return out;
+    }
+
+    u128 AskForUser()
+    {
+        AppletHolder aph;
+        AppletStorage hast1;
+        LibAppletArgs args;
+        appletCreateLibraryApplet(&aph, AppletId_playerSelect, LibAppletMode_AllForeground);
+        libappletArgsCreate(&args, 0);
+        libappletArgsPush(&args, &aph);
+        appletCreateStorage(&hast1, 0xa0);
+        u8 indata[0xa0] = { 0 };
+        appletStorageWrite(&hast1, 0, indata, 0xa0);
+        appletHolderPushInData(&aph, &hast1);
+        appletHolderStart(&aph);
+        appletStorageClose(&hast1);
+        while(appletHolderWaitInteractiveOut(&aph));
+        appletHolderJoin(&aph);
+        AppletStorage ost;
+        appletHolderPopOutData(&aph, &ost);
+        u8 out[24] = { 0 };
+        appletStorageRead(&ost, 0, out, 24);
+        appletStorageClose(&ost);
+        appletHolderClose(&aph);
+        return *(u128*)&out[8];
     }
 
     void SetMainApplication(MainApplication *MainApp)

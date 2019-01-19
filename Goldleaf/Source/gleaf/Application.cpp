@@ -15,6 +15,8 @@ namespace gleaf
             fake_heap_end = (char*)ghaddr + 0x10000000;
         }
         if(R_FAILED(ncm::Initialize())) exit(1);
+        if(R_FAILED(acc::Initialize())) exit(1);
+        if(R_FAILED(accountInitialize())) exit(1);
         if(R_FAILED(ncmInitialize())) exit(1);
         if(R_FAILED(ns::Initialize())) exit(1);
         if(R_FAILED(nsInitialize())) exit(1);
@@ -35,6 +37,8 @@ namespace gleaf
         es::Finalize();
         ns::Finalize();
         nsExit();
+        accountExit();
+        acc::Finalize();
         ncm::Finalize();
         ncmExit();
         if(!IsApplication()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);

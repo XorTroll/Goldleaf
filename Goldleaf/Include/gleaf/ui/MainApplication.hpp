@@ -25,6 +25,7 @@ namespace gleaf::ui
             void titleMenuItem_Click();
             void ticketMenuItem_Click();
             void webMenuItem_Click();
+            void accountMenuItem_Click();
             void cfwConfigMenuItem_Click();
             void sysinfoMenuItem_Click();
             void aboutMenuItem_Click();
@@ -36,6 +37,7 @@ namespace gleaf::ui
             pu::element::MenuItem *titleMenuItem;
             pu::element::MenuItem *ticketMenuItem;
             pu::element::MenuItem *webMenuItem;
+            pu::element::MenuItem *accountMenuItem;
             pu::element::MenuItem *cfwConfigMenuItem;
             pu::element::MenuItem *sysinfoMenuItem;
             pu::element::MenuItem *aboutMenuItem;
@@ -52,7 +54,6 @@ namespace gleaf::ui
             void fsItems_Click();
             void fsItems_Click_Y();
             fs::Explorer *GetExplorer();
-            std::string LoadPathSwkbd(std::string Guide, std::string Initial);
         private:
             fs::Explorer *gexp;
             std::vector<std::string> elems;
@@ -154,6 +155,24 @@ namespace gleaf::ui
             pu::element::Menu *ticketsMenu;
     };
 
+    class AccountLayout : public pu::Layout
+    {
+        public:
+            AccountLayout();
+            void Load(u128 UserId);
+            void CleanData();
+            void optsRename_Click();
+            void optsIcon_Click();
+            void optsDelete_Click();
+        private:
+            pu::element::Menu *optsMenu;
+            u128 uid;
+            AccountProfile prf;
+            AccountProfileBase pbase;
+            AccountUserData udata;
+            acc::ProfileEditor *pred;
+    };
+
     class CFWConfigLayout : public pu::Layout
     {
         public:
@@ -210,6 +229,7 @@ namespace gleaf::ui
             void usbInstall_Input(u64 Down, u64 Up, u64 Held);
             void titleManager_Input(u64 Down, u64 Up, u64 Held);
             void ticketManager_Input(u64 Down, u64 Up, u64 Held);
+            void account_Input(u64 Down, u64 Up, u64 Held);
             void cfwConfig_Input(u64 Down, u64 Up, u64 Held);
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
@@ -225,6 +245,7 @@ namespace gleaf::ui
             TitleManagerLayout *GetTitleManagerLayout();
             TitleDumperLayout *GetTitleDumperLayout();
             TicketManagerLayout *GetTicketManagerLayout();
+            AccountLayout *GetAccountLayout();
             CFWConfigLayout *GetCFWConfigLayout();
             SystemInfoLayout *GetSystemInfoLayout();
             AboutLayout *GetAboutLayout();
@@ -244,6 +265,7 @@ namespace gleaf::ui
             TitleManagerLayout *titleManager;
             TitleDumperLayout *titleDump;
             TicketManagerLayout *ticketManager;
+            AccountLayout *account;
             CFWConfigLayout *cfwConfig;
             SystemInfoLayout *sysInfo;
             AboutLayout *about;
@@ -261,5 +283,7 @@ namespace gleaf::ui
 
     void UpdateClipboard(std::string Path);
     void ShowRebootShutDownDialog(std::string Title, std::string Message);
+    std::string AskForText(std::string Guide, std::string Initial);
+    u128 AskForUser();
     void SetMainApplication(MainApplication *MainApp);
 }
