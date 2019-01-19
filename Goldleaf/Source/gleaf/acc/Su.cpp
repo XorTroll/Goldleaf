@@ -5,14 +5,9 @@ u64 sucnt = 0;
 
 namespace gleaf::acc
 {
-    ProfileEditor::ProfileEditor(Service *Srv)
+    ProfileEditor::ProfileEditor(Service Srv)
     {
         this->srv = Srv;
-    }
-
-    ProfileEditor::~ProfileEditor()
-    {
-        serviceClose(this->srv);
     }
 
     Result ProfileEditor::Store(AccountProfileBase *PBase, AccountUserData *UData)
@@ -29,7 +24,7 @@ namespace gleaf::acc
         iraw->Magic = SFCI_MAGIC;
         iraw->CommandId = 100;
         memcpy(&iraw->PBase, PBase, sizeof(AccountProfileBase));
-        Result rc = serviceIpcDispatch(this->srv);
+        Result rc = serviceIpcDispatch(&this->srv);
         if(rc == 0)
         {
             IpcParsedCommand pcmd;
@@ -59,7 +54,7 @@ namespace gleaf::acc
         iraw->Magic = SFCI_MAGIC;
         iraw->CommandId = 101;
         memcpy(&iraw->PBase, PBase, sizeof(AccountProfileBase));
-        Result rc = serviceIpcDispatch(this->srv);
+        Result rc = serviceIpcDispatch(&this->srv);
         if(rc == 0)
         {
             IpcParsedCommand pcmd;
@@ -72,6 +67,11 @@ namespace gleaf::acc
             rc = oraw->ResultCode;
         }
         return rc;
+    }
+
+    void ProfileEditor::Close()
+    {
+        serviceClose(&this->srv);
     }
 
     Result Initialize()
@@ -147,8 +147,8 @@ namespace gleaf::acc
             rc = oraw->ResultCode;
             if(rc == 0)
             {
-                Service *srv;
-                serviceCreate(srv, pcmd.Handles[0]);
+                Service srv;
+                serviceCreate(&srv, pcmd.Handles[0]);
                 prf = new ProfileEditor(srv);
             }
         }

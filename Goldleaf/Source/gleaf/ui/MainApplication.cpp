@@ -131,19 +131,7 @@ namespace gleaf::ui
     {
         if(IsApplication())
         {
-            char tmpout[FS_MAX_PATH] = { 0 };
-            std::string out = "";
-            SwkbdConfig kbd;
-            Result rc = swkbdCreate(&kbd, 0);
-            if(rc == 0)
-            {
-                swkbdConfigMakePresetDefault(&kbd);
-                swkbdConfigSetGuideText(&kbd, "Select web page to browse.");
-                swkbdConfigSetInitialText(&kbd, "https://dns.switchbru.com/");
-                rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
-                if(rc == 0) out = std::string(tmpout);
-            }
-            swkbdClose(&kbd);
+            std::string out = AskForText("Select web page to browse.", "https://dns.switchbru.com/");
             if(out == "") return;
             else
             {
@@ -169,7 +157,7 @@ namespace gleaf::ui
             *(u64*)&indata[17] = 201326593;
             *(u8*)&indata[16] = 1;
             *(u16*)indata = 2;
-            strcpy((char*)&indata[25], tmpout);
+            strcpy((char*)&indata[25], out.c_str());
             appletStorageWrite(&hast1, 0, indata, 8192);
             appletHolderPushInData(&aph, &hast1);
             appletHolderStart(&aph);
@@ -1928,6 +1916,7 @@ namespace gleaf::ui
         pu::element::MenuItem *itm3 = new pu::element::MenuItem("Delete account");
         itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
         this->optsMenu->AddItem(itm3);
+        this->AddChild(this->optsMenu);
     }
 
     void AccountLayout::Load(u128 UserId)
@@ -1939,12 +1928,15 @@ namespace gleaf::ui
             mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
         }
-        rc = accountProfileGet(&this->prf, &this->udata, &this->pbase);
+        this->pbase = (AccountProfileBase*)malloc(sizeof(AccountProfileBase));
+        this->udata = (AccountUserData*)malloc(sizeof(AccountUserData));
+        rc = accountProfileGet(&this->prf, this->udata, this->pbase);
         if(rc != 0)
         {
             mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
         }
+        mainapp->LoadMenuHead("Loaded user: " + std::string(this->pbase->username));
         auto res = acc::GetProfileEditor(UserId);
         rc = std::get<0>(res);
         if(rc != 0)
@@ -1957,9 +1949,15 @@ namespace gleaf::ui
 
     void AccountLayout::CleanData()
     {
-        this->uid = 0;
-        serviceClose(&this->prf.s);
-        delete this->pred;
+        if(this->uid != 0)
+        {
+            this->uid = 0;
+            serviceClose(&this->prf.s);
+            free(this->pbase);
+            free(this->udata);
+            this->pred->Close();
+            this->pred = NULL;
+        }
     }
 
     void AccountLayout::optsRename_Click()
@@ -1967,15 +1965,16 @@ namespace gleaf::ui
         std::string name = AskForText("Select new account name.", "");
         if(name != "")
         {
-            if(name.length() <= 0x20)
+            if(name.length() <= 10)
             {
-                strcpy(this->pbase.username, name.c_str());
-                Result rc = this->pred->Store(&this->pbase, &this->udata);
+                strcpy(this->pbase->username, name.c_str());
+                Result rc = this->pred->Store(this->pbase, this->udata);
                 if(rc == 0)
                 {
                     mainapp->LoadMenuHead("Loaded user: " + name);
                     mainapp->UpdateFooter("Account was renamed to \'" + name + "\'.");
                 }
+                else mainapp->UpdateFooter("Error renaming user account: " + horizon::FormatHex(rc));
             }
             else mainapp->UpdateFooter("Error renaming user account. The name was too long.");
         }
@@ -2713,7 +2712,6 @@ namespace gleaf::ui
             if(rc == 0) out = std::string(tmpout);
         }
         swkbdClose(&kbd);
-        free(tmpout);
         return out;
     }
 

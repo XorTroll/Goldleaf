@@ -168,8 +168,8 @@ namespace gleaf::ui
             pu::element::Menu *optsMenu;
             u128 uid;
             AccountProfile prf;
-            AccountProfileBase pbase;
-            AccountUserData udata;
+            AccountProfileBase *pbase;
+            AccountUserData *udata;
             acc::ProfileEditor *pred;
     };
 

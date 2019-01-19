@@ -19,12 +19,12 @@ namespace gleaf::acc
     class ProfileEditor
     {
         public:
-            ProfileEditor(Service *Srv);
-            ~ProfileEditor();
+            ProfileEditor(Service Srv);
             Result Store(AccountProfileBase *PBase, AccountUserData *UData);
             Result StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG);
+            void Close();
         private:
-            Service *srv;
+            Service srv;
     };
 
     Result Initialize();
