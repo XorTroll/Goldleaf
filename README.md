@@ -162,7 +162,7 @@ If you would like to to avoid ban risks as much as possible, I don't recommend u
 
   Goldleaf is able to edit several things on user accounts.
 
-  You can change the user's nickname, edit the icon (from the SD/console memory browsers, with JPEG images), and delete permanently the account.
+  You can change the user's nickname, edit the icon (from the SD/console memory browsers, with JPEG images), and delete the account permanently.
 
 - **CFW and custom theme management**
 
