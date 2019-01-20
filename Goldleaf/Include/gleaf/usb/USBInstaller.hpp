@@ -29,11 +29,8 @@ namespace gleaf::usb
             ByteBuffer cnmtbuf;
             bool iver;
             bool gtik;
-            bool gcert;
             bool itik;
             std::unique_ptr<u8[]> btik;
-            std::unique_ptr<u8[]> bcert;
             size_t stik;
-            size_t scert;
     };
 }

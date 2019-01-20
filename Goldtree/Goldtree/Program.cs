@@ -187,9 +187,9 @@ namespace gtree
                                                     {
                                                         if(rsize >= ent.Size) rsize = ent.Size;
                                                         int tor = (int)Math.Min(rsize, toread);
-                                                        bufb = new byte[tor];
                                                         br.BaseStream.Position = coffset;
-                                                        tmpread = br.Read(bufb, 0, bufb.Length);
+                                                        bufb = br.ReadBytes(tor);
+                                                        tmpread = bufb.Length;
                                                         USB.Write(bufb);
                                                         coffset += tmpread;
                                                         toread -= tmpread;
@@ -204,15 +204,6 @@ namespace gtree
                                                     byte[] file = br.ReadBytes((int)tik.Size);
                                                     USB.Write(file);
                                                     Log.Log("Ticket was sent to Goldleaf.");
-                                                }
-                                                else if(ccmd.IsCommandId(CommandId.NSPCert))
-                                                {
-                                                    Log.Log("Sending certificate file...");
-                                                    PfsFileEntry cert = pnsp.Files[certidx];
-                                                    br.BaseStream.Seek(pnsp.HeaderSize + cert.Offset, SeekOrigin.Begin);
-                                                    byte[] file = br.ReadBytes((int)cert.Size);
-                                                    USB.Write(file);
-                                                    Log.Log("Certificate was sent to Goldleaf.");
                                                 }
                                                 else if(ccmd.IsCommandId(CommandId.Finish)) break;
                                                 else

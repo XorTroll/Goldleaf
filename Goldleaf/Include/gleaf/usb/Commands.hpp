@@ -23,7 +23,6 @@ namespace gleaf::usb
         NSPData= 4,
         NSPContent = 5,
         NSPTicket = 6,
-        NSPCert = 7,
         Finish = 8,
     };
 

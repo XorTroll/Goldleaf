@@ -34,10 +34,8 @@ namespace gleaf::usb
         this->irc = { 0, InstallerError::Success };
         this->iver = IgnoreVersion;
         this->gtik = false;
-        this->gcert = false;
         this->itik = false;
         this->stik = 0;
-        this->scert = 0;
     }
 
     InstallerResult Installer::ProcessRecords()
@@ -226,19 +224,10 @@ namespace gleaf::usb
             this->stik = cnt.Size;
             this->gtik = true;
         }
-        else if(ext == "cert")
-        {
-            Command certcmd = MakeCommand(CommandId::NSPCert);
-            WriteCommand(certcmd);
-            this->bcert = std::make_unique<u8[]>(cnt.Size);
-            Read((void*)bcert.get(), cnt.Size);
-            this->scert = cnt.Size;
-            this->gcert = true;
-        }
-        if(this->gtik && this->gcert && !this->itik)
+        if(this->gtik && !this->itik)
         {
             this->itik = true;
-            es::ImportTicket(this->btik.get(), this->stik, this->bcert.get(), this->scert);
+            es::ImportTicket(this->btik.get(), this->stik, es::CertData, 1792);
         }
         return this->irc;
     }

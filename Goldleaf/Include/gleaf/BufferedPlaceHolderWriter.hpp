@@ -28,7 +28,7 @@ namespace gleaf
     class BufferedPlaceHolderWriter
     {
         public:
-            static const int SegmentCount = 4;
+            static const int SegmentCount = 8;
             BufferedPlaceHolderWriter(ncm::ContentStorage *Storage, NcmNcaId NCAId, size_t DataSize);
             void AppendData(void *Buffer, size_t Length);
             bool CanAppendData(size_t Length);
