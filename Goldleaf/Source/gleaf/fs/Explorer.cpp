@@ -2,9 +2,20 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <fstream>
+#include <algorithm>
+#include <ctype.h>
 
 namespace gleaf::fs
 {
+    bool sortCaseInsensitive(std::string a, std::string b){
+        unsigned int i;
+        for(i = 0; i < a.length(); ++i)
+            a[i] = tolower(a[i]);
+        for(i = 0; i < b.length(); ++i)
+            b[i] = tolower(b[i]);
+        return a < b;
+    }
+
     Explorer::Explorer(Partition Base)
     {
         this->customifs = false;
@@ -86,6 +97,7 @@ namespace gleaf::fs
             }
         }
         closedir(dir);
+        std::sort(dirs.begin(), dirs.end(), sortCaseInsensitive);
         return dirs;
     }
 
@@ -104,6 +116,7 @@ namespace gleaf::fs
             }
         }
         closedir(dir);
+        std::sort(files.begin(), files.end(), sortCaseInsensitive);
         return files;
     }
 
