@@ -241,14 +241,11 @@ namespace gleaf::horizon
 
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId)
     {
-        ApplicationIdMask mas = ApplicationIdMask::Invalid;
         std::string fappid = FormatApplicationId(ApplicationId);
-        char fst = fappid[0];
-        if(fst != '0') return mas;
-        char mask = fappid[1];
-        if(mask == '1') mas = ApplicationIdMask::Official;
-        else if(mask == '5') mas = ApplicationIdMask::Homebrew;
-        return mas;
+        std::string ids = fappid.substr(0, 2);
+        if(ids == "01") return ApplicationIdMask::Official;
+        else if(ids == "05") return ApplicationIdMask::Homebrew;
+        return ApplicationIdMask::Invalid;
     }
 
     TicketData ReadTicket(std::string Path)

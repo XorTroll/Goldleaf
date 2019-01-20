@@ -98,12 +98,12 @@ namespace gleaf::nsp
         fcnmt.Resize(fcnmtsize);
         size_t rout = 0;
         fsFileRead(&fcnmtfile, 0, fcnmt.GetData(), fcnmt.GetSize(), &rout);
-        cmeta = ncm::ContentMeta(fcnmt.GetData(), fcnmt.GetSize());
+        this->cmeta = ncm::ContentMeta(fcnmt.GetData(), fcnmt.GetSize());
         ncm::ContentStorage cnmts(stid);
         if(!cnmts.Has(record.NCAId)) this->ncas.push_back(record);
         else this->icnmt = true;
-        cmeta.GetInstallContentMeta(cnmtbuf, record, IgnoreVersion);
-        for(auto &record : cmeta.GetContentRecords())
+        this->cmeta.GetInstallContentMeta(cnmtbuf, record, IgnoreVersion);
+        for(auto &record : this->cmeta.GetContentRecords())
         {
             this->ncas.push_back(record);
             if(record.Type == ncm::ContentType::Control)
@@ -111,7 +111,7 @@ namespace gleaf::nsp
                 std::string ncaname = Input + "/" + horizon::GetStringFromNCAId(record.NCAId) + ".nca";
                 ncaname.reserve(FS_MAX_PATH);
                 FsFileSystem gnspcnca;
-                rc = fsOpenFileSystemWithId(&gnspcnca, cmeta.GetContentMetaKey().titleId, FsFileSystemType_ContentControl, ncaname.c_str());
+                rc = fsOpenFileSystemWithId(&gnspcnca, this->cmeta.GetContentMetaKey().titleId, FsFileSystemType_ContentControl, ncaname.c_str());
                 if(rc != 0) continue;
                 fsdevMountDevice("gnspcnca", gnspcnca);
                 DIR *d = opendir("gnspcnca:/");
@@ -143,6 +143,8 @@ namespace gleaf::nsp
                 fsdevUnmountDevice("gnspcnca");
             }
         }
+        NcmMetaRecord metakey = this->cmeta.GetContentMetaKey();
+        this->basetid = horizon::GetBaseApplicationId(metakey.titleId, static_cast<ncm::ContentMetaType>(metakey.type));
         fsFileClose(&fcnmtfile);
         fsFsClose(&cnmtfs);
     }
@@ -151,7 +153,7 @@ namespace gleaf::nsp
     {
         Result rc = 0;
         NcmContentMetaDatabase metadb;
-        NcmMetaRecord metakey = cmeta.GetContentMetaKey();
+        NcmMetaRecord metakey = this->cmeta.GetContentMetaKey();
         rc = ncmOpenContentMetaDatabase(stid, &metadb);
         if(rc != 0)
         {
@@ -181,8 +183,7 @@ namespace gleaf::nsp
         }
         serviceClose(&metadb.s);
         std::vector<ns::ContentStorageRecord> records;
-        basetid = horizon::GetBaseApplicationId(metakey.titleId, static_cast<ncm::ContentMetaType>(metakey.type));
-        std::tuple<Result, u32> nst = ns::CountApplicationContentMeta(basetid);
+        std::tuple<Result, u32> nst = ns::CountApplicationContentMeta(this->basetid);
         rc = std::get<0>(nst);
         u32 cmetacount = std::get<1>(nst);
         if((rc != 0) && (rc != 0x410))
@@ -197,7 +198,7 @@ namespace gleaf::nsp
             records.resize(cmetacount);
             size_t csbufs = (cmetacount * sizeof(ns::ContentStorageRecord));
             ns::ContentStorageRecord *csbuf = (ns::ContentStorageRecord*)malloc(csbufs);
-            std::tuple<Result, u32, void*> listt = ns::ListApplicationRecordContentMeta(0, basetid, csbufs);
+            std::tuple<Result, u32, void*> listt = ns::ListApplicationRecordContentMeta(0, this->basetid, csbufs);
             rc = std::get<0>(listt);
             csbuf = (ns::ContentStorageRecord*)std::get<2>(listt);
             if(rc != 0)
@@ -213,8 +214,8 @@ namespace gleaf::nsp
         csrecord.Record = metakey;
         csrecord.StorageId = stid;
         records.push_back(csrecord);
-        rc = ns::DeleteApplicationRecord(basetid);
-        rc = ns::PushApplicationRecord(basetid, 0x3, records.data(), records.size() * sizeof(ns::ContentStorageRecord));
+        rc = ns::DeleteApplicationRecord(this->basetid);
+        rc = ns::PushApplicationRecord(this->basetid, 0x3, records.data(), records.size() * sizeof(ns::ContentStorageRecord));
         if(rc != 0)
         {
             this->irc.Error = rc;
@@ -311,12 +312,12 @@ namespace gleaf::nsp
 
     u64 Installer::GetApplicationId()
     {
-        return basetid;
+        return this->basetid;
     }
 
     ncm::ContentMetaType Installer::GetContentType()
     {
-        return static_cast<ncm::ContentMetaType>(cmeta.GetContentMetaKey().type);
+        return static_cast<ncm::ContentMetaType>(this->cmeta.GetContentMetaKey().type);
     }
 
     std::vector<ncm::ContentRecord> Installer::GetRecords()

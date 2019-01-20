@@ -45,7 +45,7 @@ namespace gleaf::ui
         this->optionMenu->AddItem(this->usbMenuItem);
         this->optionMenu->AddItem(this->titleMenuItem);
         this->optionMenu->AddItem(this->ticketMenuItem);
-        this->optionMenu->AddItem(this->webMenuItem);
+        if(IsApplication()) this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->cfwConfigMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
@@ -163,12 +163,6 @@ namespace gleaf::ui
             appletHolderStart(&aph);
             appletHolderJoin(&aph);
         }
-        else
-        {
-            pu::Dialog *dlg = new pu::Dialog("Web browsing", "For technical reasons, the console's hidden browser (the web-applet title) can only be used as an application.");
-            dlg->AddOption("Ok");
-            mainapp->ShowDialog(dlg);
-        }
     }
 
     void MainMenuLayout::accountMenuItem_Click()
@@ -189,7 +183,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::sysinfoMenuItem_Click()
     {
-        mainapp->LoadMenuData("Console information", "Settings", "Loading settings and information of the system...");
+        mainapp->LoadMenuData("Console information", "Settings", "Settings and information of the console");
         mainapp->GetSystemInfoLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSystemInfoLayout());
     }
@@ -266,7 +260,7 @@ namespace gleaf::ui
     {
         bool ok = false;
         if(this->gexp->GetPartition() == fs::Partition::SdCard) return true;
-        pu::Dialog *dlg = new pu::Dialog("Warning: NAND access", "You are trying to write or delete content within the console's NAND memory.\n\nDeleting or replacing content there can be a risky operation.\nImportant file loss could lead to a bricked NAND, where the console won't boot.\n\nAre you sure you want to perform this operation?");
+        pu::Dialog *dlg = new pu::Dialog("Console memory access (warning)", "You are trying to write or delete content in the console memory.\n\nDeleting or replacing content there can be a risky operation.\nImportant file loss could lead to a bricked NAND, where the console won't boot.\n\nAre you sure you want to continue?");
         dlg->AddOption("Yes");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
@@ -378,39 +372,40 @@ namespace gleaf::ui
                         }
                         bool isapp = (inst.GetContentType() == ncm::ContentMetaType::Application);
                         bool hasnacp = inst.HasContent(ncm::ContentType::Control);
-                        std::string info = "Information about the NSP to be installed:\n\n\n";
+                        std::string info = "Information about the NSP to be installed:\n\n";
                         switch(inst.GetContentType())
                         {
                             case ncm::ContentMetaType::Application:
                                 info += "The NSP contains a regular title.";
                                 break;
                             case ncm::ContentMetaType::Patch:
-                                info += "The NSP contains a patch (a title update)";
+                                info += "The NSP contains a patch. (a title update)";
                                 break;
                             case ncm::ContentMetaType::AddOnContent:
-                                info += "The NSP contains add-on content (DLC)";
+                                info += "The NSP contains add-on content. (DLC)";
                                 break;
                             default:
                                 info += "The NSP contains other content, system-related or delta fragments.";
                                 break;
                         }
+                        info += "\n";
                         horizon::ApplicationIdMask idmask = horizon::IsValidApplicationId(inst.GetApplicationId());
-                        info += "\nAccording to the NSP's application ID, ";
                         switch(idmask)
                         {
                             case horizon::ApplicationIdMask::Official:
-                                info += "it's an official NSP. (official game, update or contents in general)";
+                                info += "The NSP seems to be an official NSP.\n(official game, update or contents in general)";
                                 break;
                             case horizon::ApplicationIdMask::Homebrew:
-                                info += "it's a homebrew NSP. (has homebrew's common application ID mask, so it's probably homebrew)";
+                                info += "The NSP seems to be a homebrew NSP.\n(has homebrew's common application ID mask, so it's probably homebrew)";
                                 break;
                             case horizon::ApplicationIdMask::Invalid:
-                                info += "it has an unknown application ID mask. NSPs like this could be dangerous!";
+                                info += "The NSP has an unknown application ID mask.\nNSPs like this could be dangerous.";
                                 break;
                         }
+                        info += "\nApplication ID: " + horizon::FormatApplicationId(inst.GetApplicationId());
+                        info += "\n\n";
                         if(hasnacp && isapp)
                         {
-                            info += "\nInformation about the NSP's control data:\n\n\n";
                             NacpStruct *nacp = inst.GetNACP();
                             NacpLanguageEntry lent;
                             for(u32 i = 0; i < 16; i++)
@@ -456,10 +451,9 @@ namespace gleaf::ui
                                 if(i != (ncas.size() - 1)) info += ", ";
                             }
                         }
-                        info += "\n\n";
                         if(isapp && inst.HasTicket())
                         {
-                            info += "This NSP has a ticket and it will be installed. Ticket information:\n\n";
+                            info += "\n\nThis NSP has a ticket and it will be imported. Ticket information:\n\n";
                             horizon::TicketData tik = inst.GetTicketData();
                             info += "Title key: " + tik.TitleKey;
                             info += "\nSignature type: ";
@@ -520,7 +514,11 @@ namespace gleaf::ui
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 1)) return;
+                        if(dlg->UserCancelled() || (sopt == 1))
+                        {
+                            inst.Finalize();
+                            return;
+                        }
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), false, fullitm);
                         this->UpdateElements();
@@ -543,12 +541,10 @@ namespace gleaf::ui
                         dlg->AddOption("Launch");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
-                        if(!dlg->UserCancelled() || (dlg->GetSelectedIndex() == 0))
-                        {
-                            envSetNextLoad(fullitm.c_str(), (char*)((char**)envGetArgv())[0]);
-                            mainapp->Close();
-                            return;
-                        }
+                        if(dlg->UserCancelled() || (dlg->GetSelectedIndex() == 1)) return;
+                        envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
+                        mainapp->Close();
+                        return;
                         break;
                 }
             }
@@ -983,6 +979,7 @@ namespace gleaf::ui
     void InstallLayout::StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input)
     {
         if(IsApplication()) appletBeginBlockingHomeButton(0);
+        mainapp->LoadMenuHead("Installing NSP: \'" + Input + "\'");
         this->installText->SetText("Processing title records...");
         mainapp->UpdateFooter("Installing NSP...");
         mainapp->CallForRender();
@@ -1479,7 +1476,6 @@ namespace gleaf::ui
         this->titles = horizon::GetAllSystemTitles();
         mainapp->LoadMenuHead("Found " + std::to_string(this->titles.size()) + " titles on this console.");
         this->titlesMenu->ClearItems();
-        this->titlesMenu->SetCooldownEnabled(true);
         if(this->titles.empty())
         {
             this->notTitlesText->SetVisible(true);
@@ -1581,12 +1577,12 @@ namespace gleaf::ui
                     else
                     {
                         Result rc = ns::DeleteApplicationCompletely(seltit.ApplicationId);
-                        std::string resstr = "The title was successfully uninstalled from this console.";
-                        if(rc != 0) resstr = "The title was not successfully uninstalled (error code " + std::to_string(rc) + ")";
-                        dlg = new pu::Dialog("Title uninstall", resstr);
-                        dlg->AddOption("Ok");
-                        mainapp->ShowDialog(dlg);
-                        if(rc == 0) this->UpdateElements();
+                        if(rc == 0)
+                        {
+                            mainapp->UpdateFooter("The title was successfully uninstalled from this console.");
+                            this->UpdateElements();
+                        }
+                        else mainapp->UpdateFooter("An error ocurred attempting to uninstall the selected title: " + horizon::FormatHex(rc));
                     }
                 }
             }
@@ -2036,7 +2032,8 @@ namespace gleaf::ui
     void AccountLayout::optsIcon_Click()
     {
         std::string iconpth = "sdmc:/goldleaf/userdata/" + horizon::FormatHex128(this->uid) + ".jpg";
-        pu::Dialog *dlg = new pu::Dialog("Account icon", "You can replace the user's icon with another JPEG  from the file browsers.\n\nFor the current icon, you can find it here:\n\'" + iconpth + "\'");
+        pu::Dialog *dlg = new pu::Dialog("Account icon", "You can replace the user's icon with a JPEG from the file browsers.\n\nFor the current icon, you can find it here:\n\'" + iconpth + "\'");
+        dlg->SetIcon(iconpth, 994, 30);
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
     }
@@ -2091,10 +2088,10 @@ namespace gleaf::ui
         std::string msg = this->cfwnms[this->cfwsMenu->GetSelectedIndex()] + " was selected.";
         if((gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001000/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001000/fsmitm.flag")) || (gleaf::fs::IsDirectory("sdmc:/" + cfw + "/titles/0100000000001013/romfs") && gleaf::fs::Exists("sdmc:/" + cfw + "/titles/0100000000001013/fsmitm.flag")))
         {
-            msg += "\nHome Menu (aka qlaunch) has a LayeredFS RomFs modification in this CFW.\nThis means that it seems to have a custom Home Menu theme.";
+            msg += "\nHome Menu (aka qlaunch) has a LayeredFS modification in this CFW.\nThis means that it could have a custom Home Menu theme.";
             htheme = true;
         }
-        else msg += "\nThere are no Home Menu modifications in this CFW, so it doesn't have any theme installed.";
+        else msg += "\nThere are no Home Menu modifications in this CFW, so it can't have any theme installed.";
         pu::Dialog *dlg = new pu::Dialog("CFW information", msg);   
         if(htheme)
         {
@@ -2520,10 +2517,9 @@ namespace gleaf::ui
         }
         else if(Down & KEY_X)
         {
-            if(clipboard != "")
+            if((clipboard != "") && (fs::Exists(clipboard)))
             {
                 bool cdir = fs::IsDirectory(clipboard);
-                if(!cdir && !fs::IsFile(clipboard)) return;
                 pu::Dialog *dlg = new pu::Dialog("Clipboard paste", "Current clipboard path:\n\'" + clipboard + "\'\n\nDo you want to copy clipboard contents into this directory?");
                 if(cdir) dlg->SetIcon("romfs:/FileSystem/Directory.png", 1150, 30);
                 else
