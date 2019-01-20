@@ -31,6 +31,7 @@ namespace gleaf::horizon
     std::string GetCurrentTime();
     FwVersion GetFwVersion();
     std::string FormatHex(u32 Number);
+    std::string FormatHex128(u128 Number);
     std::string DoubleToString(double Number);
     u64 GetSdCardFreeSpaceForInstalls();
     u64 GetNANDFreeSpaceForInstalls();

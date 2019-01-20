@@ -73,6 +73,19 @@ namespace gleaf::horizon
         return strm.str();
     }
 
+    std::string FormatHex128(u128 Number)
+    {
+        u8 *ptr = (u8*)&Number;
+        std::string res;
+        for(u32 i = 0; i < 16; i++)
+        {
+            std::stringstream strm;
+            strm << std::hex << (int)ptr[i];
+            res += strm.str();
+        }
+        return res;
+    }
+
     std::string DoubleToString(double Number)
     {
         std::stringstream strm;

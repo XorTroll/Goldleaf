@@ -36,13 +36,13 @@ namespace gleaf::nsp
             this->Finalize();
             return;
         }
-        fsdevMountDevice("gnsp", this->idfs);
+        fsdevMountDevice("gnspi", this->idfs);
         std::string tikname = fs::SearchForFile(this->idfs, "", "tik");
         if(tikname == "") this->tik = false;
         else
         {
             this->tik = true;
-            this->stik = "gnsp:/" + tikname;
+            this->stik = "gnspi:/" + tikname;
             this->tikdata = horizon::ReadTicket(this->stik);
         }
         std::string certname = fs::SearchForFile(this->idfs, "", "cert");
@@ -50,7 +50,7 @@ namespace gleaf::nsp
         else
         {
             this->tik = true;
-            this->scert = "gnsp:/" + certname;
+            this->scert = "gnspi:/" + certname;
         }
         ByteBuffer cnmt;
         std::string cnmtname = fs::SearchForFile(this->idfs, "", "cnmt.nca");
@@ -152,7 +152,6 @@ namespace gleaf::nsp
         }
         fsFileClose(&fcnmtfile);
         fsFsClose(&cnmtfs);
-        fsdevUnmountDevice("gnsp");
     }
 
     InstallerResult Installer::ProcessRecords()
@@ -371,7 +370,7 @@ namespace gleaf::nsp
 
     void Installer::Finalize()
     {
-        fsFsClose(&this->idfs);
+        fsdevUnmountDevice("gnspi");
         free(this->nacps);
     }
 }

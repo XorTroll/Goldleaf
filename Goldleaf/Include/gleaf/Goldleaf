@@ -9,6 +9,7 @@
 */
 
 #pragma once
+#include <gleaf/acc.hpp>
 #include <gleaf/Application.hpp>
 #include <gleaf/Buffer.hpp>
 #include <gleaf/BufferedPlaceHolderWriter.hpp>

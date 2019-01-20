@@ -20,7 +20,7 @@ Installing NSPs can be dangerous. If you want to avoid ban risk as much as you c
 
 Despite having some ways to "prevent" some risks, don't install NSPs if you want to be safe.
 
-Official NSPs won't be safer, any kind of NSP installed unoficially (by Goldleaf or other installers) has ban risks.
+Official NSPs won't be safer, any kind of NSP installed unofficially (by Goldleaf or other installers) has ban risks.
 
 Despite being official ones, it's always recommended to install only stdcrypto NSPs, those NSPs which don't have nor need a ticket to work. Official titles would need to be reencrypted, but unofficial NSPs, such as homebrew ones, are already stdcrypto.
 
@@ -137,6 +137,14 @@ Despite not being a really big issue, removing a ticket of a title which does re
   You can view the Application Id and the key generation of a ticket by selecting it.
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-crypto won't be playable.
+
+- **Internet browser**´
+
+  Goldleaf uses the console's internal browser title (the online web-applet) to let the user browse web pages.
+
+  For special reasons, the browser can only be used from the installable version:
+
+  - The web-applet attempts to find a file called `accessible-urls.txt` in the Offline Html NCA contents of the title calling it and won't work unless it finds this file, so applets cannot launch this applet properly.
 
 - **CFW and custom theme management**
 
