@@ -16,15 +16,13 @@ namespace gleaf::usb
 {
     enum class CommandId
     {
-        ConnectionRequest = 0,
-        ConnectionResponse = 1,
-        NSPName = 2,
-        Start = 3,
-        NSPData= 4,
-        NSPContent = 5,
-        NSPTicket = 6,
-        NSPCert = 7,
-        Finish = 8,
+        Info = 0,
+        ListNSPs = 1,
+        GetNSPInfo = 2,
+        GetNSPContent = 3,
+        GetNSPTicket = 4,
+        GetNSPCertificate = 5,
+        Echo = 6
     };
 
     struct Command

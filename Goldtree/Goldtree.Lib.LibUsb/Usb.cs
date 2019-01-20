@@ -14,14 +14,14 @@ namespace Goldtree.Lib.LibUsb
         private UsbEndpointReader reader;
         private UsbEndpointWriter writer;
 
-        public void Connect(int vid, int pid)
+        public bool Connect(int vid, int pid)
         {
             usbDevice = UsbDevice.OpenUsbDevice(registry =>
                 registry.Vid == vid
                 && registry.Pid == pid);
 
             if (usbDevice == null)
-                throw new Exception("Could not find device");
+                return false;
             
             IUsbDevice usb = usbDevice as IUsbDevice;
             if (usb != null) //This does some magic to detect if the driver is not winusb
@@ -32,6 +32,8 @@ namespace Goldtree.Lib.LibUsb
 
             reader = usbDevice.OpenEndpointReader(ReadEndpointID.Ep01 /* 0x81 */);
             writer = usbDevice.OpenEndpointWriter(WriteEndpointID.Ep01);
+
+            return true;
         }
 
         public void Dispose()
@@ -40,31 +42,7 @@ namespace Goldtree.Lib.LibUsb
                 usbDevice.Close();
             UsbDevice.Exit();
         }
-
-        public Command Read()
-        {
-            if (usbDevice == null)
-                return null;
-
-            byte[] data = Read(4);
-            if (data == null)
-                return null;
-
-            uint magic = BitConverter.ToUInt32(data, 0);
-
-            data = Read(4);
-            if (data == null)
-                return null;
-
-            uint cmdid = BitConverter.ToUInt32(data, 0);
-
-            return new Command
-            {
-                Magic = magic,
-                CommandId = (CommandId)cmdid
-            };
-        }
-
+        
         public uint ReadInt32()
         {
             if (usbDevice == null)
@@ -77,12 +55,14 @@ namespace Goldtree.Lib.LibUsb
             return BitConverter.ToUInt32(data, 0);
         }
 
-        public void Write(Command command)
+        public byte ReadByte()
         {
-            Write(command.Magic);
-            Write((uint)command.CommandId);
-        }
+            if (usbDevice == null)
+                return 0;
 
+            return Read(1)[0];
+        }
+        
         public void Write(uint value)
         {
             Write(BitConverter.GetBytes(value));
@@ -103,7 +83,7 @@ namespace Goldtree.Lib.LibUsb
             int offset = 0;
             while (offset < value.Length)
             {
-                ErrorCode errorCode = writer.Write(value, offset, value.Length - offset, 1000, out var written);
+                ErrorCode errorCode = writer.Write(value, offset, value.Length - offset, int.MaxValue, out var written);
                 if (errorCode != ErrorCode.None)
                     throw new Exception($"Error write writing usb {errorCode}");
 
@@ -118,7 +98,7 @@ namespace Goldtree.Lib.LibUsb
         
             while (offset < count)
             {
-                ErrorCode error = reader.Read(buffer, offset, count - offset, 1000, out var read);
+                ErrorCode error = reader.Read(buffer, offset, count - offset, int.MaxValue, out var read);
                 if (error != ErrorCode.None)
                     return null;
 
@@ -129,6 +109,11 @@ namespace Goldtree.Lib.LibUsb
             }
 
             return buffer;
+        }
+
+        public byte[] ReadBytes(uint length)
+        {
+            return Read((int)length);
         }
     }
 }

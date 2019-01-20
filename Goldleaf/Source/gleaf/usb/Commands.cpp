@@ -31,29 +31,11 @@ namespace gleaf::usb
 
     int OnContentRead(void *Args)
     {
-        ContentThreadArguments *args = reinterpret_cast<ContentThreadArguments*>(Args);
-        Command cmd = MakeCommand(CommandId::NSPContent);
-        WriteCommand(cmd);
-        Write32(args->Index);
-        u64 rsize = 1048576;
-        u8 *data = (u8*)memalign(0x1000, rsize);
-        u64 szrem = args->Size;
-        size_t tmpread = 0;
-        while(szrem)
-        {
-            tmpread = usb::Read(data, std::min(szrem, rsize));
-            szrem -= tmpread;
-            while(!args->WriterRef->CanAppendData(tmpread));
-            args->WriterRef->AppendData(data, tmpread);
-        }
-        free(data);
         return 0;
     }
 
     int OnContentAppend(void *Args)
     {
-        ContentThreadArguments *args = reinterpret_cast<ContentThreadArguments*>(Args);
-        while(!args->WriterRef->IsPlaceHolderComplete()) if(args->WriterRef->CanWriteSegmentToPlaceHolder()) args->WriterRef->WriteSegmentToPlaceHolder();
         return 0;
     }
 }

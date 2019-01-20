@@ -6,14 +6,12 @@ namespace Goldtree.Lib
 {
     public enum CommandId
     {
-        ConnectionRequest,
-        ConnectionResponse,
-        NSPName,
-        Start,
-        NSPData,
-        NSPContent,
-        NSPTicket,
-        NSPCert,
-        Finish,
+        Info,
+        ListNSPs,
+        GetNSPInfo,
+        GetNSPContent,
+        GetNSPTicket,
+        GetNSPCertificate,
+        Echo
     }
 }

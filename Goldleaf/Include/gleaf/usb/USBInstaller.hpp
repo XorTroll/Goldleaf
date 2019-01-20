@@ -9,23 +9,36 @@
 */
 
 #pragma once
-#include <usb/Commands.hpp>
+#include <gleaf/nsp/Installer.hpp>
+#include <Commands.hpp>
+#include <UsbReader.hpp>
 
 namespace gleaf::usb
 {
     class Installer
     {
         public:
-            Installer(Destination Location, bool IgnoreVersion);
+            typedef std::function<void(std::string name, u32 index, u32 count, int percentage, double speed)> ProgressReport;
+
+            Installer(UsbReader reader, std::string file, Destination location, bool ignoreVersion);
             InstallerResult ProcessRecords();
             InstallerResult ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             InstallerResult ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             InstallerResult GetLatestResult();
             void Finish();
         private:
-            std::vector<NSPContentData> cnts;
-            FsStorageId stid;
-            InstallerResult irc;
+            NSPContentData ProcessCnmt();
+            void ProcessNca(NSPContentData content, std::string name, std::string ext);
+            InstallerResult ReadFcmnt(NcmNcaId cnmtid, ByteBuffer* output);
+            InstallerResult WriteMetaDatabase(NcmNcaId cnmtid, NSPContentData cnmtData, ByteBuffer fcnmt, NcmMetaRecord* result);
+            InstallerResult RegisterContentMeta(u64 basetid, std::vector<ns::ContentStorageRecord>* result);
+            InstallerResult PushRecords(NcmMetaRecord metakey, u64 basetid, std::vector<ns::ContentStorageRecord> records);
+
+            UsbReader usbReader;
+            std::string filename;
+            std::vector<NSPContentData> contentData;
+            FsStorageId storageId;
+            InstallerResult installerResult;
             ByteBuffer cnmtbuf;
             bool iver;
             bool gtik;

@@ -16,7 +16,7 @@ namespace Goldtree.Lib.UsbK
 
         public static void Write(this libusbK.UsbK USB, Command Data)
         {
-            USB.Write(Data.AsData());
+
         }
 
         public static void Write(this libusbK.UsbK USB, uint Data)
@@ -46,12 +46,7 @@ namespace Goldtree.Lib.UsbK
 
         public static Command Read(this libusbK.UsbK USB)
         {
-            Command cmd = new Command();
-            USB.Read(out uint magic);
-            USB.Read(out uint cmdid);
-            cmd.Magic = magic;
-            cmd.CommandId = (CommandId)cmdid;
-            return cmd;
+            return default;
         }
 
         public static void Read(this libusbK.UsbK USB, out uint Data)

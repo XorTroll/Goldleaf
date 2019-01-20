@@ -1,5 +1,7 @@
 #include <gleaf/ui/MainApplication.hpp>
 #include <threads.h>
+#include <gleaf/usb/UsbReader.hpp>
+#include <malloc.h>
 
 namespace gleaf::ui
 {
@@ -834,137 +836,117 @@ namespace gleaf::ui
         }
         this->installText->SetText("USB connection was detected. Open Goldtree to connect it via USB.");
         mainapp->CallForRender();
-        usb::Command req = usb::ReadCommand();
-        usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
-        if(req.MagicOk())
+        
+        usb::UsbReader reader;
+
+        for (u32 c = 0x100; c <= 0x10000; c <<= 1) {
+            size_t size = c;
+            u8* buffer = static_cast<u8*>(malloc(size));
+            for (u32 i = 0; i < size; i++) {
+                buffer[i] = static_cast<u8>(i % 0xFF);
+            }
+
+            u32 echoResult = reader.TestEcho(static_cast<const void*>(buffer), size);
+            if (echoResult != 0) {
+                pu::Dialog *dlg = new pu::Dialog("USB Echo result", "Echo failed " + std::to_string(c) + " " + std::to_string(echoResult));
+                dlg->AddOption("Install");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+            }
+
+            free(buffer);
+        }
+
+        size_t count;
+        std::unique_ptr<std::string[]> files = reader.ReadFiles(&count);
+
+        if (count > 0)
         {
-            if(req.IsCommandId(usb::CommandId::ConnectionRequest))
+            std::string nspname = files[0];
+            pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?");
+            dlg->AddOption("Install");
+            dlg->AddOption("Cancel");
+            mainapp->ShowDialog(dlg);
+            u32 sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled() || (sopt == 1))
             {
-                this->installText->SetText("Connection request was received from a Goldtree PC client.\nSending confirmation and waiting to select a NSP...");
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
+            }
+
+            dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
+            dlg->AddOption("SD card");
+            dlg->AddOption("Console memory (NAND)");
+            dlg->AddOption("Cancel");
+            mainapp->ShowDialog(dlg);
+            sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled() || ( sopt == 2))
+            {
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
+            }
+
+            Destination dst = Destination::SdCard;
+            if (sopt == 0)
+                dst = Destination::SdCard;
+            else if(sopt == 1)
+                dst = Destination::NAND;
+            dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?");
+            dlg->AddOption("Yes");
+            dlg->AddOption("No");
+            dlg->AddOption("Cancel");
+            mainapp->ShowDialog(dlg);
+            sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled() || (sopt == 2))
+            {
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
+            }
+                    
+            bool ignorev = (sopt == 0);
+            if(IsApplication()) appletBeginBlockingHomeButton(0);
+            this->installText->SetText("Starting installation...");
+            mainapp->CallForRender();
+            usb::Installer inst(reader, nspname, dst, ignorev);
+
+            this->installText->SetText("Processing title records...");
+            mainapp->CallForRender();
+            InstallerResult rc = inst.ProcessRecords();
+            if(!rc.IsSuccess())
+            {
+                if(IsApplication()) appletEndBlockingHomeButton();
+                mainapp->GetInstallLayout()->LogError(rc);
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
+            }
+
+            this->installText->SetText("Starting to write contents...");
+            mainapp->CallForRender();
+            this->installBar->SetVisible(true);
+            rc = inst.ProcessContents([&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed)
+            {
+                std::string name = "Writing content \'"  + Name + "\'... (" + std::to_string(Index + 1) + " of " + std::to_string(Count) + ")";
+                this->installText->SetText(name);
+                this->installBar->SetProgress((u8)Percentage);
+                mainapp->UpdateFooter("Average speed: " + horizon::DoubleToString(Speed) + " MB/s");
                 mainapp->CallForRender();
-                usb::Command cmd1 = usb::MakeCommand(usb::CommandId::ConnectionResponse);
-                usb::WriteCommand(cmd1);
-                req = usb::ReadCommand();
-                if(req.MagicOk())
-                {
-                    if(req.IsCommandId(usb::CommandId::NSPName))
-                    {
-                        u32 nspnamesize = usb::Read32();
-                        std::string nspname = usb::ReadString(nspnamesize);
-                        pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?");
-                        dlg->AddOption("Install");
-                        dlg->AddOption("Cancel");
-                        mainapp->ShowDialog(dlg);
-                        u32 sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 1))
-                        {
-                            usb::WriteCommand(fcmd);
-                            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                            return;
-                        }
-                        dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
-                        dlg->AddOption("SD card");
-                        dlg->AddOption("Console memory (NAND)");
-                        dlg->AddOption("Cancel");
-                        mainapp->ShowDialog(dlg);
-                        sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || ( sopt == 2))
-                        {
-                            usb::WriteCommand(fcmd);
-                            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                            return;
-                        }
-                        Destination dst = Destination::SdCard;
-                        if(sopt == 0) dst = Destination::SdCard;
-                        else if(sopt == 1) dst = Destination::NAND;
-                        dlg = new pu::Dialog("Ignore required firmware version", "Should Goldleaf ignore the required firmware version of the NSP?");
-                        dlg->AddOption("Yes");
-                        dlg->AddOption("No");
-                        dlg->AddOption("Cancel");
-                        mainapp->ShowDialog(dlg);
-                        sopt = dlg->GetSelectedIndex();
-                        if(dlg->UserCancelled() || (sopt == 2))
-                        {
-                            usb::WriteCommand(fcmd);
-                            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                            return;
-                        }
-                        
-                        bool ignorev = (sopt == 0);
-                        usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
-                        usb::WriteCommand(cmd2);
-                        if(IsApplication()) appletBeginBlockingHomeButton(0);
-                        this->installText->SetText("Starting installation...");
-                        mainapp->CallForRender();
-                        usb::Installer inst(dst, ignorev);
-                        InstallerResult rc = inst.GetLatestResult();
-                        if(!rc.IsSuccess())
-                        {
-                            if(IsApplication()) appletEndBlockingHomeButton();
-                            mainapp->GetInstallLayout()->LogError(rc);
-                            usb::WriteCommand(fcmd);
-                            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                            return;
-                        }
-                        this->installText->SetText("Processing title records...");
-                        mainapp->CallForRender();
-                        rc = inst.ProcessRecords();
-                        if(!rc.IsSuccess())
-                        {
-                            if(IsApplication()) appletEndBlockingHomeButton();
-                            mainapp->GetInstallLayout()->LogError(rc);
-                            usb::WriteCommand(fcmd);
-                            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                            return;
-                        }
-                        this->installText->SetText("Starting to write contents...");
-                        mainapp->CallForRender();
-                        this->installBar->SetVisible(true);
-                        rc = inst.ProcessContents([&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed)
-                        {
-                            std::string name = "Writing content \'"  + Name + "\'... (" + std::to_string(Index + 1) + " of " + std::to_string(Count) + ")";
-                            this->installText->SetText(name);
-                            this->installBar->SetProgress((u8)Percentage);
-                            mainapp->UpdateFooter("Average speed: " + horizon::DoubleToString(Speed) + " MB/s");
-                            mainapp->CallForRender();
-                        });
-                        this->installBar->SetVisible(false);
-                        if(IsApplication()) appletEndBlockingHomeButton();
-                        if(!rc.IsSuccess())
-                        {
-                            mainapp->GetInstallLayout()->LogError(rc);
-                            usb::WriteCommand(fcmd);
-                            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                            return;
-                        }
-                        inst.Finish();
-                        mainapp->UpdateFooter("The NSP was successfully installed via USB. You can close Goldtree now.");
-                        mainapp->CallForRender();
-                    }
-                    else if(req.IsCommandId(usb::CommandId::Finish)) mainapp->UpdateFooter("Goldtree has closed the connection.");
-                    else
-                    {
-                        usb::WriteCommand(fcmd);
-                        mainapp->UpdateFooter("An invalid command was received. Are you sure you're using Goldtree?");
-                    }
-                }
-                else
-                {
-                    usb::WriteCommand(fcmd);
-                    mainapp->UpdateFooter("An invalid command was received. Are you sure you're using Goldtree?");
-                }
-            }
-            else if(req.IsCommandId(usb::CommandId::Finish)) mainapp->UpdateFooter("Goldtree has closed the connection.");
-            else
+            });
+
+            this->installBar->SetVisible(false);
+            if(IsApplication()) appletEndBlockingHomeButton();
+            if(!rc.IsSuccess())
             {
-                usb::WriteCommand(fcmd);
-                mainapp->UpdateFooter("An invalid command was received. Are you sure you're using Goldtree?");
+                mainapp->GetInstallLayout()->LogError(rc);
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                return;
             }
+
+            mainapp->UpdateFooter("The NSP was successfully installed via USB. You can close Goldtree now.");
+            mainapp->CallForRender();
         }
         else
         {
-            usb::WriteCommand(fcmd);
-            mainapp->UpdateFooter("An invalid command was received. Are you sure you're using Goldtree?");
+            mainapp->UpdateFooter("No files were received.");
         }
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }

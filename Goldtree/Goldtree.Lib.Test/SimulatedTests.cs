@@ -34,5 +34,20 @@ namespace Goldtree.Lib.Test
             bool result = cli.SendFile(TestUtils.GetResource("empty.txt"));
             Assert.IsFalse(result, "Sending an empty(/invalid) txt must not succeed");
         }
+
+        [TestMethod]
+        public void ValidNSPTest()
+        {
+            CLI.IsArgumentsOnly = true;
+            VirtualUsb usb = new VirtualUsb(
+                new Command(CommandId.ConnectionResponse),
+                new Command(CommandId.Start)
+                );
+            CLI cli = new CLI(usb);
+            cli.ConnectUsb();
+            cli.ConnectToGoldleaf();
+            bool result = cli.SendFile(TestUtils.GetResource("Goldleaf.nsp"));
+            Assert.IsFalse(result, "Sending an empty(/invalid) txt must not succeed");
+        }
     }
 }

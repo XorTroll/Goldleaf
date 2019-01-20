@@ -6,17 +6,12 @@ namespace Goldtree.Lib
 {
     public interface IUsb
     {
-        void Connect(int vid, int pid);
-
-        void Write(Command command);
+        bool Connect(int vid, int pid);
+        
         void Write(uint value);
-        void Write(ulong value);
-        void Write(string value);
         void Write(byte[] value);
-
-
-        Command Read();
+        
         uint ReadInt32();
-
+        byte[] ReadBytes(uint length);
     }
 }
