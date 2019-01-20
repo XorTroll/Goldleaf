@@ -1034,49 +1034,49 @@ namespace gleaf::ui
             switch(Res.Type)
             {
                 case InstallerError::BadNSP:
-                    err = "Failed to read from the NSP file";
+                    err += "Failed to read from the NSP file";
                     break;
                 case InstallerError::NSPOpen:
-                    err = "Failed to open the NSP file";
+                    err += "Failed to open the NSP file";
                     break;
                 case InstallerError::BadCNMTNCA:
-                    err = "Failed to read from the meta NCA (CNMT NCA)";
+                    err += "Failed to read from the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::CNMTMCAOpen:
-                    err = "Failed to open the meta NCA (CNMT NCA)";
+                    err += "Failed to open the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::BadCNMT:
-                    err = "Failed to read from the meta file (CNMT)";
+                    err += "Failed to read from the meta file (CNMT)";
                     break;
                 case InstallerError::CNMTOpen:
-                    err = "Failed to open the meta file (CNMT)";
+                    err += "Failed to open the meta file (CNMT)";
                     break;
                 case InstallerError::BadControlNCA:
-                    err = "Failed to open the control NCA";
+                    err += "Failed to open the control NCA";
                     break;
                 case InstallerError::MetaDatabaseOpen:
-                    err = "Failed to open content meta database";
+                    err += "Failed to open content meta database";
                     break;
                 case InstallerError::MetaDatabaseSet:
-                    err = "Failed to set in the content meta database";
+                    err += "Failed to set in the content meta database";
                     break;
                 case InstallerError::MetaDatabaseCommit:
-                    err = "Failed to commit on the content meta database";
+                    err += "Failed to commit on the content meta database";
                     break;
                 case InstallerError::ContentMetaCount:
-                    err = "Failed to count content meta";
+                    err += "Failed to count content meta";
                     break;
                 case InstallerError::ContentMetaList:
-                    err = "Failed to list content meta";
+                    err += "Failed to list content meta";
                     break;
                 case InstallerError::RecordPush:
-                    err = "Failed to push title record";
+                    err += "Failed to push title record";
                     break;
                 case InstallerError::InstallBadNCA:
-                    err = "Failed to find NCA content to write in the NSP";
+                    err += "Failed to find NCA content to write in the NSP";
                     break;
                 default:
-                    err = "An unknown error ocurred";
+                    err += "An unknown error ocurred";
                     break;
             }
             mainapp->UpdateFooter(err + ": " + horizon::FormatHex(Res.Error));
@@ -1270,49 +1270,49 @@ namespace gleaf::ui
             switch(Res.Type)
             {
                 case InstallerError::BadNSP:
-                    err = "Failed to read from the NSP file";
+                    err += "Failed to read from the NSP file";
                     break;
                 case InstallerError::NSPOpen:
-                    err = "Failed to open the NSP file";
+                    err += "Failed to open the NSP file";
                     break;
                 case InstallerError::BadCNMTNCA:
-                    err = "Failed to read from the meta NCA (CNMT NCA)";
+                    err += "Failed to read from the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::CNMTMCAOpen:
-                    err = "Failed to open the meta NCA (CNMT NCA)";
+                    err += "Failed to open the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::BadCNMT:
-                    err = "Failed to read from the meta file (CNMT)";
+                    err += "Failed to read from the meta file (CNMT)";
                     break;
                 case InstallerError::CNMTOpen:
-                    err = "Failed to open the meta file (CNMT)";
+                    err += "Failed to open the meta file (CNMT)";
                     break;
                 case InstallerError::BadControlNCA:
-                    err = "Failed to open the control NCA";
+                    err += "Failed to open the control NCA";
                     break;
                 case InstallerError::MetaDatabaseOpen:
-                    err = "Failed to open content meta database";
+                    err += "Failed to open content meta database";
                     break;
                 case InstallerError::MetaDatabaseSet:
-                    err = "Failed to set in the content meta database";
+                    err += "Failed to set in the content meta database";
                     break;
                 case InstallerError::MetaDatabaseCommit:
-                    err = "Failed to commit on the content meta database";
+                    err += "Failed to commit on the content meta database";
                     break;
                 case InstallerError::ContentMetaCount:
-                    err = "Failed to count content meta";
+                    err += "Failed to count content meta";
                     break;
                 case InstallerError::ContentMetaList:
-                    err = "Failed to list content meta";
+                    err += "Failed to list content meta";
                     break;
                 case InstallerError::RecordPush:
-                    err = "Failed to push title record";
+                    err += "Failed to push title record";
                     break;
                 case InstallerError::InstallBadNCA:
-                    err = "Failed to find NCA content to write in the NSP";
+                    err += "Failed to find NCA content to write in the NSP";
                     break;
                 default:
-                    err = "An unknown error ocurred";
+                    err += "An unknown error ocurred";
                     break;
             }
             mainapp->UpdateFooter(err + ": " + horizon::FormatHex(Res.Error));
