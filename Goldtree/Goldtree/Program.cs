@@ -266,15 +266,16 @@ namespace gtree
             }
             Log.Log("The installation has finished. Press ENTER to close Goldtree, or any other key to start another USB installation.", true);
             ConsoleKeyInfo ki = Console.ReadKey();
-            if(ki.Key == ConsoleKey.Enter) {
-                if(USB != null) {
+            if(ki.Key == ConsoleKey.Enter)
+            {
+                if(USB != null)
+                {
                     Command cmd = new Command(CommandId.Finish);
                     USB.Write(cmd);
                 }
                 Environment.Exit(0);
-            } else {
-                goto usbnsp;
             }
+            else goto usbnsp;
         }
     }
 }

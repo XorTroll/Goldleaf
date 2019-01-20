@@ -1930,7 +1930,7 @@ namespace gleaf::ui
             {
                 Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
                 std::string resstr = "The ticket was successfully removed from this console.";
-                if(rc != 0) resstr = "The title was not successfully removed (error code " + std::to_string(rc) + ")";
+                if(rc != 0) resstr = "An error ocurred attempting to remove the ticket: " + std::to_string(rc);
                 else this->UpdateElements();
                 mainapp->UpdateFooter(resstr);
             }
@@ -1958,24 +1958,33 @@ namespace gleaf::ui
         Result rc = accountGetProfile(&this->prf, UserId);
         if(rc != 0)
         {
-            mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
+            mainapp->UpdateFooter("An error ocurred trying to access account data: " + horizon::FormatHex(rc));
+            this->CleanData();
+            mainapp->UnloadMenuData();
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
         }
         this->pbase = (AccountProfileBase*)malloc(sizeof(AccountProfileBase));
         this->udata = (AccountUserData*)malloc(sizeof(AccountUserData));
         rc = accountProfileGet(&this->prf, this->udata, this->pbase);
         if(rc != 0)
         {
-            mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
+            mainapp->UpdateFooter("An error ocurred trying to access account data: " + horizon::FormatHex(rc));
+            this->CleanData();
+            mainapp->UnloadMenuData();
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
         }
         mainapp->LoadMenuHead("Loaded user: " + std::string(this->pbase->username));
         auto res = acc::GetProfileEditor(UserId);
         rc = std::get<0>(res);
         if(rc != 0)
         {
-            mainapp->UpdateFooter("An error ocurred trying to access account data (error " + horizon::FormatHex(rc));
+            mainapp->UpdateFooter("An error ocurred trying to access account data: " + horizon::FormatHex(rc));
+            this->CleanData();
+            mainapp->UnloadMenuData();
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
         }
         this->pred = std::get<1>(res);
         std::string iconpth = "sdmc:/goldleaf/userdata/" + horizon::FormatHex128(UserId) + ".jpg";
@@ -1999,7 +2008,7 @@ namespace gleaf::ui
             serviceClose(&this->prf.s);
             free(this->pbase);
             free(this->udata);
-            this->pred->Close();
+            if(this->pred != NULL) this->pred->Close();
             this->pred = NULL;
         }
     }
@@ -2018,16 +2027,16 @@ namespace gleaf::ui
                     mainapp->LoadMenuHead("Loaded user: " + name);
                     mainapp->UpdateFooter("Account was renamed to \'" + name + "\'.");
                 }
-                else mainapp->UpdateFooter("Error renaming user account: " + horizon::FormatHex(rc));
+                else mainapp->UpdateFooter("An error ocurred attempting to rename the user account: " + horizon::FormatHex(rc));
             }
-            else mainapp->UpdateFooter("Error renaming user account. The name was too long.");
+            else mainapp->UpdateFooter("An error ocurred attempting to rename the user account. The name was too long.");
         }
     }
 
     void AccountLayout::optsIcon_Click()
     {
         std::string iconpth = "sdmc:/goldleaf/userdata/" + horizon::FormatHex128(this->uid) + ".jpg";
-        pu::Dialog *dlg = new pu::Dialog("Account icon", "If you want to replace the icon with another JPEG, you can to that from the file browsers.\n\nFor the actual icon, it has been exported here:\n\'" + iconpth + "\'");
+        pu::Dialog *dlg = new pu::Dialog("Account icon", "You can replace the user's icon with another JPEG  from the file browsers.\n\nFor the current icon, you can find it here:\n\'" + iconpth + "\'");
         dlg->AddOption("Ok");
         mainapp->ShowDialog(dlg);
     }
