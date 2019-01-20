@@ -23,7 +23,7 @@ namespace gleaf::usb
         NSPData= 4,
         NSPContent = 5,
         NSPTicket = 6,
-        Finish = 8,
+        Finish = 7,
     };
 
     struct Command
