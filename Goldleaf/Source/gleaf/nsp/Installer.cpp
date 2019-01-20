@@ -45,13 +45,6 @@ namespace gleaf::nsp
             this->stik = "gnspi:/" + tikname;
             this->tikdata = horizon::ReadTicket(this->stik);
         }
-        std::string certname = fs::SearchForFile(this->idfs, "", "cert");
-        if(certname == "") this->tik = false;
-        else
-        {
-            this->tik = true;
-            this->scert = "gnspi:/" + certname;
-        }
         ByteBuffer cnmt;
         std::string cnmtname = fs::SearchForFile(this->idfs, "", "cnmt.nca");
         if(cnmtname == "")
@@ -117,11 +110,11 @@ namespace gleaf::nsp
             {
                 std::string ncaname = Input + "/" + horizon::GetStringFromNCAId(record.NCAId) + ".nca";
                 ncaname.reserve(FS_MAX_PATH);
-                FsFileSystem controlfs;
-                rc = fsOpenFileSystemWithId(&controlfs, cmeta.GetContentMetaKey().titleId, FsFileSystemType_ContentControl, ncaname.c_str());
+                FsFileSystem gnspcnca;
+                rc = fsOpenFileSystemWithId(&gnspcnca, cmeta.GetContentMetaKey().titleId, FsFileSystemType_ContentControl, ncaname.c_str());
                 if(rc != 0) continue;
-                fsdevMountDevice("controlfs", controlfs);
-                DIR *d = opendir("controlfs:/");
+                fsdevMountDevice("gnspcnca", gnspcnca);
+                DIR *d = opendir("gnspcnca:/");
                 dirent *dent;
                 std::string icon;
                 while(true)
@@ -131,7 +124,7 @@ namespace gleaf::nsp
                     std::string fle = std::string(dent->d_name);
                     if(fle.substr(fle.length() - 3) == "dat")
                     {
-                        icon = "controlfs:/" + fle;
+                        icon = "gnspcnca:/" + fle;
                         break;
                     }
                 }
@@ -143,11 +136,11 @@ namespace gleaf::nsp
                 out << dat.rdbuf();
                 out.close();
                 dat.close();
-                FILE *f = fopen("controlfs:/control.nacp", "rb");
+                FILE *f = fopen("gnspcnca:/control.nacp", "rb");
                 this->nacps = (NacpStruct*)malloc(sizeof(NacpStruct));
                 fread(this->nacps, sizeof(NacpStruct), 1, f);
                 fclose(f);
-                fsdevUnmountDevice("controlfs");
+                fsdevUnmountDevice("gnspcnca");
             }
         }
         fsFileClose(&fcnmtfile);
@@ -165,6 +158,7 @@ namespace gleaf::nsp
             this->irc.Error = rc;
             this->irc.Type = InstallerError::MetaDatabaseOpen;
             serviceClose(&metadb.s);
+            this->Finalize();
             return this->irc;
         }
         rc = ncmContentMetaDatabaseSet(&metadb, &metakey, cnmtbuf.GetSize(), (NcmContentMetaRecordsHeader*)cnmtbuf.GetData());
@@ -173,6 +167,7 @@ namespace gleaf::nsp
             this->irc.Error = rc;
             this->irc.Type = InstallerError::MetaDatabaseSet;
             serviceClose(&metadb.s);
+            this->Finalize();
             return this->irc;
         }
         rc = ncmContentMetaDatabaseCommit(&metadb);
@@ -181,6 +176,7 @@ namespace gleaf::nsp
             this->irc.Error = rc;
             this->irc.Type = InstallerError::MetaDatabaseCommit;
             serviceClose(&metadb.s);
+            this->Finalize();
             return this->irc;
         }
         serviceClose(&metadb.s);
@@ -223,6 +219,7 @@ namespace gleaf::nsp
         {
             this->irc.Error = rc;
             this->irc.Type = InstallerError::RecordPush;
+            this->Finalize();
             return this->irc;
         }
         if(this->tik)
@@ -234,14 +231,7 @@ namespace gleaf::nsp
             auto btik = std::make_unique<u8[]>(sztik);
             ifs.read((char*)btik.get(), sztik);
             ifs.close();
-            ifs = std::ifstream(this->scert, std::ios::binary);
-            ifs.seekg(0, ifs.end);
-            int szcert = ifs.tellg();
-            ifs.seekg(0, ifs.beg);
-            auto bcert = std::make_unique<u8[]>(szcert);
-            ifs.read((char*)bcert.get(), szcert);
-            ifs.close();
-            es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
+            es::ImportTicket(btik.get(), sztik, es::CertData, 1792);
         }
         return this->irc;
     }
@@ -278,6 +268,7 @@ namespace gleaf::nsp
             {
                 this->irc.Error = rc;
                 this->irc.Type = InstallerError::InstallBadNCA;
+                fsFileClose(&ncafile);
                 continue;
             }
             ncm::ContentStorage cstorage(stid);
@@ -288,7 +279,8 @@ namespace gleaf::nsp
             {
                 this->irc.Error = rc;
                 this->irc.Type = InstallerError::InstallBadNCA;
-                return this->irc;
+                fsFileClose(&ncafile);
+                continue;
             }
             u64 noff = 0;
             size_t reads = 0x100000;
@@ -348,7 +340,7 @@ namespace gleaf::nsp
         return has;
     }
 
-    bool Installer::HasTicketAndCert()
+    bool Installer::HasTicket()
     {
         return this->tik;
     }

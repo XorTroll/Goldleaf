@@ -243,6 +243,8 @@ namespace gleaf::horizon
     {
         ApplicationIdMask mas = ApplicationIdMask::Invalid;
         std::string fappid = FormatApplicationId(ApplicationId);
+        char fst = fappid[0];
+        if(fst != '0') return mas;
         char mask = fappid[1];
         if(mask == '1') mas = ApplicationIdMask::Official;
         else if(mask == '5') mas = ApplicationIdMask::Homebrew;

@@ -92,7 +92,7 @@ namespace gleaf::ui
         else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 3) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
-        mainapp->LoadMenuData("NAND", "NAND", mainapp->GetNANDBrowserLayout()->GetExplorer()->GetCwd());
+        mainapp->LoadMenuData("Console memory", "NAND", mainapp->GetNANDBrowserLayout()->GetExplorer()->GetCwd());
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
     }
 
@@ -182,14 +182,14 @@ namespace gleaf::ui
 
     void MainMenuLayout::cfwConfigMenuItem_Click()
     {
-        mainapp->LoadMenuData("CFW and themes", "CFW", "Searching for CFWs on the SD card...");
+        mainapp->LoadMenuData("CFWs and themes", "CFW", "Searching for CFWs on the SD card...");
         mainapp->GetCFWConfigLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetCFWConfigLayout());
     }
 
     void MainMenuLayout::sysinfoMenuItem_Click()
     {
-        mainapp->LoadMenuData("System information", "Settings", "Loading settings and information of the system...");
+        mainapp->LoadMenuData("Console information", "Settings", "Loading settings and information of the system...");
         mainapp->GetSystemInfoLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSystemInfoLayout());
     }
@@ -204,7 +204,7 @@ namespace gleaf::ui
     {
         this->gexp = new fs::Explorer(Partition);
         this->browseMenu = new pu::element::Menu(0, 170, 1280, { 220, 220, 220, 255 }, 100, 5);
-        this->dirEmptyText = new pu::element::TextBlock(30, 630, "The directory is empty.");
+        this->dirEmptyText = new pu::element::TextBlock(30, 630, "Current directory is empty.");
         this->AddChild(this->browseMenu);
         this->AddChild(this->dirEmptyText);
     }
@@ -349,7 +349,7 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                        dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
+                        dlg = new pu::Dialog("Select NSP install location", "Where would you like to install the selected NSP?");
                         dlg->AddOption("SD card");
                         dlg->AddOption("Console memory (NAND)");
                         dlg->AddOption("Cancel");
@@ -378,11 +378,39 @@ namespace gleaf::ui
                         }
                         bool isapp = (inst.GetContentType() == ncm::ContentMetaType::Application);
                         bool hasnacp = inst.HasContent(ncm::ContentType::Control);
-                        std::string info = "No control data was found inside the NSP. (control NCA seems to be missing)";
-                        if(!isapp) info = "The NSP isn't an application (could be an update, a patch, add-on content...)";
+                        std::string info = "Information about the NSP to be installed:\n\n\n";
+                        switch(inst.GetContentType())
+                        {
+                            case ncm::ContentMetaType::Application:
+                                info += "The NSP contains a regular title.";
+                                break;
+                            case ncm::ContentMetaType::Patch:
+                                info += "The NSP contains a patch (a title update)";
+                                break;
+                            case ncm::ContentMetaType::AddOnContent:
+                                info += "The NSP contains add-on content (DLC)";
+                                break;
+                            default:
+                                info += "The NSP contains other content, system-related or delta fragments.";
+                                break;
+                        }
+                        horizon::ApplicationIdMask idmask = horizon::IsValidApplicationId(inst.GetApplicationId());
+                        info += "\nAccording to the NSP's application ID, ";
+                        switch(idmask)
+                        {
+                            case horizon::ApplicationIdMask::Official:
+                                info += "it's an official NSP. (official game, update or contents in general)";
+                                break;
+                            case horizon::ApplicationIdMask::Homebrew:
+                                info += "it's a homebrew NSP. (has homebrew's common application ID mask, so it's probably homebrew)";
+                                break;
+                            case horizon::ApplicationIdMask::Invalid:
+                                info += "it has an unknown application ID mask. NSPs like this could be dangerous!";
+                                break;
+                        }
                         if(hasnacp && isapp)
                         {
-                            info = "Information about the NSP's control data:\n\n\n";
+                            info += "\nInformation about the NSP's control data:\n\n\n";
                             NacpStruct *nacp = inst.GetNACP();
                             NacpLanguageEntry lent;
                             for(u32 i = 0; i < 16; i++)
@@ -397,7 +425,7 @@ namespace gleaf::ui
                             info += "\nVersion: ";
                             info += nacp->version;
                             std::vector<ncm::ContentRecord> ncas = inst.GetRecords();
-                            info += "\n\nContents (" + std::to_string(ncas.size()) + "): ";
+                            info += "\n\nContents[" + std::to_string(ncas.size()) + "]: ";
                             for(u32 i = 0; i < ncas.size(); i++)
                             {
                                 ncm::ContentType t = ncas[i].Type;
@@ -419,7 +447,7 @@ namespace gleaf::ui
                                         info += "Meta (CNMT)";
                                         break;
                                     case ncm::ContentType::OfflineHTML:
-                                        info += "Offline HTML";
+                                        info += "Offline Html";
                                         break;
                                     case ncm::ContentType::Program:
                                         info += "Program";
@@ -429,7 +457,7 @@ namespace gleaf::ui
                             }
                         }
                         info += "\n\n";
-                        if(isapp && inst.HasTicketAndCert())
+                        if(isapp && inst.HasTicket())
                         {
                             info += "This NSP has a ticket and it will be installed. Ticket information:\n\n";
                             horizon::TicketData tik = inst.GetTicketData();
@@ -456,7 +484,7 @@ namespace gleaf::ui
                                     info += "ECDSA (SHA256)";
                                     break;
                             }
-                            info += "\nKey generation: " + std::to_string(tik.KeyGeneration);
+                            info += "\nKey generation: " + std::to_string(tik.KeyGeneration + 1);
                             switch(tik.KeyGeneration)
                             {
                                 case 0:
@@ -485,8 +513,8 @@ namespace gleaf::ui
                                     break;
                             }
                         }
-                        else if(!inst.HasTicketAndCert()) info += "This NSP doesn't have a ticket. It seems to only have standard crypto.";
-                        dlg = new pu::Dialog("Ready to start installing?", info);
+                        else if(!inst.HasTicket()) info += "This NSP doesn't have a ticket. It seems to be standard crypto.";
+                        dlg = new pu::Dialog("Ready to start installation?", info);
                         if(hasnacp) dlg->SetIcon(inst.GetExportedIconPath(), 994, 30);
                         dlg->AddOption("Install");
                         dlg->AddOption("Cancel");
@@ -517,7 +545,7 @@ namespace gleaf::ui
                         mainapp->ShowDialog(dlg);
                         if(!dlg->UserCancelled() || (dlg->GetSelectedIndex() == 0))
                         {
-                            envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
+                            envSetNextLoad(fullitm.c_str(), (char*)((char**)envGetArgv())[0]);
                             mainapp->Close();
                             return;
                         }
@@ -529,14 +557,6 @@ namespace gleaf::ui
                 switch(sopt)
                 {
                     case 0:
-                        std::string tcert = fullitm.substr(0, fullitm.length() - 3) + "cert";
-                        if(!fs::Exists(tcert))
-                        {
-                            dlg = new pu::Dialog("Ticket import error", "To be able to import this ticket, both the *.tik and *.cert files are required.\nYou selected the *.cert one, but the *.tik one couldn't be found.\n\nBoth need to have the same name.");
-                            dlg->AddOption("Ok");
-                            mainapp->ShowDialog(dlg);
-                            return;
-                        }
                         dlg = new pu::Dialog("Ticket import confirmation", "The selected ticket will be imported.");
                         dlg->AddOption("Import");
                         dlg->AddOption("Cancel");
@@ -550,15 +570,8 @@ namespace gleaf::ui
                             auto btik = std::make_unique<u8[]>(sztik);
                             ifs.read((char*)btik.get(), sztik);
                             ifs.close();
-                            ifs = std::ifstream(tcert, std::ios::binary);
-                            ifs.seekg(0, ifs.end);
-                            int szcert = ifs.tellg();
-                            ifs.seekg(0, ifs.beg);
-                            auto bcert = std::make_unique<u8[]>(szcert);
-                            ifs.read((char*)bcert.get(), szcert);
-                            ifs.close();
-                            Result rc = es::ImportTicket(btik.get(), sztik, bcert.get(), szcert);
-                            if(rc != 0) mainapp->UpdateFooter("An error ocurred trying to install the ticket (error code " + horizon::FormatHex(rc) + ")");
+                            Result rc = es::ImportTicket(btik.get(), sztik, es::CertData, 1792);
+                            if(rc != 0) mainapp->UpdateFooter("An error ocurred trying to install the ticket: " + horizon::FormatHex(rc));
                         }
                         break;
                 }
@@ -787,7 +800,7 @@ namespace gleaf::ui
                     else if(this->WarnNANDWriteAccess())
                     {
                         int rc = rename(fullitm.c_str(), newren.c_str());
-                        if(rc) mainapp->UpdateFooter("There was an error trying to rename the file.");
+                        if(rc) mainapp->UpdateFooter("An error ocurred attempting to rename the file.");
                         else
                         {
                             mainapp->UpdateFooter("A file was renamed.");
@@ -842,7 +855,7 @@ namespace gleaf::ui
                         else if(this->WarnNANDWriteAccess())
                         {
                             int rc = rename(fullitm.c_str(), newren.c_str());
-                            if(rc) mainapp->UpdateFooter("There was an error trying to rename the directory.");
+                            if(rc) mainapp->UpdateFooter("An error ocurred attempting to rename the directory.");
                             else mainapp->UpdateFooter("A directory was renamed.");
                             this->UpdateElements();
                         }
@@ -1016,61 +1029,57 @@ namespace gleaf::ui
     {
         if(!Res.IsSuccess())
         {
-            std::string err = "An error ocurred while installing NSP package:\n\n";
             if(Res.Type == InstallerError::Success) return;
+            std::string err = "An error ocurred: ";
             switch(Res.Type)
             {
                 case InstallerError::BadNSP:
-                    err += "Failed to read from the NSP file.\nThis error could be caused by various reasons: invalid NSP, minimum firmware mismatch...";
+                    err = "Failed to read from the NSP file";
                     break;
                 case InstallerError::NSPOpen:
-                    err += "Failed to open the NSP file. Does it exist?";
+                    err = "Failed to open the NSP file";
                     break;
                 case InstallerError::BadCNMTNCA:
-                    err += "Failed to read from the meta NCA (CNMT NCA) within the NSP.";
+                    err = "Failed to read from the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::CNMTMCAOpen:
-                    err += "Failed to open the meta NCA (CNMT NCA) within the NSP.";
+                    err = "Failed to open the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::BadCNMT:
-                    err += "Failed to read from the meta file (CNMT) within the CNMT NCA.";
+                    err = "Failed to read from the meta file (CNMT)";
                     break;
                 case InstallerError::CNMTOpen:
-                    err += "Failed to open the meta file (CNMT) within the CNMT NCA.";
+                    err = "Failed to open the meta file (CNMT)";
                     break;
                 case InstallerError::BadControlNCA:
-                    err += "Failed to open the control NCA within the NSP.";
+                    err = "Failed to open the control NCA";
                     break;
                 case InstallerError::MetaDatabaseOpen:
-                    err += "Failed to open content meta database for record processing.";
+                    err = "Failed to open content meta database";
                     break;
                 case InstallerError::MetaDatabaseSet:
-                    err += "Failed to set in the content meta database for record processing.";
+                    err = "Failed to set in the content meta database";
                     break;
                 case InstallerError::MetaDatabaseCommit:
-                    err += "Failed to commit on the content meta database for record processing.";
+                    err = "Failed to commit on the content meta database";
                     break;
                 case InstallerError::ContentMetaCount:
-                    err += "Failed to count content meta for registered application.";
+                    err = "Failed to count content meta";
                     break;
                 case InstallerError::ContentMetaList:
-                    err += "Failed to list content meta for registered application.";
+                    err = "Failed to list content meta";
                     break;
                 case InstallerError::RecordPush:
-                    err += "Failed to push record for application.";
+                    err = "Failed to push title record";
                     break;
                 case InstallerError::InstallBadNCA:
-                    err += "Failed to find NCA content to write within the NSP.";
+                    err = "Failed to find NCA content to write in the NSP";
                     break;
                 default:
-                    err += "<undocumented error>";
+                    err = "An unknown error ocurred";
                     break;
             }
-            err += " (error code " + horizon::FormatHex(Res.Error) + ")";
-            pu::Dialog *dlg = new pu::Dialog("NSP installation error", err);
-            dlg->AddOption("Ok");
-            mainapp->ShowDialog(dlg);
-            mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
+            mainapp->UpdateFooter(err + ": " + horizon::FormatHex(Res.Error));
         }
     }
 
@@ -1256,61 +1265,57 @@ namespace gleaf::ui
     {
         if(!Res.IsSuccess())
         {
-            std::string err = "An error ocurred while installing the NSP via USB:\n\n";
             if(Res.Type == InstallerError::Success) return;
+            std::string err = "An error ocurred: ";
             switch(Res.Type)
             {
                 case InstallerError::BadNSP:
-                    err += "Failed to read from the NSP file.\nThis error could be caused by various reasons: invalid NSP, minimum firmware mismatch...";
+                    err = "Failed to read from the NSP file";
                     break;
                 case InstallerError::NSPOpen:
-                    err += "Failed to open the NSP file. Does it exist?";
+                    err = "Failed to open the NSP file";
                     break;
                 case InstallerError::BadCNMTNCA:
-                    err += "Failed to read from the meta NCA (CNMT NCA) within the NSP.";
+                    err = "Failed to read from the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::CNMTMCAOpen:
-                    err += "Failed to open the meta NCA (CNMT NCA) within the NSP.";
+                    err = "Failed to open the meta NCA (CNMT NCA)";
                     break;
                 case InstallerError::BadCNMT:
-                    err += "Failed to read from the meta file (CNMT) within the CNMT NCA.";
+                    err = "Failed to read from the meta file (CNMT)";
                     break;
                 case InstallerError::CNMTOpen:
-                    err += "Failed to open the meta file (CNMT) within the CNMT NCA.";
+                    err = "Failed to open the meta file (CNMT)";
                     break;
                 case InstallerError::BadControlNCA:
-                    err += "Failed to open the control NCA within the NSP.";
+                    err = "Failed to open the control NCA";
                     break;
                 case InstallerError::MetaDatabaseOpen:
-                    err += "Failed to open content meta database for record processing.";
+                    err = "Failed to open content meta database";
                     break;
                 case InstallerError::MetaDatabaseSet:
-                    err += "Failed to set in the content meta database for record processing.";
+                    err = "Failed to set in the content meta database";
                     break;
                 case InstallerError::MetaDatabaseCommit:
-                    err += "Failed to commit on the content meta database for record processing.";
+                    err = "Failed to commit on the content meta database";
                     break;
                 case InstallerError::ContentMetaCount:
-                    err += "Failed to count content meta for registered application.";
+                    err = "Failed to count content meta";
                     break;
                 case InstallerError::ContentMetaList:
-                    err += "Failed to list content meta for registered application.";
+                    err = "Failed to list content meta";
                     break;
                 case InstallerError::RecordPush:
-                    err += "Failed to push record for application.";
+                    err = "Failed to push title record";
                     break;
                 case InstallerError::InstallBadNCA:
-                    err += "Failed to find NCA content to write within the NSP.";
+                    err = "Failed to find NCA content to write in the NSP";
                     break;
                 default:
-                    err += "<undocumented error>";
+                    err = "An unknown error ocurred";
                     break;
             }
-            err += " (error code " + horizon::FormatHex(Res.Error) + ")";
-            pu::Dialog *dlg = new pu::Dialog("NSP via USB installation error", err);
-            dlg->AddOption("Ok");
-            mainapp->ShowDialog(dlg);
-            mainapp->UpdateFooter("An error ocurred installing the NSP (error code " + horizon::FormatHex(Res.Error) + ")");
+            mainapp->UpdateFooter(err + ": " + horizon::FormatHex(Res.Error));
         }
     }
 
@@ -1337,7 +1342,7 @@ namespace gleaf::ui
             bool exok = gleaf::horizon::ExportQlaunchRomFs();
             if(!exok)
             {
-                pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to export qlaunch's files from the console.\nThey are required to proceed with the installation.");
+                pu::Dialog *dlg = new pu::Dialog("Theme install error", "An error ocurred attempting to export qlaunch's files from the console.\nThey are required to proceed with the installation.");
                 dlg->AddOption("Ok");
                 mainapp->ShowDialog(dlg);
                 mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
@@ -1355,7 +1360,7 @@ namespace gleaf::ui
         auto ptp = gleaf::theme::DetectSarc(szstp);
         if(ptp.FirmName == "")
         {
-            pu::Dialog *dlg = new pu::Dialog("Theme install error", "There was an error trying to determine the patch for the theme.");
+            pu::Dialog *dlg = new pu::Dialog("Theme install error", "An error ocurred attempting to determine the patch for the theme.");
             dlg->AddOption("Ok");
             mainapp->ShowDialog(dlg);
             mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
@@ -1840,13 +1845,11 @@ namespace gleaf::ui
             if(istkey2) info = "The title requires a titlekey but it was not found.\nThe NSP will be created, but it won't be playable without the required ticket.";
             else info = "The title doesn't need a titlekey, so the rest will be really easy.";
         }
-        this->dumpText->SetText(info += "\n\nStarting final NSP build...");
-        mainapp->CallForRender();
         std::string fout = "sdmc:/goldleaf/dump/out/" + fappid + ".nsp";
         this->ncaBar->SetVisible(true);
+        this->dumpText->SetText("Building final NSP from exported contents...");
         int qi = nsp::BuildPFS(outdir, fout, [&](u8 p)
         {
-            this->dumpText->SetText("Building final NSP from exported contents...");
             this->ncaBar->SetProgress(p);
             mainapp->CallForRender();
         });
@@ -1854,10 +1857,7 @@ namespace gleaf::ui
         fs::DeleteDirectory("sdmc:/goldleaf/dump/temp");
         fs::DeleteDirectory(outdir);
         if(ok) mainapp->UpdateFooter("Title dumped as NSP: '" + fout + "'");
-        else mainapp->UpdateFooter("There was an error dumping the title.");
-        pu::Dialog *dlg = new pu::Dialog("Title dump warning", "The dump has finished, but title dumps break ETicket services.\nTicket-related things will be broken in any homebrew.\nA reboot is recommended: dump all the titles you want, then press ZL or ZR to reboot the console anytime.");
-        dlg->AddOption("Ok");
-        mainapp->ShowDialog(dlg);
+        else mainapp->UpdateFooter("An error ocurred attempting to dump the title as NSP.");
         serviceClose(&cst.s);
         serviceClose(&cmdb.s);
     }

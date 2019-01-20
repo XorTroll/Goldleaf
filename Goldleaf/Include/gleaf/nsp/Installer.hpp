@@ -34,7 +34,7 @@ namespace gleaf::nsp
             std::vector<ncm::ContentRecord> GetRecords();
             std::string GetExportedIconPath();
             bool HasContent(ncm::ContentType Type);
-            bool HasTicketAndCert();
+            bool HasTicket();
             horizon::TicketData GetTicketData();
             bool IsCNMTAlreadyInstalled();
             InstallerResult GetLatestResult();
@@ -52,7 +52,6 @@ namespace gleaf::nsp
             ByteBuffer cnmtbuf;
             ncm::ContentMeta cmeta;
             std::string stik;
-            std::string scert;
             horizon::TicketData tikdata;
     };
 }

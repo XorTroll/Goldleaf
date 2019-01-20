@@ -71,32 +71,6 @@ namespace gleaf::dump
         return stid;
     }
 
-    u32 TerminateES()
-    {
-        es::Finalize();
-        pmdmntInitialize();
-        pmshellInitialize();
-        u64 espid = 0;
-        pmdmntGetTitlePid(&espid, 0x0100000000000033);
-        Handle eshandle;
-        svcDebugActiveProcess(&eshandle, espid);
-        DebugEventInfo dev;
-        svcGetDebugEvent((u8*)&dev, eshandle);
-        svcCloseHandle(eshandle);
-        u32 flags = dev.info.attach_process.flags & 0x1dd;
-        pmshellTerminateProcessByTitleId(0x0100000000000033);
-        return flags;
-    }
-
-    void RelaunchES(u32 ESFlags)
-    {
-        u64 espid = 0;
-        pmshellLaunchProcess(ESFlags, 0x0100000000000033, FsStorageId_NandSystem, &espid);
-        pmdmntExit();
-        pmshellExit();
-        es::Initialize();
-    }
-
     std::string GetTitleKeyData(u64 ApplicationId, bool ExportData)
     {
         fsOpenBisStorage(&fatfs_bin, 31);
@@ -163,6 +137,8 @@ namespace gleaf::dump
             }
             free(tkdata);
         }
+        fatfs::f_close(&save);
+        fsStorageClose(&fatfs_bin);
         if(ExportData && (tkey != ""))
         {
             FILE *ceout = fopen((outdir + "/" + orid + ".cert").c_str(), "wb");
