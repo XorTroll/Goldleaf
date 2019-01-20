@@ -40,9 +40,9 @@ TARGET      := Goldleaf
 ICON		:= Control/icon_AmericanEnglish.dat
 
 BUILD       := Build
-SOURCES     := Source Source/gleaf Source/gleaf/acc Source/gleaf/dump Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/lyt Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/sarc Source/gleaf/theme Source/gleaf/ui Source/gleaf/usb
+SOURCES     := Source Source/fatfs Source/gleaf Source/gleaf/acc Source/gleaf/dump Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/lyt Source/gleaf/ncm Source/gleaf/ns Source/gleaf/nsp Source/gleaf/sarc Source/gleaf/theme Source/gleaf/ui Source/gleaf/usb
 DATA        := Data
-INCLUDES    := Include Include/gleaf Include/gleaf/acc Include/gleaf/dump Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/lyt Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/sarc Include/gleaf/theme Include/gleaf/ui Include/gleaf/usb
+INCLUDES    := Include Include/fatfs Include/gleaf Include/gleaf/acc Include/gleaf/dump Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/lyt Include/gleaf/ncm Include/gleaf/ns Include/gleaf/nsp Include/gleaf/sarc Include/gleaf/theme Include/gleaf/ui Include/gleaf/usb
 EXEFS_SRC   := ExeFs
 ROMFS       := RomFs
 

@@ -3,9 +3,12 @@
 #include <gleaf/Application.hpp>
 #include <gleaf/hactool.hpp>
 #include <gleaf/horizon.hpp>
+#include <fatfs/fatfs.hpp>
 #include <gleaf/es.hpp>
 #include <sstream>
 #include <iomanip>
+
+FsStorage fatfs_bin;
 
 namespace gleaf::dump
 {
@@ -96,102 +99,75 @@ namespace gleaf::dump
 
     std::string GetTitleKeyData(u64 ApplicationId, bool ExportData)
     {
+        fsOpenBisStorage(&fatfs_bin, 31);
+        fatfs::FATFS fs;
+        fatfs::FIL save;
+        fatfs::f_mount(&fs, "", 1);
+        fatfs::f_chdir("/save");
+        fatfs::f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
         std::string tkey = "";
         std::string orid = "";
         std::string fappid = horizon::FormatApplicationId(ApplicationId);
         std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
-        FsFileSystem ess;
-        Result rc = 0;
-        do
+        u32 tmpsz = 0;
+        while(true)
         {
-            rc = fsMount_SystemSaveData(&ess, 0x80000000000000e1);
-        } while(rc != 0);
-        fsdevMountDevice("escommon", ess);
-        FILE *f = fopen("escommon:/ticket.bin", "rb");
-        fseek(f, 0, SEEK_END);
-        u64 fsize = ftell(f);
-        rewind(f);
-        u64 szrem = fsize;
-        while(szrem)
-        {
-            u8 *ticket = (u8*)malloc(0x400 * sizeof(u8));
-            fread(ticket, 1, 0x400, f);
-            szrem -= 0x400;
-            std::stringstream stid;
-            std::stringstream srid;
-            for(u32 i = 0; i < 0x10; i++)
+            if(tkey != "") break;
+            u8 *tkdata = (u8*)malloc(0x40000);
+            fatfs::FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
+            if(fr) break;
+            if(tmpsz == 0) break;
+            for(u32 i = 0; i < tmpsz; i += 0x4000)
             {
-                u32 off = 0x2a0 + i;
-                srid << std::setw(2) << std::setfill('0') << std::hex << (int)ticket[off];
-            }
-            for(u32 i = 0; i < 0x8; i++)
-            {
-                u32 off = 0x2a0 + i;
-                stid << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)ticket[off];
-            }
-            std::stringstream stkey;
-            for(u32 i = 0; i < 0x10; i++)
-            {
-                u32 off = 0x180 + i;
-                stkey << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)ticket[off];
-            }
-            std::string tid = stid.str();
-            std::string rid = srid.str();
-            std::string etkey = stkey.str();
-            // We found the ticket, return the tkey and export the ticket
-            if(fappid == tid)
-            {
-                orid = rid;
-                if(ExportData)
+                if(tkey != "") break;
+                for(u32 j = 0; j < (i + 0x4000); j += 0x400)
                 {
-                    FILE *tikf = fopen((outdir + "/" + rid + ".tik").c_str(), "wb");
-                    fwrite(ticket, 1, 0x400, tikf);
-                    fclose(tikf);
+                    if(tkey != "") break;
+                    if(*reinterpret_cast<u32*>(&tkdata[j]) == 0x10004)
+                    {
+                        std::stringstream stid;
+                        std::stringstream srid;
+                        for(u32 k = 0; k < 0x10; k++)
+                        {
+                            u32 off = j + 0x2a0 + k;
+                            srid << std::setw(2) << std::setfill('0') << std::hex << (int)tkdata[off];
+                        }
+                        for(u32 k = 0; k < 0x8; k++)
+                        {
+                            u32 off = j + 0x2a0 + k;
+                            stid << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
+                        }
+                        std::stringstream stkey;
+                        for(u32 k = 0; k < 0x10; k++)
+                        {
+                            u32 off = j + 0x180 + k;
+                            stkey << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
+                        }
+                        std::string tid = stid.str();
+                        std::string rid = srid.str();
+                        std::string etkey = stkey.str();
+                        if(fappid == tid)
+                        {
+                            orid = rid;
+                            if(ExportData)
+                            {
+                                FILE *tikf = fopen((outdir + "/" + rid + ".tik").c_str(), "wb");
+                                fwrite(&tkdata[j], 1, 0x400, tikf);
+                                fclose(tikf);
+                            }
+                            tkey = etkey;
+                            break;
+                        }
+                    }
                 }
-                tkey = etkey;
-                free(ticket);
-                break;
             }
-            free(ticket);
+            free(tkdata);
         }
-        fclose(f);
-        fsdevUnmountDevice("escommon");
-        // If we found a tkey export the cert too!
         if(ExportData && (tkey != ""))
         {
-            FsFileSystem css;
-            do
-            {
-                rc = fsMount_SystemSaveData(&css, 0x80000000000000e0);
-            } while(rc != 0);
-            fsdevMountDevice("escert", css);
             FILE *ceout = fopen((outdir + "/" + orid + ".cert").c_str(), "wb");
-            FILE *c1 = fopen("escert:/certificate/CA00000003", "rb");
-            if(c1)
-            {
-                fseek(c1, 0, SEEK_END);
-                u64 c1size = ftell(c1);
-                rewind(c1);
-                u8 *bc1 = (u8*)malloc(c1size * sizeof(u8));
-                fread(bc1, 1, c1size, c1);
-                fwrite(bc1, 1, c1size, ceout);
-                free(bc1);
-            }
-            fclose(c1);
-            FILE *c2 = fopen("escert:/certificate/XS00000020", "rb");
-            if(c2)
-            {
-                fseek(c2, 0, SEEK_END);
-                u64 c2size = ftell(c2);
-                rewind(c2);
-                u8 *bc2 = (u8*)malloc(c2size * sizeof(u8));
-                fread(bc2, 1, c2size, c2);
-                fwrite(bc2, 1, c2size, ceout);
-                free(bc2);
-            }
-            fclose(c2);
+            fwrite(es::CertData, 1792, 1, ceout);
             fclose(ceout);
-            fsdevUnmountDevice("escert");
         }
         return tkey;
     }

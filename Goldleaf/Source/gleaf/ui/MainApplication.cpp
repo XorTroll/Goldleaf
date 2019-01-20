@@ -1625,16 +1625,12 @@ namespace gleaf::ui
         std::string fappid = horizon::FormatApplicationId(Target.ApplicationId);
         std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
         fs::CreateDirectory(outdir);
-        this->dumpText->SetText("Terminating ES process...");
-        mainapp->CallForRender();
-        u32 esf = dump::TerminateES();
         this->dumpText->SetText("Accessing ticket data...");
         mainapp->CallForRender();
         std::string tkey = dump::GetTitleKeyData(Target.ApplicationId, true);
         this->dumpText->SetText("Initializing NCM services and retrieving NCAs...");
         mainapp->CallForRender();
         bool istkey = (tkey != "");
-        dump::RelaunchES(esf);
         NcmContentStorage cst;
         Result rc = ncmOpenContentStorage(stid, &cst);
         if(rc != 0)
