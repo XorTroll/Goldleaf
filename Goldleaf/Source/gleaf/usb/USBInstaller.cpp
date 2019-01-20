@@ -1,13 +1,8 @@
 #include <gleaf/usb/USBInstaller.hpp>
 #include <gleaf/usb/Communications.hpp>
-#include <gleaf/ui.hpp>
+#include <malloc.h>
 #include <gleaf/fs.hpp>
 #include <malloc.h>
-
-namespace gleaf::ui
-{
-    extern gleaf::ui::MainApplication *mainapp;
-}
 
 namespace gleaf::usb
 {
@@ -128,6 +123,7 @@ namespace gleaf::usb
             { 
                 cnmtdata = cnt;
                 this->ProcessContent(i, [&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed){});
+                break;
             }
         }
         return cnmtdata;

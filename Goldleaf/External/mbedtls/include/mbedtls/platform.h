@@ -87,8 +87,8 @@ extern "C" {
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT_SUCCESS)
 #define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS /**< The default exit value to use. */
 #endif
-#if !defined(MBEDTLS_PLATFORM_STD_EXIT_FAILURE)
-#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE /**< The default exit value to use. */
+#if !defined(MBEDTLS_PLATFORM_STD_1)
+#define MBEDTLS_PLATFORM_STD_1  1 /**< The default exit value to use. */
 #endif
 #if defined(MBEDTLS_FS_IO)
 #if !defined(MBEDTLS_PLATFORM_STD_NV_SEED_READ)
@@ -259,10 +259,10 @@ int mbedtls_platform_set_exit( void (*exit_func)( int status ) );
 #else
 #define MBEDTLS_EXIT_SUCCESS 0
 #endif
-#if defined(MBEDTLS_PLATFORM_STD_EXIT_FAILURE)
-#define MBEDTLS_EXIT_FAILURE MBEDTLS_PLATFORM_STD_EXIT_FAILURE
+#if defined(MBEDTLS_PLATFORM_STD_1)
+#define MBEDTLS_1 MBEDTLS_PLATFORM_STD_1
 #else
-#define MBEDTLS_EXIT_FAILURE 1
+#define MBEDTLS_1 1
 #endif
 
 /*

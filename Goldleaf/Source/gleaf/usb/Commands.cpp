@@ -1,16 +1,12 @@
 #include <gleaf/usb/Commands.hpp>
 #include <gleaf/usb/Communications.hpp>
-#include <gleaf/ui.hpp>
 #include <malloc.h>
 #include <algorithm>
 
-namespace gleaf::ui
-{
-    extern gleaf::ui::MainApplication *mainapp;
-}
-
 namespace gleaf::usb
 {
+    Mutex usbmtx;
+
     bool Command::MagicOk()
     {
         return (this->Magic == GLUC);
