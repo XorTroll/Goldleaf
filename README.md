@@ -124,7 +124,7 @@ Despite not being a really big issue, removing a ticket of a title which does re
 
   Goldleaf's title manager will display all the titles installed in the system, both SD, NAND and the one in the gamecart if inserted.
 
-  You can view these titles' information, icon, install location and Application Id.
+  You can view these titles' information, icon, install location and Application ID.
 
   Titles can also be completely uninstalled here. Keep in mind that deleting a title won't delete its savedata, that should stay on the system.
 
@@ -134,7 +134,7 @@ Despite not being a really big issue, removing a ticket of a title which does re
 
   Goldleaf can get all the tickets installed on the console. While some of them will contain the name of the title they belong to, some could belong to DLC or other types of content despite not belonging directly to a title.
 
-  You can view the Application Id and the key generation of a ticket by selecting it.
+  You can view the Application ID and the key generation of a ticket by selecting it.
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-crypto won't be playable.
 

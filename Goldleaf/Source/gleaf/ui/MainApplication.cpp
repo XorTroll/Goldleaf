@@ -1910,8 +1910,8 @@ namespace gleaf::ui
         horizon::Ticket seltick = this->tickets[this->ticketsMenu->GetSelectedIndex()];
         std::string info = "Information about selected ticket:\n\n\n";
         u64 tappid = seltick.GetApplicationId();
-        info += "Application Id: " + horizon::FormatApplicationId(tappid);
-        info += "\nKey generation: " + std::to_string(tappid);
+        info += "Application ID: " + horizon::FormatApplicationId(tappid);
+        info += "\nKey generation: " + std::to_string(seltick.GetKeyGeneration() + 1);
         pu::Dialog *dlg = new pu::Dialog("Installed ticket information", info);
         dlg->AddOption("Remove ticket");
         dlg->AddOption("Cancel");
