@@ -312,7 +312,7 @@ namespace gleaf::nsp
 
     u64 Installer::GetApplicationId()
     {
-        return this->basetid;
+        return this->cmeta.GetContentMetaKey().titleId;
     }
 
     ncm::ContentMetaType Installer::GetContentType()
