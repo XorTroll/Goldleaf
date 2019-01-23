@@ -627,7 +627,7 @@ namespace gleaf::ui
                     case 0:
                         if(!HasKeyFile())
                         {
-                            dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'goldleaf\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
+                            dlg = new pu::Dialog("NCA extraction error", "External keys are required to extract the selected NCA archive.\nPlace them at \'switch\'.\nSupported names: keys.dat, keys.ini, keys.txt, prod.keys");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
                             return;
