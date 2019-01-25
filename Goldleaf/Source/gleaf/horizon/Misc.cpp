@@ -102,4 +102,39 @@ namespace gleaf::horizon
     {
         return fs::GetFreeSpaceForPartition(fs::Partition::NANDUser);
     }
+
+    alignas(0x1000) u8 workpage[0x1000];
+    alignas(0x1000) u8 clearblock[0x1000];
+
+    void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size)
+    {
+        memcpy(workpage, Data, Size);
+        SecmonArgs args = { 0 };
+        args.X[0] = 0xf0000201;
+        args.X[1] = (uintptr_t)workpage;
+        args.X[2] = IRAMAddress;
+        args.X[3] = Size;
+        args.X[4] = 1;
+        svcCallSecureMonitor(&args);
+        memcpy(Data, workpage, Size);
+    }
+
+    void IRAMClear()
+    {
+        memset(clearblock, 0xff, 0x1000);
+        for(u32 i = 0; i < 0x2f000; i += 0x1000) IRAMWrite(clearblock, (0x40010000 + i), 0x1000);
+    }
+
+    void PayloadProcess(std::string Path)
+    {
+        alignas(0x1000) u8 payload[0x2f000];
+        std::vector<u8> data = fs::ReadFile(Path);
+        if(!data.empty())
+        {
+            memcpy(payload, data.data(), std::min(0x2f000, (int)data.size()));
+            IRAMClear();
+            for(u32 i = 0; i < 0x2f000; i += 0x1000) IRAMWrite(&payload[i], (0x40010000 + i), 0x1000);
+            splSetConfig((SplConfigItem)65001, 2);
+        }
+    }
 }

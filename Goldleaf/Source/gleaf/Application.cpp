@@ -25,11 +25,15 @@ namespace gleaf
         if(R_FAILED(setsysInitialize())) exit(1);
         if(R_FAILED(usbCommsInitialize())) exit(1);
         if(R_FAILED(lrInitialize())) exit(1);
+        if(R_FAILED(splInitialize())) exit(1);
+        if(R_FAILED(bpcInitialize())) exit(1);
         EnsureDirectories();
     }
 
     void Finalize()
     {
+        bpcExit();
+        splExit();
         lrExit();
         usbCommsExit();
         setsysExit();
@@ -91,6 +95,30 @@ namespace gleaf
     bool HasKeyFile()
     {
         return (GetKeyFilePath() != "");
+    }
+
+    bool IsAtmosphere()
+    {
+        u64 tmpc = 0;
+        return R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &tmpc));
+    }
+
+    bool IsSXOS()
+    {
+        Handle tmph = 0;
+        Result rc = smRegisterService(&tmph, "tx", false, 1);
+        if(R_FAILED(rc)) return true;
+        smUnregisterService("tx");
+        return false;
+    }
+
+    bool IsReiNX()
+    {
+        Handle tmph = 0;
+        Result rc = smRegisterService(&tmph, "rnx", false, 1);
+        if(R_FAILED(rc)) return true;
+        smUnregisterService("rnx");
+        return false;
     }
 
     std::string GetKeyFilePath()

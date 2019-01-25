@@ -325,6 +325,14 @@ namespace gleaf::ui
                 dlg->AddOption("Replace icon");
                 copt = 6;
             }
+            else if(ext == "bin")
+            {
+                if(IsAtmosphere())
+                {
+                    dlg->AddOption("Launch payload");
+                    copt = 6;
+                }
+            }
             else if(!bin)
             {
                 dlg->AddOption("View text");
@@ -753,6 +761,21 @@ namespace gleaf::ui
                         else mainapp->UpdateFooter("An error ocurred updating the icon: " + horizon::FormatHex(rc));
                         delete pedit;
                         serviceClose(&prf.s);
+                        break;
+                }
+            }
+            else if(ext == "bin") 
+            {
+                if(IsAtmosphere()) switch(sopt)
+                {
+                    case 0:
+                        dlg = new pu::Dialog("Payload launching", "Would you like to reboot the console with the selected binary file? (as a payload)");
+                        dlg->AddOption("Reboot with payload");
+                        dlg->AddOption("Cancel");
+                        mainapp->ShowDialog(dlg);
+                        sopt = dlg->GetSelectedIndex();
+                        if(dlg->UserCancelled() || (sopt == 1)) return;
+                        horizon::PayloadProcess(fullitm);
                         break;
                 }
             }
@@ -2743,7 +2766,7 @@ namespace gleaf::ui
 
     void ShowRebootShutDownDialog(std::string Title, std::string Message)
     {
-        pu::Dialog *dlg = new pu::Dialog(Title, Message + "\nYou can always hold Vol- or Vol+ and reboot the console to automatically enter RCM mode.");
+        pu::Dialog *dlg = new pu::Dialog(Title, Message + "\nKeep in mind that this uses the normal system to reboot the console, same one the overlay menu uses.");
         dlg->AddOption("Shut down");
         dlg->AddOption("Reboot");
         dlg->AddOption("Cancel");
@@ -2753,14 +2776,10 @@ namespace gleaf::ui
         else switch(sopt)
         {
             case 0:
-                bpcInitialize();
                 bpcShutdownSystem();
-                bpcExit();
                 break;
             case 1:
-                bpcInitialize();
                 bpcRebootSystem();
-                bpcExit();
                 break;
         }
     }
