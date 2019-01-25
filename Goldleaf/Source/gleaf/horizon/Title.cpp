@@ -54,7 +54,7 @@ namespace gleaf::horizon
         Result rc = ncmOpenContentMetaDatabase(FsStorageId_GameCard, metadb);
         if(rc == 0)
         {
-            rc = ncmContentMetaDatabaseListApplication(metadb, 0x02, metas, size, &written, &total);
+            rc = ncmContentMetaDatabaseListApplication(metadb, 0x80, metas, size, &written, &total);
             if(rc == 0)
             {
                 if(total > 0) for(u32 i = 0; i < total; i++)
@@ -98,7 +98,7 @@ namespace gleaf::horizon
         rc = ncmOpenContentMetaDatabase(FsStorageId_NandUser, metadb);
         if(rc == 0)
         {
-            rc = ncmContentMetaDatabaseListApplication(metadb, 0x02, metas, size, &written, &total);
+            rc = ncmContentMetaDatabaseListApplication(metadb, 0x80, metas, size, &written, &total);
             if(rc == 0)
             {
                 if(total > 0) for(u32 i = 0; i < total; i++)
@@ -142,7 +142,7 @@ namespace gleaf::horizon
         rc = ncmOpenContentMetaDatabase(FsStorageId_SdCard, metadb);
         if(rc == 0)
         {
-            rc = ncmContentMetaDatabaseListApplication(metadb, 0x02, metas, size, &written, &total);
+            rc = ncmContentMetaDatabaseListApplication(metadb, 0x80, metas, size, &written, &total);
             if(rc == 0)
             {
                 if(total > 0) for(u32 i = 0; i < total; i++)
