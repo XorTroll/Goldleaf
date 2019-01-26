@@ -2,7 +2,6 @@
 #include <gleaf/usb/Communications.hpp>
 #include <malloc.h>
 #include <gleaf/fs.hpp>
-#include <malloc.h>
 
 namespace gleaf::usb
 {
@@ -26,10 +25,8 @@ namespace gleaf::usb
         //TODO
         this->iver = ignoreVersion;
         this->gtik = false;
-        this->gcert = false;
         this->itik = false;
         this->stik = 0;
-        this->scert = 0;
     }
 
     InstallerResult Installer::ProcessRecords()
@@ -72,19 +69,14 @@ namespace gleaf::usb
         }
         else if (ext == "tik")
         {
-            this->bcert = this->usbReader.ReadTicket(this->filename, &this->scert);
+            this->btik = this->usbReader.ReadTicket(this->filename, &this->stik);
             this->gtik = true;
         }
-        else if (ext == "cert")
-        {
-            this->bcert = this->usbReader.ReadCertificate(this->filename, &this->scert);
-            this->gcert = true;
-        }
 
-        if(this->gtik && this->gcert && !this->itik)
+        if(this->gtik && !this->itik)
         {
             this->itik = true;
-            es::ImportTicket(this->btik.get(), this->stik, this->bcert.get(), this->scert);
+            es::ImportTicket(this->btik.get(), this->stik, es::CertData, 0x700);
         }
 
         return this->installerResult;
@@ -261,6 +253,7 @@ namespace gleaf::usb
                 return this->installerResult;
             }
             memcpy(records.data(), csbuf, csbufs);
+            //free(csbuf);
         }
 
         *result = records;

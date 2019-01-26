@@ -1,5 +1,5 @@
 #include <gleaf/usb/UsbReader.hpp>
-
+#include <malloc.h>
 
 namespace gleaf::usb
 {
@@ -31,6 +31,7 @@ namespace gleaf::usb
     std::vector<NSPContentData> UsbReader::ReadData(std::string file)
     {
         this->WriteCommandId(CommandId::GetNSPInfo);
+        this->WriteUInt32(file.length() + sizeof(u32)); // Command length
         this->WriteString(file);
 
         std::vector<NSPContentData> result;
@@ -62,16 +63,7 @@ namespace gleaf::usb
     std::unique_ptr<u8[]> UsbReader::ReadTicket(std::string file, size_t* size)
     {
         this->WriteCommandId(CommandId::GetNSPTicket);
-        this->WriteString(file);
-
-        *size = this->ReadUInt32();
-        std::unique_ptr<u8[]> result(static_cast<u8*>(this->Read(*size)));
-        return result;
-    }
-
-    std::unique_ptr<u8[]> UsbReader::ReadCertificate(std::string file, size_t* size)
-    {
-        this->WriteCommandId(CommandId::GetNSPCertificate);
+        this->WriteUInt32(file.length() + sizeof(u32)); // Command length
         this->WriteString(file);
 
         *size = this->ReadUInt32();
@@ -93,10 +85,12 @@ namespace gleaf::usb
 
         for (u32 i = 0; i < size; i++) {
             if (static_cast<const u8*>(data)[i] != static_cast<const u8*>(result)[i]) {
+                free((void*)result);
                 return i;
             }
         }
 
+        free((void*)result);
         return 0;
     }
 
@@ -137,7 +131,12 @@ namespace gleaf::usb
     {
         size_t size = this->ReadUInt32();
         void* data = this->Read(size);
-        return std::string(static_cast<const char*>(data));
+
+        void* string = realloc(data, size + 1);
+        reinterpret_cast<u8*>(string)[size] = 0;
+        std::string result = std::string(reinterpret_cast<const char*>(data));
+        //free(data);
+        return result;
     }
     
     void UsbReader::WriteUInt32(u32 value)
@@ -154,12 +153,12 @@ namespace gleaf::usb
     void UsbReader::WriteString(std::string value)
     {
         this->WriteUInt32(value.length());
-        this->Write(value.c_str(), sizeof(char) * value.length());
+        this->Write(reinterpret_cast<const void*>(value.c_str()), sizeof(char) * value.length());
     }
 
     void UsbReader::Write(const void* data, size_t size)
     {
-        const u8* pointer = static_cast<const u8*>(data);
+        const u8* pointer = reinterpret_cast<const u8*>(data);
         while (size > 0)
         {
             size_t written = usbCommsWrite(pointer, size);

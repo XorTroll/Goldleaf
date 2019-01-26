@@ -15,7 +15,6 @@ namespace gleaf::usb
             std::vector<NSPContentData> ReadData(std::string file);
             std::unique_ptr<u8[]> ReadContent(std::string file, u32 index, size_t* size);
             std::unique_ptr<u8[]> ReadTicket(std::string file, size_t* size);
-            std::unique_ptr<u8[]> ReadCertificate(std::string file, size_t* size);
 
             u32 TestEcho(const void* data, size_t size);
         private:

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Goldtree.Lib.LibUsb\Goldtree.Lib.LibUsb.csproj" />
+    <ProjectReference Include="..\Goldtree.Lib.UsbK\Goldtree.Lib.UsbK.csproj" />
     <ProjectReference Include="..\Goldtree.Lib\Goldtree.Lib.csproj" />
   </ItemGroup>
 </Project>

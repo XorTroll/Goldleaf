@@ -83,9 +83,19 @@ namespace Goldtree.Lib.LibUsb
             int offset = 0;
             while (offset < value.Length)
             {
-                ErrorCode errorCode = writer.Write(value, offset, value.Length - offset, int.MaxValue, out var written);
+                ErrorCode errorCode = writer.Write(value, offset, value.Length - offset, 10000, out var written);
                 if (errorCode != ErrorCode.None)
+                {
+                    if (errorCode == ErrorCode.Win32Error)
+                    {
+                        if (Connect(0x057E, 0x3000))
+                        {
+                            Write(value);
+                            return;
+                        }
+                    }
                     throw new Exception($"Error write writing usb {errorCode}");
+                }
 
                 offset += written;
             }

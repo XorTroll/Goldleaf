@@ -1033,31 +1033,12 @@ namespace gleaf::ui
         
         usb::UsbReader reader;
 
-        for (u32 c = 0x100; c <= 0x10000; c <<= 1) {
-            size_t size = c;
-            u8* buffer = static_cast<u8*>(malloc(size));
-            for (u32 i = 0; i < size; i++) {
-                buffer[i] = static_cast<u8>(i % 0xFF);
-            }
-
-            u32 echoResult = reader.TestEcho(static_cast<const void*>(buffer), size);
-            if (echoResult != 0) {
-                pu::Dialog *dlg = new pu::Dialog("USB Echo result", "Echo failed " + std::to_string(c) + " " + std::to_string(echoResult));
-                dlg->AddOption("Install");
-                dlg->AddOption("Cancel");
-                mainapp->ShowDialog(dlg);
-            }
-
-            free(buffer);
-        }
-
         size_t count;
         std::unique_ptr<std::string[]> files = reader.ReadFiles(&count);
 
         if (count > 0)
         {
-            std::string nspname = files[0];
-            pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + nspname + "\'\nWould you like to install this NSP?");
+            pu::Dialog *dlg = new pu::Dialog("USB install confirmation", "Selected NSP via Goldtree: \'" + files[0] + "\'\nWould you like to install this NSP?");
             dlg->AddOption("Install");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
@@ -1101,7 +1082,7 @@ namespace gleaf::ui
             if(IsApplication()) appletBeginBlockingHomeButton(0);
             this->installText->SetText("Starting installation...");
             mainapp->CallForRender();
-            usb::Installer inst(reader, nspname, dst, ignorev);
+            usb::Installer inst(reader, files[0], dst, ignorev);
 
             this->installText->SetText("Processing title records...");
             mainapp->CallForRender();

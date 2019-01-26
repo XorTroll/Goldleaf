@@ -19,7 +19,7 @@ namespace Goldtree.Usb
 
         public UsbServer()
         {
-            usb = new Lib.LibUsb.Usb();
+            usb = new Lib.UsbK.Usb();
             requestBuilder = new RequestBuilder(usb);
         }
 

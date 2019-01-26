@@ -19,7 +19,7 @@ namespace Goldtree
             string filename = configuration["file"];
             if (!string.IsNullOrWhiteSpace(filename))
             {
-                Files.Add(filename, LoadFile(filename));
+                Files.Add(GetFilename(filename), LoadFile(filename));
             }
 
             string folder = configuration["folder"];
@@ -27,7 +27,7 @@ namespace Goldtree
             {
                 foreach (string file in SearchFolder(folder))
                 {
-                    Files.Add(file, LoadFile(file));
+                    Files.Add(GetFilename(file), LoadFile(file));
                 }
             }
 
@@ -35,7 +35,7 @@ namespace Goldtree
             {
                 foreach (string file in SearchFolder(Directory.GetCurrentDirectory()))
                 {
-                    Files.Add(file, LoadFile(file));
+                    Files.Add(GetFilename(file), LoadFile(file));
                 }
             }
         }
@@ -75,6 +75,11 @@ namespace Goldtree
             FileStream fs = new FileStream(file, FileMode.Open);
             StreamStorage ist = new StreamStorage(fs, true);
             return new Pfs(ist);
+        }
+
+        private string GetFilename(string file)
+        {
+            return new FileInfo(file).Name;
         }
     }
 }

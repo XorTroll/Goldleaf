@@ -21,8 +21,7 @@ namespace gleaf::usb
         GetNSPInfo = 2,
         GetNSPContent = 3,
         GetNSPTicket = 4,
-        GetNSPCertificate = 5,
-        Echo = 6
+        Echo = 5
     };
 
     struct Command

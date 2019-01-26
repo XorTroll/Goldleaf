@@ -15,14 +15,14 @@ namespace Goldtree.Lib.UsbK
         {
             try
             {
-                string deviceId = $@"USB\VID_{vid.ToString("4X")}&PID_{pid.ToString("4X")}";
+                string deviceId = $@"USB\VID_{vid.ToString("X4")}&PID_{pid.ToString("X4")}";
 
                 KLST_PATTERN_MATCH pat = new KLST_PATTERN_MATCH { DeviceID = deviceId };
                 LstK lst = new LstK(0, ref pat);
                 lst.MoveNext(out KLST_DEVINFO_HANDLE dinfo);
                 usb = new libusbK.UsbK(dinfo);
 
-                return true;
+                return usb != null;
             }
             catch
             {

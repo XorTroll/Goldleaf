@@ -11,7 +11,6 @@ namespace Goldtree.Lib
         GetNSPInfo,
         GetNSPContent,
         GetNSPTicket,
-        GetNSPCertificate,
         Echo
     }
 }
