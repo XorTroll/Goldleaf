@@ -5,44 +5,48 @@
 
 namespace gleaf::fs
 {
+    static std::vector<std::string> gmounts;
+
     Explorer::Explorer(Partition Base)
     {
         this->customifs = false;
+        this->mntname = this->GenerateMountName();
         switch(Base)
         {
             case Partition::PRODINFOF:
-                this->ecwd = "glprodf:/";
+                this->dspname = "Sys-ProdInfoF";
                 fsOpenBisFileSystem(&this->ifs, 28, "");
-                fsdevMountDevice("glprodf", this->ifs);
                 break;
             case Partition::NANDSafe:
-                this->ecwd = "glsafe:/";
+                this->dspname = "Sys-NANDSafe";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
-                fsdevMountDevice("glsafe", this->ifs);
                 break;
             case Partition::NANDUser:
-                this->ecwd = "gluser:/";
+                this->dspname = "Sys-NANDUser";
                 fsOpenBisFileSystem(&this->ifs, 30, "");
-                fsdevMountDevice("gluser", this->ifs);
                 break;
             case Partition::NANDSystem:
-                this->ecwd = "glsystem:/";
+                this->dspname = "Sys-NANDSystem";
                 fsOpenBisFileSystem(&this->ifs, 31, "");
-                fsdevMountDevice("glsystem", this->ifs);
                 break;
             case Partition::SdCard:
-                this->ecwd = "sdmc:/";
+                this->dspname = "SdCard";
                 this->ifs = *fsdevGetDefaultFileSystem();
                 break;
         }
+        this->ecwd = this->mntname + ":/";
+        fsdevMountDevice(this->mntname.c_str(), this->ifs);
         this->part = Base;
     }
 
-    Explorer::Explorer(FsFileSystem IFS)
+    Explorer::Explorer(FsFileSystem IFS, std::string DisplayName)
     {
         this->customifs = true;
+        this->mntname = this->GenerateMountName();
         this->ifs = IFS;
-        fsdevMountDevice("glcfs", IFS);
+        this->dspname = DisplayName;
+        this->ecwd = this->mntname + ":/";
+        fsdevMountDevice(this->mntname.c_str(), IFS);
     }
 
     Explorer::~Explorer()
@@ -52,7 +56,7 @@ namespace gleaf::fs
 
     bool Explorer::NavigateBack()
     {
-        if((this->ecwd == "glprodf:/") || (this->ecwd == "glsafe:/") || (this->ecwd == "gluser:/") || (this->ecwd == "glsystem:/") || (this->ecwd == "sdmc:/") || (this->ecwd == "glcfs:/")) return false;
+        if(this->ecwd == (this->mntname + ":/")) return false;
         std::string parent = this->ecwd.substr(0, this->ecwd.find_last_of("/\\"));
         DIR *check = opendir(parent.c_str());
         bool ok = (check != NULL);
@@ -124,6 +128,24 @@ namespace gleaf::fs
         return this->ecwd;
     }
 
+    std::string Explorer::GetPresentableCwd()
+    {
+        if(this->ecwd == (this->mntname + ":/")) return this->dspname + ":/";
+        u32 mntrootsize = this->mntname.length() + 2;
+        std::string cwdnoroot = this->ecwd.substr(mntrootsize);
+        return this->dspname + ":/" + cwdnoroot;
+    }
+
+    bool Explorer::HasPartition()
+    {
+        return !this->customifs;
+    }
+
+    bool Explorer::HasCustomFS()
+    {
+        return this->customifs;
+    }
+
     Partition Explorer::GetPartition()
     {
         return this->part;
@@ -133,39 +155,44 @@ namespace gleaf::fs
     {
         if(this->part == NewBase) return;
         this->Close();
+        this->customifs = false;
+        this->mntname = this->GenerateMountName();
         switch(NewBase)
         {
             case Partition::PRODINFOF:
-                this->ecwd = "glprodf:/";
+                this->dspname = "Sys-ProdInfoF";
                 fsOpenBisFileSystem(&this->ifs, 28, "");
-                fsdevMountDevice("glprodf", this->ifs);
                 break;
             case Partition::NANDSafe:
-                this->ecwd = "glsafe:/";
+                this->dspname = "Sys-NANDSafe";
                 fsOpenBisFileSystem(&this->ifs, 29, "");
-                fsdevMountDevice("glsafe", this->ifs);
                 break;
             case Partition::NANDUser:
-                this->ecwd = "gluser:/";
+                this->dspname = "Sys-NANDUser";
                 fsOpenBisFileSystem(&this->ifs, 30, "");
-                fsdevMountDevice("gluser", this->ifs);
                 break;
             case Partition::NANDSystem:
-                this->ecwd = "glsystem:/";
+                this->dspname = "Sys-NANDSystem";
                 fsOpenBisFileSystem(&this->ifs, 31, "");
-                fsdevMountDevice("glsystem", this->ifs);
                 break;
             case Partition::SdCard:
-                this->ecwd = "sdmc:/";
+                this->dspname = "SdCard";
                 this->ifs = *fsdevGetDefaultFileSystem();
                 break;
         }
+        this->ecwd = this->mntname + ":/";
+        fsdevMountDevice(this->mntname.c_str(), this->ifs);
         this->part = NewBase;
     }
 
     std::string Explorer::FullPathFor(std::string Path)
     {
         return (this->ecwd + "/" + Path);
+    }
+
+    std::string Explorer::FullPresentablePathFor(std::string Path)
+    {
+        return (this->GetPresentableCwd() + "/" + Path);
     }
 
     u64 Explorer::GetTotalSpaceForPath(std::string Path)
@@ -196,12 +223,41 @@ namespace gleaf::fs
         return space;
     }
 
+    std::string Explorer::GenerateMountName()
+    {
+        std::string ret;
+        std::string base = "gmount-";
+        u32 ridx = rand();
+        base += std::to_string(ridx);
+        for(u32 i = 0; i < gmounts.size(); i++)
+        {
+            if(gmounts[i] == base)
+            {
+                ret = GenerateMountName();
+                break;
+            }
+        }
+        if(ret.empty()) ret = base;
+        return ret;
+    }
+
+    void Explorer::DeleteMountName(std::string GMount)
+    {
+        int idx = -1;
+        for(u32 i = 0; i < gmounts.size(); i++)
+        {
+            if(gmounts[i] == GMount)
+            {
+                idx = i;
+                break;
+            }
+        }
+        if(idx != -1) gmounts.erase(gmounts.begin() + idx);
+    }
+
     void Explorer::Close()
     {
-        if(this->part == Partition::PRODINFOF) fsdevUnmountDevice("glprodf");
-        else if(this->part == Partition::NANDSafe) fsdevUnmountDevice("glsafe");
-        else if(this->part == Partition::NANDUser) fsdevUnmountDevice("gluser");
-        else if(this->part == Partition::NANDSystem) fsdevUnmountDevice("glsystem");
-        else if(this->customifs) fsdevUnmountDevice("glcfs");
+        fsdevUnmountDevice(this->mntname.c_str());
+        this->DeleteMountName(this->mntname);
     }
 }

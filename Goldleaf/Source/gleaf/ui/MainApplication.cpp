@@ -72,7 +72,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::sdcardMenuItem_Click()
     {
-        mainapp->LoadMenuData("SD card", "SdCard", mainapp->GetSDBrowserLayout()->GetExplorer()->GetCwd());
+        mainapp->LoadMenuData("SD card", "SdCard", mainapp->GetSDBrowserLayout()->GetExplorer()->GetPresentableCwd());
         mainapp->GetSDBrowserLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
     }
@@ -92,7 +92,7 @@ namespace gleaf::ui
         else if(sopt == 1) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSafe);
         else if(sopt == 2) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDUser);
         else if(sopt == 3) mainapp->GetNANDBrowserLayout()->ChangePartition(fs::Partition::NANDSystem);
-        mainapp->LoadMenuData("Console memory", "NAND", mainapp->GetNANDBrowserLayout()->GetExplorer()->GetCwd());
+        mainapp->LoadMenuData("Console memory", "NAND", mainapp->GetNANDBrowserLayout()->GetExplorer()->GetPresentableCwd());
         mainapp->LoadLayout(mainapp->GetNANDBrowserLayout());
     }
 
@@ -214,7 +214,7 @@ namespace gleaf::ui
         if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
-        mainapp->LoadMenuHead(this->gexp->GetCwd());
+        mainapp->LoadMenuHead(this->gexp->GetPresentableCwd());
         if(this->elems.empty())
         {
             this->browseMenu->SetVisible(false);
@@ -272,6 +272,7 @@ namespace gleaf::ui
     {
         std::string itm = this->browseMenu->GetSelectedItem()->GetName();
         std::string fullitm = this->gexp->FullPathFor(itm);
+        std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->NavigateForward(itm)) this->UpdateElements();
         else if(fs::IsFile(fullitm))
         {
@@ -369,19 +370,19 @@ namespace gleaf::ui
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool ignorev = (sopt == 0);
-                        std::string fullitm = this->gexp->FullPathFor(itm);
-                        std::string nspipt = "@Sdcard:" + fullitm.substr(5);
-                        nsp::Installer inst(dst, nspipt, ignorev);
-                        InstallerResult irc = inst.GetLatestResult();
+                        std::string nspipt = "@Sdcard:" + pfullitm.substr(7);
+                        nsp::Installer *inst = new nsp::Installer(dst, nspipt, ignorev);
+                        InstallerResult irc = inst->GetLatestResult();
                         if(!irc.IsSuccess())
                         {
                             mainapp->GetInstallLayout()->LogError(irc);
+                            delete inst;
                             return;
                         }
-                        bool isapp = (inst.GetContentType() == ncm::ContentMetaType::Application);
-                        bool hasnacp = inst.HasContent(ncm::ContentType::Control);
+                        bool isapp = (inst->GetContentType() == ncm::ContentMetaType::Application);
+                        bool hasnacp = inst->HasContent(ncm::ContentType::Control);
                         std::string info = "Information about the NSP to be installed:\n\n";
-                        switch(inst.GetContentType())
+                        switch(inst->GetContentType())
                         {
                             case ncm::ContentMetaType::Application:
                                 info += "The NSP contains a regular title.";
@@ -397,7 +398,7 @@ namespace gleaf::ui
                                 break;
                         }
                         info += "\n";
-                        horizon::ApplicationIdMask idmask = horizon::IsValidApplicationId(inst.GetApplicationId());
+                        horizon::ApplicationIdMask idmask = horizon::IsValidApplicationId(inst->GetApplicationId());
                         switch(idmask)
                         {
                             case horizon::ApplicationIdMask::Official:
@@ -410,11 +411,11 @@ namespace gleaf::ui
                                 info += "The NSP has an unknown application ID mask.\nNSPs like this could be dangerous.";
                                 break;
                         }
-                        info += "\nApplication ID: " + horizon::FormatApplicationId(inst.GetApplicationId());
+                        info += "\nApplication ID: " + horizon::FormatApplicationId(inst->GetApplicationId());
                         info += "\n\n";
                         if(hasnacp && isapp)
                         {
-                            NacpStruct *nacp = inst.GetNACP();
+                            NacpStruct *nacp = inst->GetNACP();
                             NacpLanguageEntry lent;
                             for(u32 i = 0; i < 16; i++)
                             {
@@ -427,7 +428,7 @@ namespace gleaf::ui
                             info += lent.author;
                             info += "\nVersion: ";
                             info += nacp->version;
-                            std::vector<ncm::ContentRecord> ncas = inst.GetRecords();
+                            std::vector<ncm::ContentRecord> ncas = inst->GetRecords();
                             info += "\n\nContents[" + std::to_string(ncas.size()) + "]: ";
                             for(u32 i = 0; i < ncas.size(); i++)
                             {
@@ -459,10 +460,10 @@ namespace gleaf::ui
                                 if(i != (ncas.size() - 1)) info += ", ";
                             }
                         }
-                        if(isapp && inst.HasTicket())
+                        if(/*isapp && */inst->HasTicket())
                         {
                             info += "\n\nThis NSP has a ticket and it will be imported. Ticket information:\n\n";
-                            horizon::TicketData tik = inst.GetTicketData();
+                            horizon::TicketData tik = inst->GetTicketData();
                             info += "Title key: " + tik.TitleKey;
                             info += "\nSignature type: ";
                             switch(tik.Signature)
@@ -515,20 +516,20 @@ namespace gleaf::ui
                                     break;
                             }
                         }
-                        else if(!inst.HasTicket()) info += "This NSP doesn't have a ticket. It seems to be standard crypto.";
+                        else info += "This NSP doesn't have a ticket. It seems to be standard crypto.";
                         dlg = new pu::Dialog("Ready to start installation?", info);
-                        if(hasnacp) dlg->SetIcon(inst.GetExportedIconPath(), 994, 30);
+                        if(hasnacp) dlg->SetIcon(inst->GetExportedIconPath(), 994, 30);
                         dlg->AddOption("Install");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 1))
                         {
-                            inst.Finalize();
+                            delete inst;
                             return;
                         }
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
-                        mainapp->GetInstallLayout()->StartInstall(&inst, mainapp->GetSDBrowserLayout(), false, fullitm);
+                        mainapp->GetInstallLayout()->StartInstall(inst, mainapp->GetSDBrowserLayout(), false, fullitm, pfullitm);
                         this->UpdateElements();
                         break;
                 }
@@ -677,10 +678,8 @@ namespace gleaf::ui
                         bool ok = gleaf::hactool::Process(fullitm, ext, gleaf::hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
                         std::string msg = "The content extraction failed.\nAre you sure the NCA is valid (and that it doesn't require a titlekey) or that you have all the necessary keys?";
                         if(ok) msg = "The NCA extraction succeeded.\nAll the selected partitions were extracted (if they existed within the NCA)";
-                        dlg = new pu::Dialog("NCA extraction", msg);
-                        dlg->AddOption("Ok");
-                        mainapp->ShowDialog(dlg);
-                        this->UpdateElements();
+                        mainapp->UpdateFooter(msg);
+                        if(ok) this->UpdateElements();
                         break;
                 }
             }
@@ -804,7 +803,7 @@ namespace gleaf::ui
                 if(this->WarnNANDWriteAccess())
                 {
                     fs::DeleteFile(fullitm);
-                    mainapp->UpdateFooter("File deleted: \'" + fullitm + "\'");
+                    mainapp->UpdateFooter("File deleted: \'" + pfullitm + "\'");
                     this->UpdateElements();
                 }
             }
@@ -822,7 +821,7 @@ namespace gleaf::ui
                         if(rc) mainapp->UpdateFooter("An error ocurred attempting to rename the file.");
                         else
                         {
-                            mainapp->UpdateFooter("A file was renamed.");
+                            mainapp->UpdateFooter("A file was successfully renamed.");
                             this->UpdateElements();
                         }
                     }
@@ -835,6 +834,7 @@ namespace gleaf::ui
     {
         std::string itm = this->browseMenu->GetSelectedItem()->GetName();
         std::string fullitm = this->gexp->FullPathFor(itm);
+        std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(fs::IsDirectory(fullitm))
         {
             std::string msg = "What would you like to do with the selected directory?";
@@ -860,7 +860,7 @@ namespace gleaf::ui
                     if(this->WarnNANDWriteAccess())
                     {
                         fs::DeleteDirectory(fullitm);
-                        mainapp->UpdateFooter("Directory deleted: \'" + fullitm + "\'");
+                        mainapp->UpdateFooter("Directory deleted: \'" + pfullitm + "\'");
                         this->UpdateElements();
                     }
                     break;
@@ -964,7 +964,7 @@ namespace gleaf::ui
                 this->copyBar->SetProgress(p);
                 mainapp->CallForRender();
             });
-            mainapp->UpdateFooter("Directory copied: '" + NewPath + "'");
+            mainapp->UpdateFooter("A directory was successfully copied.");
         }
         else
         {
@@ -986,7 +986,7 @@ namespace gleaf::ui
                 this->copyBar->SetProgress(p);
                 mainapp->CallForRender();
             });
-            mainapp->UpdateFooter("File copied: '" + NewPath + "'");
+            mainapp->UpdateFooter("A file was successfully copied.");
         }
         mainapp->LoadLayout(Prev);
     }
@@ -999,22 +999,25 @@ namespace gleaf::ui
         this->AddChild(this->installBar);
     }
 
-    void InstallLayout::StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input)
+    void InstallLayout::StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input, std::string PInput)
     {
         if(IsApplication()) appletBeginBlockingHomeButton(0);
-        mainapp->LoadMenuHead("Installing NSP: \'" + Input + "\'");
+        mainapp->LoadMenuHead("Installing NSP: \'" + PInput + "\'");
         this->installText->SetText("Processing title records...");
         mainapp->UpdateFooter("Installing NSP...");
         mainapp->CallForRender();
         InstallerResult rc = Inst->ProcessRecords();
         if(!rc.IsSuccess())
         {
-            this->LogError(rc);
             if(IsApplication()) appletEndBlockingHomeButton();
+            delete Inst;
+            Inst = NULL;
+            this->LogError(rc);
+            mainapp->LoadLayout(Prev);
         }
         this->installText->SetText("Starting to write contents...");
         mainapp->CallForRender();
-        if(rc.IsSuccess()) rc = Inst->WriteContents([&](ncm::ContentRecord NCA, u32 Index, u32 Count, int Percentage)
+        rc = Inst->WriteContents([&](ncm::ContentRecord NCA, u32 Index, u32 Count, int Percentage)
         {
             std::string name = "Writing content \'"  + horizon::GetStringFromNCAId(NCA.NCAId);
             if(NCA.Type == ncm::ContentType::Meta) name += ".cnmt";
@@ -1025,11 +1028,15 @@ namespace gleaf::ui
         });
         if(!rc.IsSuccess())
         {
-            this->LogError(rc);
             if(IsApplication()) appletEndBlockingHomeButton();
+            delete Inst;
+            Inst = NULL;
+            this->LogError(rc);
+            mainapp->LoadLayout(Prev);
         }
-        Inst->Finalize();
         if(IsApplication()) appletEndBlockingHomeButton();
+        delete Inst;
+        Inst = NULL;
         if(rc.IsSuccess())
         {
             mainapp->UpdateFooter("The NSP was successfully installed.");
@@ -1039,10 +1046,9 @@ namespace gleaf::ui
         if(Delete)
         {
             fs::DeleteFile(Input);
-            mainapp->GetSDBrowserLayout()->UpdateElements();
+            ((PartitionBrowserLayout*)Prev)->UpdateElements();
         }
         mainapp->LoadLayout(Prev);
-        mainapp->CallForRender();
     }
 
     void InstallLayout::LogError(InstallerResult Res)
@@ -1168,6 +1174,7 @@ namespace gleaf::ui
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
+                        mainapp->LoadMenuHead("Installing NSP: \'" + nspname + "\'");
                         dlg = new pu::Dialog("Select NSP install location", "Which location would you like to install the selected NSP on?");
                         dlg->AddOption("SD card");
                         dlg->AddOption("Console memory (NAND)");
@@ -2501,11 +2508,12 @@ namespace gleaf::ui
             if(cfile != "")
             {
                 std::string ffile = this->sdBrowser->GetExplorer()->FullPathFor(cfile);
+                std::string pffile = this->sdBrowser->GetExplorer()->FullPresentablePathFor(cfile);
                 if(fs::IsFile(ffile) || fs::IsDirectory(ffile)) mainapp->UpdateFooter("A file or directory with this name already exists.");
                 else
                 {
                     fs::CreateFile(ffile);
-                    mainapp->UpdateFooter("A file was created: \'" + ffile + "\'");
+                    mainapp->UpdateFooter("A file was created: \'" + pffile + "\'");
                     this->sdBrowser->UpdateElements();
                 }
             }
@@ -2516,11 +2524,12 @@ namespace gleaf::ui
             if(cdir != "")
             {
                 std::string fdir = this->sdBrowser->GetExplorer()->FullPathFor(cdir);
+                std::string pfdir = this->sdBrowser->GetExplorer()->FullPresentablePathFor(cdir);
                 if(fs::IsFile(fdir) || fs::IsDirectory(fdir)) mainapp->UpdateFooter("A file or directory with this name already exists.");
                 else
                 {
                     fs::CreateDirectory(fdir);
-                    mainapp->UpdateFooter("A directory was created: \'" + fdir + "\'");
+                    mainapp->UpdateFooter("A directory was created: \'" + pfdir + "\'");
                     this->sdBrowser->UpdateElements();
                 }
             }
@@ -2577,11 +2586,12 @@ namespace gleaf::ui
             if(cfile != "")
             {
                 std::string ffile = this->nandBrowser->GetExplorer()->FullPathFor(cfile);
+                std::string pffile = this->nandBrowser->GetExplorer()->FullPresentablePathFor(cfile);
                 if(fs::IsFile(ffile) || fs::IsDirectory(ffile)) mainapp->UpdateFooter("A file or directory with this name already exists.");
                 else if(this->nandBrowser->WarnNANDWriteAccess())
                 {
                     fs::CreateFile(ffile);
-                    mainapp->UpdateFooter("A file was created: \'" + ffile + "\'");
+                    mainapp->UpdateFooter("A file was created: \'" + pffile + "\'");
                     this->nandBrowser->UpdateElements();
                 }
             }
@@ -2592,11 +2602,12 @@ namespace gleaf::ui
             if(cdir != "")
             {
                 std::string fdir = this->nandBrowser->GetExplorer()->FullPathFor(cdir);
+                std::string pfdir = this->nandBrowser->GetExplorer()->FullPresentablePathFor(cdir);
                 if(fs::IsFile(fdir) || fs::IsDirectory(fdir)) mainapp->UpdateFooter("A file or directory with this name already exists.");
                 else if(this->nandBrowser->WarnNANDWriteAccess())
                 {
                     fs::CreateDirectory(fdir);
-                    mainapp->UpdateFooter("A directory was created: \'" + fdir + "\'");
+                    mainapp->UpdateFooter("A directory was created: \'" + pfdir + "\'");
                     this->nandBrowser->UpdateElements();
                 }
             }

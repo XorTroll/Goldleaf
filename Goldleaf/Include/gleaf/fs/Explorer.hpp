@@ -17,7 +17,7 @@ namespace gleaf::fs
     {
         public:
             Explorer(Partition Base);
-            Explorer(FsFileSystem IFS);
+            Explorer(FsFileSystem IFS, std::string DisplayName);
             ~Explorer();
             bool NavigateBack();
             bool NavigateForward(std::string Path);
@@ -25,18 +25,26 @@ namespace gleaf::fs
             std::vector<std::string> GetFiles();
             std::vector<std::string> GetContents();
             std::string GetCwd();
+            std::string GetPresentableCwd();
+            bool HasPartition();
+            bool HasCustomFS();
             Partition GetPartition();
             void MovePartition(Partition NewBase);
             std::string FullPathFor(std::string Path);
+            std::string FullPresentablePathFor(std::string Path);
             u64 GetTotalSpaceForPath(std::string Path);
             u64 GetFreeSpaceForPath(std::string Path);
             u64 GetTotalSpace();
             u64 GetFreeSpace();
+            static std::string GenerateMountName();
+            static void DeleteMountName(std::string GMount);
             void Close();
         private:
             bool customifs;
             Partition part;
             FsFileSystem ifs;
+            std::string dspname;
+            std::string mntname;
             std::string ecwd;
     };
 }
