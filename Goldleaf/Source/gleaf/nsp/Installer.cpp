@@ -111,7 +111,7 @@ namespace gleaf::nsp
                 std::string ncaname = Input + "/" + horizon::GetStringFromNCAId(record.NCAId) + ".nca";
                 ncaname.reserve(FS_MAX_PATH);
                 FsFileSystem gnspcnca;
-                rc = fsOpenFileSystemWithId(&gnspcnca, this->cmeta.GetContentMetaKey().titleId, FsFileSystemType_ContentControl, ncaname.c_str());
+                rc = fsOpenFileSystemWithId(&gnspcnca, this->GetApplicationId(), FsFileSystemType_ContentControl, ncaname.c_str());
                 if(rc != 0) continue;
                 fsdevMountDevice("gnspcnca", gnspcnca);
                 DIR *d = opendir("gnspcnca:/");
@@ -269,7 +269,6 @@ namespace gleaf::nsp
             {
                 this->irc.Error = rc;
                 this->irc.Type = InstallerError::InstallBadNCA;
-                fsFileClose(&ncafile);
                 continue;
             }
             ncm::ContentStorage cstorage(stid);

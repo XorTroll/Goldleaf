@@ -35,4 +35,7 @@ namespace gleaf::horizon
     std::string DoubleToString(double Number);
     u64 GetSdCardFreeSpaceForInstalls();
     u64 GetNANDFreeSpaceForInstalls();
+    void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
+    void IRAMClear();
+    void PayloadProcess(std::string Path);
 }

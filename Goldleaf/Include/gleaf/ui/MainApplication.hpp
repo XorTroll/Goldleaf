@@ -93,7 +93,7 @@ namespace gleaf::ui
     {
         public:
             InstallLayout();
-            void StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input = "");
+            void StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input, std::string PInput);
             void LogError(InstallerResult Res);
         private:
             pu::element::TextBlock *installText;
