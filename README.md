@@ -1,6 +1,6 @@
 # Goldleaf
 
-![Logo](Goldleaf/RomFs/Logo.png)
+![Logo](Goldleaf/Program/RomFs/Logo.png)
 
 > *Nintendo Switch homebrew multitool, for several purposes and with many, many features!*
 
