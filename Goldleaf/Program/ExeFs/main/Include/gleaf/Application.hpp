@@ -18,7 +18,10 @@ namespace gleaf
     void Initialize();
     void Finalize();
     void EnsureDirectories();
-    bool IsApplication();
+    RunMode GetRunMode();
+    bool IsNRO();
+    bool IsInstalledTitle();
+    bool IsQlaunch();
     std::vector<std::string> GetSdCardCFWs();
     std::vector<std::string> GetSdCardCFWNames();
     std::string GetCFWName(std::string Path);

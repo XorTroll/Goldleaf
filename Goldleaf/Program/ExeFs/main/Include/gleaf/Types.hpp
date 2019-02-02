@@ -18,12 +18,20 @@
 
 namespace gleaf
 {
+    enum class RunMode
+    {
+        Unknown,
+        NRO,
+        Title,
+        Qlaunch,
+    };
+
     enum class Storage
     {
         GameCart = 2,
-        NANDSystem = 3,
-        NANDUser = 4,
-        SdCard = 5,
+        NANDSystem,
+        NANDUser,
+        SdCard,
     };
 
     enum class InstallerError

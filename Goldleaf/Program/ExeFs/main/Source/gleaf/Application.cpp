@@ -11,12 +11,12 @@ namespace gleaf
 
     void Initialize()
     {
-        if(!IsApplication())
+        srand(time(NULL));
+        if(IsNRO() || IsQlaunch())
         {
             if(R_FAILED(svcSetHeapSize(&ghaddr, 0x10000000))) exit(1);
-            fake_heap_end = (char*)ghaddr + 0x10000000;
+            if(IsNRO()) fake_heap_end = (char*)ghaddr + 0x10000000;
         }
-        srand(time(NULL));
         if(R_FAILED(ncm::Initialize())) exit(1);
         if(R_FAILED(acc::Initialize())) exit(1);
         if(R_FAILED(accountInitialize())) exit(1);
@@ -30,11 +30,15 @@ namespace gleaf
         if(R_FAILED(lrInitialize())) exit(1);
         if(R_FAILED(splInitialize())) exit(1);
         if(R_FAILED(bpcInitialize())) exit(1);
+        if(R_FAILED(gpioInitialize())) exit(1);
+        horizon::InitializeGpioInputHandling();
         EnsureDirectories();
     }
 
     void Finalize()
     {
+        horizon::FinalizeGpioInputHandling();
+        gpioExit();
         bpcExit();
         splExit();
         lrExit();
@@ -48,7 +52,7 @@ namespace gleaf
         acc::Finalize();
         ncm::Finalize();
         ncmExit();
-        if(!IsApplication()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
+        if(IsNRO()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
     }
 
     void EnsureDirectories()
@@ -63,9 +67,38 @@ namespace gleaf
         fs::CreateDirectory("sdmc:/goldleaf/dump/out");
     }
 
-    bool IsApplication()
+    RunMode GetRunMode()
     {
-        return envIsNso();
+        RunMode rmode = RunMode::Unknown;
+        AppletType type = appletGetAppletType();
+        switch(type)
+        {
+            case AppletType_Application:
+                if(envIsNso()) rmode = RunMode::Title;
+                break;
+            case AppletType_LibraryApplet:
+                if(!envIsNso()) rmode = RunMode::NRO;
+                break;
+            case AppletType_SystemApplet:
+                if(envIsNso()) rmode = RunMode::Qlaunch;
+                break;
+        }
+        return rmode;
+    }
+
+    bool IsNRO()
+    {
+        return (GetRunMode() == RunMode::NRO);
+    }
+
+    bool IsInstalledTitle()
+    {
+        return (GetRunMode() == RunMode::Title);
+    }
+
+    bool IsQlaunch()
+    {
+        return (GetRunMode() == RunMode::Qlaunch);
     }
 
     std::vector<std::string> GetSdCardCFWs()

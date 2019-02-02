@@ -26,7 +26,7 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections -fpermissive \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ $(QFLAG)
 
 CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 
@@ -99,7 +99,7 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) nro nsp clean
+.PHONY: $(BUILD) nro nsp qlaunch clean
 
 nro: $(BUILD)
 
@@ -109,6 +109,20 @@ $(BUILD):
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@rm -f $(CURDIR)/Output/Goldleaf.nso
 	@echo Goldleaf[nro]: Build finished!
+
+qlaunch:
+	@mkdir -p $(BUILD) $(CURDIR)/Output
+	@echo Goldleaf[qlaunch]: Compiling and generating as qlaunch replacement...
+	@$(MAKE) --no-print-directory QFLAG=-DGOLDLEAF_QLAUNCH -C $(BUILD) -f $(CURDIR)/Makefile
+	@rm -f $(CURDIR)/Output/Goldleaf.nro
+	@rm -rf $(CURDIR)/Output/titles
+	@mkdir -p $(CURDIR)/Output/titles/0100000000001000/exefs $(CURDIR)/Output/titles/0100000000001000/romfs
+	@touch $(CURDIR)/Output/titles/0100000000001000/fsmitm.flag
+	@touch $(CURDIR)/Output/titles/0100000000001000/exefs/rtld.stub
+	@cp $(CURDIR)/Program/ExeFs/main.npdm $(CURDIR)/Output/titles/0100000000001000/exefs/main.npdm
+	@cp -a $(CURDIR)/Program/RomFs/. $(CURDIR)/Output/titles/0100000000001000/romfs/
+	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Output/titles/0100000000001000/exefs/main
+	@echo Goldleaf[qlaunch]: Build finished!
 
 nsp:
 	@echo Goldleaf[nsp]: Starting build process...
@@ -162,11 +176,12 @@ clean:
 	@echo Goldleaf[clean]: Clean finished!
 
 else
-.PHONY:	nro
+
+.PHONY:	all
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
-nro	:	$(OUTPUT).nro $(OUTPUT).nso
+all: $(OUTPUT).nro $(OUTPUT).nso
 
 $(OUTPUT).nso	:	$(OUTPUT).elf
 $(OUTPUT).nro	:	$(OUTPUT).elf

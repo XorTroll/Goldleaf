@@ -1,5 +1,9 @@
 #include <gleaf/Goldleaf>
 
+#ifdef GOLDLEAF_QLAUNCH
+    extern u32 __nx_applet_type = AppletType_SystemApplet;
+#endif
+
 int main()
 {
     gleaf::Initialize();

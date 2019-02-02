@@ -16,6 +16,13 @@
 
 namespace gleaf::horizon
 {
+    enum class GpioInput
+    {
+        Power,
+        VolumeDown,
+        VolumeUp,
+    };
+
     struct FwVersion
     {
         u8 Major;
@@ -38,4 +45,7 @@ namespace gleaf::horizon
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
     void IRAMClear();
     void PayloadProcess(std::string Path);
+    void InitializeGpioInputHandling();
+    bool IsGpioInputPressed(GpioInput InputType);
+    void FinalizeGpioInputHandling();
 }

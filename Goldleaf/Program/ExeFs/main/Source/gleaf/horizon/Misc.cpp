@@ -10,6 +10,10 @@ namespace gleaf::horizon
     alignas(0x1000) u8 workpage[0x1000];
     alignas(0x1000) u8 clearblock[0x1000];
 
+    static GpioPadSession power;
+    static GpioPadSession volup;
+    static GpioPadSession voldown;
+
     u32 GetBatteryLevel()
     {
         u32 bat = 0;
@@ -136,5 +140,37 @@ namespace gleaf::horizon
             for(u32 i = 0; i < 0x2f000; i += 0x1000) IRAMWrite(&payload[i], (0x40010000 + i), 0x1000);
             splSetConfig((SplConfigItem)65001, 2);
         }
+    }
+
+    void InitializeGpioInputHandling()
+    {
+        gpioOpenSession(&volup, GpioPadName_ButtonVolUp);
+        gpioOpenSession(&voldown, GpioPadName_ButtonVolDown);
+        gpioOpenSession(&power, (GpioPadName)24);
+    }
+
+    bool IsGpioInputPressed(GpioInput InputType)
+    {
+        GpioValue gval;
+        switch(InputType)
+        {
+            case GpioInput::VolumeUp:
+                gpioPadGetValue(&volup, &gval);
+                break;
+            case GpioInput::VolumeDown:
+                gpioPadGetValue(&voldown, &gval);
+                break;
+            case GpioInput::Power:
+                gpioPadGetValue(&power, &gval);
+                break;
+        }
+        return (gval == GpioValue_Low);
+    }
+
+    void FinalizeGpioInputHandling()
+    {
+        gpioPadClose(&volup);
+        gpioPadClose(&voldown);
+        gpioPadClose(&power);
     }
 }

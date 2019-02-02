@@ -3,8 +3,9 @@
 
 namespace gleaf::ui
 {
-    MainApplication *mainapp;
-    std::string clipboard;
+    static MainApplication *mainapp;
+    static std::string clipboard;
+    static ApplicationHolder launchapp = {};
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -45,7 +46,7 @@ namespace gleaf::ui
         this->optionMenu->AddItem(this->usbMenuItem);
         this->optionMenu->AddItem(this->titleMenuItem);
         this->optionMenu->AddItem(this->ticketMenuItem);
-        if(IsApplication()) this->optionMenu->AddItem(this->webMenuItem);
+        this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->cfwConfigMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
@@ -128,7 +129,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
-        if(IsApplication())
+        if(IsInstalledTitle())
         {
             std::string out = AskForText("Select web page to browse.", "https://dns.switchbru.com/");
             if(out == "") return;
@@ -162,6 +163,12 @@ namespace gleaf::ui
             appletHolderStart(&aph);
             appletHolderJoin(&aph);
         }
+        else
+        {
+            pu::Dialog *dlg = new pu::Dialog("Web browsing", "For technical reasons, this feature can only be used if Goldleaf is installed as a NSP.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+        }
     }
 
     void MainMenuLayout::accountMenuItem_Click()
@@ -189,7 +196,11 @@ namespace gleaf::ui
 
     void MainMenuLayout::aboutMenuItem_Click()
     {
-        mainapp->LoadMenuData("Goldleaf v0.3", "Info", (IsApplication() ? "Running as an installed title." : "Running as a homebrew NRO binary."));
+        std::string rmode = "<unknown running mode - are you sure this is the official release?>";
+        if(IsNRO()) rmode = "Running as a homebrew NRO binary.";
+        else if(IsInstalledTitle()) rmode = "Running as an installed title.";
+        else if(IsQlaunch()) rmode = "Running as a HOME Menu (qlaunch) replacement.";
+        mainapp->LoadMenuData("Goldleaf v0.3", "Info", rmode);
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 
@@ -538,26 +549,29 @@ namespace gleaf::ui
                         break;
                 }
             }
-            else if(ext == "nro") 
+            else if(ext == "nro")
             {
                 switch(sopt)
                 {
                     case 0:
-                        if(IsApplication())
+                        if(IsNRO())
+                        {
+                            dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.");
+                            dlg->AddOption("Launch");
+                            dlg->AddOption("Cancel");
+                            mainapp->ShowDialog(dlg);
+                            if(dlg->UserCancelled() || (dlg->GetSelectedIndex() == 1)) return;
+                            envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
+                            mainapp->Close();
+                            return;
+                        }
+                        else
                         {
                             dlg = new pu::Dialog("NRO launch error", "For technical reasons, NRO binaries cannot be launched if Goldleaf is launched as a title.");
                             dlg->AddOption("Ok");
                             mainapp->ShowDialog(dlg);
                             return;
                         }
-                        dlg = new pu::Dialog("NRO launch confirmation", "The selected NRO binary will be launched. (or attempted to be launched)\nGoldleaf has to be closed to proceed with the launch.");
-                        dlg->AddOption("Launch");
-                        dlg->AddOption("Cancel");
-                        mainapp->ShowDialog(dlg);
-                        if(dlg->UserCancelled() || (dlg->GetSelectedIndex() == 1)) return;
-                        envSetNextLoad(fullitm.c_str(), "sdmc:/hbmenu.nro");
-                        mainapp->Close();
-                        return;
                         break;
                 }
             }
@@ -1005,7 +1019,7 @@ namespace gleaf::ui
 
     void InstallLayout::StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input, std::string PInput)
     {
-        if(IsApplication()) appletBeginBlockingHomeButton(0);
+        if(IsInstalledTitle()) appletBeginBlockingHomeButton(0);
         mainapp->LoadMenuHead("Installing NSP: \'" + PInput + "\'");
         this->installText->SetText("Processing title records...");
         mainapp->UpdateFooter("Installing NSP...");
@@ -1013,7 +1027,7 @@ namespace gleaf::ui
         InstallerResult rc = Inst->ProcessRecords();
         if(!rc.IsSuccess())
         {
-            if(IsApplication()) appletEndBlockingHomeButton();
+            if(IsInstalledTitle()) appletEndBlockingHomeButton();
             delete Inst;
             Inst = NULL;
             this->LogError(rc);
@@ -1032,13 +1046,13 @@ namespace gleaf::ui
         });
         if(!rc.IsSuccess())
         {
-            if(IsApplication()) appletEndBlockingHomeButton();
+            if(IsInstalledTitle()) appletEndBlockingHomeButton();
             delete Inst;
             Inst = NULL;
             this->LogError(rc);
             mainapp->LoadLayout(Prev);
         }
-        if(IsApplication()) appletEndBlockingHomeButton();
+        if(IsInstalledTitle()) appletEndBlockingHomeButton();
         delete Inst;
         Inst = NULL;
         if(rc.IsSuccess())
@@ -1211,14 +1225,14 @@ namespace gleaf::ui
                         bool ignorev = (sopt == 0);
                         usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
                         usb::WriteCommand(cmd2);
-                        if(IsApplication()) appletBeginBlockingHomeButton(0);
+                        if(IsInstalledTitle()) appletBeginBlockingHomeButton(0);
                         this->installText->SetText("Starting installation...");
                         mainapp->CallForRender();
                         usb::Installer inst(dst, ignorev);
                         InstallerResult rc = inst.GetLatestResult();
                         if(!rc.IsSuccess())
                         {
-                            if(IsApplication()) appletEndBlockingHomeButton();
+                            if(IsInstalledTitle()) appletEndBlockingHomeButton();
                             mainapp->GetInstallLayout()->LogError(rc);
                             usb::WriteCommand(fcmd);
                             mainapp->UnloadMenuData();
@@ -1230,7 +1244,7 @@ namespace gleaf::ui
                         rc = inst.ProcessRecords();
                         if(!rc.IsSuccess())
                         {
-                            if(IsApplication()) appletEndBlockingHomeButton();
+                            if(IsInstalledTitle()) appletEndBlockingHomeButton();
                             mainapp->GetInstallLayout()->LogError(rc);
                             usb::WriteCommand(fcmd);
                             mainapp->UnloadMenuData();
@@ -1249,7 +1263,7 @@ namespace gleaf::ui
                             mainapp->CallForRender();
                         });
                         this->installBar->SetVisible(false);
-                        if(IsApplication()) appletEndBlockingHomeButton();
+                        if(IsInstalledTitle()) appletEndBlockingHomeButton();
                         if(!rc.IsSuccess())
                         {
                             mainapp->GetInstallLayout()->LogError(rc);
@@ -1587,8 +1601,46 @@ namespace gleaf::ui
         msg += "\nVersion number: v" + std::to_string(this->content.Version);
         if(this->content.Version != 0) msg += " [update no. " + std::to_string(this->content.Version >> 16) + "]";
         pu::Dialog *dlg = new pu::Dialog("Content information", msg);
-        dlg->AddOption("Ok");
-        mainapp->ShowDialog(dlg);
+        if(this->content.Type == ncm::ContentMetaType::Application)
+        {
+            if(IsQlaunch())
+            {
+                dlg->AddOption("Launch");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                if(dlg->UserCancelled() || (sopt == 1)) return;
+                if(appletAHIsInProcess(&launchapp))
+                {
+                    dlg = new pu::Dialog("Title launch", "There is already another title being executed.\nWould you like to close the current title and launch the selected one?");
+                    dlg->AddOption("Close and continue");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    u32 sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled() || (sopt == 1)) return;
+                    Result rc = appletAHTerminate(&launchapp);
+                    if(rc != 0) mainapp->UpdateFooter("Terminated: " + horizon::FormatHex(rc));
+                    appletAHClose(&launchapp);
+                }
+                Result rc = appletAHCreate(&launchapp, this->content.ApplicationId);
+                if(rc == 0)
+                {
+                    rc = appletAHLaunch(&launchapp);
+                    if(rc != 0) mainapp->UpdateFooter("Launched: " + horizon::FormatHex(rc));
+                }
+                else mainapp->UpdateFooter("Created: " + horizon::FormatHex(rc));
+            }
+            else
+            {
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+            }
+        }
+        else
+        {
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+        }
     }
 
     void ContentInformationLayout::contents_Click()
@@ -2807,10 +2859,7 @@ namespace gleaf::ui
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
-        if((Down & KEY_PLUS) || (Down & KEY_MINUS))
-        {
-            if(!IsApplication()) this->Close();
-        }
+        if(((Down & KEY_PLUS) || (Down & KEY_MINUS)) && IsNRO()) this->Close();
         else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowRebootShutDownDialog("Reboot or shut down console", "You can shut down or reboot your console here.");
     }
 
