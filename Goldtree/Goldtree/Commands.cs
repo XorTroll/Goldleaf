@@ -15,7 +15,6 @@ namespace gtree
         NSPData,
         NSPContent,
         NSPTicket,
-        NSPCert,
         Finish, 
     }
 

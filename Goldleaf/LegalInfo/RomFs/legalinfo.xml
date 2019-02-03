@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SoftwareLegalInformation>
+  <OutputDateTime>2019-01-31T19:40:05.010Z</OutputDateTime>
+  <ProductRegions>
+    <Usa>true</Usa>
+    <Japan>true</Japan>
+    <Europe>true</Europe>
+  </ProductRegions>
+  <FormatVersion>0.4</FormatVersion>
+  <ApplicationId>0x050032a5cf12e000</ApplicationId>
+  <DataHash>ffffffffffffffffffffffffffffffff</DataHash>
+</SoftwareLegalInformation>

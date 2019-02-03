@@ -1,8 +1,8 @@
 # Goldleaf
 
-![Logo](Goldleaf/RomFs/Logo.png)
+![Logo](Goldleaf/Program/RomFs/Logo.png)
 
-> Easy-to-use title Nintendo Switch homebrew multitool, for several purposes and with several features
+> *Nintendo Switch homebrew multitool, for several purposes and with many, many features!*
 
 - **If you are looking for Tinfoil, this is Tinfoil's safer and way more extended evolution.**
 
@@ -39,6 +39,14 @@ Tickets are the system used by Nintendo to manage game purchases, but more techn
 You can remove installed ones from Goldleaf, and import them too. Installing a NSP of a title containing a ticket will import the ticket too.
 
 Despite not being a really big issue, removing a ticket of a title which does require it will leave the game unplayable, no matter if you have sigpatches or use a certain CFW. The console cannot find the key to decrypt the title's contents so cannot play it.
+
+### Account icon replacing
+
+You can set custom icons for user accounts on your console via Goldleaf.
+
+Keep in mind that this is one of the easiest ways to get banned, and has happened to many, many people.
+
+If you would like to to avoid ban risks as much as possible, I don't recommend using this feature.
 
 ## Main features
 
@@ -94,13 +102,17 @@ Despite not being a really big issue, removing a ticket of a title which does re
 
     Goldleaf can parse a NACP file and display some of it's information.
 
+  - **JPEG images**
+
+    Despite not being a Nintendo Switch specific format, this images have a special feature.
+
+    You can select a JPEG to replace an account's icon with that JPEG. IT SHOULD BE 256x256! Keep in mind that this is a really easy way to get banned from online services.
+
   - **Tickets and certificates**
 
     Tickets (.tik) and certificates (.cert) are the format used by Nintendo to provide encryption data for titlekey-crypto titles. (official games)
     
     NSPs might contain them, and Goldleaf is able to install them if they are located in the SD card.
-
-    To install a ticket you will have to provide a certificate, both with the same name and in the same directory, with their extension. (example: `sd:/game.tik` and `sd:/game.cert`)
 
   The NAND browser has almost the same support, but it's reccomended to use it only to export files via copying them to the SD card, to avoid any trouble. Goldleaf should warn when doing dangerous operations anyway.
 
@@ -124,7 +136,7 @@ Despite not being a really big issue, removing a ticket of a title which does re
 
   Goldleaf's title manager will display all the titles installed in the system, both SD, NAND and the one in the gamecart if inserted.
 
-  You can view these titles' information, icon, install location and Application Id.
+  You can view these titles' information, icon, install location and Application ID.
 
   Titles can also be completely uninstalled here. Keep in mind that deleting a title won't delete its savedata, that should stay on the system.
 
@@ -134,7 +146,7 @@ Despite not being a really big issue, removing a ticket of a title which does re
 
   Goldleaf can get all the tickets installed on the console. While some of them will contain the name of the title they belong to, some could belong to DLC or other types of content despite not belonging directly to a title.
 
-  You can view the Application Id and the key generation of a ticket by selecting it.
+  You can view the Application ID and the key generation of a ticket by selecting it.
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-crypto won't be playable.
 
@@ -145,6 +157,12 @@ Despite not being a really big issue, removing a ticket of a title which does re
   For special reasons, the browser can only be used from the installable version:
 
   - The web-applet attempts to find a file called `accessible-urls.txt` in the Offline Html NCA contents of the title calling it and won't work unless it finds this file, so applets cannot launch this applet properly.
+
+- **Account manager**
+
+  Goldleaf is able to edit several things on user accounts.
+
+  You can change the user's nickname, edit the icon (from the SD/console memory browsers, with JPEG images), and delete the account permanently.
 
 - **CFW and custom theme management**
 
@@ -300,6 +318,8 @@ The main conceps of Goldleaf are and have been developed by XorTroll, but withou
 
 - All the icons except Goldleaf's one (see credit above) were grabbed from [Icons8](https://icons8.com).
 
+- 2767mr, for all the support for making USB installs more stable, and the work-in-progress .NET core version of Goldtree.
+
 - The-4n, for [hacBrewPack](https://github.com/The-4n/hacBrewPack), to make completely legal NSPs.
 
 - SciresM for [hactool](https://github.com/SciresM/hactool), which was ported as a library to make NCA extraction a thing in Goldleaf.
@@ -307,6 +327,8 @@ The main conceps of Goldleaf are and have been developed by XorTroll, but withou
 - Thealexbarney, for his C# libraries for various Nintendo Switch formats: LibHac, used by Goldtree.
 
 - Simon for his libusbK implementation for C#, which has made Goldtree client possible.
+
+- shchmue for FATFS libs and the system to get titlekeys without breaking processes, found in [Lockpick](https://github.com/shchmue/Lockpick).
 
 - All the testers, for reporting bugs and helping with the project's development.
 
