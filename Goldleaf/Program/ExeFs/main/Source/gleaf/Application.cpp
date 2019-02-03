@@ -139,21 +139,21 @@ namespace gleaf
         return R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &tmpc));
     }
 
-    bool IsSXOS()
-    {
-        Handle tmph = 0;
-        Result rc = smRegisterService(&tmph, "tx", false, 1);
-        if(R_FAILED(rc)) return true;
-        smUnregisterService("tx");
-        return false;
-    }
-
     bool IsReiNX()
     {
         Handle tmph = 0;
         Result rc = smRegisterService(&tmph, "rnx", false, 1);
         if(R_FAILED(rc)) return true;
         smUnregisterService("rnx");
+        return false;
+    }
+
+    bool IsSXOS()
+    {
+        Handle tmph = 0;
+        Result rc = smRegisterService(&tmph, "tx", false, 1);
+        if(R_FAILED(rc)) return true;
+        smUnregisterService("tx");
         return false;
     }
 

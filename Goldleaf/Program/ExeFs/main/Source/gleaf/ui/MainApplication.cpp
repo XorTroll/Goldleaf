@@ -182,7 +182,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::cfwConfigMenuItem_Click()
     {
-        mainapp->LoadMenuData("CFWs and themes", "CFW", "Searching for CFWs on the SD card...");
+        mainapp->LoadMenuData("CFWs and themes", "CFW", "Searching for CFWs...");
         mainapp->GetCFWConfigLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetCFWConfigLayout());
     }
@@ -758,7 +758,7 @@ namespace gleaf::ui
                     case 0:
                         u128 uid = AskForUser();
                         if(uid == 0) return;
-                        dlg = new pu::Dialog("Accounts and custom icons", "Custom icons are one of the most dangerous ways to get banned, almost guaranteeing it.\nAre you sure you want to continue?");
+                        dlg = new pu::Dialog("Icon replacement", "Custom icons are one of the most dangerous ways to get banned, almost guaranteeing it.\nAre you sure you want to continue?");
                         dlg->AddOption("Replace icon");
                         dlg->AddOption("Cancel");
                         mainapp->ShowDialog(dlg);
@@ -1616,7 +1616,7 @@ namespace gleaf::ui
                     dlg->AddOption("Close and continue");
                     dlg->AddOption("Cancel");
                     mainapp->ShowDialog(dlg);
-                    u32 sopt = dlg->GetSelectedIndex();
+                    sopt = dlg->GetSelectedIndex();
                     if(dlg->UserCancelled() || (sopt == 1)) return;
                     Result rc = appletAHTerminate(&launchapp);
                     if(rc != 0) mainapp->UpdateFooter("Terminated: " + horizon::FormatHex(rc));
@@ -1632,14 +1632,30 @@ namespace gleaf::ui
             }
             else
             {
-                dlg->AddOption("Ok");
+                dlg->AddOption("Remove");
+                dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                if(sopt == 0)
+                {
+                    Result rc = horizon::RemoveTitle(this->content);
+                    if(rc == 0) mainapp->UpdateFooter("Content was successfully removed.");
+                    else mainapp->UpdateFooter("An error ocurred attempting to remove the content: " + horizon::FormatHex(rc));
+                }
             }
         }
         else
         {
-            dlg->AddOption("Ok");
+            dlg->AddOption("Remove");
+            dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
+            u32 sopt = dlg->GetSelectedIndex();
+            if(sopt == 0)
+            {
+                Result rc = horizon::RemoveTitle(this->content);
+                if(rc == 0) mainapp->UpdateFooter("Content was successfully removed.");
+                else mainapp->UpdateFooter("An error ocurred attempting to remove the content: " + horizon::FormatHex(rc));
+            }
         }
     }
 
@@ -2152,7 +2168,7 @@ namespace gleaf::ui
         u8 *img = (u8*)malloc(pimgsz);
         rc = accountProfileLoadImage(&this->prf, img, pimgsz, &imgsz);
         FILE *f = fopen(iconpth.c_str(), "wb");
-        if(rc == 0) fwrite(img, 0x20000, 1, f);
+        if(rc == 0) fwrite(img, pimgsz, 1, f);
         fclose(f);
         free(img);
     }
@@ -2231,7 +2247,11 @@ namespace gleaf::ui
     void CFWConfigLayout::UpdateElements()
     {
         this->cfwsMenu->ClearItems();
-        mainapp->LoadMenuHead("Found " + std::to_string(this->cfws.size()) + " CFWs on the SD card.");
+        std::string cfw = "<unknown CFW>";
+        if(IsAtmosphere()) cfw = "Atmosphère";
+        else if(IsReiNX()) cfw = "ReiNX";
+        else if(IsSXOS()) cfw = "SX OS";
+        mainapp->LoadMenuHead("Found " + std::to_string(this->cfws.size()) + " CFWs on the SD card. Currently running " + cfw);
         for(u32 i = 0; i < this->cfws.size(); i++) if(gleaf::fs::IsDirectory("sdmc:/" + this->cfws[i]))
         {
             pu::element::MenuItem *itm = new pu::element::MenuItem(this->cfwnms[i]);
@@ -2860,7 +2880,7 @@ namespace gleaf::ui
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
         if(((Down & KEY_PLUS) || (Down & KEY_MINUS)) && IsNRO()) this->Close();
-        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowRebootShutDownDialog("Reboot or shut down console", "You can shut down or reboot your console here.");
+        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowRebootShutDownDialog("Reboot or shut down console", "Shut down or reboot your console from this dialog.");
     }
 
     MainMenuLayout *MainApplication::GetMainMenuLayout()
@@ -2956,7 +2976,7 @@ namespace gleaf::ui
 
     void ShowRebootShutDownDialog(std::string Title, std::string Message)
     {
-        pu::Dialog *dlg = new pu::Dialog(Title, Message + "\nKeep in mind that this uses the normal system to reboot the console, same one the overlay menu uses.");
+        pu::Dialog *dlg = new pu::Dialog(Title, Message);
         dlg->AddOption("Shut down");
         dlg->AddOption("Reboot");
         dlg->AddOption("Cancel");

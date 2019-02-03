@@ -119,7 +119,7 @@ qlaunch:
 	@mkdir -p $(CURDIR)/Output/titles/0100000000001000/exefs $(CURDIR)/Output/titles/0100000000001000/romfs
 	@touch $(CURDIR)/Output/titles/0100000000001000/fsmitm.flag
 	@touch $(CURDIR)/Output/titles/0100000000001000/exefs/rtld.stub
-	@cp $(CURDIR)/Program/ExeFs/main.npdm $(CURDIR)/Output/titles/0100000000001000/exefs/main.npdm
+	@cp $(CURDIR)/Program/ExeFs/main.npdm/qlaunch.npdm $(CURDIR)/Output/titles/0100000000001000/exefs/main.npdm
 	@cp -a $(CURDIR)/Program/RomFs/. $(CURDIR)/Output/titles/0100000000001000/romfs/
 	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Output/titles/0100000000001000/exefs/main
 	@echo Goldleaf[qlaunch]: Build finished!
@@ -143,7 +143,7 @@ nsp:
 	@rm -rf $(CURDIR)/Output/_meta
 	@mkdir -p $(CURDIR)/Output/_meta
 	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Program/_temp/main
-	@cp $(CURDIR)/Program/ExeFs/main.npdm $(CURDIR)/Program/_temp/main.npdm
+	@cp $(CURDIR)/Program/ExeFs/main.npdm/default.npdm $(CURDIR)/Program/_temp/main.npdm
 	@echo Goldleaf[nsp]: Generating program NCA...
 	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype program --titleid $(APP_TITLEID) --exefsdir=$(CURDIR)/Program/_temp --romfsdir=$(CURDIR)/Program/RomFs --logodir=$(CURDIR)/Program/Logo --outdir=$(CURDIR)/Program/_content
 	$(eval CPROGRAM = $(shell ls -t $(CURDIR)/Program/_content | head -n 1))

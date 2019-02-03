@@ -174,6 +174,23 @@ namespace gleaf::horizon
         return titles;
     }
 
+    Result RemoveTitle(Title &ToRemove)
+    {
+        NcmContentMetaDatabase metadb;
+        Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(ToRemove.Location), &metadb);
+        if(rc == 0)
+        {
+            rc = ncmContentMetaDatabaseRemove(&metadb, &ToRemove.Record);
+            if(rc == 0)
+            {
+                rc = ncmContentMetaDatabaseCommit(&metadb);
+                if(rc == 0) if(ToRemove.Type == ncm::ContentMetaType::Application) rc = ns::DeleteApplicationRecord(ToRemove.ApplicationId);
+            }
+        }
+        serviceClose(&metadb.s);
+        return rc;
+    }
+
     std::vector<Ticket> GetAllTickets()
     {
         std::vector<Ticket> tickets;

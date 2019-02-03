@@ -14,6 +14,7 @@
 #include <vector>
 #include <gleaf/Types.hpp>
 #include <gleaf/ncm.hpp>
+#include <gleaf/ns.hpp>
 #include <gleaf/es.hpp>
 
 namespace gleaf::horizon
@@ -24,7 +25,6 @@ namespace gleaf::horizon
         Personalized,
     };
 
-    // Thanks Switchbrew
     enum class TicketSignature
     {
         RSA_4096_SHA1 = 0x10000,
@@ -114,6 +114,7 @@ namespace gleaf::horizon
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
     std::vector<Ticket> GetAllTickets();
+    Result RemoveTitle(Title &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
     std::string GetExportedNACPPath(u64 ApplicationId);
     std::string GetProgramNCAFileName(u64 ApplicationId);
