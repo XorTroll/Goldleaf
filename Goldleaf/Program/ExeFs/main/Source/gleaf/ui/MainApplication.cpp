@@ -129,27 +129,33 @@ namespace gleaf::ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
+        if(!IsInstalledTitle())
+        {
+            pu::Dialog *dlg = new pu::Dialog("Web browsing", "As this isn't the installable version, Goldleaf will run the Wifi Login's web browser.\nThis version has some limitations, such as videos not supported.");
+            dlg->AddOption("Ok");
+            mainapp->ShowDialog(dlg);
+        }
+        std::string out = AskForText("Select web page to browse.", "https://");
+        if(out == "") return;
+        else
+        {
+            bool nothttp = (out.substr(0, 6) != "http:/");
+            bool nothttps = (out.substr(0, 7) != "https:/");
+            if(nothttp && nothttps)
+            {
+                pu::Dialog *dlg = new pu::Dialog("Web browsing", "An invalid web page was selected.");
+                dlg->AddOption("Ok");
+                mainapp->ShowDialog(dlg);
+                return;
+            }
+        }
         if(IsInstalledTitle())
         {
-            std::string out = AskForText("Select web page to browse.", "https://dns.switchbru.com/");
-            if(out == "") return;
-            else
-            {
-                bool nothttp = (out.substr(0, 6) != "http:/");
-                bool nothttps = (out.substr(0, 7) != "https:/");
-                if(nothttp && nothttps)
-                {
-                    pu::Dialog *dlg = new pu::Dialog("Web browsing", "An invalid web page was selected.");
-                    dlg->AddOption("Ok");
-                    mainapp->ShowDialog(dlg);
-                    return;
-                }
-            }
             AppletHolder aph;
             AppletStorage hast1;
             LibAppletArgs args;
             appletCreateLibraryApplet(&aph, AppletId_web, LibAppletMode_AllForeground);
-            libappletArgsCreate(&args, 0x50000);
+            libappletArgsCreate(&args, 0);
             libappletArgsPush(&args, &aph);
             appletCreateStorage(&hast1, 8192);
             u8 indata[8192] = { 0 };
@@ -165,9 +171,10 @@ namespace gleaf::ui
         }
         else
         {
-            pu::Dialog *dlg = new pu::Dialog("Web browsing", "For technical reasons, this feature can only be used if Goldleaf is installed as a NSP.");
-            dlg->AddOption("Ok");
-            mainapp->ShowDialog(dlg);
+            WebWifiConfig wwf;
+            webWifiCreate(&wwf, out.c_str());
+            Result rc = webWifiShow(&wwf);
+            if(rc != 0) mainapp->UpdateFooter("Ahh: " + horizon::FormatHex(rc));
         }
     }
 
@@ -475,7 +482,7 @@ namespace gleaf::ui
                                 if(i != (ncas.size() - 1)) info += ", ";
                             }
                         }
-                        if(/*isapp && */inst->HasTicket())
+                        if(inst->HasTicket())
                         {
                             info += "\n\nThis NSP has a ticket and it will be imported. Ticket information:\n\n";
                             horizon::TicketData tik = inst->GetTicketData();
@@ -531,7 +538,7 @@ namespace gleaf::ui
                                     break;
                             }
                         }
-                        else info += "This NSP doesn't have a ticket. It seems to be standard crypto.";
+                        else info += "\n\nThis NSP doesn't have a ticket. It seems to be standard crypto.";
                         dlg = new pu::Dialog("Ready to start installation?", info);
                         if(hasnacp) dlg->SetIcon(inst->GetExportedIconPath(), 994, 30);
                         dlg->AddOption("Install");

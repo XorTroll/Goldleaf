@@ -141,6 +141,11 @@ namespace gleaf::nsp
         fsFsClose(&cnmtfs);
     }
 
+    Installer::~Installer()
+    {
+        this->Finalize();
+    }
+
     InstallerResult Installer::ProcessRecords()
     {
         Result rc = 0;
