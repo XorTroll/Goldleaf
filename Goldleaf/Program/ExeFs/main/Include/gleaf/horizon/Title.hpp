@@ -48,6 +48,7 @@ namespace gleaf::horizon
         NcmNcaId NCAId;
         Storage Location;
         bool Empty;
+        u64 Size;
 
         std::string GetFileName();
         std::string GetFullPath();
@@ -61,6 +62,9 @@ namespace gleaf::horizon
         ContentId Control;
         ContentId HtmlDocument;
         ContentId LegalInfo;
+
+        u64 GetTotalSize();
+        std::string GetFormattedTotalSize();
     };
 
     struct Title

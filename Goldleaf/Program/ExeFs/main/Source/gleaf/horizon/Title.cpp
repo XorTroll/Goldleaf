@@ -29,6 +29,16 @@ namespace gleaf::horizon
         return path;
     }
 
+    u64 TitleContents::GetTotalSize()
+    {
+        return (this->Meta.Size + this->Program.Size + this->Data.Size + this->Control.Size + this->HtmlDocument.Size + this->LegalInfo.Size);
+    }
+
+    std::string TitleContents::GetFormattedTotalSize()
+    {
+        return fs::FormatSize(this->GetTotalSize());
+    }
+
     NacpStruct *Title::TryGetNACP()
     {
         NacpStruct *nacp = NULL;
@@ -89,14 +99,17 @@ namespace gleaf::horizon
     {
         TitleContents cnts = {};
         NcmContentMetaDatabase metadb;
+        NcmContentStorage cst;
         Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(this->Location), &metadb);
         if(rc == 0)
         {
-            for(u32 i = 0; i < 6; i++)
+            rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
+            if(rc == 0) for(u32 i = 0; i < 6; i++)
             {
                 ContentId cntid = {};
                 cntid.Type = static_cast<ncm::ContentType>(i);
                 cntid.Empty = true;
+                cntid.Size = 0;
                 cntid.Location = this->Location;
                 NcmNcaId ncaid;
                 rc = ncmContentMetaDatabaseGetContentIdByType(&metadb, (NcmContentType)i, &this->Record, &ncaid);
@@ -104,6 +117,7 @@ namespace gleaf::horizon
                 {
                     cntid.Empty = false;
                     cntid.NCAId = ncaid;
+                    ncmContentStorageGetSize(&cst, &ncaid, &cntid.Size);
                 }
                 if(i == 0) cnts.Meta = cntid;
                 else if(i == 1) cnts.Program = cntid;
@@ -113,6 +127,7 @@ namespace gleaf::horizon
                 else if(i == 5) cnts.LegalInfo = cntid;
             }
         }
+        serviceClose(&cst.s);
         serviceClose(&metadb.s);
         return cnts;
     }

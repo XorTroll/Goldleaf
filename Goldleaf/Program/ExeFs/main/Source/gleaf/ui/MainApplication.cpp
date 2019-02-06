@@ -1605,7 +1605,8 @@ namespace gleaf::ui
                 break;
         }
         msg += "\nApplication ID: " + horizon::FormatApplicationId(this->content.ApplicationId);
-        msg += "\nVersion number: v" + std::to_string(this->content.Version);
+        msg += "\n\nContent total size: " + this->contents.GetFormattedTotalSize();
+        msg += "\n\nVersion number: v" + std::to_string(this->content.Version);
         if(this->content.Version != 0) msg += " [update no. " + std::to_string(this->content.Version >> 16) + "]";
         pu::Dialog *dlg = new pu::Dialog("Content information", msg);
         if(this->content.Type == ncm::ContentMetaType::Application)
@@ -1640,14 +1641,40 @@ namespace gleaf::ui
             else
             {
                 dlg->AddOption("Remove");
+                dlg->AddOption("Export");
                 dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
                 u32 sopt = dlg->GetSelectedIndex();
+                if(dlg->UserCancelled()) return;
                 if(sopt == 0)
                 {
                     Result rc = horizon::RemoveTitle(this->content);
                     if(rc == 0) mainapp->UpdateFooter("Content was successfully removed.");
                     else mainapp->UpdateFooter("An error ocurred attempting to remove the content: " + horizon::FormatHex(rc));
+                }
+                else if(sopt == 1)
+                {
+                    if(this->contents.GetTotalSize() >= 0x100000000)
+                    {
+                        dlg = new pu::Dialog("Title export warning", "The current title seems to have a size of 4GB or a higher one.\nDo not dump this title if you're on FAT32 to avoid bugs!");
+                        dlg->AddOption("Continue");
+                        dlg->AddOption("Cancel");
+                        mainapp->ShowDialog(dlg);
+                        u32 sopt = dlg->GetSelectedIndex();
+                        if(dlg->UserCancelled() || (sopt == 1)) return;
+                    }
+                    dlg = new pu::Dialog("Title exporting as NSP", "Title exporting is an experimental feature.\n\nWould you like to proceed?");
+                    dlg->AddOption("Export NSP");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    u32 sopt = dlg->GetSelectedIndex();
+                    if(dlg->UserCancelled()) return;
+                    if(sopt == 0)
+                    {
+                        mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
+                        mainapp->GetTitleDumperLayout()->StartDump(this->content);
+                        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                    }
                 }
             }
         }
@@ -1657,10 +1684,17 @@ namespace gleaf::ui
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             u32 sopt = dlg->GetSelectedIndex();
+            if(dlg->UserCancelled()) return;
             if(sopt == 0)
             {
+                dlg = new pu::Dialog("Content removing", "Would you really like to remove this content?\nRemoving system contents is NEVER, NEVER recommended!");
+                dlg->AddOption("Remove");
+                dlg->AddOption("Cancel");
+                mainapp->ShowDialog(dlg);
+                u32 sopt = dlg->GetSelectedIndex();
+                if(dlg->UserCancelled() || (sopt == 1)) return;
                 Result rc = horizon::RemoveTitle(this->content);
-                if(rc == 0) mainapp->UpdateFooter("Content was successfully removed.");
+                if(rc == 0) mainapp->UpdateFooter("The selected content was successfully removed.");
                 else mainapp->UpdateFooter("An error ocurred attempting to remove the content: " + horizon::FormatHex(rc));
             }
         }
