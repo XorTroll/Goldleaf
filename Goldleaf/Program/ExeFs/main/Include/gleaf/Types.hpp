@@ -51,6 +51,7 @@ namespace gleaf
         ContentMetaList,
         RecordPush,
         InstallBadNCA,
+        TitleFound,
     };
 
     struct InstallerResult

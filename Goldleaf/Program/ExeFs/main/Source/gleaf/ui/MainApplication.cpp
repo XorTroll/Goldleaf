@@ -112,7 +112,7 @@ namespace gleaf::ui
 
     void MainMenuLayout::titleMenuItem_Click()
     {
-        mainapp->LoadMenuData("Console contents", "Storage", "Browse contents from a specific storage.");
+        mainapp->LoadMenuData("Console contents", "Storage", "Select storage to navigate through its contents.");
         EnsureDirectories();
         mainapp->LoadLayout(mainapp->GetContentManagerLayout());
     }
@@ -207,7 +207,7 @@ namespace gleaf::ui
         if(IsNRO()) rmode = "Running as a homebrew NRO binary.";
         else if(IsInstalledTitle()) rmode = "Running as an installed title.";
         else if(IsQlaunch()) rmode = "Running as a HOME Menu (qlaunch) replacement.";
-        mainapp->LoadMenuData("Goldleaf v0.3", "Info", rmode);
+        mainapp->LoadMenuData("Goldleaf v0.4", "Info", rmode);
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 
@@ -392,6 +392,13 @@ namespace gleaf::ui
                         sopt = dlg->GetSelectedIndex();
                         if(dlg->UserCancelled() || (sopt == 2)) return;
                         bool ignorev = (sopt == 0);
+                        u64 fsize = fs::GetFileSize(fullitm);
+                        u64 rsize = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
+                        if(rsize < (fsize * 2))
+                        {
+                            mainapp->UpdateFooter("There is not enough size to install the selected title. (at least " + fs::FormatSize(fsize * 2) + ")");
+                            return;
+                        }
                         std::string nspipt = "@Sdcard:" + pfullitm.substr(7);
                         nsp::Installer *inst = new nsp::Installer(dst, nspipt, ignorev);
                         InstallerResult irc = inst->GetLatestResult();
@@ -551,7 +558,7 @@ namespace gleaf::ui
                             return;
                         }
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
-                        mainapp->GetInstallLayout()->StartInstall(inst, mainapp->GetSDBrowserLayout(), false, fullitm, pfullitm);
+                        mainapp->GetInstallLayout()->StartInstall(inst, this, false, fullitm, pfullitm);
                         this->UpdateElements();
                         break;
                 }
@@ -827,6 +834,11 @@ namespace gleaf::ui
             {
                 if(this->WarnNANDWriteAccess())
                 {
+                    dlg = new pu::Dialog("File delete confirmation", "Are you sure you want to delete the selected file?");
+                    dlg->AddOption("Continue");
+                    dlg->AddOption("Cancel");
+                    mainapp->ShowDialog(dlg);
+                    if(dlg->UserCancelled() || (dlg->GetSelectedIndex() == 1)) return;
                     fs::DeleteFile(fullitm);
                     mainapp->UpdateFooter("File deleted: \'" + pfullitm + "\'");
                     this->UpdateElements();
@@ -1039,6 +1051,7 @@ namespace gleaf::ui
             Inst = NULL;
             this->LogError(rc);
             mainapp->LoadLayout(Prev);
+            return;
         }
         this->installText->SetText("Starting to write contents...");
         mainapp->CallForRender();
@@ -1058,6 +1071,7 @@ namespace gleaf::ui
             Inst = NULL;
             this->LogError(rc);
             mainapp->LoadLayout(Prev);
+            return;
         }
         if(IsInstalledTitle()) appletEndBlockingHomeButton();
         delete Inst;
@@ -1126,11 +1140,16 @@ namespace gleaf::ui
                 case InstallerError::InstallBadNCA:
                     err += "Failed to find NCA content to write in the NSP";
                     break;
+                case InstallerError::TitleFound:
+                    err += "The title appears to be already installed (try uninstalling it)";
+                    break;
                 default:
                     err += "An unknown error ocurred";
                     break;
             }
-            mainapp->UpdateFooter(err + ": " + horizon::FormatHex(Res.Error));
+            if(Res.Type != InstallerError::TitleFound) err += ": " + horizon::FormatHex(Res.Error);
+            else err += ".";
+            mainapp->UpdateFooter(err);
         }
     }
 
@@ -1362,11 +1381,15 @@ namespace gleaf::ui
                 case InstallerError::InstallBadNCA:
                     err += "Failed to find NCA content to write in the NSP";
                     break;
+                case InstallerError::TitleFound:
+                    err += "The title appears to be already installed (try uninstalling it)";
+                    break;
                 default:
                     err += "An unknown error ocurred";
                     break;
             }
-            mainapp->UpdateFooter(err + ": " + horizon::FormatHex(Res.Error));
+            if(Res.Type != InstallerError::TitleFound) err += ": " + horizon::FormatHex(Res.Error);
+            mainapp->UpdateFooter(err);
         }
     }
 
@@ -1640,6 +1663,12 @@ namespace gleaf::ui
             }
             else
             {
+                if(this->content.Location == Storage::GameCart)
+                {
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    return;
+                }
                 dlg->AddOption("Remove");
                 dlg->AddOption("Export");
                 dlg->AddOption("Cancel");
@@ -1687,7 +1716,14 @@ namespace gleaf::ui
             if(dlg->UserCancelled()) return;
             if(sopt == 0)
             {
-                dlg = new pu::Dialog("Content removing", "Would you really like to remove this content?\nRemoving system contents is NEVER, NEVER recommended!");
+                if(this->content.Location == Storage::NANDSystem)
+                {
+                    dlg = new pu::Dialog("Content removing", "The selected content belongs to NAND's SYSTEM partition, where system titles are placed.\nAs it's risky and pointless, removing this titles is blocked.");
+                    dlg->AddOption("Ok");
+                    mainapp->ShowDialog(dlg);
+                    return;
+                }
+                dlg = new pu::Dialog("Content removing", "Would you really like to remove this content?");
                 dlg->AddOption("Remove");
                 dlg->AddOption("Cancel");
                 mainapp->ShowDialog(dlg);
@@ -1702,7 +1738,6 @@ namespace gleaf::ui
 
     void ContentInformationLayout::contents_Click()
     {
-
     }
 
     void ContentInformationLayout::LoadContent(horizon::Title Content)
@@ -1712,7 +1747,7 @@ namespace gleaf::ui
         bool hicon = (Content.TryGetIcon() != NULL);
         std::string icon = "romfs:/Common/Storage.png";
         if(hicon) icon = horizon::GetExportedIconPath(Content.ApplicationId);
-        mainapp->LoadMenuData("Content information", icon, "Loaded content: " + horizon::FormatApplicationId(Content.ApplicationId), false);
+        mainapp->LoadMenuData("Console contents", icon, "Loaded content: " + horizon::FormatApplicationId(Content.ApplicationId), false);
         this->UpdateElements();
     }
 
@@ -1762,6 +1797,7 @@ namespace gleaf::ui
             }
             this->contentsMenu->SetSelectedIndex(0);
         }
+        mainapp->LoadMenuHead("Browsing contents within this storage.");
     }
 
     ContentManagerLayout::ContentManagerLayout() : pu::Layout()
@@ -2097,19 +2133,11 @@ namespace gleaf::ui
         else
         {
             this->notTicketsText->SetVisible(false);
-            // std::vector<horizon::Title> ots = horizon::GetAllTitles();
             for(u32 i = 0; i < this->tickets.size(); i++)
             {
                 horizon::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
-                std::string tname = "Unknown title (" + horizon::FormatApplicationId(tappid) + ")";
-                /*
-                if(!ots.empty()) for(u32 i = 0; i < ots.size(); i++) if(ots[i].ApplicationId == tappid)
-                {
-                    tname = ots[i].Name;
-                    break;
-                }
-                */
+                std::string tname = "[" + std::string((ticket.Type == horizon::TicketType::Common) ? "Common" : "Personalized") + "] " + horizon::FormatApplicationId(tappid);
                 pu::element::MenuItem *itm = new pu::element::MenuItem(tname);
                 itm->SetIcon("romfs:/Common/Ticket.png");
                 itm->AddOnClick(std::bind(&TicketManagerLayout::tickets_Click, this));
@@ -2126,29 +2154,37 @@ namespace gleaf::ui
         u64 tappid = seltick.GetApplicationId();
         info += "Application ID: " + horizon::FormatApplicationId(tappid);
         info += "\nKey generation: " + std::to_string(seltick.GetKeyGeneration() + 1);
+        info += "\n\n";
+        bool used = horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid);
+        if(!used) used = horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
+        if(used) info += "This ticket is being used by an installed content. (a title, update, DLC...)";
+        else info += "This ticket seems to be unused.";
         pu::Dialog *dlg = new pu::Dialog("Installed ticket information", info);
         dlg->AddOption("Remove ticket");
         dlg->AddOption("Cancel");
         mainapp->ShowDialog(dlg);
         u32 sopt = dlg->GetSelectedIndex();
         if(dlg->UserCancelled() || (sopt == 1)) return;
-        else
+        dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the selected ticket?");
+        dlg->AddOption("Yes");
+        dlg->AddOption("Cancel");
+        mainapp->ShowDialog(dlg);
+        sopt = dlg->GetSelectedIndex();
+        if(dlg->UserCancelled() || (sopt == 1)) return;
+        if(used)
         {
-            dlg = new pu::Dialog("Ticket remove", "Are you sure you want to remove the selected ticket?");
-            dlg->AddOption("Yes");
+            dlg = new pu::Dialog("Used ticket", "This ticket seems to be used by some content.\nRemoving it will cause the content to stay unbootable and won't work.\nWould you really like to remove this ticket?");
+            dlg->AddOption("Continue");
             dlg->AddOption("Cancel");
             mainapp->ShowDialog(dlg);
             sopt = dlg->GetSelectedIndex();
             if(dlg->UserCancelled() || (sopt == 1)) return;
-            else
-            {
-                Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
-                std::string resstr = "The ticket was successfully removed from this console.";
-                if(rc != 0) resstr = "An error ocurred attempting to remove the ticket: " + std::to_string(rc);
-                else this->UpdateElements();
-                mainapp->UpdateFooter(resstr);
-            }
         }
+        Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
+        std::string resstr = "The ticket was successfully removed from this console.";
+        if(rc != 0) resstr = "An error ocurred attempting to remove the ticket: " + std::to_string(rc);
+        else this->UpdateElements();
+        mainapp->UpdateFooter(resstr);
     }
 
     AccountLayout::AccountLayout() : pu::Layout()
@@ -2411,10 +2447,10 @@ namespace gleaf::ui
         this->menuImage = new pu::element::Image(10, 67, "romfs:/Common/SdCard.png");
         this->menuImage->SetWidth(100);
         this->menuImage->SetHeight(100);
-        this->menuNameText = new pu::element::TextBlock(112, 90, "Name");
-        this->menuHeadText = new pu::element::TextBlock(112, 125, "Head", 20);
+        this->menuNameText = new pu::element::TextBlock(120, 90, "Name");
+        this->menuHeadText = new pu::element::TextBlock(120, 125, "Head", 20);
         this->UnloadMenuData();
-        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf! You can install NSPs, import tickets, uninstall titles, remove tickets, browse SD and NAND...", 20);
+        this->footerText = new pu::element::TextBlock(15, 685, "Welcome to Goldleaf! You can manage contents, remove tickets, install NSPs, browse SD and NAND...", 20);
         this->UpdateValues();
         this->mainMenu = new MainMenuLayout();
         this->sdBrowser = new PartitionBrowserLayout(fs::Partition::SdCard);
@@ -2851,6 +2887,7 @@ namespace gleaf::ui
     {
         if(Down & KEY_B)
         {
+            mainapp->LoadMenuData("Console contents", "Storage", "Browsing contents within this storage.");
             this->LoadLayout(this->storageContents);
         }
     }
@@ -2859,6 +2896,7 @@ namespace gleaf::ui
     {
         if(Down & KEY_B)
         {
+            mainapp->LoadMenuData("Console contents", "Storage", "Select storage to navigate through its contents.");
             this->LoadLayout(this->contentManager);
         }
     }

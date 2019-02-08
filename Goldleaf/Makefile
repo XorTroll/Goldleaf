@@ -165,7 +165,7 @@ nsp:
 	@cp $(CURDIR)/LegalInfo/_content/$(CLEGALINFO) $(CURDIR)/Output/_meta/$(CLEGALINFO)
 	@echo Goldleaf[nsp]: Contents copied. Generating final NSP...
 	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nsp --titleid $(APP_TITLEID) --ncadir $(CURDIR)/Output/_meta --outdir=$(CURDIR)/Output
-	@mv $(CURDIR)/Output/$(APP_TITLEID).nsp $(CURDIR)/Output/Goldleaf.nsp
+	@mv $(CURDIR)/Output/050032a5cf12e000.nsp $(CURDIR)/Output/Goldleaf.nsp
 	@rm -rf $(CURDIR)/hacpack_backup
 	@echo Goldleaf[nsp]: Build finished!
 

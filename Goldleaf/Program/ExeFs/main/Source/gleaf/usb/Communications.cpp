@@ -10,6 +10,7 @@ namespace gleaf::usb
     Command ReadCommand()
     {
         Command cmd;
+        svcSleepThread(100000000L);
         ReadFixed(&cmd, sizeof(Command));
         return cmd;
     }

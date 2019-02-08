@@ -5,6 +5,8 @@
 
 namespace gleaf::usb
 {
+    Mutex usbmtx;
+
     bool Command::MagicOk()
     {
         return (this->Magic == GLUC);
@@ -29,16 +31,18 @@ namespace gleaf::usb
         Command cmd = MakeCommand(CommandId::NSPContent);
         WriteCommand(cmd);
         Write32(args->Index);
-        u64 rsize = 0x100000;
+        u64 rsize = 0x800000;
         u8 *data = (u8*)memalign(0x1000, rsize);
         u64 szrem = args->Size;
         size_t tmpread = 0;
         while(szrem)
         {
+            mutexLock(&usbmtx);
             tmpread = usb::Read(data, std::min(szrem, rsize));
             szrem -= tmpread;
             while(!args->WriterRef->CanAppendData(tmpread));
             args->WriterRef->AppendData(data, tmpread);
+            mutexUnlock(&usbmtx);
         }
         free(data);
         return 0;
@@ -47,7 +51,12 @@ namespace gleaf::usb
     int OnContentAppend(void *Args)
     {
         ContentThreadArguments *args = reinterpret_cast<ContentThreadArguments*>(Args);
-        while(!args->WriterRef->IsPlaceHolderComplete()) if(args->WriterRef->CanWriteSegmentToPlaceHolder()) args->WriterRef->WriteSegmentToPlaceHolder();
+        while(!args->WriterRef->IsPlaceHolderComplete())
+        {
+            mutexLock(&usbmtx);
+            if(args->WriterRef->CanWriteSegmentToPlaceHolder()) args->WriterRef->WriteSegmentToPlaceHolder();
+            mutexUnlock(&usbmtx);
+        }
         return 0;
     }
 }

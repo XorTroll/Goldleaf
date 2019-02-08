@@ -151,6 +151,18 @@ namespace gleaf::nsp
         Result rc = 0;
         NcmContentMetaDatabase metadb;
         NcmMetaRecord metakey = this->cmeta.GetContentMetaKey();
+        if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, metakey.titleId))
+        {
+            this->irc.Type = InstallerError::TitleFound;
+            this->Finalize();
+            return this->irc;
+        }
+        if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, metakey.titleId))
+        {
+            this->irc.Type = InstallerError::TitleFound;
+            this->Finalize();
+            return this->irc;
+        }
         rc = ncmOpenContentMetaDatabase(stid, &metadb);
         if(rc != 0)
         {
@@ -360,6 +372,10 @@ namespace gleaf::nsp
     void Installer::Finalize()
     {
         fsdevUnmountDevice("gnspi");
-        free(this->nacps);
+        if(this->nacps != NULL)
+        {
+            free(this->nacps);
+            this->nacps = NULL;
+        }
     }
 }

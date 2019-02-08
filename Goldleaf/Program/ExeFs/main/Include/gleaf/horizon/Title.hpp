@@ -117,6 +117,7 @@ namespace gleaf::horizon
 
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
+    bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId);
     std::vector<Ticket> GetAllTickets();
     Result RemoveTitle(Title &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);

@@ -1,12 +1,15 @@
 #include <gleaf/usb/USBInstaller.hpp>
 #include <gleaf/nsp/Installer.hpp>
 #include <gleaf/usb/Communications.hpp>
-#include <malloc.h>
 #include <gleaf/fs.hpp>
+#include <gleaf/horizon.hpp>
+#include <malloc.h>
 #include <threads.h>
 
 namespace gleaf::usb
 {
+    extern Mutex usbmtx;
+
     Installer::Installer(Storage Location, bool IgnoreVersion)
     {
         Command req = ReadCommand();
@@ -32,6 +35,7 @@ namespace gleaf::usb
 
     InstallerResult Installer::ProcessRecords()
     {
+        mutexInit(&usbmtx);
         NSPContentData cnmtdata;
         for(u32 i = 0; i < this->cnts.size(); i++)
         {
@@ -64,7 +68,11 @@ namespace gleaf::usb
         }
         FsFile fcnmtfile;
         fcnmtname.reserve(FS_MAX_PATH);
-        rc = fsFsOpenFile(&cnmtfs, ("/" + fcnmtname).c_str(), FS_OPEN_READ, &fcnmtfile);
+        do
+        {
+            rc = fsFsOpenFile(&cnmtfs, ("/" + fcnmtname).c_str(), FS_OPEN_READ, &fcnmtfile);
+        }
+        while(rc == 0xd401);
         if(rc != 0)
         {
             this->irc.Error = rc;
@@ -85,12 +93,23 @@ namespace gleaf::usb
         cmeta.GetInstallContentMeta(cnmtbuf, cnmtr, iver);
         NcmContentMetaDatabase metadb;
         NcmMetaRecord metakey = cmeta.GetContentMetaKey();
+        if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, metakey.titleId))
+        {
+            this->irc.Error = MAKERESULT(512, 1);
+            this->irc.Type = InstallerError::TitleFound;
+            return this->irc;
+        }
+        if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, metakey.titleId))
+        {
+            this->irc.Error = MAKERESULT(512, 1);
+            this->irc.Type = InstallerError::TitleFound;
+            return this->irc;
+        }
         rc = ncmOpenContentMetaDatabase(stid, &metadb);
         if(rc != 0)
         {
             this->irc.Error = rc;
             this->irc.Type = InstallerError::MetaDatabaseOpen;
-            serviceClose(&metadb.s);
             return this->irc;
         }
         rc = ncmContentMetaDatabaseSet(&metadb, &metakey, cnmtbuf.GetSize(), (NcmContentMetaRecordsHeader*)cnmtbuf.GetData());

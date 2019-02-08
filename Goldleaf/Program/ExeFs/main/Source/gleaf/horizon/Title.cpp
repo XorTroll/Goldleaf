@@ -189,6 +189,18 @@ namespace gleaf::horizon
         return titles;
     }
 
+    bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId)
+    {
+        bool ex = false;
+        std::vector<Title> ts = SearchTitles(Type, Location);
+        for(u32 i = 0; i < ts.size(); i++) if(ts[i].ApplicationId == ApplicationId)
+        {
+            ex = true;
+            break;
+        }
+        return ex;
+    }
+
     Result RemoveTitle(Title &ToRemove)
     {
         NcmContentMetaDatabase metadb;
