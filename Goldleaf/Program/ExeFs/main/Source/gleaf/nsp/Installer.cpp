@@ -77,7 +77,11 @@ namespace gleaf::nsp
         }
         FsFile fcnmtfile;
         fcnmtname.reserve(FS_MAX_PATH);
-        rc = fsFsOpenFile(&cnmtfs, ("/" + fcnmtname).c_str(), FS_OPEN_READ, &fcnmtfile);
+        do
+        {
+            rc = fsFsOpenFile(&cnmtfs, ("/" + fcnmtname).c_str(), FS_OPEN_READ, &fcnmtfile);
+        }
+        while(rc == 0xd401);
         if(rc != 0)
         {
             this->irc.Error = rc;
