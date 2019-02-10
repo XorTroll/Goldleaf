@@ -54,11 +54,25 @@ namespace gleaf
         TitleFound,
     };
 
+    enum class Language
+    {
+        English,
+        Spanish
+    };
+
     struct InstallerResult
     {
         Result Error;
         InstallerError Type;
 
         bool IsSuccess();
+    };
+
+    struct ColorScheme
+    {
+        pu::draw::Color Background;
+        pu::draw::Color Base;
+        pu::draw::Color BaseFocus;
+        pu::draw::Color Text;
     };
 }

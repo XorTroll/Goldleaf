@@ -25,6 +25,8 @@ namespace pu::element
             ~MenuItem();
             std::string GetName();
             void SetName(std::string Name);
+            draw::Color GetColor();
+            void SetColor(draw::Color Color);
             void AddOnClick(std::function<void()> Callback, u64 Key = KEY_A);
             u32 GetCallbackCount();
             std::function<void()> GetCallback(u32 Index);
@@ -37,6 +39,7 @@ namespace pu::element
             render::NativeTexture GetIconTexture();
         private:
             std::string name;
+            draw::Color clr;
             bool hasicon;
             std::string icon;
             std::vector<std::function<void()>> cbs;
@@ -64,6 +67,8 @@ namespace pu::element
             void SetNumberOfItemsToShow(u32 ItemsToShow);
             draw::Color GetColor();
             void SetColor(draw::Color Color);
+            draw::Color GetOnFocusColor();
+            void SetOnFocusColor(draw::Color Color);
             draw::Color GetScrollbarColor();
             void SetScrollbarColor(draw::Color Color);
             void SetOnSelectionChanged(std::function<void()> Callback);
@@ -74,8 +79,9 @@ namespace pu::element
             u32 GetSelectedIndex();
             void SetSelectedIndex(u32 Index);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
         private:
+            bool dtouch;
             u32 x;
             u32 y;
             u32 w;
@@ -88,6 +94,7 @@ namespace pu::element
             s32 selfact;
             draw::Color scb;
             draw::Color clr;
+            draw::Color fcs;
             bool icdown;
             std::function<void()> onselch;
             std::vector<MenuItem*> itms;

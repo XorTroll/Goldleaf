@@ -37,7 +37,7 @@ namespace pu::element
             void SetContentFont(render::NativeFont Font);
             void SetOnClick(std::function<void()> ClickCallback);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
         private:
             u32 x;
             u32 y;

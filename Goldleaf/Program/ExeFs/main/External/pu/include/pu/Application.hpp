@@ -32,12 +32,17 @@ namespace pu
             void SetBackgroundImage(std::string Path);
             void DeleteBackgroundImage();
             void AddThread(std::function<void()> Callback);
-            void SetOnInput(std::function<void(u64 Down, u64 Up, u64 Held)> Callback);
-            void ShowDialog(Dialog *ToShow);
+            void SetOnInput(std::function<void(u64 Down, u64 Up, u64 Held, bool Touch)> Callback);
+            u32 ShowDialog(Dialog *ToShow);
+            int CreateShowDialog(std::string Title, std::string Content, std::vector<std::string> Options, bool UseLastOptionAsCancel, std::string Icon = "");
             void Show();
-            void CallForRender();
+            bool CallForRender();
+            bool CallForRenderWithRenderOver(std::function<bool(render::Renderer *Drawer)> RenderFunc);
+            void OnRender();
             void Close();
         protected:
+            bool rover;
+            std::function<bool(render::Renderer *Drawer)> rof;
             draw::Color bgcolor;
             std::string bgimage;
             render::NativeTexture ntex;
@@ -46,7 +51,7 @@ namespace pu
             s32 fact;
             Layout *lyt;
             std::vector<std::function<void()>> thds;
-            std::function<void(u64, u64, u64)> cbipt;
+            std::function<void(u64, u64, u64, bool)> cbipt;
             render::Renderer *rend;
     };
 }

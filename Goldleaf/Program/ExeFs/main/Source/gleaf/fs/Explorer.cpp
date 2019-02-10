@@ -10,7 +10,8 @@ namespace gleaf::fs
     Explorer::Explorer(Partition Base)
     {
         this->customifs = false;
-        this->mntname = this->GenerateMountName();
+        if(Base == Partition::SdCard) this->mntname = "sdmc";
+        else this->mntname = this->GenerateMountName();
         switch(Base)
         {
             case Partition::PRODINFOF:
@@ -35,7 +36,7 @@ namespace gleaf::fs
                 break;
         }
         this->ecwd = this->mntname + ":/";
-        fsdevMountDevice(this->mntname.c_str(), this->ifs);
+        if(Base != Partition::SdCard) fsdevMountDevice(this->mntname.c_str(), this->ifs);
         this->part = Base;
     }
 
@@ -156,7 +157,8 @@ namespace gleaf::fs
         if(this->part == NewBase) return;
         this->Close();
         this->customifs = false;
-        this->mntname = this->GenerateMountName();
+        if(NewBase == Partition::SdCard) this->mntname = "sdmc";
+        else this->mntname = this->GenerateMountName();
         switch(NewBase)
         {
             case Partition::PRODINFOF:
@@ -181,7 +183,7 @@ namespace gleaf::fs
                 break;
         }
         this->ecwd = this->mntname + ":/";
-        fsdevMountDevice(this->mntname.c_str(), this->ifs);
+        if(NewBase != Partition::SdCard) fsdevMountDevice(this->mntname.c_str(), this->ifs);
         this->part = NewBase;
     }
 
@@ -257,7 +259,10 @@ namespace gleaf::fs
 
     void Explorer::Close()
     {
-        fsdevUnmountDevice(this->mntname.c_str());
-        this->DeleteMountName(this->mntname);
+        if(this->part != Partition::SdCard)
+        {
+            fsdevUnmountDevice(this->mntname.c_str());
+            this->DeleteMountName(this->mntname);
+        }
     }
 }

@@ -25,6 +25,7 @@ namespace gleaf
         if(R_FAILED(nsInitialize())) exit(1);
         if(R_FAILED(es::Initialize())) exit(1);
         if(R_FAILED(psmInitialize())) exit(1);
+        if(R_FAILED(setInitialize())) exit(1);
         if(R_FAILED(setsysInitialize())) exit(1);
         if(R_FAILED(usbCommsInitialize())) exit(1);
         if(R_FAILED(lrInitialize())) exit(1);
@@ -44,6 +45,7 @@ namespace gleaf
         lrExit();
         usbCommsExit();
         setsysExit();
+        setExit();
         psmExit();
         es::Finalize();
         ns::Finalize();

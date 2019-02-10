@@ -26,7 +26,6 @@ namespace gleaf::ui
             void ticketMenuItem_Click();
             void webMenuItem_Click();
             void accountMenuItem_Click();
-            void cfwConfigMenuItem_Click();
             void sysinfoMenuItem_Click();
             void aboutMenuItem_Click();
         private:
@@ -38,7 +37,6 @@ namespace gleaf::ui
             pu::element::MenuItem *ticketMenuItem;
             pu::element::MenuItem *webMenuItem;
             pu::element::MenuItem *accountMenuItem;
-            pu::element::MenuItem *cfwConfigMenuItem;
             pu::element::MenuItem *sysinfoMenuItem;
             pu::element::MenuItem *aboutMenuItem;
     };
@@ -109,15 +107,6 @@ namespace gleaf::ui
         private:
             pu::element::TextBlock *installText;
             pu::element::ProgressBar *installBar;
-    };
-
-    class ThemeInstallLayout : public pu::Layout
-    {
-        public:
-            ThemeInstallLayout();
-            void StartInstall(theme::ThemeFileManifest &NXTheme, sarc::SARC::SarcData &SData, std::string CFWPath);
-        private:
-            pu::element::TextBlock *infoText;
     };
 
     class ContentInformationLayout : public pu::Layout
@@ -203,18 +192,6 @@ namespace gleaf::ui
             acc::ProfileEditor *pred;
     };
 
-    class CFWConfigLayout : public pu::Layout
-    {
-        public:
-            CFWConfigLayout();
-            void UpdateElements();
-            void cfws_Click();
-        private:
-            pu::element::Menu *cfwsMenu;
-            std::vector<std::string> cfws;
-            std::vector<std::string> cfwnms;
-    };
-
     class SystemInfoLayout : public pu::Layout
     {
         public:
@@ -262,7 +239,6 @@ namespace gleaf::ui
             void contentManager_Input(u64 Down, u64 Up, u64 Held);
             void ticketManager_Input(u64 Down, u64 Up, u64 Held);
             void account_Input(u64 Down, u64 Up, u64 Held);
-            void cfwConfig_Input(u64 Down, u64 Up, u64 Held);
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
             void OnInput(u64 Down, u64 Up, u64 Held);
@@ -273,19 +249,18 @@ namespace gleaf::ui
             CopyLayout *GetCopyLayout();
             InstallLayout *GetInstallLayout();
             USBInstallLayout *GetUSBInstallLayout();
-            ThemeInstallLayout *GetThemeInstallLayout();
             ContentInformationLayout *GetContentInformationLayout();
             StorageContentsLayout *GetStorageContentsLayout();
             ContentManagerLayout *GetContentManagerLayout();
             TitleDumperLayout *GetTitleDumperLayout();
             TicketManagerLayout *GetTicketManagerLayout();
             AccountLayout *GetAccountLayout();
-            CFWConfigLayout *GetCFWConfigLayout();
             SystemInfoLayout *GetSystemInfoLayout();
             AboutLayout *GetAboutLayout();
         private:
             u32 preblv;
             bool preisch;
+            bool hasusb;
             std::string pretime;
             bool vfirst;
             MainMenuLayout *mainMenu;
@@ -295,14 +270,12 @@ namespace gleaf::ui
             CopyLayout *copy;
             InstallLayout *nspInstall;
             USBInstallLayout *usbInstall;
-            ThemeInstallLayout *themeInstall;
             ContentInformationLayout *contentInformation;
             StorageContentsLayout *storageContents;
             ContentManagerLayout *contentManager;
             TitleDumperLayout *titleDump;
             TicketManagerLayout *ticketManager;
             AccountLayout *account;
-            CFWConfigLayout *cfwConfig;
             SystemInfoLayout *sysInfo;
             AboutLayout *about;
             pu::element::Image *baseImage;
@@ -312,10 +285,14 @@ namespace gleaf::ui
             pu::element::Image *batteryChargeImage;
             pu::element::Image *menuBanner;
             pu::element::Image *menuImage;
+            pu::element::Image *usbImage;
             pu::element::TextBlock *menuNameText;
             pu::element::TextBlock *menuHeadText;
             pu::element::TextBlock *footerText;
     };
+
+    static const ColorScheme DefaultLight = { { 235, 235, 235, 255 }, { 220, 220, 220, 255 }, { 140, 140, 140, 255 }, { 15, 15, 15, 255 } };
+    static const ColorScheme DefaultDark = { { 45, 45, 45, 255 }, { 70, 70, 70, 255 }, { 110, 110, 110, 255 }, { 225, 225, 225, 255 } };
 
     void UpdateClipboard(std::string Path);
     void ShowRebootShutDownDialog(std::string Title, std::string Message);
