@@ -1,5 +1,4 @@
-relative_links:
-  enabled: true
-  collections: true
+title: Goldleaf documentation
+markdown: kramdown
 include:
   - index.md
