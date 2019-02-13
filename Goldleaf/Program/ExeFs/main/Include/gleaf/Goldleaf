@@ -1,0 +1,28 @@
+
+/*
+
+    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+
+    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
+    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+
+*/
+
+#pragma once
+#include <gleaf/acc.hpp>
+#include <gleaf/Application.hpp>
+#include <gleaf/Buffer.hpp>
+#include <gleaf/BufferedPlaceHolderWriter.hpp>
+#include <gleaf/ByteBuffer.hpp>
+#include <gleaf/dump.hpp>
+#include <gleaf/es.hpp>
+#include <gleaf/fs.hpp>
+#include <gleaf/hactool.hpp>
+#include <gleaf/horizon.hpp>
+#include <gleaf/ncm.hpp>
+#include <gleaf/ns.hpp>
+#include <gleaf/nsp.hpp>
+#include <gleaf/set.hpp>
+#include <gleaf/Types.hpp>
+#include <gleaf/ui.hpp>
+#include <gleaf/usb.hpp>

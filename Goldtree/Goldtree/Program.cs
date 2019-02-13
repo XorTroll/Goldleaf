@@ -77,9 +77,7 @@ namespace gtree
             Console.Write(Description);
             Console.WriteLine();
             Console.Write("    ");
-            Console.Write("Copyright (C) 2018 ");
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("-");
+            Console.Write("Copyright (C) 2018 - 2019");
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write(" Goldleaf");
             Console.ForegroundColor = ConsoleColor.White;
@@ -106,7 +104,7 @@ namespace gtree
             }
             catch
             {
-                Error.Log("No USB connection was not found. Make sure you have Goldleaf open before running Goldtree.");
+                Error.Log("No USB connection was found. Make sure you have Goldleaf open before running Goldtree.");
             }
             try
             {
@@ -189,9 +187,9 @@ namespace gtree
                                                     {
                                                         if(rsize >= ent.Size) rsize = ent.Size;
                                                         int tor = (int)Math.Min(rsize, toread);
-                                                        bufb = new byte[tor];
                                                         br.BaseStream.Position = coffset;
-                                                        tmpread = br.Read(bufb, 0, bufb.Length);
+                                                        bufb = br.ReadBytes(tor);
+                                                        tmpread = bufb.Length;
                                                         USB.Write(bufb);
                                                         coffset += tmpread;
                                                         toread -= tmpread;
@@ -206,15 +204,6 @@ namespace gtree
                                                     byte[] file = br.ReadBytes((int)tik.Size);
                                                     USB.Write(file);
                                                     Log.Log("Ticket was sent to Goldleaf.");
-                                                }
-                                                else if(ccmd.IsCommandId(CommandId.NSPCert))
-                                                {
-                                                    Log.Log("Sending certificate file...");
-                                                    PfsFileEntry cert = pnsp.Files[certidx];
-                                                    br.BaseStream.Seek(pnsp.HeaderSize + cert.Offset, SeekOrigin.Begin);
-                                                    byte[] file = br.ReadBytes((int)cert.Size);
-                                                    USB.Write(file);
-                                                    Log.Log("Certificate was sent to Goldleaf.");
                                                 }
                                                 else if(ccmd.IsCommandId(CommandId.Finish)) break;
                                                 else
@@ -277,12 +266,16 @@ namespace gtree
             }
             Log.Log("The installation has finished. Press ENTER to close Goldtree, or any other key to start another USB installation.", true);
             ConsoleKeyInfo ki = Console.ReadKey();
-            if(ki.Key != ConsoleKey.Enter) goto usbnsp;
-            else if(USB != null)
+            if(ki.Key == ConsoleKey.Enter)
             {
-                Command c = new Command(CommandId.Finish);
-                USB.Write(c);
+                if(USB != null)
+                {
+                    Command cmd = new Command(CommandId.Finish);
+                    USB.Write(cmd);
+                }
+                Environment.Exit(0);
             }
+            else goto usbnsp;
         }
     }
 }

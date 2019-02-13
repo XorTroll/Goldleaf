@@ -1,0 +1,3 @@
+[submodule "libnx-Goldleaf"]
+	path = libnx-Goldleaf
+	url = https://github.com/XorTroll/libnx-Goldleaf
