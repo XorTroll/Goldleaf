@@ -23,12 +23,17 @@ namespace pu
             Dialog(std::string Title, std::string Content);
             ~Dialog();
             void AddOption(std::string Name);
-            void SetIcon(std::string Icon, u32 IconX, u32 IconY);
+            void SetCancelOption(std::string Name = "Cancel");
+            void RemoveCancelOption();
+            bool HasCancelOption();
+            void SetIcon(std::string Icon);
             bool Hasicon();
-            void Show(render::Renderer *Drawer);
+            u32 Show(render::Renderer *Drawer, void *App);
             bool UserCancelled();
-            u32 GetSelectedIndex();
+            bool IsOk();
         private:
+            bool hcancel;
+            std::string scancel;
             render::NativeFont tfont;
             render::NativeFont cfont;
             render::NativeFont ofont;
@@ -40,8 +45,6 @@ namespace pu
             bool cancel;
             bool hicon;
             render::NativeTexture icon;
-            u32 ix;
-            u32 iy;
             u32 prevosel;
             s32 pselfact;
             s32 selfact;

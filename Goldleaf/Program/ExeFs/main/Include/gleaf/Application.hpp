@@ -27,6 +27,8 @@ namespace gleaf
     std::string GetCFWName(std::string Path);
     bool HasKeyFile();
     bool IsAtmosphere();
+    bool IsReiNX();
+    bool IsSXOS();
     std::string GetKeyFilePath();
     std::vector<std::string> GetKeyFilePossibleNames();
 }

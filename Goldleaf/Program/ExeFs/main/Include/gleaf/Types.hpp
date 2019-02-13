@@ -51,6 +51,13 @@ namespace gleaf
         ContentMetaList,
         RecordPush,
         InstallBadNCA,
+        TitleFound,
+    };
+
+    enum class Language
+    {
+        English,
+        Spanish
     };
 
     struct InstallerResult
@@ -59,5 +66,13 @@ namespace gleaf
         InstallerError Type;
 
         bool IsSuccess();
+    };
+
+    struct ColorScheme
+    {
+        pu::draw::Color Background;
+        pu::draw::Color Base;
+        pu::draw::Color BaseFocus;
+        pu::draw::Color Text;
     };
 }

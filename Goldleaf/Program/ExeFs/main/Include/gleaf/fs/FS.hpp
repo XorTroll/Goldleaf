@@ -20,9 +20,9 @@ namespace gleaf::fs
     {
         PRODINFOF,
         NANDSafe,
-        NANDUser,
-        NANDSystem,
-        SdCard,
+        NANDUser = 4,
+        NANDSystem = 3,
+        SdCard = 5,
     };
 
     bool Exists(std::string Path);

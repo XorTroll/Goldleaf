@@ -14,6 +14,38 @@ namespace gleaf::horizon
     static GpioPadSession volup;
     static GpioPadSession voldown;
 
+    Thread::Thread(ThreadFunc Callback)
+    {
+        this->tcb = Callback;
+    }
+
+    Thread::~Thread()
+    {
+        threadClose(&this->nth);
+    }
+
+    Result Thread::Start(void *Args)
+    {
+        Result rc = threadCreate(&this->nth, this->tcb, Args, 0x2000, 0x2b, -2);
+        if(rc == 0) rc = threadStart(&this->nth);
+        return rc;
+    }
+
+    Result Thread::Join()
+    {
+        return threadWaitForExit(&this->nth);
+    }
+
+    Result Thread::Pause()
+    {
+        return threadPause(&this->nth);
+    }
+
+    Result Thread::Resume()
+    {
+        return threadResume(&this->nth);
+    }
+
     u32 GetBatteryLevel()
     {
         u32 bat = 0;
@@ -151,7 +183,7 @@ namespace gleaf::horizon
 
     bool IsGpioInputPressed(GpioInput InputType)
     {
-        GpioValue gval;
+        GpioValue gval = GpioValue_High;
         switch(InputType)
         {
             case GpioInput::VolumeUp:

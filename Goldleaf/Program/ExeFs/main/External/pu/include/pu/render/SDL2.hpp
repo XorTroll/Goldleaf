@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 namespace pu::render
 {
@@ -30,6 +31,8 @@ namespace pu::render
     NativeTexture LoadImage(std::string Path);
     NativeFont LoadSharedFont(SharedFont Type, u32 Size);
     NativeFont LoadFont(std::string Path, u32 Size);
+    u32 GetTextureWidth(NativeTexture Texture);
+    u32 GetTextureHeight(NativeTexture Texture);
     u32 GetTextWidth(NativeFont Font, std::string Text);
     u32 GetTextHeight(NativeFont Font, std::string Text);
     void DeleteFont(NativeFont Font);

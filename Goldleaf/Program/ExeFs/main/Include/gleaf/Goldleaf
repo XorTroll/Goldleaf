@@ -19,12 +19,10 @@
 #include <gleaf/fs.hpp>
 #include <gleaf/hactool.hpp>
 #include <gleaf/horizon.hpp>
-#include <gleaf/lyt.hpp>
 #include <gleaf/ncm.hpp>
 #include <gleaf/ns.hpp>
 #include <gleaf/nsp.hpp>
-#include <gleaf/sarc.hpp>
-#include <gleaf/theme.hpp>
+#include <gleaf/set.hpp>
 #include <gleaf/Types.hpp>
 #include <gleaf/ui.hpp>
 #include <gleaf/usb.hpp>

@@ -11,14 +11,14 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.3
+APP_VERSION := 0.4
 APP_TITLEID	:= 050032A5CF12E000
 TARGET      := Goldleaf
 ICON		:= Control/RomFs/icon_AmericanEnglish.dat
 
 BUILD       := Build
-SOURCES     := Program/ExeFs/main/Source Program/ExeFs/main/Source/fatfs Program/ExeFs/main/Source/gleaf Program/ExeFs/main/Source/gleaf/acc Program/ExeFs/main/Source/gleaf/dump Program/ExeFs/main/Source/gleaf/es Program/ExeFs/main/Source/gleaf/fs Program/ExeFs/main/Source/gleaf/hacpack Program/ExeFs/main/Source/gleaf/hactool Program/ExeFs/main/Source/gleaf/horizon Program/ExeFs/main/Source/gleaf/lyt Program/ExeFs/main/Source/gleaf/ncm Program/ExeFs/main/Source/gleaf/ns Program/ExeFs/main/Source/gleaf/nsp Program/ExeFs/main/Source/gleaf/sarc Program/ExeFs/main/Source/gleaf/theme Program/ExeFs/main/Source/gleaf/ui Program/ExeFs/main/Source/gleaf/usb
-INCLUDES    := Program/ExeFs/main/Include Program/ExeFs/main/Include/fatfs Program/ExeFs/main/Include/gleaf Program/ExeFs/main/Include/gleaf/acc Program/ExeFs/main/Include/gleaf/dump Program/ExeFs/main/Include/gleaf/es Program/ExeFs/main/Include/gleaf/fs Program/ExeFs/main/Include/gleaf/hacpack Program/ExeFs/main/Include/gleaf/hactool Program/ExeFs/main/Include/gleaf/horizon Program/ExeFs/main/Include/gleaf/lyt Program/ExeFs/main/Include/gleaf/ncm Program/ExeFs/main/Include/gleaf/ns Program/ExeFs/main/Include/gleaf/nsp Program/ExeFs/main/Include/gleaf/sarc Program/ExeFs/main/Include/gleaf/theme Program/ExeFs/main/Include/gleaf/ui Program/ExeFs/main/Include/gleaf/usb
+SOURCES     := Program/ExeFs/main/Source Program/ExeFs/main/Source/fatfs Program/ExeFs/main/Source/gleaf Program/ExeFs/main/Source/gleaf/acc Program/ExeFs/main/Source/gleaf/dump Program/ExeFs/main/Source/gleaf/es Program/ExeFs/main/Source/gleaf/fs Program/ExeFs/main/Source/gleaf/hacpack Program/ExeFs/main/Source/gleaf/hactool Program/ExeFs/main/Source/gleaf/horizon Program/ExeFs/main/Source/gleaf/ini Program/ExeFs/main/Source/gleaf/ncm Program/ExeFs/main/Source/gleaf/ns Program/ExeFs/main/Source/gleaf/nsp Program/ExeFs/main/Source/gleaf/set Program/ExeFs/main/Source/gleaf/ui Program/ExeFs/main/Source/gleaf/usb
+INCLUDES    := Program/ExeFs/main/Include Program/ExeFs/main/Include/fatfs Program/ExeFs/main/Include/gleaf Program/ExeFs/main/Include/gleaf/acc Program/ExeFs/main/Include/gleaf/dump Program/ExeFs/main/Include/gleaf/es Program/ExeFs/main/Include/gleaf/fs Program/ExeFs/main/Include/gleaf/hacpack Program/ExeFs/main/Include/gleaf/hactool Program/ExeFs/main/Include/gleaf/horizon Program/ExeFs/main/Include/gleaf/ini Program/ExeFs/main/Include/gleaf/ncm Program/ExeFs/main/Include/gleaf/ns Program/ExeFs/main/Include/gleaf/nsp Program/ExeFs/main/Include/gleaf/set Program/ExeFs/main/Include/gleaf/ui Program/ExeFs/main/Include/gleaf/usb
 ROMFS       := Program/RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
@@ -119,7 +119,7 @@ qlaunch:
 	@mkdir -p $(CURDIR)/Output/titles/0100000000001000/exefs $(CURDIR)/Output/titles/0100000000001000/romfs
 	@touch $(CURDIR)/Output/titles/0100000000001000/fsmitm.flag
 	@touch $(CURDIR)/Output/titles/0100000000001000/exefs/rtld.stub
-	@cp $(CURDIR)/Program/ExeFs/main.npdm $(CURDIR)/Output/titles/0100000000001000/exefs/main.npdm
+	@cp $(CURDIR)/Program/ExeFs/main.npdm/qlaunch.npdm $(CURDIR)/Output/titles/0100000000001000/exefs/main.npdm
 	@cp -a $(CURDIR)/Program/RomFs/. $(CURDIR)/Output/titles/0100000000001000/romfs/
 	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Output/titles/0100000000001000/exefs/main
 	@echo Goldleaf[qlaunch]: Build finished!
@@ -143,7 +143,7 @@ nsp:
 	@rm -rf $(CURDIR)/Output/_meta
 	@mkdir -p $(CURDIR)/Output/_meta
 	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Program/_temp/main
-	@cp $(CURDIR)/Program/ExeFs/main.npdm $(CURDIR)/Program/_temp/main.npdm
+	@cp $(CURDIR)/Program/ExeFs/main.npdm/default.npdm $(CURDIR)/Program/_temp/main.npdm
 	@echo Goldleaf[nsp]: Generating program NCA...
 	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype program --titleid $(APP_TITLEID) --exefsdir=$(CURDIR)/Program/_temp --romfsdir=$(CURDIR)/Program/RomFs --logodir=$(CURDIR)/Program/Logo --outdir=$(CURDIR)/Program/_content
 	$(eval CPROGRAM = $(shell ls -t $(CURDIR)/Program/_content | head -n 1))
@@ -165,7 +165,7 @@ nsp:
 	@cp $(CURDIR)/LegalInfo/_content/$(CLEGALINFO) $(CURDIR)/Output/_meta/$(CLEGALINFO)
 	@echo Goldleaf[nsp]: Contents copied. Generating final NSP...
 	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nsp --titleid $(APP_TITLEID) --ncadir $(CURDIR)/Output/_meta --outdir=$(CURDIR)/Output
-	@mv $(CURDIR)/Output/$(APP_TITLEID).nsp $(CURDIR)/Output/Goldleaf.nsp
+	@mv $(CURDIR)/Output/050032a5cf12e000.nsp $(CURDIR)/Output/Goldleaf.nsp
 	@rm -rf $(CURDIR)/hacpack_backup
 	@echo Goldleaf[nsp]: Build finished!
 

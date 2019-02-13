@@ -14,6 +14,7 @@
 #pragma once
 #include <pu/element/Button.hpp>
 #include <pu/element/Element.hpp>
+#include <pu/element/IconButton.hpp>
 #include <pu/element/Image.hpp>
 #include <pu/element/Menu.hpp>
 #include <pu/element/ProgressBar.hpp>

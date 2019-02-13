@@ -26,7 +26,7 @@ namespace pu::element
             virtual u32 GetWidth() = 0;
             virtual u32 GetHeight() = 0;
             virtual void OnRender(render::Renderer *Drawer) = 0;
-            virtual void OnInput(u64 Down, u64 Up, u64 Held) = 0;
+            virtual void OnInput(u64 Down, u64 Up, u64 Held, bool Touch) = 0;
             bool IsVisible();
             void SetVisible(bool Visible);
         protected:

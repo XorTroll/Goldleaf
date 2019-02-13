@@ -12,6 +12,7 @@
 #include <switch.h>
 #include <string>
 #include <ctime>
+#include <functional>
 #include <cstdio>
 
 namespace gleaf::horizon
@@ -30,6 +31,20 @@ namespace gleaf::horizon
         u8 Micro;
         std::string DisplayName;
         std::string ToString();
+    };
+
+    class Thread
+    {
+        public:
+            Thread(ThreadFunc Callback);
+            ~Thread();
+            Result Start(void *Args = NULL);
+            Result Join();
+            Result Pause();
+            Result Resume();
+        private:
+            ThreadFunc tcb;
+            ::Thread nth;
     };
 
     u32 GetBatteryLevel();

@@ -8,7 +8,7 @@
 
 ## Brief description
 
-Goldleaf is a multipurpose, easy-to-use (and mostly community-driven) tool, specialized on NSP installing, but with other utilities, such as NAND/SD browsing, title managing or ticket managing.
+Goldleaf is a multipurpose, easy-to-use (and mostly community-driven) tool with several utilities, such as NAND/SD browsing, NSP installing, and content or ticket managing.
 
 If you know what FBI is (related to 3DS homebrew), this is a similar project for Nintendo Switch homebrew.
 
@@ -132,21 +132,19 @@ If you would like to to avoid ban risks as much as possible, I don't recommend u
 
   Keep in mind that USB installations are unstable, and might bug sometimes.
 
-- **Title manager**
+- **Content manager**
 
-  Goldleaf's title manager will display all the titles installed in the system, both SD, NAND and the one in the gamecart if inserted.
+  Goldleaf's content manager will display any kind of content inside NAND, SD or gamecart (even system titles).
 
-  You can view these titles' information, icon, install location and Application ID.
+  Any kind of content (actual titles, updates, DLC...) can be individually removed from this menu. Keep in mind that deleting a title won't delete its savedata, that should stay on the system.
 
-  Titles can also be completely uninstalled here. Keep in mind that deleting a title won't delete its savedata, that should stay on the system.
-
-  Titles (not gamecart one) can also be dumped from the SD/NAND as a NSP. Keep in mind that this feature is still experimental, and that +4GB titles SHOULDN'T be dumped with a FAT32-formatted SD card.
+  Titles (except gamecart ones) can also be dumped from the SD/NAND as a NSP. Keep in mind that this feature is still experimental, and that +4GB titles SHOULDN'T be dumped with a FAT32-formatted SD card.
 
 - **Ticket manager**
 
   Goldleaf can get all the tickets installed on the console. While some of them will contain the name of the title they belong to, some could belong to DLC or other types of content despite not belonging directly to a title.
 
-  You can view the Application ID and the key generation of a ticket by selecting it.
+  You can view the Application ID and the key generation of a ticket by selecting it, plus if the ticket is being used (if there's a title which matches the ticket's application ID).
 
   Tickets can also be removed from the console. Removing tickets can be a dangerous option, as without them, titlekey-crypto won't be playable.
 
@@ -154,9 +152,7 @@ If you would like to to avoid ban risks as much as possible, I don't recommend u
 
   Goldleaf uses the console's internal browser title (the online web-applet) to let the user browse web pages.
 
-  For special reasons, the browser can only be used from the installable version:
-
-  - The web-applet attempts to find a file called `accessible-urls.txt` in the Offline Html NCA contents of the title calling it and won't work unless it finds this file, so applets cannot launch this applet properly.
+  For non-installed title versions, Goldleaf uses the WifiWebAuth applet, which unfortunately has less features, but can be used as a browser.
 
 - **Account manager**
 
@@ -260,41 +256,25 @@ Many errors are very common and can be misunderstood, and you should document a 
 
 ## Screenshots
 
-- Goldleaf
+- **Goldleaf**
 
-![Screenshot](Screenshots/Goldleaf.menu.jpg)
+![Screenshot](Screenshots/gleaf.1.jpg)
 
-![Screenshot](Screenshots/Goldleaf.install1.jpg)
+![Screenshot](Screenshots/gleaf.2.jpg)
 
-![Screenshot](Screenshots/Goldleaf.install2.jpg)
+![Screenshot](Screenshots/gleaf.3.jpg)
 
-![Screenshot](Screenshots/Goldleaf.install3.jpg)
+![Screenshot](Screenshots/gleaf.4.jpg)
 
-![Screenshot](Screenshots/Goldleaf.nandSelect.jpg)
+![Screenshot](Screenshots/gleaf.5.jpg)
 
-![Screenshot](Screenshots/Goldleaf.sysNAND.jpg)
+![Screenshot](Screenshots/gleaf.6.jpg)
 
-![Screenshot](Screenshots/Goldleaf.titleBrowse.jpg)
+- **Goldtree**
 
-![Screenshot](Screenshots/Goldleaf.ticketBrowse.jpg)
+![Screenshot](Screenshots/gtree.1.png)
 
-![Screenshot](Screenshots/Goldleaf.ncaExtract.jpg)
-
-![Screenshot](Screenshots/Goldleaf.nxtheme.jpg)
-
-![Screenshot](Screenshots/Goldleaf.themeInfo.jpg)
-
-![Screenshot](Screenshots/Goldleaf.nacp.jpg)
-
-![Screenshot](Screenshots/Goldleaf.sysInfo.jpg)
-
-- Goldtree
-
-![Screenshot](Screenshots/Goldtree.start.png)
-
-![Screenshot](Screenshots/Goldtree.selectNSP.png)
-
-![Screenshot](Screenshots/Goldtree.install.png)
+![Screenshot](Screenshots/gtree.2.png)
 
 ## Possible future features
 
