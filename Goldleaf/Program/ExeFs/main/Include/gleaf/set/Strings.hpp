@@ -779,7 +779,7 @@ namespace gleaf::set
             "Taille du dossier:",
             "Sélectionnez un nouveau nom pour renommer le fichier.",
             "Écraser",
-            "Le fichier a été copié avec succèsT.",
+            "Le fichier a été copié avec succès.",
             "la connexion a été établie avec succès. En attente de la requête du client sur PC pour un NSP...",
             "Le client sur PC a finalisé la connexion.",
             "Information du contenu",
