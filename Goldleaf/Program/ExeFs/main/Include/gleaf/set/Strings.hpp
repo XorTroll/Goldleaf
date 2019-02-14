@@ -605,7 +605,7 @@ namespace gleaf::set
             "dossier",
             "Taille du fichier:",
             "Installer",
-            "Lancer,
+            "Lancer",
             "Importer",
             "Extraire",
             "Voir le contenu",
