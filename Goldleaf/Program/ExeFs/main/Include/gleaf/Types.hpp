@@ -57,7 +57,8 @@ namespace gleaf
     enum class Language
     {
         English,
-        Spanish
+        Spanish,
+        French,
     };
 
     struct InstallerResult
