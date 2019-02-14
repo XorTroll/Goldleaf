@@ -546,7 +546,7 @@ namespace gleaf::set
             "Gérer les tickets sur la console",
             "Naviguer sur Internet",
             "Gérer les comptes utilisateurs",
-            "Voir les information de la console",
+            "Voire les informations de la console",
             "A propos de Goldleaf",
             "Parcourir les fichiers et dossiers de la carte SD",
             "Parcourir la mémoire de la console et le contenu des partitions.",
