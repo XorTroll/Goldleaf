@@ -16,6 +16,9 @@ namespace gleaf::set
             case Language::Spanish:
                 dict = Spanish;
                 break;
+            case Language::French:
+                dict = French;
+                break;
         }
         return dict.Strings[Index];
     }
