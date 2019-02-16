@@ -37,7 +37,6 @@ namespace gleaf::set
             case 11:
             case 12:
             case 13:
-            case 15:
             case 16:
                 gset.CustomLanguage = Language::English;
                 break;
@@ -45,6 +44,9 @@ namespace gleaf::set
             case 14:
                 gset.CustomLanguage = Language::Spanish;
                 break;
+            case 15:
+                gset.CustomLanguage = Language::French;
+                break;    
         }
         gset.KeysPath = "sdmc:/switch/prod.keys";
         gset.AllowRemoveSystemTitles = false;
