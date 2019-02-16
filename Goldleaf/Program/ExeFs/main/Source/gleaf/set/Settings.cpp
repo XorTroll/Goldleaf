@@ -48,8 +48,8 @@ namespace gleaf::set
             case 10:
             case 11:
             case 13:
-            case 15:
             case 16:
+            default:
                 gset.CustomLanguage = Language::English;
                 break;
         }
