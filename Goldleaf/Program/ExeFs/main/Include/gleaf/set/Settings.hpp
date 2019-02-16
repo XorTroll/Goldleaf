@@ -12,7 +12,6 @@
 #include <gleaf/es.hpp>
 #include <gleaf/ns.hpp>
 #include <gleaf/ncm.hpp>
-#include <gleaf/ui/MainApplication.hpp>
 
 namespace gleaf::set
 {

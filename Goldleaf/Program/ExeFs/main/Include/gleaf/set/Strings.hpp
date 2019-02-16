@@ -535,5 +535,6 @@ namespace gleaf::set
         }
     };
 
+    Dictionary GetDictionary();
     std::string GetDictionaryEntry(u32 Index);
 }

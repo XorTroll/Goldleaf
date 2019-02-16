@@ -10,6 +10,7 @@ namespace gleaf::nsp
         this->stid = static_cast<FsStorageId>(Location);
         this->icnmt = false;
         this->tik = false;
+        this->nacps = NULL;
         this->irc = { 0, InstallerError::Success };
         this->basetid = 0;
         Input.reserve(FS_MAX_PATH);
@@ -296,7 +297,7 @@ namespace gleaf::nsp
                 continue;
             }
             u64 noff = 0;
-            size_t reads = 0x100000;
+            size_t reads = 0x1000000;
             auto readbuf = std::make_unique<u8[]>(reads);
             cstorage.CreatePlaceHolder(curid, curid, ncasize);
             float progress = 0.0f;
@@ -307,12 +308,12 @@ namespace gleaf::nsp
                 if((noff + reads) >= ncasize) reads = (ncasize - noff);
                 size_t rout = 0;
                 fsFileRead(&ncafile, noff, readbuf.get(), reads, &rout);
-                cstorage.WritePlaceHolder(curid, noff, readbuf.get(), reads);
-                noff += reads;
+                cstorage.WritePlaceHolder(curid, noff, readbuf.get(), rout);
+                noff += rout;
             }
+            fsFileClose(&ncafile);
             cstorage.Register(curid, curid);
             cstorage.DeletePlaceHolder(curid);
-            fsFileClose(&ncafile);
         }
         return this->irc;
     }

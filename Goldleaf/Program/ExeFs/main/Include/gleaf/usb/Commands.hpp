@@ -30,9 +30,6 @@ namespace gleaf::usb
     {
         u32 Magic;
         u32 CommandId;
-
-        bool MagicOk();
-        bool IsCommandId(usb::CommandId Id);
     } PACKED;
 
     struct NSPContentData
@@ -51,6 +48,8 @@ namespace gleaf::usb
     };
 
     Command MakeCommand(CommandId Id);
+    bool CommandMagicOk(Command Cmd);
+    bool IsCommandId(Command Cmd, usb::CommandId Id);
     int OnContentRead(void *Args);
     int OnContentAppend(void *Args);
 
