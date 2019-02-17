@@ -19,6 +19,9 @@ namespace gleaf::err
             case Language::Spanish:
                 // dict = Spanish;
                 break;
+            case Language::German:
+                // dict = German;
+                break;
         }
         return dict;
     }
