@@ -193,6 +193,7 @@ namespace gtree
                                                         USB.Write(bufb);
                                                         coffset += tmpread;
                                                         toread -= tmpread;
+                                                        Console.WriteLine("Sent buffer: " + tmpread);
                                                     }
                                                     Log.Log("Content was sent to Goldleaf.");
                                                 }

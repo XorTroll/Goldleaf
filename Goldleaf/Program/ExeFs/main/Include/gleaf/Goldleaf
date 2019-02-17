@@ -15,6 +15,7 @@
 #include <gleaf/BufferedPlaceHolderWriter.hpp>
 #include <gleaf/ByteBuffer.hpp>
 #include <gleaf/dump.hpp>
+#include <gleaf/err.hpp>
 #include <gleaf/es.hpp>
 #include <gleaf/fs.hpp>
 #include <gleaf/hactool.hpp>

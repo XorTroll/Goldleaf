@@ -1,4 +1,5 @@
 #include <gleaf/fs/FS.hpp>
+#include <gleaf/err.hpp>
 #include <fstream>
 #include <cstdlib>
 #include <cstdio>
@@ -44,9 +45,12 @@ namespace gleaf::fs
         ofs.close();
     }
 
-    void CreateDirectory(std::string Path)
+    Result CreateDirectory(std::string Path)
     {
-        ::mkdir(Path.c_str(), 777);
+        int res = mkdir(Path.c_str(), 777);
+        Result rc = 0;
+        if(res != 0) rc = MAKERESULT(err::ErrnoErrorModule, res);
+        return rc;
     }
 
     void CopyFile(std::string Path, std::string NewPath)
@@ -127,9 +131,12 @@ namespace gleaf::fs
         closedir(from);
     }
 
-    void DeleteFile(std::string Path)
+    Result DeleteFile(std::string Path)
     {
-        remove(Path.c_str());
+        int res = remove(Path.c_str());
+        Result rc = 0;
+        if(res != 0) rc = MAKERESULT(err::ErrnoErrorModule, res);
+        return rc;
     }
 
     void DeleteDirectory(std::string Path)
@@ -285,15 +292,17 @@ namespace gleaf::fs
         return sdata;
     }
 
-    void WriteFile(std::string Path, std::vector<u8> Data)
+    Result WriteFile(std::string Path, std::vector<u8> Data)
     {
-        DeleteFile(Path);
+        Result rc = DeleteFile(Path);
+        if(rc != 0) return rc;
         FILE *fle = fopen(Path.c_str(), "wb");
         if(fle)
         {
             fwrite(Data.data(), 1, Data.size(), fle);
             fflush(fle);
         }
+        else return 0xcafe;
         fclose(fle);
     }
 

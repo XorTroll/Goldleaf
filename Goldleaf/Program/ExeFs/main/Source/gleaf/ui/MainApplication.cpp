@@ -1,13 +1,14 @@
 #include <gleaf/ui/MainApplication.hpp>
+#include <gleaf/ui/Utils.hpp>
 #include <threads.h>
 
-gleaf::set::Settings gsets;
+extern gleaf::set::Settings gsets;
 
 namespace gleaf::ui
 {
-    static MainApplication *mainapp;
-    static std::string clipboard;
-    static ApplicationHolder launchapp;
+    MainApplication *mainapp;
+    extern std::vector<std::string> clipboard;
+    ApplicationHolder launchapp;
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -1094,18 +1095,18 @@ namespace gleaf::ui
         mainapp->CallForRender();
         usb::Command req = usb::ReadCommand();
         usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
-        if(req.MagicOk())
+        if(usb::CommandMagicOk(req))
         {
-            if(req.IsCommandId(usb::CommandId::ConnectionRequest))
+            if(usb::IsCommandId(req, usb::CommandId::ConnectionRequest))
             {
                 this->installText->SetText(set::GetDictionaryEntry(241));
                 mainapp->CallForRender();
                 usb::Command cmd1 = usb::MakeCommand(usb::CommandId::ConnectionResponse);
                 usb::WriteCommand(cmd1);
                 req = usb::ReadCommand();
-                if(req.MagicOk())
+                if(usb::CommandMagicOk(req))
                 {
-                    if(req.IsCommandId(usb::CommandId::NSPName))
+                    if(usb::IsCommandId(req, usb::CommandId::NSPName))
                     {
                         u32 nspnamesize = usb::Read32();
                         std::string nspname = usb::ReadString(nspnamesize);
@@ -1156,7 +1157,14 @@ namespace gleaf::ui
                         }
                         this->installText->SetText(set::GetDictionaryEntry(146));
                         mainapp->CallForRender();
-                        rc = inst.ProcessRecords();
+                        rc = inst.ProcessRecords([&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed)
+                        {
+                            std::string name = set::GetDictionaryEntry(148) + " \'"  + Name + "\'... (" + std::to_string(Index + 1) + " " + set::GetDictionaryEntry(149) + " " + std::to_string(Count) + ")";
+                            this->installText->SetText(name);
+                            this->installBar->SetProgress((u8)Percentage);
+                            mainapp->UpdateFooter(set::GetDictionaryEntry(159) + " " + horizon::DoubleToString(Speed) + " MB/s");
+                            mainapp->CallForRender();
+                        });
                         if(!rc.IsSuccess())
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
@@ -1191,7 +1199,7 @@ namespace gleaf::ui
                         mainapp->UpdateFooter(set::GetDictionaryEntry(160));
                         mainapp->CallForRender();
                     }
-                    else if(req.IsCommandId(usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
+                    else if(usb::IsCommandId(req, usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
                     else
                     {
                         usb::WriteCommand(fcmd);
@@ -1204,7 +1212,7 @@ namespace gleaf::ui
                     mainapp->UpdateFooter(set::GetDictionaryEntry(161));
                 }
             }
-            else if(req.IsCommandId(usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
+            else if(usb::IsCommandId(req, usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
             else
             {
                 usb::WriteCommand(fcmd);
@@ -2356,14 +2364,14 @@ namespace gleaf::ui
         }
         else if(Down & KEY_X)
         {
-            if(clipboard != "")
+            if(clipboard[0] != "")
             {
-                bool cdir = fs::IsDirectory(clipboard);
+                bool cdir = fs::IsDirectory(clipboard[0]);
                 std::string fsicon;
                 if(cdir) fsicon = gsets.PathForResource("/FileSystem/Directory.png");
                 else
                 {
-                    std::string ext = fs::GetExtension(clipboard);
+                    std::string ext = fs::GetExtension(clipboard[0]);
                     if(ext == "nsp") fsicon = gsets.PathForResource("/FileSystem/NSP.png");
                     else if(ext == "nro") fsicon = gsets.PathForResource("/FileSystem/NRO.png");
                     else if(ext == "tik") fsicon = gsets.PathForResource("/FileSystem/TIK.png");
@@ -2372,14 +2380,14 @@ namespace gleaf::ui
                     else if(ext == "nxtheme") fsicon = gsets.PathForResource("/FileSystem/NXTheme.png");
                     else fsicon = gsets.PathForResource("/FileSystem/File.png");
                 }
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
+                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard[0] + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
                 if(sopt == 0)
                 {
-                    std::string cname = fs::GetFileName(clipboard);
+                    std::string cname = fs::GetFileName(clipboard[0]);
                     mainapp->LoadLayout(mainapp->GetCopyLayout());
-                    mainapp->GetCopyLayout()->StartCopy(clipboard, this->sdBrowser->GetExplorer()->FullPathFor(cname), cdir, this->sdBrowser);
+                    mainapp->GetCopyLayout()->StartCopy(clipboard[0], this->sdBrowser->GetExplorer()->FullPathFor(cname), cdir, this->sdBrowser);
                     this->sdBrowser->UpdateElements();
-                    clipboard = "";
+                    clipboard[0] = "";
                 }
             }
             else mainapp->UpdateFooter(set::GetDictionaryEntry(224));
@@ -2431,14 +2439,14 @@ namespace gleaf::ui
         }
         else if(Down & KEY_X)
         {
-            if(clipboard != "")
+            if(clipboard[0] != "")
             {
-                bool cdir = fs::IsDirectory(clipboard);
+                bool cdir = fs::IsDirectory(clipboard[0]);
                 std::string fsicon;
                 if(cdir) fsicon = gsets.PathForResource("/FileSystem/Directory.png");
                 else
                 {
-                    std::string ext = fs::GetExtension(clipboard);
+                    std::string ext = fs::GetExtension(clipboard[0]);
                     if(ext == "nsp") fsicon = gsets.PathForResource("/FileSystem/NSP.png");
                     else if(ext == "nro") fsicon = gsets.PathForResource("/FileSystem/NRO.png");
                     else if(ext == "tik") fsicon = gsets.PathForResource("/FileSystem/TIK.png");
@@ -2447,14 +2455,14 @@ namespace gleaf::ui
                     else if(ext == "nxtheme") fsicon = gsets.PathForResource("/FileSystem/NXTheme.png");
                     else fsicon = gsets.PathForResource("/FileSystem/File.png");
                 }
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
+                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard[0] + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
                 if((sopt == 0) && this->nandBrowser->WarnNANDWriteAccess())
                 {
-                    std::string cname = fs::GetFileName(clipboard);
+                    std::string cname = fs::GetFileName(clipboard[0]);
                     mainapp->LoadLayout(mainapp->GetCopyLayout());
-                    mainapp->GetCopyLayout()->StartCopy(clipboard, this->nandBrowser->GetExplorer()->FullPathFor(cname), cdir, this->nandBrowser);
+                    mainapp->GetCopyLayout()->StartCopy(clipboard[0], this->nandBrowser->GetExplorer()->FullPathFor(cname), cdir, this->nandBrowser);
                     this->nandBrowser->UpdateElements();
-                    clipboard = "";
+                    ClearClipboard();
                 }
             }
             else mainapp->UpdateFooter(set::GetDictionaryEntry(224));
@@ -2576,7 +2584,7 @@ namespace gleaf::ui
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
         if(((Down & KEY_PLUS) || (Down & KEY_MINUS)) && IsNRO()) this->Close();
-        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowRebootShutDownDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
+        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
     }
 
     MainMenuLayout *MainApplication::GetMainMenuLayout()
@@ -2656,68 +2664,8 @@ namespace gleaf::ui
 
     void UpdateClipboard(std::string Path)
     {
-        clipboard = Path;
-        mainapp->UpdateFooter(set::GetDictionaryEntry(231));
-    }
 
-    void ShowRebootShutDownDialog(std::string Title, std::string Message)
-    {
-        int sopt = mainapp->CreateShowDialog(Title, Message, { set::GetDictionaryEntry(233), set::GetDictionaryEntry(232), set::GetDictionaryEntry(18) }, true);
-        if(sopt < 0) return;
-        else switch(sopt)
-        {
-            case 0:
-                bpcShutdownSystem();
-                break;
-            case 1:
-                bpcRebootSystem();
-                break;
-        }
     }
-
-    std::string AskForText(std::string Guide, std::string Initial)
-    {
-        std::string out = "";
-        char tmpout[FS_MAX_PATH] = { 0 };
-        SwkbdConfig kbd;
-        Result rc = swkbdCreate(&kbd, 0);
-        if(rc == 0)
-        {
-            swkbdConfigMakePresetDefault(&kbd);
-            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.c_str());
-            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.c_str());
-            rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
-            if(rc == 0) out = std::string(tmpout);
-        }
-        swkbdClose(&kbd);
-        return out;
-    }
-
-    u128 AskForUser()
-    {
-        AppletHolder aph;
-        AppletStorage hast1;
-        LibAppletArgs args;
-        appletCreateLibraryApplet(&aph, AppletId_playerSelect, LibAppletMode_AllForeground);
-        libappletArgsCreate(&args, 0);
-        libappletArgsPush(&args, &aph);
-        appletCreateStorage(&hast1, 0xa0);
-        u8 indata[0xa0] = { 0 };
-        appletStorageWrite(&hast1, 0, indata, 0xa0);
-        appletHolderPushInData(&aph, &hast1);
-        appletHolderStart(&aph);
-        appletStorageClose(&hast1);
-        while(appletHolderWaitInteractiveOut(&aph));
-        appletHolderJoin(&aph);
-        AppletStorage ost;
-        appletHolderPopOutData(&aph, &ost);
-        u8 out[24] = { 0 };
-        appletStorageRead(&ost, 0, out, 24);
-        appletStorageClose(&ost);
-        appletHolderClose(&aph);
-        return *(u128*)&out[8];
-    }
-
     void SetMainApplication(MainApplication *MainApp)
     {
         mainapp = MainApp;

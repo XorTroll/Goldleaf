@@ -72,19 +72,23 @@ namespace gleaf
     RunMode GetRunMode()
     {
         RunMode rmode = RunMode::Unknown;
-        AppletType type = appletGetAppletType();
-        switch(type)
+        if(envIsNso())
         {
-            case AppletType_Application:
-                if(envIsNso()) rmode = RunMode::Title;
-                break;
-            case AppletType_LibraryApplet:
-                if(!envIsNso()) rmode = RunMode::NRO;
-                break;
-            case AppletType_SystemApplet:
-                if(envIsNso()) rmode = RunMode::Qlaunch;
-                break;
+            AppletType type = appletGetAppletType();
+            switch(type)
+            {
+                case AppletType_Application:
+                    rmode = RunMode::Title;
+                    break;
+                case AppletType_SystemApplet:
+                    rmode = RunMode::Qlaunch;
+                    break;
+                default:
+                    rmode = RunMode::Unknown;
+                    break;
+            }
         }
+        else rmode = RunMode::NRO;
         return rmode;
     }
 

@@ -295,8 +295,5 @@ namespace gleaf::ui
     static const ColorScheme DefaultDark = { { 45, 45, 45, 255 }, { 70, 70, 70, 255 }, { 110, 110, 110, 255 }, { 225, 225, 225, 255 } };
 
     void UpdateClipboard(std::string Path);
-    void ShowRebootShutDownDialog(std::string Title, std::string Message);
-    std::string AskForText(std::string Guide, std::string Initial);
-    u128 AskForUser();
     void SetMainApplication(MainApplication *MainApp);
 }

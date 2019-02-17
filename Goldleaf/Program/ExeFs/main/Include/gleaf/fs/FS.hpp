@@ -29,19 +29,19 @@ namespace gleaf::fs
     bool IsFile(std::string Path);
     bool IsDirectory(std::string Path);
     void CreateFile(std::string Path);
-    void CreateDirectory(std::string Path);
+    Result CreateDirectory(std::string Path);
     void CopyFile(std::string Path, std::string NewPath);
     void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback);
     void CopyDirectory(std::string Dir, std::string NewDir);
     void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback);
-    void DeleteFile(std::string Path);
+    Result DeleteFile(std::string Path);
     void DeleteDirectory(std::string Path);
     bool IsFileBinary(std::string Path);
 
     std::vector<u8> ReadFile(std::string Path);
     std::vector<std::string> ReadFileLines(std::string Path, u32 LineOffset, u32 LineCount);
     std::vector<std::string> ReadFileFormatHex(std::string Path, u32 LineOffset, u32 LineCount);
-    void WriteFile(std::string Path, std::vector<u8> Data);
+    Result WriteFile(std::string Path, std::vector<u8> Data);
     u64 GetFileSize(std::string Path);
     u64 GetDirectorySize(std::string Path);
     std::string GetFileName(std::string Path);

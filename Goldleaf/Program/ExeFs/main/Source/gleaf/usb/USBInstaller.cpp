@@ -6,14 +6,19 @@
 #include <malloc.h>
 #include <threads.h>
 
+#include <gleaf/ui.hpp>
+
+namespace gleaf::ui
+{
+    extern MainApplication *mainapp;
+}
+
 namespace gleaf::usb
 {
-    extern Mutex usbmtx;
-
     Installer::Installer(Storage Location, bool IgnoreVersion)
     {
         Command req = ReadCommand();
-        if(req.MagicOk() && req.IsCommandId(CommandId::NSPData))
+        if(CommandMagicOk(req) && IsCommandId(req, CommandId::NSPData))
         {
             u32 filecount = Read32();
             for(u32 i = 0; i < filecount; i++)
@@ -33,9 +38,8 @@ namespace gleaf::usb
         this->stik = 0;
     }
 
-    InstallerResult Installer::ProcessRecords()
+    InstallerResult Installer::ProcessRecords(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback)
     {
-        mutexInit(&usbmtx);
         NSPContentData cnmtdata;
         for(u32 i = 0; i < this->cnts.size(); i++)
         {
@@ -43,7 +47,7 @@ namespace gleaf::usb
             if(cnt.Name.substr(cnt.Name.length() - 8) == "cnmt.nca")
             { 
                 cnmtdata = cnt;
-                this->ProcessContent(i, [&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed){});
+                this->ProcessContent(i, Callback);
                 break;
             }
         }
@@ -183,19 +187,86 @@ namespace gleaf::usb
             {
                 cst.DeletePlaceHolder(ncaid);
                 cst.CreatePlaceHolder(ncaid, ncaid, cnt.Size);
+                /*
                 BufferedPlaceHolderWriter bphw(&cst, ncaid, cnt.Size);
                 ContentThreadArguments targs;
                 targs.Index = cnt.Index;
                 targs.Size = cnt.Size;
                 targs.WriterRef = &bphw;
+
                 thrd_t tcntread;
                 thrd_t tcntappend;
                 thrd_create(&tcntread, OnContentRead, &targs);
                 thrd_create(&tcntappend, OnContentAppend, &targs);
+
                 u64 freq = armGetSystemTickFreq();
                 u64 tstart = armGetSystemTick();
                 size_t bssize = 0;
                 double speed = 0.0;
+                */
+                Command cmd = MakeCommand(CommandId::NSPContent);
+                WriteCommand(cmd);
+                Write32(cnt.Index);
+                size_t reads = 0x1000000;
+                u8 *readbuf = (u8*)memalign(0x1000, reads);
+                u64 noff = 0;
+                float progress = 0.0f;
+                while(noff < cnt.Size)
+                {
+                    progress = (float)noff / (float)cnt.Size;
+                    if((noff + reads) >= cnt.Size) reads = (cnt.Size - noff);
+                    size_t rout = usb::Read(readbuf, reads);
+                    if(rout == 0) continue;
+                    // gleaf::ui::mainapp->CreateShowDialog("Read size", std::to_string(rout), { "Debug" }, true);
+                    Callback(name, Index, cnts.size(), (int)(progress * 100.0), 10);
+                    cst.WritePlaceHolder(ncaid, noff, readbuf, rout);
+                    noff += rout;
+                }
+
+                /*
+                u64 szrem = cnt.Size;
+                size_t tmpread = 0;
+                while(true)
+                {
+                    if(szrem)
+                    {
+                        tmpread = usb::Read(data, std::min(szrem, rsize));
+                        szrem -= tmpread;
+                        while(!bphw.CanAppendData(tmpread));
+                        bphw.AppendData(data, tmpread);
+                    }
+                    else
+                    {
+                        if(data != NULL)
+                        {
+                            free(data);
+                            data = NULL;
+                        }
+                    }
+                    if(!bphw.IsPlaceHolderComplete())
+                    {
+                        if(bphw.CanWriteSegmentToPlaceHolder()) bphw.WriteSegmentToPlaceHolder();
+                    }
+                    if(!bphw.IsBufferDataComplete())
+                    {
+                        u64 tnew = armGetSystemTick();
+                        if((tnew - tstart) >= freq)
+                        {
+                            size_t bnsize = bphw.GetSizeBuffered();
+                            double mbbuf = ((bnsize / 1000000.0) - (bssize / 1000000.0));
+                            double dtime = ((double)(tnew - tstart) / (double)freq);
+                            speed = (mbbuf / dtime);
+                            tstart = tnew;
+                            bssize = bnsize;
+                        }
+                        u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
+                        u64 mbdlsz = (bphw.GetSizeBuffered() / 1000000);
+                        int perc = (int)(((double)bphw.GetSizeBuffered() / (double)bphw.GetTotalDataSize()) * 100.0);
+                        Callback(name, Index, cnts.size(), perc, speed);
+                    }
+                    else break;
+                }
+
                 while(!bphw.IsBufferDataComplete())
                 {
                     u64 tnew = armGetSystemTick();
@@ -220,8 +291,12 @@ namespace gleaf::usb
                     int perc = (int)(((double)bphw.GetSizeWrittenToPlaceHolder() / (double)bphw.GetTotalDataSize()) * 100.0);
                     // Callback(name, Index, cnts.size(), perc, speed);
                 }
+                */
+
+                /*
                 thrd_join(tcntread, NULL);
                 thrd_join(tcntappend, NULL);
+                */
                 cst.Register(ncaid, ncaid);
                 cst.DeletePlaceHolder(ncaid);
             }

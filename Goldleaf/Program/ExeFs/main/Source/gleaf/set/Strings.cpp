@@ -4,10 +4,10 @@ extern gleaf::set::Settings gsets;
 
 namespace gleaf::set
 {
-    std::string GetDictionaryEntry(u32 Index)
+    Dictionary GetDictionary()
     {
         Language slang = gsets.CustomLanguage;
-        Dictionary dict;
+        Dictionary dict = English;
         switch(slang)
         {
             case Language::English:
@@ -16,7 +16,18 @@ namespace gleaf::set
             case Language::Spanish:
                 dict = Spanish;
                 break;
+            case Language::German:
+                dict = German;
+                break;
+            case Language::French:
+                dict = French;
+                break;
         }
-        return dict.Strings[Index];
+        return dict;
+    }
+    
+    std::string GetDictionaryEntry(u32 Index)
+    {
+        return GetDictionary().Strings[Index];
     }
 }
