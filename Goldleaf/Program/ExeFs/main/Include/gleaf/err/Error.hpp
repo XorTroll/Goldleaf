@@ -39,6 +39,21 @@ namespace gleaf::err
             "Not enough size available",
         }
     };
+    
+        static const set::Dictionary German =
+    {
+        Language::German,
+        {
+            "Unbekannter oder undokumentierter Fehler",
+            "System Fehler (Von der Fehlernr. aus)",
+            "Ungültiger Pfad (Evtl. ein Dateisystem Fehler)",
+            "Ungültige NCA Magie (Vermutlich fehlende Sigpatches der CFW)",
+            "Ungültige PFS Block Werte (Ungültige NSP?)",
+
+            // Other errors
+            "Nicht genug freier Speicher verfügbar",
+        }
+    };
 
     static const u32 ErrorModule = 356;
     static const u32 ErrnoErrorModule = 358;
