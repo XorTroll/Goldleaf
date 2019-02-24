@@ -34,7 +34,6 @@ namespace pu::element
             bool IsImageValid();
             void OnRender(render::Renderer *Drawer);
             void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
-            void OnDirectionPress(DirectionController Controller);
         private:
             std::string img;
             render::NativeTexture ntex;

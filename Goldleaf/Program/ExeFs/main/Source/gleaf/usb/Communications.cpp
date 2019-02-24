@@ -15,7 +15,6 @@ namespace gleaf::usb
         void *data = memalign(0x1000, sizeof(Command));
         Read(data, sizeof(Command), Callback);
         Command cmd = *(Command*)data;
-        free(data);
         return cmd;
     }
 
@@ -24,7 +23,6 @@ namespace gleaf::usb
         void *data = memalign(0x1000, sizeof(u32));
         Read(data, sizeof(u32));
         u32 num = *(u32*)data;
-        free(data);
         return num;
     }
 
@@ -33,7 +31,6 @@ namespace gleaf::usb
         void *data = memalign(0x1000, sizeof(u64));
         Read(data, sizeof(u64));
         u64 num = *(u64*)data;
-        free(data);
         return num;
     }
 

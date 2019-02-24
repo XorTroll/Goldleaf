@@ -183,6 +183,7 @@ namespace gleaf::ui
         this->browseMenu = new pu::element::Menu(0, 170, 1280, gsets.CustomScheme.Base, 100, 5);
         this->browseMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         this->dirEmptyText = new pu::element::TextBlock(30, 630, set::GetDictionaryEntry(49));
+        this->dirEmptyText->SetTextAlign(pu::element::TextAlign::CenterAll);
         this->dirEmptyText->SetColor(gsets.CustomScheme.Text);
         this->AddChild(this->browseMenu);
         this->AddChild(this->dirEmptyText);
@@ -1018,8 +1019,9 @@ namespace gleaf::ui
     USBInstallLayout::USBInstallLayout() : pu::Layout()
     {
         this->installText = new pu::element::TextBlock(150, 300, set::GetDictionaryEntry(151));
+        this->installText->SetTextAlign(pu::element::TextAlign::CenterHorizontal);
         this->installText->SetColor(gsets.CustomScheme.Text);
-        this->installBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->installBar = new pu::element::ProgressBar(380, 345, 600, 50);
         this->installBar->SetVisible(false);
         this->AddChild(this->installText);
         this->AddChild(this->installBar);

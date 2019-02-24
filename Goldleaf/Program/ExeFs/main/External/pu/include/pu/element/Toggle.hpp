@@ -34,10 +34,9 @@ namespace pu::element
             void SetColor(draw::Color General);
             u64 GetKey();
             void SetKey(u64 Key);
+            bool IsChecked();
             void OnRender(render::Renderer *Drawer);
             void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
-            void OnDirectionPress(DirectionController Controller);
-            bool IsChecked();
         private:
             std::string cnt;
             u32 x;
