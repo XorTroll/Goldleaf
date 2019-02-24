@@ -9,15 +9,16 @@
 */
 
 #pragma once
-#include <gleaf/Goldleaf>
-#include <pu/Plutonium>
+#include <gleaf/Types.hpp>
 
 namespace gleaf::ui
 {
-    void AddToClipboard(std::string Path);
+    void SetClipboard(std::string Path);
     void ClearClipboard();
+    bool ClipboardEmpty();
+    bool ClipboardNotEmpty();
     void ShowPowerTasksDialog(std::string Title, std::string Message);
     std::string AskForText(std::string Guide, std::string Initial);
     u128 AskForUser();
-    void HandleResult(Result OSError);
+    void HandleResult(Result OSError, std::string Context);
 }

@@ -126,4 +126,7 @@ namespace gleaf::horizon
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
     TicketData ReadTicket(std::string Path);
+    std::string GetNACPName(NacpStruct *NACP);
+    std::string GetNACPAuthor(NacpStruct *NACP);
+    std::string GetNACPVersion(NacpStruct *NACP);
 }

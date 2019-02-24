@@ -17,7 +17,7 @@ namespace gleaf::fs
     {
         public:
             Explorer(Partition Base);
-            Explorer(FsFileSystem IFS, std::string DisplayName);
+            Explorer(FsFileSystem IFS, std::string DisplayName, bool AutoClose = false);
             ~Explorer();
             bool NavigateBack();
             bool NavigateForward(std::string Path);
@@ -29,6 +29,7 @@ namespace gleaf::fs
             bool HasPartition();
             bool HasCustomFS();
             Partition GetPartition();
+            FsFileSystem *GetNativeFileSystem();
             void MovePartition(Partition NewBase);
             std::string FullPathFor(std::string Path);
             std::string FullPresentablePathFor(std::string Path);
@@ -41,10 +42,17 @@ namespace gleaf::fs
             void Close();
         private:
             bool customifs;
+            bool ifsaclose;
             Partition part;
             FsFileSystem ifs;
             std::string dspname;
             std::string mntname;
             std::string ecwd;
     };
+
+    Explorer *GetSdCardExplorer();
+    Explorer *GetPRODINFOFExplorer();
+    Explorer *GetNANDSafeExplorer();
+    Explorer *GetNANDUserExplorer();
+    Explorer *GetNANDSystemExplorer();
 }

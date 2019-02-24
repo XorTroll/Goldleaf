@@ -20,7 +20,7 @@ namespace pu::element
     class Button : public Element
     {
         public:
-            Button(u32 X, u32 Y, u32 Width, u32 Height, std::string Content, draw::Color Color);
+            Button(u32 X, u32 Y, u32 Width, u32 Height, std::string Content, draw::Color TextColor, draw::Color Color);
             ~Button();
             u32 GetX();
             void SetX(u32 X);
@@ -37,7 +37,8 @@ namespace pu::element
             void SetContentFont(render::NativeFont Font);
             void SetOnClick(std::function<void()> ClickCallback);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
+            void OnDirectionPress(DirectionController Controller);
         private:
             u32 x;
             u32 y;

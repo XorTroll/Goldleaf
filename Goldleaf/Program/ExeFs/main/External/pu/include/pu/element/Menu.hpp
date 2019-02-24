@@ -79,7 +79,8 @@ namespace pu::element
             u32 GetSelectedIndex();
             void SetSelectedIndex(u32 Index);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
+            void OnDirectionPress(DirectionController Controller);
         private:
             bool dtouch;
             u32 x;

@@ -19,6 +19,10 @@ namespace gleaf::set
         std::vector<std::string> Strings;
     };
 
+
+
+
+
     static const Dictionary English =
     {
         Language::English,
@@ -274,6 +278,16 @@ namespace gleaf::set
             "Browse both common and personalized tickets.",
             "An error ocurred attempting to rename the account: The name was too long.",
             "Select name to create a new directory.",
+            "An error ocurred attempting to install the NSP:", // New (translate this and below to other langs!)
+            "An error ocurred attempting to find NxThemesInstaller NRO:",
+            "An error ocurred attempting to delete the file or directory:",
+            "An error ocurred attempting to rename the file or directory:",
+            "An error ocurred attempting to create the file or directory:",
+            "An error ocurred attempting to process USB GLUC commands:",
+            "The clipboard was updated with the selected file.",
+            "The clipboard was updated with the selected directory.",
+            "The selected image isn't a valid icon.",
+            "The selected image isn't 256x256 dimensions.",
         }
     };
 

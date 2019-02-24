@@ -43,7 +43,8 @@ namespace pu::element
             draw::Color GetColor();
             void SetColor(draw::Color Color);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
+            void OnDirectionPress(DirectionController Controller);
         private:
             bool halign;
             TextAlign talign;

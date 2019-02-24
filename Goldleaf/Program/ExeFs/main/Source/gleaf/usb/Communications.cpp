@@ -1,38 +1,46 @@
 #include <gleaf/usb/Communications.hpp>
+#include <malloc.h>
 
 namespace gleaf::usb
 {
-    size_t Read(void *Out, size_t Size)
+    size_t Read(void *Out, size_t Size, VoidFn Callback)
     {
-        return usbCommsRead(Out, Size);
+        size_t read = 0;
+        usbCommsRead(Out, Size, &read, Callback);
+        return read;
     }
 
-    Command ReadCommand()
+    Command ReadCommand(VoidFn Callback)
     {
-        Command cmd;
-        svcSleepThread(100000000L);
-        ReadFixed(&cmd, sizeof(Command));
+        void *data = memalign(0x1000, sizeof(Command));
+        Read(data, sizeof(Command), Callback);
+        Command cmd = *(Command*)data;
+        free(data);
         return cmd;
     }
 
     u32 Read32()
     {
-        u32 data;
-        Read((void*)&data, sizeof(u32));
-        return data;
+        void *data = memalign(0x1000, sizeof(u32));
+        Read(data, sizeof(u32));
+        u32 num = *(u32*)data;
+        free(data);
+        return num;
     }
 
     u64 Read64()
     {
-        u64 data;
-        Read((void*)&data, sizeof(u64));
-        return data;
+        void *data = memalign(0x1000, sizeof(u64));
+        Read(data, sizeof(u64));
+        u64 num = *(u64*)data;
+        free(data);
+        return num;
     }
 
     std::string ReadString(u32 Length)
     {
-        u8 *data = (u8*)calloc(Length + 1, sizeof(u8));
-        Read((void*)data, (sizeof(u8) * Length));
+        void *data = memalign(0x1000, Length + 1);
+        Read(data, Length);
         char *cdata = reinterpret_cast<char*>(data);
         cdata[Length] = '\0';
         std::string str = std::string(cdata);
@@ -91,5 +99,22 @@ namespace gleaf::usb
             sz -= tsz;
         }
         return Size;
+    }
+
+    u32 GetState()
+    {
+        u32 st = 0;
+        usbDsGetState(&st);
+        return st;
+    }
+
+    bool IsStatePlugged()
+    {
+        return (GetState() == 5);
+    }
+
+    bool IsStateNotReady()
+    {
+        return !IsStatePlugged();
     }
 }

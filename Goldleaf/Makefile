@@ -7,7 +7,7 @@ endif
 TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/libnx/switch_rules
 
-# Goldleaf's new Makefile system :)
+# Goldleaf's Makefile system, ready to build as NRO, NSP or qlaunch
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll

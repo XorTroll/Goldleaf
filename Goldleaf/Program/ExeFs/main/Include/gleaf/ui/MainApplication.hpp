@@ -45,7 +45,7 @@ namespace gleaf::ui
     {
         public:
             PartitionBrowserLayout(fs::Partition Partition);
-            void ChangePartition(fs::Partition Partition);
+            void ChangePartition(fs::Partition Partition, bool Update = true);
             void UpdateElements();
             bool GoBack();
             bool WarnNANDWriteAccess();
@@ -92,7 +92,6 @@ namespace gleaf::ui
         public:
             InstallLayout();
             void StartInstall(nsp::Installer *Inst, pu::Layout *Prev, bool Delete, std::string Input, std::string PInput);
-            void LogError(InstallerResult Res);
         private:
             pu::element::TextBlock *installText;
             pu::element::ProgressBar *installBar;
@@ -103,7 +102,6 @@ namespace gleaf::ui
         public:
             USBInstallLayout();
             void StartUSBConnection();
-            void LogError(InstallerResult Res);
         private:
             pu::element::TextBlock *installText;
             pu::element::ProgressBar *installBar;

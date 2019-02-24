@@ -13,8 +13,8 @@
 
 namespace gleaf::usb
 {
-    size_t Read(void *Out, size_t Size);
-    Command ReadCommand();
+    size_t Read(void *Out, size_t Size, VoidFn Callback = [](){});
+    Command ReadCommand(VoidFn Callback = [](){});
     u32 Read32();
     u64 Read64();
     std::string ReadString(u32 Length);
@@ -25,4 +25,7 @@ namespace gleaf::usb
     void write64(u64 Data);
     void WriteString(std::string Data);
     size_t WriteFixed(const void *Buffer, size_t Size);
+    u32 GetState();
+    bool IsStatePlugged();
+    bool IsStateNotReady();
 }

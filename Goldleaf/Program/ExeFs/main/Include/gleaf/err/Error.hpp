@@ -16,13 +16,39 @@ namespace gleaf::err
     enum class ErrorDescription
     {
         NotEnoughSize = 1,
+        MetaNotFound,
+        CNMTNotFound,
+        TitleAlreadyInstalled,
+        BadGLUCCommand,
+        FileDirectoryAlreadyPresent,
     };
 
     struct Error
     {
         Result OSError;
+        std::string Module;
         std::string Description;
         u32 DescIndex;
+    };
+
+    static const std::vector<std::string> Modules =
+    {
+        "Applet",
+        "Account",
+        "Content manager",
+        "Location resolver",
+        "Process manager",
+        "Service manager",
+        "NS",
+        "ETicket",
+        "PSM",
+        "Board power control",
+        "SPL",
+        "Settings",
+        "USB",
+        "FS",
+        "Goldleaf",
+        "C (errno)",
     };
 
     static const set::Dictionary English =
@@ -30,13 +56,14 @@ namespace gleaf::err
         Language::English,
         {
             "Unknown or undocumented error",
-            "System error (from errno value)",
             "Invalid path (might be another filesystem-related error)",
-            "Invalid NCA magic (probably missing sigpatches)",
-            "Invalid PFS block hash (invalid NSP?)",
+            "Invalid NCA magic (missing sigpatches?) (firmware too low?)",
+            "Invalid PFS0 block hash (invalid NSP?)",
 
             // Other errors
+            "Standard C error (from errno value)",
             "Not enough size available",
+
         }
     };
 
@@ -44,6 +71,7 @@ namespace gleaf::err
     static const u32 ErrnoErrorModule = 358;
 
     Result Make(ErrorDescription Description);
+    Result MakeErrno(int Val);
     set::Dictionary GetDictionary();
     Error DetermineError(Result OSError);
 }

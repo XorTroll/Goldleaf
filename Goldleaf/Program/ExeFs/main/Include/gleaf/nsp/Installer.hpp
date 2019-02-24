@@ -27,8 +27,8 @@ namespace gleaf::nsp
         public:
             Installer(Storage Location, std::string Input, bool IgnoreVersion);
             ~Installer();
-            InstallerResult ProcessRecords();
-            InstallerResult WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback);
+            Result ProcessRecords();
+            Result WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback);
             NacpStruct *GetNACP();
             u64 GetApplicationId();
             ncm::ContentMetaType GetContentType();
@@ -38,14 +38,14 @@ namespace gleaf::nsp
             bool HasTicket();
             horizon::TicketData GetTicketData();
             bool IsCNMTAlreadyInstalled();
-            InstallerResult GetLatestResult();
+            Result GetLatestResult();
             void Finalize();
         private:
             bool icnmt;
             bool tik;
             std::string icn;
             NacpStruct *nacps;
-            InstallerResult irc;
+            Result rc;
             FsStorageId stid;
             u64 basetid;
             std::vector<ncm::ContentRecord> ncas;

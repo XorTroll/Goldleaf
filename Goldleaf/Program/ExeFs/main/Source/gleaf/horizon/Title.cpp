@@ -346,4 +346,27 @@ namespace gleaf::horizon
         ifs.close();
         return tik;
     }
+
+    std::string GetNACPName(NacpStruct *NACP)
+    {
+        NacpLanguageEntry *lent;
+        nacpGetLanguageEntry(NACP, &lent);
+        std::string ret;
+        if(lent != NULL) ret = std::string(lent->name);
+        return ret;
+    }
+
+    std::string GetNACPAuthor(NacpStruct *NACP)
+    {
+        NacpLanguageEntry *lent;
+        nacpGetLanguageEntry(NACP, &lent);
+        std::string ret;
+        if(lent != NULL) ret = std::string(lent->author);
+        return ret;
+    }
+
+    std::string GetNACPVersion(NacpStruct *NACP)
+    {
+        return std::string(NACP->version);
+    }
 }

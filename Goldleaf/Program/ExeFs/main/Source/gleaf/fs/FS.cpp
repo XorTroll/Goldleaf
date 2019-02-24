@@ -1,4 +1,5 @@
 #include <gleaf/fs/FS.hpp>
+#include <gleaf/fs/Explorer.hpp>
 #include <gleaf/err.hpp>
 #include <fstream>
 #include <cstdlib>
@@ -49,7 +50,7 @@ namespace gleaf::fs
     {
         int res = mkdir(Path.c_str(), 777);
         Result rc = 0;
-        if(res != 0) rc = MAKERESULT(err::ErrnoErrorModule, res);
+        if(res != 0) rc = err::MakeErrno(res);
         return rc;
     }
 
@@ -73,18 +74,18 @@ namespace gleaf::fs
         rewind(f);
         u64 szrem = fsize;
         u64 read = 0;
+        u64 rsize = 0x800000;
+        u8 *data = (u8*)malloc(rsize);
         while(szrem)
         {
-            u64 rsize = std::min((u64)8388608, szrem);
-            u8 *data = (u8*)malloc(sizeof(u8) * rsize);
-            fread(data, 1, rsize, f);
-            fwrite(data, 1, rsize, of);
-            szrem -= rsize;
-            read += rsize;
+            u64 rc = fread(data, 1, rsize, f);
+            fwrite(data, 1, rc, of);
+            szrem -= rc;
+            read += rc;
             u8 perc = ((double)((double)read / (double)fsize) * 100.0);
             Callback(perc);
-            free(data);
         }
+        free(data);
         fclose(of);
         fclose(f);
     }
@@ -135,12 +136,13 @@ namespace gleaf::fs
     {
         int res = remove(Path.c_str());
         Result rc = 0;
-        if(res != 0) rc = MAKERESULT(err::ErrnoErrorModule, res);
+        if(res != 0) rc = err::MakeErrno(res);
         return rc;
     }
 
-    void DeleteDirectory(std::string Path)
+    Result DeleteDirectory(std::string Path)
     {
+        Result rc = 0;
         DIR *d = opendir(Path.c_str());
         if(d)
         {
@@ -151,12 +153,15 @@ namespace gleaf::fs
                 if(dent == NULL) break;
                 std::string nd = dent->d_name;
                 std::string pd = Path + "/" + nd;
-                if(gleaf::fs::IsFile(pd)) DeleteFile(pd);
-                else DeleteDirectory(pd);
+                if(gleaf::fs::IsFile(pd)) rc = DeleteFile(pd);
+                else rc = DeleteDirectory(pd);
+                if(rc != 0) return rc;
             }
         }
         closedir(d);
-        rmdir(Path.c_str());
+        int res = rmdir(Path.c_str());
+        if(res != 0) rc = err::MakeErrno(res);
+        return rc;
     }
 
     bool IsFileBinary(std::string Path)
@@ -304,6 +309,7 @@ namespace gleaf::fs
         }
         else return 0xcafe;
         fclose(fle);
+        return rc;
     }
 
     u64 GetFileSize(std::string Path)
@@ -419,32 +425,22 @@ namespace gleaf::fs
         return (strm.str() + sufs[plc]);
     }
 
-    std::string SearchForFile(FsFileSystem FS, std::string Path, std::string Extension, std::string Root)
+    std::string SearchForFile(FsFileSystem IFS, std::string Extension)
     {
-        FsDir sddir;
-        fsFsOpenDirectory(&FS, (Root + "/").c_str(), (FS_DIROPEN_FILE | FS_DIROPEN_DIRECTORY), &sddir);
-        u64 count = 0;
-        fsDirGetEntryCount(&sddir, &count);
-        auto entries = std::make_unique<FsDirectoryEntry[]>(count);
-        size_t eread;
-        fsDirRead(&sddir, 0, &eread, count, entries.get());
-        if(count > 0) for(u32 i = 0; i < count; i++)
+        std::string path;
+        fs::Explorer *fexp = new fs::Explorer(IFS, "Default");
+        std::vector<std::string> fls = fexp->GetFiles();
+        for(u32 i = 0; i < fls.size(); i++)
         {
-            FsDirectoryEntry ent = entries[i];
-            std::string entname = ent.name;
-            if(ent.type == ENTRYTYPE_DIR)
+            std::string pth = fls[i];
+            std::string seq = pth.substr(pth.length() - Extension.length());
+            if(seq == Extension)
             {
-                auto subdir = Path + entname + "/";
-                auto dfound = SearchForFile(FS, subdir, Extension);
-                if(dfound != "") return dfound;
-                continue;
-            }
-            else if(ent.type == ENTRYTYPE_FILE)
-            {
-                auto ffound = entname.substr(entname.find(".") + 1);
-                if(ffound == Extension) return entname;
+                path = pth;
+                break;
             }
         }
-        return "";
+        delete fexp;
+        return path;
     }
 }

@@ -6,6 +6,11 @@
 namespace gleaf::fs
 {
     static std::vector<std::string> gmounts;
+    static Explorer *esdc = NULL;
+    static Explorer *eprd = NULL;
+    static Explorer *ensf = NULL;
+    static Explorer *enus = NULL;
+    static Explorer *enss = NULL;
 
     Explorer::Explorer(Partition Base)
     {
@@ -40,12 +45,13 @@ namespace gleaf::fs
         this->part = Base;
     }
 
-    Explorer::Explorer(FsFileSystem IFS, std::string DisplayName)
+    Explorer::Explorer(FsFileSystem IFS, std::string DisplayName, bool AutoClose)
     {
         this->customifs = true;
         this->mntname = this->GenerateMountName();
         this->ifs = IFS;
         this->dspname = DisplayName;
+        this->ifsaclose = AutoClose;
         this->ecwd = this->mntname + ":/";
         fsdevMountDevice(this->mntname.c_str(), IFS);
     }
@@ -150,6 +156,11 @@ namespace gleaf::fs
     Partition Explorer::GetPartition()
     {
         return this->part;
+    }
+
+    FsFileSystem *Explorer::GetNativeFileSystem()
+    {
+        return &this->ifs;
     }
 
     void Explorer::MovePartition(Partition NewBase)
@@ -261,8 +272,42 @@ namespace gleaf::fs
     {
         if(this->part != Partition::SdCard)
         {
-            fsdevUnmountDevice(this->mntname.c_str());
+            if(this->customifs)
+            {
+                if(this->ifsaclose) fsdevUnmountDevice(this->mntname.c_str());
+            }
+            else fsdevUnmountDevice(this->mntname.c_str());
             this->DeleteMountName(this->mntname);
         }
+    }
+
+    Explorer *GetSdCardExplorer()
+    {
+        if(esdc == NULL) esdc = new fs::Explorer(fs::Partition::SdCard);
+        return esdc;
+    }
+
+    Explorer *GetPRODINFOFExplorer()
+    {
+        if(eprd == NULL) eprd = new fs::Explorer(fs::Partition::PRODINFOF);
+        return eprd;
+    }
+
+    Explorer *GetNANDSafeExplorer()
+    {
+        if(ensf == NULL) ensf = new fs::Explorer(fs::Partition::NANDSafe);
+        return ensf;
+    }
+
+    Explorer *GetNANDUserExplorer()
+    {
+        if(enus == NULL) enus = new fs::Explorer(fs::Partition::NANDUser);
+        return enus;
+    }
+
+    Explorer *GetNANDSystemExplorer()
+    {
+        if(enss == NULL) enss = new fs::Explorer(fs::Partition::NANDSystem);
+        return enss;
     }
 }

@@ -36,7 +36,8 @@ namespace pu::element
             void SetColor(draw::Color Color);
             void SetOnClick(std::function<void()> ClickCallback);
             void OnRender(render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
+            void OnDirectionPress(DirectionController Controller);
         private:
             u32 x;
             u32 y;

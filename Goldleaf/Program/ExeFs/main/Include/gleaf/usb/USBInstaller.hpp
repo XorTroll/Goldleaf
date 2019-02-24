@@ -17,15 +17,15 @@ namespace gleaf::usb
     {
         public:
             Installer(Storage Location, bool IgnoreVersion);
-            InstallerResult ProcessRecords(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
-            InstallerResult ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
-            InstallerResult ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
-            InstallerResult GetLatestResult();
-            void Finish();
+            Result ProcessRecords(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
+            Result ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
+            Result ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
+            Result GetLatestResult();
+            void Finalize();
         private:
             std::vector<NSPContentData> cnts;
             FsStorageId stid;
-            InstallerResult irc;
+            Result rc;
             ByteBuffer cnmtbuf;
             bool iver;
             bool gtik;

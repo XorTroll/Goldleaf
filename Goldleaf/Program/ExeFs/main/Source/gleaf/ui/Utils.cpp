@@ -1,4 +1,4 @@
-#include <gleaf/ui/MainApplication.hpp>
+#include <gleaf/ui.hpp>
 #include <threads.h>
 
 gleaf::set::Settings gsets;
@@ -6,17 +6,26 @@ gleaf::set::Settings gsets;
 namespace gleaf::ui
 {
     extern MainApplication *mainapp;
-    std::vector<std::string> clipboard;
+    std::string clipboard;
 
-    void AddToClipboard(std::string Path)
+    void SetClipboard(std::string Path)
     {
-        if(!clipboard.empty()) for(u32 i = 0; i < clipboard.size(); i++) if(clipboard[i] == Path) return;
-        clipboard.push_back(Path);
+        clipboard = Path;
     }
     
     void ClearClipboard()
     {
-        clipboard.clear();
+        clipboard = "";
+    }
+
+    bool ClipboardEmpty()
+    {
+        return clipboard.empty();
+    }
+    
+    bool ClipboardNotEmpty()
+    {
+        return !clipboard.empty();
     }
 
     void ShowPowerTasksDialog(std::string Title, std::string Message)
@@ -62,6 +71,7 @@ namespace gleaf::ui
         libappletArgsPush(&args, &aph);
         appletCreateStorage(&hast1, 0xa0);
         u8 indata[0xa0] = { 0 };
+        indata[0x96] = 1;
         appletStorageWrite(&hast1, 0, indata, 0xa0);
         appletHolderPushInData(&aph, &hast1);
         appletHolderStart(&aph);
@@ -77,12 +87,14 @@ namespace gleaf::ui
         return *(u128*)&out[8];
     }
 
-    void HandleResult(Result OSError)
+    void HandleResult(Result OSError, std::string Context)
     {
         if(OSError != 0)
         {
             err::Error err = err::DetermineError(OSError);
-            // dialog?
+            std::string emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
+            std::string edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
+            mainapp->CreateShowDialog("Error", Context + "\n\nError code: " + horizon::FormatHex(err.OSError) + "\nModule: " + emod + "\nError description: " + edesc + "", { "Ok" }, false);
         }
     }
 }
