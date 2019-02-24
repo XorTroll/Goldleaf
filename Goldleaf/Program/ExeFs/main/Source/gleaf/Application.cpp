@@ -41,7 +41,16 @@ namespace gleaf
     void Finalize()
     {
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+        fs::Explorer *nsfe = fs::GetNANDSafeExplorer();
+        fs::Explorer *nusr = fs::GetNANDUserExplorer();
+        fs::Explorer *prif = fs::GetPRODINFOFExplorer();
+        fs::Explorer *sdcd = fs::GetSdCardExplorer();
         fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
+        delete nsys;
+        delete nsfe;
+        delete nusr;
+        delete prif;
+        delete sdcd;
         horizon::FinalizeGpioInputHandling();
         gpioExit();
         bpcExit();

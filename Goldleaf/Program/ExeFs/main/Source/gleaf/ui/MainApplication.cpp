@@ -136,29 +136,17 @@ namespace gleaf::ui
         }
         if(IsInstalledTitle())
         {
-            AppletHolder aph;
-            AppletStorage hast1;
-            LibAppletArgs args;
-            appletCreateLibraryApplet(&aph, AppletId_web, LibAppletMode_AllForeground);
-            libappletArgsCreate(&args, 0);
-            libappletArgsPush(&args, &aph);
-            appletCreateStorage(&hast1, 8192);
-            u8 indata[8192] = { 0 };
-            *(u64*)&indata[4] = 281530811285509;
-            *(u64*)&indata[17] = 201326593;
-            *(u8*)&indata[16] = 1;
-            *(u16*)indata = 2;
-            strcpy((char*)&indata[25], out.c_str());
-            appletStorageWrite(&hast1, 0, indata, 8192);
-            appletHolderPushInData(&aph, &hast1);
-            appletHolderStart(&aph);
-            appletHolderJoin(&aph);
+            WebPageConfig web;
+            webPageCreate(&web, out.c_str());
+            WebCommonReturnValue vret;
+            webPageShow(&web, &vret);
         }
         else
         {
             WebWifiConfig wwf;
-            webWifiCreate(&wwf, out.c_str());
-            Result rc = webWifiShow(&wwf);
+            webWifiCreate(&wwf, "http://ctest.cdn.nintendo.net/", out.c_str(), 0, 0);
+            WebWifiReturnValue vret;
+            Result rc = webWifiShow(&wwf, &vret);
             if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(40));
         }
     }
