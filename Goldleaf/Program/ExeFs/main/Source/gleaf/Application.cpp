@@ -35,12 +35,13 @@ namespace gleaf
         horizon::InitializeGpioInputHandling();
         EnsureDirectories();
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
         fs::CreateDirectory(nsys->FullPathFor("contents/temp"));
     }
 
     void Finalize()
     {
+        fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+        fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
         horizon::FinalizeGpioInputHandling();
         gpioExit();
         bpcExit();
