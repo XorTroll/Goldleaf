@@ -34,8 +34,6 @@ namespace gleaf
         if(R_FAILED(gpioInitialize())) exit(1);
         horizon::InitializeGpioInputHandling();
         EnsureDirectories();
-        fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        fs::CreateDirectory(nsys->FullPathFor("contents/temp"));
     }
 
     void Finalize()
@@ -63,6 +61,8 @@ namespace gleaf
 
     void EnsureDirectories()
     {
+        fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+        fs::CreateDirectory(nsys->FullPathFor("contents/temp"));
         fs::CreateDirectory("sdmc:/goldleaf");
         fs::CreateDirectory("sdmc:/goldleaf/meta");
         fs::CreateDirectory("sdmc:/goldleaf/title");
