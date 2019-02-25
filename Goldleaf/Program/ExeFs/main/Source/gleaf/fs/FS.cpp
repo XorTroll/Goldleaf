@@ -360,56 +360,52 @@ namespace gleaf::fs
     u64 GetTotalSpaceForPartition(Partition Partition)
     {
         u64 space = 0;
-        FsFileSystem fs;
+        fs::Explorer *fexp = NULL;
         switch(Partition)
         {
+            case Partition::PRODINFOF:
+                fexp = fs::GetPRODINFOFExplorer();
+                break;
             case Partition::NANDSafe:
-                fsOpenBisFileSystem(&fs, 29, "");
-                fsFsGetTotalSpace(&fs, "/", &space);
-                fsFsClose(&fs);
+                fexp = fs::GetNANDSafeExplorer();
                 break;
             case Partition::NANDSystem:
-                fsOpenBisFileSystem(&fs, 30, "");
-                fsFsGetTotalSpace(&fs, "/", &space);
-                fsFsClose(&fs);
+                fexp = fs::GetNANDSystemExplorer();
                 break;
             case Partition::NANDUser:
-                fsOpenBisFileSystem(&fs, 31, "");
-                fsFsGetTotalSpace(&fs, "/", &space);
-                fsFsClose(&fs);
+                fexp = fs::GetNANDUserExplorer();
                 break;
             case Partition::SdCard:
-                fsFsGetTotalSpace(fsdevGetDefaultFileSystem(), "/", &space);
+                fexp = fs::GetSdCardExplorer();
                 break;
         }
+        if(fexp != NULL) space = fexp->GetTotalSpace();
         return space;
     }
 
     u64 GetFreeSpaceForPartition(Partition Partition)
     {
         u64 space = 0;
-        FsFileSystem fs;
+        fs::Explorer *fexp = NULL;
         switch(Partition)
         {
+            case Partition::PRODINFOF:
+                fexp = fs::GetPRODINFOFExplorer();
+                break;
             case Partition::NANDSafe:
-                fsOpenBisFileSystem(&fs, 29, "");
-                fsFsGetFreeSpace(&fs, "/", &space);
-                fsFsClose(&fs);
+                fexp = fs::GetNANDSafeExplorer();
                 break;
             case Partition::NANDSystem:
-                fsOpenBisFileSystem(&fs, 30, "");
-                fsFsGetFreeSpace(&fs, "/", &space);
-                fsFsClose(&fs);
+                fexp = fs::GetNANDSystemExplorer();
                 break;
             case Partition::NANDUser:
-                fsOpenBisFileSystem(&fs, 31, "");
-                fsFsGetFreeSpace(&fs, "/", &space);
-                fsFsClose(&fs);
+                fexp = fs::GetNANDUserExplorer();
                 break;
             case Partition::SdCard:
-                fsFsGetFreeSpace(fsdevGetDefaultFileSystem(), "/", &space);
+                fexp = fs::GetSdCardExplorer();
                 break;
         }
+        if(fexp != NULL) space = fexp->GetFreeSpace();
         return space;
     }
 

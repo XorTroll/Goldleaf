@@ -225,14 +225,14 @@ namespace gleaf::fs
     u64 Explorer::GetTotalSpace()
     {
         u64 space = 0;
-        fsFsGetTotalSpace(&this->ifs, "", &space);
+        fsFsGetTotalSpace(&this->ifs, "/", &space);
         return space;
     }
 
     u64 Explorer::GetFreeSpace()
     {
         u64 space = 0;
-        fsFsGetFreeSpace(&this->ifs, "", &space);
+        fsFsGetFreeSpace(&this->ifs, "/", &space);
         return space;
     }
 
