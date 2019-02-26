@@ -4,7 +4,7 @@
 
 > *Nintendo Switch homebrew multitool, for several purposes and with many, many features!*
 
-- **If you are looking for Tinfoil, this is Tinfoil's safer and way more extended evolution.**
+- **If you are looking for Adubbz Tinfoil, this is it's more extended evolution.**
 
 ## Brief description
 
