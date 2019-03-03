@@ -67,7 +67,7 @@ namespace gleaf::err
             // Goldleaf errors
             "Not enough space (make sure the device has free space two times the item size)",
             "Meta not found",
-            "CNM not found",
+            "CNMT not found",
             "Title already installed",
             "Bad GLUC Command",
             "File directory already present",
