@@ -286,7 +286,7 @@ Many errors are very common and can be misunderstood, and you should document a 
 
 ## Credits
 
-The main conceps of Goldleaf are and have been developed by XorTroll, but without the effort and support of many others, this project wouldn't be what it is now:
+The main concepts of Goldleaf are and have been developed by XorTroll, but without the effort and support of many others, this project wouldn't be what it is now:
 
 (from all the people listed below, special thanks to Adubbz, exelix, C4Phoenix, The-4n and SciresM, for their huge support on their respective areas of homebrew)
 
