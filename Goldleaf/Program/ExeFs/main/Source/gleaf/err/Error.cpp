@@ -34,6 +34,31 @@ namespace gleaf::err
         u32 modidx = 0;
         u32 mod = R_MODULE(OSError);
         if(mod == 358) vecidx = 5;
+        else if (mod == 356)
+        {
+            ErrorDescription desc = static_cast<ErrorDescription>(R_DESCRIPTION(OSError));
+            switch(desc)
+            {
+                case ErrorDescription::NotEnoughSize:
+                    vecidx = 6;
+                    break;
+                case ErrorDescription::MetaNotFound:
+                    vecidx = 7;
+                    break;
+                case ErrorDescription::CNMTNotFound:
+                    vecidx = 8;
+                    break;
+                case ErrorDescription::TitleAlreadyInstalled:
+                    vecidx = 9;
+                    break;
+                case ErrorDescription::BadGLUCCommand:
+                    vecidx = 10;
+                    break;
+                case ErrorDescription::FileDirectoryAlreadyPresent:
+                    vecidx = 11;
+                    break;
+            }
+        }
         else switch(OSError)
         {
             case 0x202:

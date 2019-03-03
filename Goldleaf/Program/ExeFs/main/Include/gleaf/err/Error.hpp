@@ -64,6 +64,13 @@ namespace gleaf::err
             "Standard C error (from errno value)",
             "Not enough size available",
 
+            // Goldleaf errors
+            "Not enough size",
+            "Meta not found",
+            "CNM not found",
+            "Title already installed",
+            "Bad GLUC Command",
+            "File directory already present",
         }
     };
 
