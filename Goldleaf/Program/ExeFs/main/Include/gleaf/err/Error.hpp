@@ -65,7 +65,7 @@ namespace gleaf::err
             "Not enough size available",
 
             // Goldleaf errors
-            "Not enough size",
+            "Not enough space (make sure the device has free space two times the item size)",
             "Meta not found",
             "CNM not found",
             "Title already installed",
