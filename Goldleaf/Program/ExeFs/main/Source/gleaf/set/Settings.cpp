@@ -60,6 +60,7 @@ namespace gleaf::set
         gset.AllowRemoveSystemTitles = false;
         gset.WarnRemoveUsedTickets = true;
         gset.RomFsReplacePath = "";
+        gset.BrowserItemSize = 100;
         ColorSetId csid = ColorSetId_Light;
         setsysGetColorSetId(&csid);
         if(csid == ColorSetId_Dark) gset.CustomScheme = ui::DefaultDark;
@@ -77,6 +78,7 @@ namespace gleaf::set
                 else if(lang == "de") gset.CustomLanguage = Language::German;
                 else if(lang == "fr") gset.CustomLanguage = Language::French;
             }
+            gset.BrowserItemSize = inir.GetInteger("UI", "fileBrowserItemSize", 100);
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
             gset.AllowRemoveSystemTitles = inir.GetBoolean("Content", "allowRemoveSystemTitles", false);
             gset.WarnRemoveUsedTickets = inir.GetBoolean("Content", "warnRemoveUsedTickets", true);

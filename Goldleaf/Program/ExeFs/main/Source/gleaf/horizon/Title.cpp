@@ -97,7 +97,8 @@ namespace gleaf::horizon
 
     TitleContents Title::GetContents()
     {
-        TitleContents cnts = {};
+        TitleContents cnts;
+        memset(&cnts, 0, sizeof(cnts));
         NcmContentMetaDatabase metadb;
         NcmContentStorage cst;
         Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(this->Location), &metadb);
@@ -106,7 +107,8 @@ namespace gleaf::horizon
             rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
             if(rc == 0) for(u32 i = 0; i < 6; i++)
             {
-                ContentId cntid = {};
+                ContentId cntid;
+                memset(&cntid, 0, sizeof(cntid));
                 cntid.Type = static_cast<ncm::ContentType>(i);
                 cntid.Empty = true;
                 cntid.Size = 0;
@@ -130,6 +132,26 @@ namespace gleaf::horizon
         serviceClose(&cst.s);
         serviceClose(&metadb.s);
         return cnts;
+    }
+
+    bool Title::IsBaseTitle()
+    {
+        return ((!this->IsUpdate()) && (!this->IsDLC()) &&(this->Type != ncm::ContentMetaType::SystemUpdate) && (this->Type != ncm::ContentMetaType::Delta));
+    }
+
+    bool Title::IsUpdate()
+    {
+        return (this->Type == ncm::ContentMetaType::Patch);
+    }
+
+    bool Title::IsDLC()
+    {
+        return (this->Type == ncm::ContentMetaType::AddOnContent);
+    }
+
+    bool Title::CheckBase(Title &Other)
+    {
+        return ((!Other.IsBaseTitle()) && (this->ApplicationId == GetBaseApplicationId(Other.ApplicationId, Other.Type)));
     }
 
     u64 Ticket::GetApplicationId()
@@ -187,6 +209,49 @@ namespace gleaf::horizon
         }
         serviceClose(&metadb.s);
         return titles;
+    }
+
+    Title &Locate(u64 ApplicationId)
+    {
+        Title tit;
+        memset(&tit, 0, sizeof(tit));
+        std::vector<Title> titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDSystem);
+        for(u32 i = 0; i < titles.size(); i++)
+        {
+            if(titles[i].ApplicationId == ApplicationId)
+            {
+                tit = titles[i];
+                break;
+            }
+        }
+        if(tit.ApplicationId == 0)
+        {
+            titles.clear();
+            titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
+            for(u32 i = 0; i < titles.size(); i++)
+            {
+                if(titles[i].ApplicationId == ApplicationId)
+                {
+                    tit = titles[i];
+                    break;
+                }
+            }
+        }
+        if(tit.ApplicationId == 0)
+        {
+            titles.clear();
+            titles = SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
+            for(u32 i = 0; i < titles.size(); i++)
+            {
+                if(titles[i].ApplicationId == ApplicationId)
+                {
+                    tit = titles[i];
+                    break;
+                }
+            }
+        }
+        titles.clear();
+        return tit;
     }
 
     bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId)

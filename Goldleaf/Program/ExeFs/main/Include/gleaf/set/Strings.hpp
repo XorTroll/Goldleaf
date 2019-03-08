@@ -20,7 +20,7 @@ namespace gleaf::set
     };
 
 
-
+    // This space is left intentionally to get the string indexes easily
 
 
     static const Dictionary English =
@@ -429,7 +429,7 @@ namespace gleaf::set
             "Ya existe otro archivo o carpeta con el nombre especificado.",
             "Ha ocurrido un error al intentar renombrar el archivo.",
             "El archivo fue renombrado con éxito.",
-            "What would you like to do with this directory?",
+            "¿Qué le gustaría hacer con esta carpeta?",
             "Opciones de carpeta",
             "Examinar",
             "Renombrar carpeta",

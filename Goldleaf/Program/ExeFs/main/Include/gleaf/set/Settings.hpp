@@ -23,6 +23,7 @@ namespace gleaf::set
         bool WarnRemoveUsedTickets;
         std::string RomFsReplacePath;
         ColorScheme CustomScheme;
+        u32 BrowserItemSize;
 
         std::string PathForResource(std::string Path);
     };

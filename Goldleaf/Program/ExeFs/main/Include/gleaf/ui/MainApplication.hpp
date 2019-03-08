@@ -112,13 +112,13 @@ namespace gleaf::ui
         public:
             ContentInformationLayout();
             void UpdateElements();
-            void contentInfo_Click();
-            void contents_Click();
+            void options_Click();
             void LoadContent(horizon::Title Content);
         private:
             horizon::Title content;
+            std::vector<horizon::Title> subcnts;
             horizon::TitleContents contents;
-            pu::element::MenuItem *contentInfo;
+            pu::element::MenuItem *baseTitleItem;
             pu::element::Menu *optionsMenu;
     };
 
@@ -128,6 +128,7 @@ namespace gleaf::ui
             StorageContentsLayout();
             void contents_Click();
             void LoadFromStorage(Storage Location);
+            std::vector<horizon::Title> GetContents();
         private:
             std::vector<horizon::Title> contents;
             pu::element::TextBlock *noContentsText;
