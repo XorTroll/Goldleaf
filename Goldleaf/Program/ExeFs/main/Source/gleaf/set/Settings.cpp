@@ -37,7 +37,9 @@ namespace gleaf::set
             case 3:
                 gset.CustomLanguage = Language::German;
                 break;
-            // case 4:
+            case 4:
+                gset.CustomLanguage = Language::Italian;
+                break;
             case 5:
             case 14:
                 gset.CustomLanguage = Language::Spanish;
@@ -77,6 +79,7 @@ namespace gleaf::set
                 else if(lang == "es") gset.CustomLanguage = Language::Spanish;
                 else if(lang == "de") gset.CustomLanguage = Language::German;
                 else if(lang == "fr") gset.CustomLanguage = Language::French;
+                else if(lang == "it") gset.CustomLanguage = Language::Italian;
             }
             gset.BrowserItemSize = inir.GetInteger("UI", "fileBrowserItemSize", 100);
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");

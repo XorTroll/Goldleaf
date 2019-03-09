@@ -60,6 +60,7 @@ namespace gleaf
         Spanish,
         German,
         French,
+        Italian,
     };
 
     struct InstallerResult

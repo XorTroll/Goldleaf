@@ -22,6 +22,9 @@ namespace gleaf::set
             case Language::French:
                 dict = French;
                 break;
+            case Language::Italian:
+                dict = Italian;
+                break;
         }
         return dict;
     }
