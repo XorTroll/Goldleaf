@@ -2099,6 +2099,7 @@ namespace gleaf::ui
     MainApplication::MainApplication() : pu::Application()
     {
         gsets = set::ProcessSettings();
+        set::Initialize();
         this->SetBackgroundColor(gsets.CustomScheme.Background);
         this->preblv = 0;
         this->preisch = false;

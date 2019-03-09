@@ -16,7 +16,7 @@ namespace gleaf::err
 
     set::Dictionary GetDictionary()
     {
-        Language slang = set::GetDictionary().DictLanguage;
+        Language slang = set::MainDictionary.DictLanguage;
         set::Dictionary dict = English;
         switch(slang)
         {

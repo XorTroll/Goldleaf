@@ -4,33 +4,36 @@ extern gleaf::set::Settings gsets;
 
 namespace gleaf::set
 {
-    Dictionary GetDictionary()
+    void Initialize()
     {
-        Language slang = gsets.CustomLanguage;
-        Dictionary dict = English;
-        switch(slang)
+        std::string pdict = "/Language/";
+        switch(gsets.CustomLanguage)
         {
             case Language::English:
-                dict = English;
+                pdict += "en";
                 break;
             case Language::Spanish:
-                dict = Spanish;
+                pdict += "es";
                 break;
             case Language::German:
-                dict = German;
+                pdict += "de";
                 break;
             case Language::French:
-                dict = French;
-                break;
+                pdict += "fr";
+                break;  
             case Language::Italian:
-                dict = Italian;
+                pdict += "it";
                 break;
         }
-        return dict;
+        pdict += ".json";
+        std::ifstream ifs(gsets.PathForResource(pdict));
+        MainDictionary.DictLanguage = gsets.CustomLanguage;
+        MainDictionary.Strings = json::parse(ifs);
+        ifs.close();
     }
     
     std::string GetDictionaryEntry(u32 Index)
     {
-        return GetDictionary().Strings[Index];
+        return MainDictionary.Strings[Index].get<std::string>();
     }
 }
