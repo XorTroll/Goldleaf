@@ -37,15 +37,15 @@ namespace gleaf::set
             case 3:
                 gset.CustomLanguage = Language::German;
                 break;
-            // case 4:
+            case 4:
+                gset.CustomLanguage = Language::Italian;
+                break;
             case 5:
             case 14:
                 gset.CustomLanguage = Language::Spanish;
                 break;
-            case 6:
-                gset.CustomLanguage = Language::Italian;
-                break;
             /*
+            case 6:
             case 7:
             case 8:
             case 9:
