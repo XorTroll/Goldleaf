@@ -35,6 +35,7 @@ namespace pu::render
     u32 GetTextureHeight(NativeTexture Texture);
     u32 GetTextWidth(NativeFont Font, std::string Text);
     u32 GetTextHeight(NativeFont Font, std::string Text);
+    void SetAlphaValue(NativeTexture Texture, u8 Alpha);
     void DeleteFont(NativeFont Font);
     void DeleteTexture(NativeTexture Texture);
 }

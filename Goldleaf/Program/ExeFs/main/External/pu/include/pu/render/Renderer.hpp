@@ -36,7 +36,7 @@ namespace pu::render
             void RenderRoundedRectangleFill(draw::Color Color, u32 X, u32 Y, u32 Width, u32 Height, u32 Radius);
             void RenderCircle(draw::Color Color, u32 X, u32 Y, u32 Radius);
             void RenderCircleFill(draw::Color Color, u32 X, u32 Y, u32 Radius);
-            void RenderShadowSimple(u32 X, u32 Y, u32 Width, u32 Height, u32 BaseAlpha);
+            void RenderShadowSimple(u32 X, u32 Y, u32 Width, u32 Height, u32 BaseAlpha, u8 MainAlpha = 255);
         private:
             bool okromfs;
             bool initialized;

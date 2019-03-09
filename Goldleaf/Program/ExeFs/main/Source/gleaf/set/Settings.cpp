@@ -62,7 +62,7 @@ namespace gleaf::set
         gset.AllowRemoveSystemTitles = false;
         gset.WarnRemoveUsedTickets = true;
         gset.RomFsReplacePath = "";
-        gset.BrowserItemSize = 100;
+        gset.BrowserItemSize = 50;
         ColorSetId csid = ColorSetId_Light;
         setsysGetColorSetId(&csid);
         if(csid == ColorSetId_Dark) gset.CustomScheme = ui::DefaultDark;
@@ -81,13 +81,16 @@ namespace gleaf::set
                 else if(lang == "fr") gset.CustomLanguage = Language::French;
                 else if(lang == "it") gset.CustomLanguage = Language::Italian;
             }
-            gset.BrowserItemSize = inir.GetInteger("UI", "fileBrowserItemSize", 100);
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
             gset.AllowRemoveSystemTitles = inir.GetBoolean("Content", "allowRemoveSystemTitles", false);
             gset.WarnRemoveUsedTickets = inir.GetBoolean("Content", "warnRemoveUsedTickets", true);
-            std::string prom = inir.Get("UI", "romFsReplacePath", "");
-            if(!prom.empty()) gset.RomFsReplacePath = "sdmc:/" + prom;
-            else gset.RomFsReplacePath = prom;
+            bool rrom = inir.GetBoolean("UI", "romfsReplace", false);
+            if(rrom)
+            {
+                std::string prom = inir.Get("UI", "romFsReplacePath", "");
+                if(!prom.empty()) gset.RomFsReplacePath = "sdmc:/" + prom;
+                else gset.RomFsReplacePath = prom;
+            }
             bool usecc = inir.GetBoolean("UI", "useCustomColors", false);
             if(usecc)
             {
@@ -140,6 +143,11 @@ namespace gleaf::set
                     step++;
                     rawctx.erase(0, ipos + 1);
                 }
+            }
+            bool usecsz = inir.GetBoolean("UI", "useCustomSizes", false);
+            if(usecsz)
+            {
+                gset.BrowserItemSize = inir.GetInteger("UI", "fileBrowserItemsSize", 50);
             }
         }
         return gset;
