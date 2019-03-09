@@ -1062,6 +1062,16 @@ namespace gleaf::set
             "Parcourir les tickets et les tickets personnalisés.",
             "Une erreur est survenue en tentant de renommer le compte utilisateur: le nom est trop long.",
             "Sélectionnez un nom pour le nouveau dossier.",
+			"Une erreur s'est produite lors de la tentative d'installation du NSP:",
+            "Une erreur s'est produite lors de la recherche du NRO de NxThemesInstaller:",
+            "Une erreur s'est produite lors de la tentative d'effacement du fichier ou du répertoire:",
+            "Une erreur s'est produite lors de la tentative de renommage du fichier ou du répertoire:",
+            "Une erreur s'est produite lors de la tentative de création du fichier ou du répertoire:",
+            "Une erreur s'est produite lors de la tentative de traitement des commandes USB GLUC:",
+            "Le presse-papiers a été mis à jour avec le fichier sélectionné.",
+            "Le presse-papiers a été mis à jour avec le répertoire sélectionné.",
+            "L'image sélectionnée n'est pas une icône valide.",
+            "L'image sélectionnée n'a pas les dimensions 256x256.",
         }
     };
 	
