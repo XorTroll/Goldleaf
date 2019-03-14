@@ -1034,7 +1034,7 @@ namespace gleaf::ui
         delete Inst;
         Inst = NULL;
         
-        if (delete) {
+        if (Delete) {
             rc = gleaf::fs::DeleteFile(fullitm);
         ]
         
