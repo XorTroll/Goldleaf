@@ -519,14 +519,17 @@ namespace gleaf::ui
                         else info += "\n\n" + set::GetDictionaryEntry(97);
                         std::string ncicon;
                         if(hascontrol) ncicon = inst->GetExportedIconPath();
-                        sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), set::GetDictionaryEntry(18) }, true, ncicon);
-                        if(sopt < 0)
+                        sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), "Install and Delete" set::GetDictionaryEntry(18) }, true, ncicon);
+                        if(sopt < 1)
                         {
                             delete inst;
                             return;
                         }
+                        
+                        bool delete = if (sopt == 1);
+                        
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
-                        mainapp->GetInstallLayout()->StartInstall(inst, this, false, fullitm, pfullitm);
+                        mainapp->GetInstallLayout()->StartInstall(inst, this, delete, fullitm, pfullitm);
                         this->UpdateElements();
                         break;
                 }
@@ -1030,6 +1033,11 @@ namespace gleaf::ui
         if(IsInstalledTitle()) appletEndBlockingHomeButton();
         delete Inst;
         Inst = NULL;
+        
+        if (delete) {
+            rc = gleaf::fs::DeleteFile(fullitm);
+        ]
+        
         if(rc == 0) mainapp->UpdateFooter(set::GetDictionaryEntry(150));
         else HandleResult(rc, set::GetDictionaryEntry(251));
         mainapp->LoadLayout(Prev);
