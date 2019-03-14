@@ -519,7 +519,7 @@ namespace gleaf::ui
                         else info += "\n\n" + set::GetDictionaryEntry(97);
                         std::string ncicon;
                         if(hascontrol) ncicon = inst->GetExportedIconPath();
-                        sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), "Install and Delete" set::GetDictionaryEntry(18) }, true, ncicon);
+                        sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), "Install and Delete", set::GetDictionaryEntry(18) }, true, ncicon);
                         if(sopt < 1)
                         {
                             delete inst;
