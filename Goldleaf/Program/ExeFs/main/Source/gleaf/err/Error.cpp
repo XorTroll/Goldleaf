@@ -16,8 +16,7 @@ namespace gleaf::err
 
     Error DetermineError(Result OSError)
     {
-        Error err;
-        memset(&err, 0, sizeof(Error));
+        Error err = { 0 };
         u32 vecidx = 0;
         u32 modidx = 0;
         u32 mod = R_MODULE(OSError);
@@ -30,9 +29,26 @@ namespace gleaf::err
                 vecidx = 1;
                 break;
             case 0x234a02:
+            case 0x234c02:
+            case 0x234e02:
+            case 0x235002:
+            case 0x235202:
+            case 0x235602:
+            case 0x235802:
+            case 0x235a02:
+            case 0x235c02:
+            case 0x235e02:
+            case 0x236002:
+            case 0x236202:
                 vecidx = 2;
                 break;
+            case 0x236802:
+            case 0x236a02:
+            case 0x236c02:
             case 0x236e02:
+            case 0x244402:
+            case 0x244602:
+            case 0x244802:
                 vecidx = 3;
                 break;
             default:

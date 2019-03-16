@@ -19,8 +19,6 @@ namespace gleaf::set
     {
         Language CustomLanguage;
         std::string KeysPath;
-        bool AllowRemoveSystemTitles;
-        bool WarnRemoveUsedTickets;
         std::string RomFsReplacePath;
         ColorScheme CustomScheme;
         u32 BrowserItemSize;

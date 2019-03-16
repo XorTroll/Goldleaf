@@ -1,6 +1,5 @@
 #include <gleaf/ui/MainApplication.hpp>
 #include <gleaf/ui/Utils.hpp>
-#include <threads.h>
 
 extern gleaf::set::Settings gsets;
 
@@ -1154,14 +1153,14 @@ namespace gleaf::ui
     void ContentInformationLayout::UpdateElements()
     {
         this->optionsMenu->ClearItems();
-        this->baseTitleItem = new pu::element::MenuItem("Title"); // 261
+        this->baseTitleItem = new pu::element::MenuItem(set::GetDictionaryEntry(261));
         this->baseTitleItem->SetColor(gsets.CustomScheme.Text);
         this->baseTitleItem->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
         this->optionsMenu->AddItem(this->baseTitleItem);
         for(u32 i = 0; i < this->subcnts.size(); i++)
         {
             horizon::Title scnt = this->subcnts[i];
-            pu::element::MenuItem *subcnt = new pu::element::MenuItem(scnt.IsUpdate() ? "Update" : "DLC"); // 262, 263
+            pu::element::MenuItem *subcnt = new pu::element::MenuItem(scnt.IsUpdate() ? set::GetDictionaryEntry(262) : set::GetDictionaryEntry(263)); // 262, 263
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
             this->optionsMenu->AddItem(subcnt);
@@ -1319,12 +1318,12 @@ namespace gleaf::ui
             tcnt += " (" + std::string(nacp->version);
             if(hasupd)
             {
-                if(hasdlc) tcnt += ", with update and DLC)";
-                else tcnt += ", with update)";
+                if(hasdlc) tcnt += ", " + set::GetDictionaryEntry(267) + ")";
+                else tcnt += ", " + set::GetDictionaryEntry(268) + ")";
             }
             else
             {
-                if(hasdlc) tcnt += ", with DLC)";
+                if(hasdlc) tcnt += ", " + set::GetDictionaryEntry(269) + ")";
                 else tcnt += ")";
             }
             free(nacp);

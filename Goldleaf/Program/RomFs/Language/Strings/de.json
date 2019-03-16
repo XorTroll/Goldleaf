@@ -259,5 +259,14 @@
     "Die Zwischenablage wurde mit der ausgewählten Datei aktualisiert.",
     "Die Zwischenablage wurde mit dem ausgewählten Ordner aktualisiert.",
     "Das ausgewählte Bild ist kein gültiges Icon.",
-    "Das ausgewählte Bild hat nicht die Maße 256x256 Pixel."
+    "Das ausgewählte Bild hat nicht die Maße 256x256 Pixel.",
+    "Basis Titel",
+    "Update",
+    "DLC",
+    "Modul",
+    "Beschreibung",
+    "Fehler",
+    "mit Update und DLC",
+    "mit Update",
+    "mit DLC"
 ]

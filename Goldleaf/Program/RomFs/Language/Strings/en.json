@@ -259,5 +259,14 @@
     "The clipboard was updated with the selected file.",
     "The clipboard was updated with the selected directory.",
     "The selected image isn't a valid icon.",
-    "The selected image isn't 256x256 dimensions."
+    "The selected image isn't 256x256 dimensions.",
+    "Base title",
+    "Update",
+    "DLC",
+    "Module",
+    "Description",
+    "Error",
+    "with update and DLC",
+    "with update",
+    "with DLC"
 ]

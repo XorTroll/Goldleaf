@@ -59,8 +59,6 @@ namespace gleaf::set
                 break;
         }
         gset.KeysPath = "sdmc:/switch/prod.keys";
-        gset.AllowRemoveSystemTitles = false;
-        gset.WarnRemoveUsedTickets = true;
         gset.RomFsReplacePath = "";
         gset.BrowserItemSize = 50;
         ColorSetId csid = ColorSetId_Light;
@@ -82,8 +80,6 @@ namespace gleaf::set
                 else if(lang == "it") gset.CustomLanguage = Language::Italian;
             }
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
-            gset.AllowRemoveSystemTitles = inir.GetBoolean("Content", "allowRemoveSystemTitles", false);
-            gset.WarnRemoveUsedTickets = inir.GetBoolean("Content", "warnRemoveUsedTickets", true);
             bool rrom = inir.GetBoolean("UI", "romfsReplace", false);
             if(rrom)
             {
