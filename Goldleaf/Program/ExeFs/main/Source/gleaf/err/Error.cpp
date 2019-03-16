@@ -21,7 +21,9 @@ namespace gleaf::err
         u32 vecidx = 0;
         u32 modidx = 0;
         u32 mod = R_MODULE(OSError);
+        u32 desc = R_DESCRIPTION(OSError);
         if(mod == 358) vecidx = 5;
+        else if(mod == 356) vecidx = desc + 4;
         else switch(OSError)
         {
             case 0x202:

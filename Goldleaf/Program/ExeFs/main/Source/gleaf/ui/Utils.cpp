@@ -94,7 +94,7 @@ namespace gleaf::ui
             err::Error err = err::DetermineError(OSError);
             std::string emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
             std::string edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
-            mainapp->CreateShowDialog("Error", Context + "\n\nError code: " + horizon::FormatHex(err.OSError) + "\nModule: " + emod + "\nError description: " + edesc + "", { "Ok" }, false);
+            mainapp->CreateShowDialog("Error", Context + "\n\nError: " + horizon::FormatHex(err.OSError) + "\nModule: " + emod + "\nError description: " + edesc + "", { set::GetDictionaryEntry(234) }, false);
         }
     }
 }

@@ -259,5 +259,11 @@
     "El portapapeles se ha actualizado con el archivo seleccionado.",
     "El portapapeles se ha actualizado con la carpeta seleccionada.",
     "La imagen seleccionada no es una imagen válida.",
-    "la imagen seleccionada no es de dimensiones 256x256."
+    "La imagen seleccionada no es de dimensiones 256x256.",
+    "Título base",
+    "Actualización",
+    "DLC",
+    "Módulo",
+    "Descripción",
+    "Error"
 ]
