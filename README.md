@@ -31,7 +31,7 @@ These are its main features:
 
 - **Internet via web applets**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. If Goldleaf is launched through hbmenu as a NRO, WifiWebAuth applet will be used, which tends to fail sometimes, along with fewer features, such as lack of video support.
 
-- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action.
+- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one.
 
 - **Console information**: Simple menu to see current firmware string, and the total free and occupied size on SD card and console memory.
 
@@ -49,7 +49,7 @@ NEVER install untrusted NSPs. Goldleaf can identify (according to the NSP's appl
 
 Tickets represent a game purchase, but technically speaking, you can't boot a title if the ticket isn't present (in case the title requires the ticket).
 
-NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Stdcrypto titles aren't offical (usually reconverted content to avoid importing tickets).
+NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Standard-crypto titles aren't offical (usually reconverted content to avoid importing tickets).
 
 Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access titles' content which require a ticket. Otherwise, they are undecryptable, hence unlaunchable by the system.
 
@@ -61,20 +61,20 @@ Goldleaf supports the customization of colors, assets and other options via a IN
 
 These are the options supported on the INI file:
 
-|           | Option               | Description                                                                          |
-|-----------|----------------------|--------------------------------------------------------------------------------------|
-| [General] | useCustomLanguage    | { true, false }  If not true,'customLanguage' will be ignored.                       |
-| [General] | customLanguage       | { en, es, de, fr, it } Ignores the console's language and use this one.              |
-| [General] | keysPath             | { (path starting with "/") } Key file path, defaults to "/switch/prod.keys".           |
-| [UI]      | romfsReplace         | { true, false } If not true, 'romfsReplacePath' will be ignored.                     |
-| [UI]      | romfsReplacePath     | { (path starting with "/") } Path to search RomFs resources, if it's a valid one.      |
-| [UI]      | useCustomColors      | { true, false } If not true, colors' options will be ignored.                        |
-| [UI]      | colorBackground      | { (color in 4 bytes, example: "55,125,255,255") } Background color.                  |
-| [UI]      | colorBase            | { (color in 4 bytes, example: "55,125,255,255") } Base display color.                |
-| [UI]      | colorBaseFocus       | { (color in 4 bytes, example: "55,125,255,255") } Base display  color, when focused. |
-| [UI]      | colorText            | { (color in 4 bytes, example: "55,125,255,255") } Text color.                        |
-| [UI]      | useCustomSizes       | { true, false } If not true, sizes' options will be ignored.                         |
-| [UI]      | fileBrowserItemsSize | { (number, divisible by 5) } Size of the items on file browsers, 50 by default.      |
+| Section | Option               | Description                                                                          |
+|---------|----------------------|--------------------------------------------------------------------------------------|
+| General | useCustomLanguage    | { true, false }  If not true,'customLanguage' will be ignored.                       |
+| General | customLanguage       | { en, es, de, fr, it } Ignores the console's language and use this one.              |
+| General | keysPath             | { (path starting with "/") } Key file path, defaults to "/switch/prod.keys".         |
+| UI      | romfsReplace         | { true, false } If not true, 'romfsReplacePath' will be ignored.                     |
+| UI      | romfsReplacePath     | { (path starting with "/") } Path to search RomFs resources, if it's a valid one.    |
+| UI      | useCustomColors      | { true, false } If not true, colors' options will be ignored.                        |
+| UI      | colorBackground      | { (color in 4 bytes, example: "55,125,255,255") } Background color.                  |
+| UI      | colorBase            | { (color in 4 bytes, example: "55,125,255,255") } Base display color.                |
+| UI      | colorBaseFocus       | { (color in 4 bytes, example: "55,125,255,255") } Base display  color, when focused. |
+| UI      | colorText            | { (color in 4 bytes, example: "55,125,255,255") } Text color.                        |
+| UI      | useCustomSizes       | { true, false } If not true, sizes' options will be ignored.                         |
+| UI      | fileBrowserItemsSize | { (number, divisible by 5) } Size of the items on file browsers, 50 by default.      |
 
 ### Notes
 
