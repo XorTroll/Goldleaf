@@ -14,22 +14,10 @@ namespace gleaf::err
         return MAKERESULT(ErrnoErrorModule, (u32)errno);
     }
 
-    set::Dictionary GetDictionary()
-    {
-        Language slang = set::MainDictionary.DictLanguage;
-        set::Dictionary dict = English;
-        switch(slang)
-        {
-            default:
-                dict = English;
-                break;
-        }
-        return dict;
-    }
-
     Error DetermineError(Result OSError)
     {
-        Error err = { 0 };
+        Error err;
+        memset(&err, 0, sizeof(Error));
         u32 vecidx = 0;
         u32 modidx = 0;
         u32 mod = R_MODULE(OSError);
@@ -102,7 +90,7 @@ namespace gleaf::err
         }
         err.OSError = OSError;
         err.Module = Modules[modidx];
-        err.Description = GetDictionary().Strings[vecidx];
+        err.Description = set::GetErrorEntry(vecidx);
         err.DescIndex = vecidx;
         return err;
     }

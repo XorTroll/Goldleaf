@@ -16,7 +16,7 @@ namespace gleaf::usb
     class Installer
     {
         public:
-            Installer(Storage Location, bool IgnoreVersion);
+            Installer(Storage Location, bool IgnoreVersion, UsbCallbackFn Callback);
             Result ProcessRecords(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             Result ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             Result ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);

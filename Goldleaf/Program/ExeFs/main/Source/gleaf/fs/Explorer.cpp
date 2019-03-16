@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <fstream>
+#include <algorithm>
+#include <cctype>
 
 namespace gleaf::fs
 {
@@ -11,6 +13,13 @@ namespace gleaf::fs
     static Explorer *ensf = NULL;
     static Explorer *enus = NULL;
     static Explorer *enss = NULL;
+
+    bool CaseCompare(std::string a, std::string b)
+    {
+        std::transform(a.begin(), a.end(), a.begin(), ::tolower);
+        std::transform(b.begin(), b.end(), b.begin(), ::tolower);
+        return (a < b);
+    }
 
     Explorer::Explorer(Partition Base)
     {
@@ -65,16 +74,14 @@ namespace gleaf::fs
     {
         if(this->ecwd == (this->mntname + ":/")) return false;
         std::string parent = this->ecwd.substr(0, this->ecwd.find_last_of("/\\"));
-        DIR *check = opendir(parent.c_str());
-        bool ok = (check != NULL);
-        if(ok) this->ecwd = parent;
-        closedir(check);
-        return ok;
+        if(parent.substr(parent.length() - 1) == ":") parent += "/";
+        this->ecwd = parent;
+        return true;
     }
 
     bool Explorer::NavigateForward(std::string Path)
     {
-        std::string newdir = this->ecwd + "/" + Path;
+        std::string newdir = this->FullPathFor(Path);
         DIR *check = opendir(newdir.c_str());
         bool ok = (check != NULL);
         if(ok) this->ecwd = newdir;
@@ -97,6 +104,7 @@ namespace gleaf::fs
             }
         }
         closedir(dir);
+        std::sort(dirs.begin(), dirs.end(), CaseCompare);
         return dirs;
     }
 
@@ -115,6 +123,7 @@ namespace gleaf::fs
             }
         }
         closedir(dir);
+        std::sort(files.begin(), files.end(), CaseCompare);
         return files;
     }
 
@@ -200,7 +209,10 @@ namespace gleaf::fs
 
     std::string Explorer::FullPathFor(std::string Path)
     {
-        return (this->ecwd + "/" + Path);
+        std::string fpath = this->ecwd;
+        if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
+        fpath += Path;
+        return fpath;
     }
 
     std::string Explorer::FullPresentablePathFor(std::string Path)

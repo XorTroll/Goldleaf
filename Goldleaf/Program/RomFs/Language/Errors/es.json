@@ -1,0 +1,13 @@
+[
+    "Error desconocido o no documentado",
+    "Ruta inválida",
+    "NCA inválido (puede significar falta de sigpatches o una versión de la consola demasiado baja)",
+    "PFS0 (NSP) inválido",
+    "Error estándar de C/C++",
+    "No hay espacio suficiente para completar la operación",
+    "No se pudo localizar el NCA de metadatos en el NSP",
+    "No se pudieron localizar los metadatos en el NCA",
+    "El título ya se encuentra instalado en esta consola",
+    "Comando USB inválido",
+    "Ya existe un archivo o carpeta con el mismo nombre"
+]

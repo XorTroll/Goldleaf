@@ -35,36 +35,20 @@ namespace gleaf::err
     {
         "Applet",
         "Account",
-        "Content manager",
-        "Location resolver",
-        "Process manager",
-        "Service manager",
+        "NCM",
+        "LR",
+        "PM",
+        "SM",
         "NS",
         "ETicket",
         "PSM",
-        "Board power control",
+        "BPC",
         "SPL",
-        "Settings",
+        "Set",
         "USB",
         "FS",
         "Goldleaf",
         "C (errno)",
-    };
-
-    static const set::Dictionary English =
-    {
-        Language::English,
-        {
-            "Unknown or undocumented error",
-            "Invalid path (might be another filesystem-related error)",
-            "Invalid NCA magic (missing sigpatches?) (firmware too low?)",
-            "Invalid PFS0 block hash (invalid NSP?)",
-
-            // Other errors
-            "Standard C error (from errno value)",
-            "Not enough size available",
-
-        }
     };
 
     static const u32 ErrorModule = 356;
@@ -72,6 +56,5 @@ namespace gleaf::err
 
     Result Make(ErrorDescription Description);
     Result MakeErrno(int Val);
-    set::Dictionary GetDictionary();
     Error DetermineError(Result OSError);
 }

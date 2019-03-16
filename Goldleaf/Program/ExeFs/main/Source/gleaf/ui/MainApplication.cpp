@@ -81,6 +81,8 @@ namespace gleaf::ui
 
     void MainMenuLayout::sdcardMenuItem_Click()
     {
+        u32 rd = RandomFromRange(100, 200);
+        mainapp->CreateShowDialog("RAND", std::to_string(rd), {"Ok"}, true);
         mainapp->LoadMenuData(set::GetDictionaryEntry(19), "SdCard", mainapp->GetSDBrowserLayout()->GetExplorer()->GetPresentableCwd());
         mainapp->GetSDBrowserLayout()->UpdateElements();
         mainapp->LoadLayout(mainapp->GetSDBrowserLayout());
@@ -379,7 +381,6 @@ namespace gleaf::ui
                             HandleResult(rc, set::GetDictionaryEntry(251));
                             return;
                         }
-                        bool isapp = (inst->GetContentType() == ncm::ContentMetaType::Application);
                         bool hascontrol = inst->HasContent(ncm::ContentType::Control);
                         std::string info = set::GetDictionaryEntry(82) + "\n\n";
                         switch(inst->GetContentType())
@@ -456,6 +457,8 @@ namespace gleaf::ui
                                     break;
                                 case ncm::ContentType::Program:
                                     info += set::GetDictionaryEntry(164);
+                                    break;
+                                default:
                                     break;
                             }
                             if(i != (ncas.size() - 1)) info += ", ";
@@ -1037,65 +1040,54 @@ namespace gleaf::ui
 
     USBInstallLayout::USBInstallLayout() : pu::Layout()
     {
-        this->installText = new pu::element::TextBlock(150, 300, set::GetDictionaryEntry(151));
+        this->installText = new pu::element::TextBlock(150, 250, set::GetDictionaryEntry(151));
         this->installText->SetTextAlign(pu::element::TextAlign::CenterHorizontal);
         this->installText->SetColor(gsets.CustomScheme.Text);
-        this->installBar = new pu::element::ProgressBar(380, 345, 600, 50);
+        this->installBar = new pu::element::ProgressBar(120, 335, 1040, 50);
         this->installBar->SetVisible(false);
         this->AddChild(this->installText);
         this->AddChild(this->installBar);
     }
 
-    void USBUpdate()
+    bool USBCallback()
     {
         mainapp->CallForRender();
-        if(usb::IsStateNotReady())
-        {
-            mainapp->CreateShowDialog("USB", "USB FAIL", { "OOF" }, true);
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
+        return usb::IsStateNotReady();
     }
 
     void USBInstallLayout::StartUSBConnection()
     {
         this->installText->SetText(set::GetDictionaryEntry(152) + " " + set::GetDictionaryEntry(153));
         mainapp->CallForRender();
-        while(usb::IsStateNotReady())
+        if(usb::IsStateNotReady())
         {
-            hidScanInput();
-            if(hidKeysDown(CONTROLLER_P1_AUTO) & KEY_B)
-            {
-                mainapp->UnloadMenuData();
-                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                return;
-            }
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(152) + "\n" + set::GetDictionaryEntry(153), { set::GetDictionaryEntry(234) }, true);
+            mainapp->UnloadMenuData();
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             mainapp->CallForRender();
+            return;
         }
         this->installText->SetText(set::GetDictionaryEntry(155));
         mainapp->CallForRender();
-        usb::Command req = usb::ReadCommand(USBUpdate);
-        usb::Command fcmd = usb::MakeCommand(usb::CommandId::Finish);
+        usb::Command req = usb::ReadCommand(USBCallback);
         if(usb::CommandMagicOk(req))
         {
             if(usb::IsCommandId(req, usb::CommandId::ConnectionRequest))
             {
                 this->installText->SetText(set::GetDictionaryEntry(241));
                 mainapp->CallForRender();
-                usb::Command cmd1 = usb::MakeCommand(usb::CommandId::ConnectionResponse);
-                usb::WriteCommand(cmd1);
-                req = usb::ReadCommand(USBUpdate);
+                if(!usb::WriteCommand(usb::CommandId::ConnectionResponse)) HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));;
+                req = usb::ReadCommand(USBCallback);
                 if(usb::CommandMagicOk(req))
                 {
                     if(usb::IsCommandId(req, usb::CommandId::NSPName))
                     {
-                        u32 nspnamesize = usb::Read32();
-                        std::string nspname = usb::ReadString(nspnamesize);
+                        u32 nspnamesize = usb::Read32(USBCallback);
+                        std::string nspname = usb::ReadString(nspnamesize, USBCallback);
                         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(157) + " \'" + nspname + "\'\n" + set::GetDictionaryEntry(158), { set::GetDictionaryEntry(65), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0)
                         {
-                            usb::WriteCommand(fcmd);
+                            usb::WriteCommand(usb::CommandId::Finish);
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
@@ -1104,7 +1096,7 @@ namespace gleaf::ui
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0)
                         {
-                            usb::WriteCommand(fcmd);
+                            usb::WriteCommand(usb::CommandId::Finish);
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
@@ -1114,24 +1106,23 @@ namespace gleaf::ui
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(80), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0)
                         {
-                            usb::WriteCommand(fcmd);
+                            usb::WriteCommand(usb::CommandId::Finish);
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
                         }
                         
                         bool ignorev = (sopt == 0);
-                        usb::Command cmd2 = usb::MakeCommand(usb::CommandId::Start);
-                        usb::WriteCommand(cmd2);
+                        if(!usb::WriteCommand(usb::CommandId::Start)) HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
                         if(IsInstalledTitle()) appletBeginBlockingHomeButton(0);
                         this->installText->SetText(set::GetDictionaryEntry(144));
                         mainapp->CallForRender();
-                        usb::Installer inst(dst, ignorev);
+                        usb::Installer inst(dst, ignorev, USBCallback);
                         Result rc = inst.GetLatestResult();
                         if(rc != 0)
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
-                            HandleResult(rc, "Test error text");
+                            HandleResult(rc, "Test error text 1");
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
@@ -1140,13 +1131,6 @@ namespace gleaf::ui
                         mainapp->CallForRender();
                         rc = inst.ProcessRecords([&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed)
                         {
-                            if(usb::IsStateNotReady())
-                            {
-                                mainapp->CreateShowDialog("USB", "USB FAIL", { "OOF" }, true);
-                                mainapp->UnloadMenuData();
-                                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                                return;
-                            }
                             std::string name = set::GetDictionaryEntry(148) + " \'"  + Name + "\'... (" + std::to_string(Index + 1) + " " + set::GetDictionaryEntry(149) + " " + std::to_string(Count) + ")";
                             this->installText->SetText(name);
                             this->installBar->SetProgress((u8)Percentage);
@@ -1156,7 +1140,7 @@ namespace gleaf::ui
                         if(rc != 0)
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
-                            HandleResult(rc, "Test error text");
+                            HandleResult(rc, "Test error text 2");
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
@@ -1183,7 +1167,7 @@ namespace gleaf::ui
                         if(IsInstalledTitle()) appletEndBlockingHomeButton();
                         if(rc != 0)
                         {
-                            HandleResult(rc, "Test error text");
+                            HandleResult(rc, "Test error text 3");
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                             return;
@@ -1195,26 +1179,26 @@ namespace gleaf::ui
                     else if(usb::IsCommandId(req, usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
                     else
                     {
-                        usb::WriteCommand(fcmd);
+                        usb::WriteCommand(usb::CommandId::Finish);
                         HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
                     }
                 }
                 else
                 {
-                    usb::WriteCommand(fcmd);
+                    usb::WriteCommand(usb::CommandId::Finish);
                     HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
                 }
             }
             else if(usb::IsCommandId(req, usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
             else
             {
-                usb::WriteCommand(fcmd);
+                usb::WriteCommand(usb::CommandId::Finish);
                 HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
             }
         }
         else
         {
-            usb::WriteCommand(fcmd);
+            usb::WriteCommand(usb::CommandId::Finish);
             HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
         }
         mainapp->UnloadMenuData();

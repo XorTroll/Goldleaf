@@ -3,60 +3,12 @@
 
 namespace gleaf::usb
 {
-    size_t Read(void *Out, size_t Size, VoidFn Callback)
+    size_t Read(void *Out, size_t Size, UsbCallbackFn LoopCallback)
     {
         size_t read = 0;
-        usbCommsRead(Out, Size, &read, Callback);
+        Result rc = usbCommsRead(Out, Size, &read, LoopCallback);
+        if(rc != 0) return 0;
         return read;
-    }
-
-    Command ReadCommand(VoidFn Callback)
-    {
-        void *data = memalign(0x1000, sizeof(Command));
-        Read(data, sizeof(Command), Callback);
-        Command cmd = *(Command*)data;
-        return cmd;
-    }
-
-    u32 Read32()
-    {
-        void *data = memalign(0x1000, sizeof(u32));
-        Read(data, sizeof(u32));
-        u32 num = *(u32*)data;
-        return num;
-    }
-
-    u64 Read64()
-    {
-        void *data = memalign(0x1000, sizeof(u64));
-        Read(data, sizeof(u64));
-        u64 num = *(u64*)data;
-        return num;
-    }
-
-    std::string ReadString(u32 Length)
-    {
-        void *data = memalign(0x1000, Length + 1);
-        Read(data, Length);
-        char *cdata = reinterpret_cast<char*>(data);
-        cdata[Length] = '\0';
-        std::string str = std::string(cdata);
-        free(cdata);
-        return str;
-    }
-
-    size_t ReadFixed(void *Out, size_t Size)
-    {
-        u8 *buf = (u8*)Out;
-        size_t szrem = Size;
-        size_t rsize = 0;
-        while(szrem)
-        {
-            rsize = Read(buf, szrem);
-            buf += rsize;
-            szrem -= rsize;
-        }
-        return Size;
     }
 
     size_t Write(const void *Buffer, size_t Size)
@@ -64,24 +16,61 @@ namespace gleaf::usb
         return usbCommsWrite(Buffer, Size);
     }
 
-    void WriteCommand(Command &Data)
+    Command ReadCommand(UsbCallbackFn Callback)
     {
-        WriteFixed(&Data, sizeof(Command));
+        Command cmd;
+        memset(&cmd, 0, sizeof(cmd));
+        Command *data = (Command*)memalign(0x1000, sizeof(Command));
+        Read(data, sizeof(Command), Callback);
+        memcpy(&cmd, data, sizeof(cmd));
+        free(data);
+        return cmd;
     }
 
-    void Write32(u32 Data)
+    u32 Read32(UsbCallbackFn Callback)
     {
-        Write((void*)&Data, sizeof(u32));
+        u32 *data = (u32*)memalign(0x1000, sizeof(u32));
+        u32 num = 0;
+        if(Read(data, sizeof(u32)) != 0) num = *data;
+        free(data);
+        return num;
     }
 
-    void Write64(u64 Data)
+    u64 Read64(UsbCallbackFn Callback)
     {
-        Write((void*)&Data, sizeof(u64));
+        u64 *data = (u64*)memalign(0x1000, sizeof(u64));
+        u64 num = 0;
+        if(Read(data, sizeof(u64)) != 0) num = *data;
+        free(data);
+        return num;
     }
 
-    void WriteString(std::string Data)
+    std::string ReadString(u32 Length, UsbCallbackFn Callback)
     {
-        Write((void*)Data.c_str(), (sizeof(u8) * Data.length()));
+        char *data = (char*)memalign(0x1000, Length + 1);
+        if(Read(data, Length, Callback) == 0) return "";
+        data[Length] = '\0';
+        std::string str = std::string(data);
+        free(data);
+        return str;
+    }
+
+    bool WriteCommand(CommandId Id)
+    {
+        const Command *cmd = (const Command*)memalign(0x1000, sizeof(Command));
+        memcpy((u32*)&cmd->Magic, &GLUC, sizeof(u32));
+        u32 cmdid = static_cast<u32>(Id);
+        memcpy((u32*)&cmd->CommandId, &cmdid, sizeof(u32));
+        bool ok = (Write(cmd, sizeof(Command)) != 0);
+        free((Command*)cmd);
+        return ok;
+    }
+
+    bool Write32(u32 Data)
+    {
+        const u32 *data = (const u32*)memalign(0x1000, sizeof(u32));
+        memcpy((void*)data, &Data, sizeof(u32));
+        return (Write(data, sizeof(u32)) != 0);
     }
 
     size_t WriteFixed(const void *Buffer, size_t Size)
@@ -92,6 +81,7 @@ namespace gleaf::usb
         while(sz)
         {
             tsz = Write(bufptr, sz);
+            if(tsz == 0) return 0;
             bufptr += tsz;
             sz -= tsz;
         }

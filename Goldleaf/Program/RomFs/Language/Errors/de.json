@@ -1,0 +1,13 @@
+[
+    "Unbekannter oder undokumentierter Fehler",
+    "Ungültiger Pfad",
+    "Ungültige NCA (Fehlende Sigpatches oder zu niedrige Firmware)",
+    "Ungültige PFS0 (NSP)",
+    "Standard C/C++ Fehler",
+    "Nicht genügend Speicherplatz vorhanden",
+    "Keine Metadaten NCA in der NSP gefunden",
+    "Metadaten konnten nicht gefunden werden",
+    "Der Titel ist bereits installiert",
+    "Ungültiger USB Befehl",
+    "Eine andere Datei/Ordner existiert mit diesem Namen bereits"
+]

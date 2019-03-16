@@ -23,7 +23,9 @@ namespace gleaf::set
     };
 
     static Dictionary MainDictionary;
+    static Dictionary Errors;
     
     void Initialize();
     std::string GetDictionaryEntry(u32 Index);
+    std::string GetErrorEntry(u32 Index);
 }

@@ -176,6 +176,13 @@ namespace gleaf
         return false;
     }
 
+    u32 RandomFromRange(u32 Min, u32 Max)
+    {
+        u32 diff = Max - Min;
+        u32 rval = rand() % (diff + 1);
+        return rval + Min;
+    }
+
     std::string GetKeyFilePath()
     {
         std::string path = "";

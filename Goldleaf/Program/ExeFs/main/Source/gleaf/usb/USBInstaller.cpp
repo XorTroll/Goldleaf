@@ -15,7 +15,7 @@ namespace gleaf::ui
 
 namespace gleaf::usb
 {
-    Installer::Installer(Storage Location, bool IgnoreVersion)
+    Installer::Installer(Storage Location, bool IgnoreVersion, UsbCallbackFn Callback)
     {
         this->stid = static_cast<FsStorageId>(Location);
         this->rc = 0;
@@ -23,16 +23,16 @@ namespace gleaf::usb
         this->gtik = false;
         this->itik = false;
         this->stik = 0;
-        Command req = ReadCommand();
+        Command req = ReadCommand(Callback);
         if(CommandMagicOk(req) && IsCommandId(req, CommandId::NSPData))
         {
-            u32 filecount = Read32();
+            u32 filecount = Read32(Callback);
             for(u32 i = 0; i < filecount; i++)
             {
-                u32 namelen = Read32();
-                std::string name = ReadString(namelen);
-                u64 offset = Read64();
-                u64 size = Read64();
+                u32 namelen = Read32(Callback);
+                std::string name = ReadString(namelen, Callback);
+                u64 offset = Read64(Callback);
+                u64 size = Read64(Callback);
                 this->cnts.push_back({ i, name, offset, size });
             }
         }
@@ -211,12 +211,11 @@ namespace gleaf::usb
                 size_t bssize = 0;
                 double speed = 0.0;
                 */
-                Command cmd = MakeCommand(CommandId::NSPContent);
-                WriteCommand(cmd);
+                WriteCommand(CommandId::NSPContent);
                 Write32(cnt.Index);
-                size_t reads = 0x100000;
-                u8 *readbuf = (u8*)memalign(0x1000, reads);
+                size_t reads = 0x800000;
                 u64 noff = 0;
+                u8 *readbuf = (u8*)memalign(0x1000, reads);
                 float progress = 0.0f;
                 u64 freq = armGetSystemTickFreq();
                 u64 tstart = armGetSystemTick();
@@ -323,17 +322,18 @@ namespace gleaf::usb
         }
         else if(ext == "tik")
         {
-            Command tikcmd = MakeCommand(CommandId::NSPTicket);
-            WriteCommand(tikcmd);
+            WriteCommand(CommandId::NSPTicket);
             this->btik = std::make_unique<u8[]>(cnt.Size);
-            Read((void*)this->btik.get(), cnt.Size);
-            this->stik = cnt.Size;
-            this->gtik = true;
+            if(Read((void*)this->btik.get(), cnt.Size) != 0)
+            {
+                this->stik = cnt.Size;
+                this->gtik = true;
+            }
         }
         if(this->gtik && !this->itik)
         {
-            this->itik = true;
             es::ImportTicket(this->btik.get(), this->stik, es::CertData, 1792);
+            this->itik = true;
         }
         return this->rc;
     }
@@ -356,7 +356,6 @@ namespace gleaf::usb
 
     void Installer::Finalize()
     {
-        Command fcmd = MakeCommand(CommandId::Finish);
-        WriteCommand(fcmd);
+        WriteCommand(CommandId::Finish);
     }
 }
