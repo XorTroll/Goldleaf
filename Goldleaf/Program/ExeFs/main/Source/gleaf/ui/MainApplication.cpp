@@ -1174,8 +1174,10 @@ namespace gleaf::ui
         std::string msg = set::GetDictionaryEntry(169) + "\n\n";
         msg += set::GetDictionaryEntry(170) + " ";
         std::vector<std::string> opts = { set::GetDictionaryEntry(245) };
+        std::string icn;
         if(idx == 0)
         {
+            if(fs::IsFile("sdmc:/goldleaf/title/" + horizon::FormatApplicationId(this->content.ApplicationId) + ".jpg")) icn = "sdmc:/goldleaf/title/" + horizon::FormatApplicationId(this->content.ApplicationId) + ".jpg";
             opts.push_back(set::GetDictionaryEntry(244));
             switch(this->content.Type)
             {
@@ -1206,6 +1208,7 @@ namespace gleaf::ui
         else
         {
             horizon::Title subcnt = this->subcnts[idx - 1];
+            if(fs::IsFile("sdmc:/goldleaf/title/" + horizon::FormatApplicationId(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)) + ".jpg")) icn = "sdmc:/goldleaf/title/" + horizon::FormatApplicationId(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)) + ".jpg";
             horizon::TitleContents subcnts = subcnt.GetContents();
             switch(subcnt.Type)
             {
@@ -1235,11 +1238,11 @@ namespace gleaf::ui
         }
         if((idx == 0) && (this->content.Location == Storage::GameCart))
         {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true);
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
         }
         opts.push_back(set::GetDictionaryEntry(18));
-        int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true);
+        int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
         if(idx == 0)
         {
