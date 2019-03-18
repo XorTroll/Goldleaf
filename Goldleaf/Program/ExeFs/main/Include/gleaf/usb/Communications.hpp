@@ -24,10 +24,8 @@ namespace gleaf::usb
     u32 Read32(UsbCallbackFn Callback = CallbackStub);
     u64 Read64(UsbCallbackFn Callback = CallbackStub);
     std::string ReadString(u32 Length, UsbCallbackFn Callback = CallbackStub);
-    size_t ReadFixed(void *Out, size_t Size, UsbCallbackFn Callback = CallbackStub);
     bool WriteCommand(CommandId Id);
     bool Write32(u32 Data);
-    size_t WriteFixed(const void *Buffer, size_t Size);
     u32 GetState();
     bool IsStatePlugged();
     bool IsStateNotReady();

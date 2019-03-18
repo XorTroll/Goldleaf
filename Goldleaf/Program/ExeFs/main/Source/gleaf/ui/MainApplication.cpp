@@ -143,7 +143,7 @@ namespace gleaf::ui
         else
         {
             WebWifiConfig wwf;
-            webWifiCreate(&wwf, "http://ctest.cdn.nintendo.net/", out.c_str(), 0, 0);
+            webWifiCreate(&wwf, NULL, out.c_str(), 0, 0);
             WebWifiReturnValue vret;
             Result rc = webWifiShow(&wwf, &vret);
             if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(40));
@@ -289,7 +289,7 @@ namespace gleaf::ui
             else if(ext == "nca") msg += set::GetDictionaryEntry(57);
             else if(ext == "nacp") msg += set::GetDictionaryEntry(58);
             else if((ext == "jpg") || (ext == "jpeg")) msg += set::GetDictionaryEntry(59);
-            else msg += std::string(bin ? set::GetDictionaryEntry(60) : set::GetDictionaryEntry(61)) + " " + set::GetDictionaryEntry(62);
+            else msg += std::string(bin ? set::GetDictionaryEntry(271) : set::GetDictionaryEntry(270));
             msg += "\n\n" + set::GetDictionaryEntry(64) + " " + fs::FormatSize(fs::GetFileSize(fullitm));
             std::vector<std::string> vopts;
             u32 copt = 5;
@@ -369,6 +369,7 @@ namespace gleaf::ui
                         if(rc != 0)
                         {
                             HandleResult(rc, set::GetDictionaryEntry(251));
+                            delete inst;
                             return;
                         }
                         bool hascontrol = inst->HasContent(ncm::ContentType::Control);
@@ -926,19 +927,33 @@ namespace gleaf::ui
             int sopt = -1;
             if(rc == err::Make(err::ErrorDescription::TitleAlreadyInstalled))
             {
-                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), "The NSP's content seems to be already installed.\n(might be an older version, like with updates)\nWould you like to install it over the actual installed one?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112) }, true);
+                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(272) + "\n" + set::GetDictionaryEntry(273) + "\n" + set::GetDictionaryEntry(274), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112) }, true);
                 if(sopt == 0)
                 {
                     horizon::Title t = horizon::Locate(Inst->GetApplicationId());
-                    Result rc = horizon::RemoveTitle(t);
-                    if(rc != 0)
+                    if(t.ApplicationId == 0) sopt = -1;
+                    else
                     {
-                        HandleResult(rc, set::GetDictionaryEntry(251));
-                        sopt = -1;
+                        Result rc = horizon::RemoveTitle(t);
+                        if(rc != 0)
+                        {
+                            HandleResult(rc, set::GetDictionaryEntry(251));
+                            sopt = -1;
+                        }
                     }
                 }
             }
             if(sopt != 0)
+            {
+                if(IsInstalledTitle()) appletEndBlockingHomeButton();
+                delete Inst;
+                Inst = NULL;
+                HandleResult(rc, set::GetDictionaryEntry(251));
+                mainapp->LoadLayout(Prev);
+                return;
+            }
+            rc = Inst->ProcessRecords();
+            if(rc != 0)
             {
                 if(IsInstalledTitle()) appletEndBlockingHomeButton();
                 delete Inst;
@@ -1025,18 +1040,18 @@ namespace gleaf::ui
                         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(157) + " \'" + nspname + "\'\n" + set::GetDictionaryEntry(158), { set::GetDictionaryEntry(65), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0)
                         {
-                            usb::WriteCommand(usb::CommandId::Finish);
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                            usb::WriteCommand(usb::CommandId::Finish);
                             return;
                         }
                         mainapp->LoadMenuHead(set::GetDictionaryEntry(145) + " \'" + nspname + "\'");
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0)
                         {
-                            usb::WriteCommand(usb::CommandId::Finish);
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                            usb::WriteCommand(usb::CommandId::Finish);
                             return;
                         }
                         Storage dst = Storage::SdCard;
@@ -1044,14 +1059,13 @@ namespace gleaf::ui
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(80), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0)
                         {
-                            usb::WriteCommand(usb::CommandId::Finish);
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                            usb::WriteCommand(usb::CommandId::Finish);
                             return;
                         }
-                        
                         bool ignorev = (sopt == 0);
-                        if(!usb::WriteCommand(usb::CommandId::Start)) HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
+                        usb::WriteCommand(usb::CommandId::Start);
                         if(IsInstalledTitle()) appletBeginBlockingHomeButton(0);
                         this->installText->SetText(set::GetDictionaryEntry(144));
                         mainapp->CallForRender();
@@ -1060,9 +1074,10 @@ namespace gleaf::ui
                         if(rc != 0)
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
-                            HandleResult(rc, "Test error text 1");
+                            HandleResult(rc, set::GetDictionaryEntry(251));
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                            usb::WriteCommand(usb::CommandId::Finish);
                             return;
                         }
                         this->installText->SetText(set::GetDictionaryEntry(146));
@@ -1078,9 +1093,10 @@ namespace gleaf::ui
                         if(rc != 0)
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
-                            HandleResult(rc, "Test error text 2");
+                            HandleResult(rc, set::GetDictionaryEntry(251));
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                            usb::WriteCommand(usb::CommandId::Finish);
                             return;
                         }
                         this->installText->SetText(set::GetDictionaryEntry(147));
@@ -1088,13 +1104,6 @@ namespace gleaf::ui
                         this->installBar->SetVisible(true);
                         rc = inst.ProcessContents([&](std::string Name, u32 Index, u32 Count, int Percentage, double Speed)
                         {
-                            if(usb::IsStateNotReady())
-                            {
-                                mainapp->CreateShowDialog("USB", "USB FAIL", { "OOF" }, true);
-                                mainapp->UnloadMenuData();
-                                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                                return;
-                            }
                             std::string name = set::GetDictionaryEntry(148) + " \'"  + Name + "\'... (" + std::to_string(Index + 1) + " " + set::GetDictionaryEntry(149) + " " + std::to_string(Count) + ")";
                             this->installText->SetText(name);
                             this->installBar->SetProgress((u8)Percentage);
@@ -1105,9 +1114,10 @@ namespace gleaf::ui
                         if(IsInstalledTitle()) appletEndBlockingHomeButton();
                         if(rc != 0)
                         {
-                            HandleResult(rc, "Test error text 3");
+                            HandleResult(rc, set::GetDictionaryEntry(251));
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                            usb::WriteCommand(usb::CommandId::Finish);
                             return;
                         }
                         inst.Finalize();
@@ -1117,27 +1127,27 @@ namespace gleaf::ui
                     else if(usb::IsCommandId(req, usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
                     else
                     {
-                        usb::WriteCommand(usb::CommandId::Finish);
                         HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
+                        usb::WriteCommand(usb::CommandId::Finish);
                     }
                 }
                 else
                 {
-                    usb::WriteCommand(usb::CommandId::Finish);
                     HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
+                    usb::WriteCommand(usb::CommandId::Finish);
                 }
             }
             else if(usb::IsCommandId(req, usb::CommandId::Finish)) mainapp->UpdateFooter(set::GetDictionaryEntry(242));
             else
             {
-                usb::WriteCommand(usb::CommandId::Finish);
                 HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
+                usb::WriteCommand(usb::CommandId::Finish);
             }
         }
         else
         {
-            usb::WriteCommand(usb::CommandId::Finish);
             HandleResult(err::Make(err::ErrorDescription::BadGLUCCommand), set::GetDictionaryEntry(256));
+            usb::WriteCommand(usb::CommandId::Finish);
         }
         mainapp->UnloadMenuData();
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
@@ -1160,7 +1170,7 @@ namespace gleaf::ui
         for(u32 i = 0; i < this->subcnts.size(); i++)
         {
             horizon::Title scnt = this->subcnts[i];
-            pu::element::MenuItem *subcnt = new pu::element::MenuItem(scnt.IsUpdate() ? set::GetDictionaryEntry(262) : set::GetDictionaryEntry(263)); // 262, 263
+            pu::element::MenuItem *subcnt = new pu::element::MenuItem(scnt.IsUpdate() ? set::GetDictionaryEntry(262) : set::GetDictionaryEntry(263));
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
             this->optionsMenu->AddItem(subcnt);
@@ -1176,7 +1186,7 @@ namespace gleaf::ui
         std::string icn;
         if(idx == 0)
         {
-            if(fs::IsFile("sdmc:/goldleaf/title/" + horizon::FormatApplicationId(this->content.ApplicationId) + ".jpg")) icn = "sdmc:/goldleaf/title/" + horizon::FormatApplicationId(this->content.ApplicationId) + ".jpg";
+            if(fs::IsFile(horizon::GetExportedIconPath(this->content.ApplicationId))) icn = horizon::GetExportedIconPath(this->content.ApplicationId);
             opts.push_back(set::GetDictionaryEntry(244));
             switch(this->content.Type)
             {
@@ -1207,7 +1217,7 @@ namespace gleaf::ui
         else
         {
             horizon::Title subcnt = this->subcnts[idx - 1];
-            if(fs::IsFile("sdmc:/goldleaf/title/" + horizon::FormatApplicationId(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)) + ".jpg")) icn = "sdmc:/goldleaf/title/" + horizon::FormatApplicationId(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)) + ".jpg";
+            if(fs::IsFile(horizon::GetExportedIconPath(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)))) icn = horizon::GetExportedIconPath(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type));
             horizon::TitleContents subcnts = subcnt.GetContents();
             switch(subcnt.Type)
             {
@@ -1258,10 +1268,27 @@ namespace gleaf::ui
                 if(rc == 0)
                 {
                     mainapp->UpdateFooter(set::GetDictionaryEntry(246));
-                    mainapp->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(189));
-                    mainapp->LoadLayout(mainapp->GetStorageContentsLayout());
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                 }
                 else HandleResult(rc, set::GetDictionaryEntry(247));
+            }
+            else if(sopt == 1)
+            {
+                if(this->contents.GetTotalSize() >= 0x100000000)
+                {
+                    sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(183), { set::GetDictionaryEntry(234), set::GetDictionaryEntry(18) }, true);
+                    if(sopt < 0) return;
+                }
+                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+                if(sopt < 0) return;
+                if(sopt == 0)
+                {
+                    mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
+                    mainapp->GetTitleDumperLayout()->StartDump(this->content);
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                }
             }
         }
         else
@@ -1465,19 +1492,7 @@ namespace gleaf::ui
     {
         EnsureDirectories();
         mainapp->CallForRender();
-        FsStorageId stid = dump::GetApplicationLocation(Target.ApplicationId);
-        if(stid == FsStorageId_NandUser)
-        {
-            FsFileSystem bisfs;
-            Result rc = fsOpenBisFileSystem(&bisfs, 30, "");
-            if(rc != 0)
-            {
-                // err
-                mainapp->LoadLayout(mainapp->GetContentManagerLayout());
-                return;
-            }
-            fsdevMountDevice("glduser", bisfs);
-        }
+        FsStorageId stid = static_cast<FsStorageId>(Target.Location);
         std::string fappid = horizon::FormatApplicationId(Target.ApplicationId);
         std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
         fs::CreateDirectory(outdir);
@@ -1490,7 +1505,7 @@ namespace gleaf::ui
         Result rc = ncmOpenContentStorage(stid, &cst);
         if(rc != 0)
         {
-            // err
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             return;
         }
@@ -1498,24 +1513,29 @@ namespace gleaf::ui
         rc = ncmOpenContentMetaDatabase(stid, &cmdb);
         if(rc != 0)
         {
-            // err
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            serviceClose(&cst.s);
             return;
         }
         NcmMetaRecord mrec;
         bool ok = dump::GetMetaRecord(&cmdb, Target.ApplicationId, &mrec);
         if(!ok)
         {
-            // err
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            serviceClose(&cst.s);
+            serviceClose(&cmdb.s);
             return;
         }
         NcmNcaId program;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
         if(!ok)
         {
-            // err
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            serviceClose(&cst.s);
+            serviceClose(&cmdb.s);
             return;
         }
         std::string sprogram = dump::GetNCAIdPath(&cst, &program);
@@ -1523,20 +1543,18 @@ namespace gleaf::ui
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
         {
-            // err
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            serviceClose(&cst.s);
+            serviceClose(&cmdb.s);
             return;
         }
         std::string smeta = dump::GetNCAIdPath(&cst, &meta);
         NcmNcaId control;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
-        if(!ok)
-        {
-            // err
-            mainapp->LoadLayout(mainapp->GetContentManagerLayout());
-            return;
-        }
-        std::string scontrol = dump::GetNCAIdPath(&cst, &control);
+        bool hascontrol = ok;
+        std::string scontrol;
+        if(ok) scontrol = dump::GetNCAIdPath(&cst, &control);
         NcmNcaId linfo;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
         bool haslinfo = ok;
@@ -1547,11 +1565,19 @@ namespace gleaf::ui
         bool hashoff = ok;
         std::string shoff;
         if(ok) shoff = dump::GetNCAIdPath(&cst, &hoff);
+
+        NcmNcaId data;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Data, &data);
+        bool hasdata = ok;
+        std::string sdata;
+        if(ok) sdata = dump::GetNCAIdPath(&cst, &data);
+
         std::string xprogram = sprogram;
         std::string xmeta = smeta;
         std::string xcontrol = scontrol;
         std::string xlinfo = slinfo;
         std::string xhoff = shoff;
+        std::string xdata = sdata;
         if(stid == FsStorageId_SdCard)
         {
             this->dumpText->SetText(set::GetDictionaryEntry(194));
@@ -1571,14 +1597,17 @@ namespace gleaf::ui
                 mainapp->CallForRender();
             });
             this->ncaBar->SetVisible(false);
-            xcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
-            this->ncaBar->SetVisible(true);
-            dump::DecryptCopyNAX0ToNCA(&cst, control, xcontrol, [&](u8 p)
+            if(hascontrol)
             {
-                this->ncaBar->SetProgress(p);
-                mainapp->CallForRender();
-            });
-            this->ncaBar->SetVisible(false);
+                xcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, control, xcontrol, [&](u8 p)
+                {
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
             if(haslinfo)
             {
                 xlinfo = outdir + "/" + horizon::GetStringFromNCAId(linfo) + ".nca";
@@ -1601,11 +1630,33 @@ namespace gleaf::ui
                 });
                 this->ncaBar->SetVisible(false);
             }
+            if(hasdata)
+            {
+                xdata = outdir + "/" + horizon::GetStringFromNCAId(data) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, data, xdata, [&](u8 p)
+                {
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
         }
-        if(stid == FsStorageId_NandUser)
+        else
         {
+            fs::Explorer *nexp = NULL;
+            if(stid == FsStorageId_NandSystem) nexp = fs::GetNANDSystemExplorer();
+            else if(stid == FsStorageId_NandUser) nexp = fs::GetNANDUserExplorer();
+            else
+            {
+                HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+                mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+                serviceClose(&cst.s);
+                serviceClose(&cmdb.s);
+                return;
+            }
             this->dumpText->SetText(set::GetDictionaryEntry(195));
-            xprogram = "glduser:/Contents/" + xprogram.substr(15);
+            xprogram = nexp->FullPathFor("Contents/" + xprogram.substr(15));
             std::string txprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
             this->ncaBar->SetVisible(true);
             fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
@@ -1615,7 +1666,7 @@ namespace gleaf::ui
             });
             this->ncaBar->SetVisible(false);
             xprogram = txprogram;
-            xmeta = "glduser:/Contents/" + xmeta.substr(15);
+            xmeta = nexp->FullPathFor("Contents/" + xmeta.substr(15));
             std::string txmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
             this->ncaBar->SetVisible(true);
             fs::CopyFileProgress(xmeta, txmeta, [&](u8 p)
@@ -1625,19 +1676,22 @@ namespace gleaf::ui
             });
             this->ncaBar->SetVisible(false);
             xmeta = txmeta;
-            xcontrol = "glduser:/Contents/" + xcontrol.substr(15);
-            std::string txcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
-            this->ncaBar->SetVisible(true);
-            fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
+            if(hascontrol)
             {
-                this->ncaBar->SetProgress(p);
-                mainapp->CallForRender();
-            });
-            this->ncaBar->SetVisible(false);
-            xcontrol = txcontrol;
+                xcontrol = nexp->FullPathFor("Contents/" + xcontrol.substr(15));
+                std::string txcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
+                {
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xcontrol = txcontrol;
+            }
             if(haslinfo)
             {
-                xlinfo = "glduser:/Contents/" + xlinfo.substr(15);
+                xlinfo = nexp->FullPathFor("Contents/" + xlinfo.substr(15));
                 std::string txlinfo = outdir + "/" + horizon::GetStringFromNCAId(linfo) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xlinfo, txlinfo, [&](u8 p)
@@ -1650,7 +1704,7 @@ namespace gleaf::ui
             }
             if(hashoff)
             {
-                xhoff = "glduser:/Contents/" + xhoff.substr(15);
+                xhoff = nexp->FullPathFor("Contents/" + xhoff.substr(15));
                 std::string txhoff = outdir + "/" + horizon::GetStringFromNCAId(hoff) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xhoff, txhoff, [&](u8 p)
@@ -1661,9 +1715,21 @@ namespace gleaf::ui
                 this->ncaBar->SetVisible(false);
                 xhoff = txhoff;
             }
-            fsdevUnmountDevice("glduser");
+            if(hasdata)
+            {
+                xdata = nexp->FullPathFor("Contents/" + xdata.substr(15));
+                std::string txdata = outdir + "/" + horizon::GetStringFromNCAId(data) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xdata, txdata, [&](u8 p)
+                {
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xdata = txdata;
+            }
         }
-        std::string fout = "sdmc:/goldleaf/dump/out/" + fappid + ".nsp";
+        std::string fout = "sdmc:/goldleaf/dump/" + fappid + ".nsp";
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
         int qi = nsp::BuildPFS(outdir, fout, [&](u8 p)
@@ -1674,10 +1740,13 @@ namespace gleaf::ui
         ok = (qi == 0);
         fs::DeleteDirectory("sdmc:/goldleaf/dump/temp");
         fs::DeleteDirectory(outdir);
-        /*
         if(ok) mainapp->UpdateFooter(set::GetDictionaryEntry(197) + " '" + fout + "'");
-        else mainapp->UpdateFooter(set::GetDictionaryEntry(198));
-        */
+        else
+        {
+            HandleResult(err::Make(err::ErrorDescription::CouldNotBuildNSP), set::GetDictionaryEntry(198));
+            fs::DeleteDirectory("sdmc:/goldleaf/dump");
+            EnsureDirectories();
+        }
         serviceClose(&cst.s);
         serviceClose(&cmdb.s);
     }
@@ -1958,15 +2027,15 @@ namespace gleaf::ui
         this->baseImage = new pu::element::Image(0, 0, gsets.PathForResource("/Base.png"));
         this->timeText = new pu::element::TextBlock(1124, 20, "00:00:00");
         this->timeText->SetColor(gsets.CustomScheme.Text);
-        this->batteryText = new pu::element::TextBlock(1045, 22, "0%", 20);
+        this->batteryText = new pu::element::TextBlock(1015, 22, "0%", 20);
         this->batteryText->SetColor(gsets.CustomScheme.Text);
-        this->batteryImage = new pu::element::Image(990, 8, gsets.PathForResource("/Battery/0.png"));
-        this->batteryChargeImage = new pu::element::Image(990, 8, gsets.PathForResource("/Battery/Charge.png"));
+        this->batteryImage = new pu::element::Image(960, 8, gsets.PathForResource("/Battery/0.png"));
+        this->batteryChargeImage = new pu::element::Image(960, 8, gsets.PathForResource("/Battery/Charge.png"));
         this->menuBanner = new pu::element::Image(10, 62, gsets.PathForResource("/MenuBanner.png"));
         this->menuImage = new pu::element::Image(10, 67, gsets.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(100);
         this->menuImage->SetHeight(100);
-        this->usbImage = new pu::element::Image(925, 12, gsets.PathForResource("/Common/USB.png"));
+        this->usbImage = new pu::element::Image(885, 12, gsets.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);

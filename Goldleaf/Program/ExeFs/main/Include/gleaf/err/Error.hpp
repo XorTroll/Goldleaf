@@ -21,6 +21,8 @@ namespace gleaf::err
         TitleAlreadyInstalled,
         BadGLUCCommand,
         FileDirectoryAlreadyPresent,
+        CouldNotLocateTitleContents,
+        CouldNotBuildNSP,
     };
 
     struct Error

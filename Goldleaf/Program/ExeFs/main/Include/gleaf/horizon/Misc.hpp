@@ -49,7 +49,6 @@ namespace gleaf::horizon
 
     u32 GetBatteryLevel();
     bool IsCharging();
-    bool ExportQlaunchRomFs();
     std::string GetCurrentTime();
     FwVersion GetFwVersion();
     std::string FormatHex(u32 Number);

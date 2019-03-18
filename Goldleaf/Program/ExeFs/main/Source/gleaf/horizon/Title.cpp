@@ -211,12 +211,12 @@ namespace gleaf::horizon
         return titles;
     }
 
-    Title &Locate(u64 ApplicationId)
+    Title Locate(u64 ApplicationId)
     {
         Title tit;
         memset(&tit, 0, sizeof(tit));
         std::vector<Title> titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDSystem);
-        for(u32 i = 0; i < titles.size(); i++)
+        if(!titles.empty()) for(u32 i = 0; i < titles.size(); i++)
         {
             if(titles[i].ApplicationId == ApplicationId)
             {
@@ -228,7 +228,7 @@ namespace gleaf::horizon
         {
             titles.clear();
             titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
-            for(u32 i = 0; i < titles.size(); i++)
+            if(!titles.empty()) for(u32 i = 0; i < titles.size(); i++)
             {
                 if(titles[i].ApplicationId == ApplicationId)
                 {
@@ -241,7 +241,7 @@ namespace gleaf::horizon
         {
             titles.clear();
             titles = SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
-            for(u32 i = 0; i < titles.size(); i++)
+            if(!titles.empty()) for(u32 i = 0; i < titles.size(); i++)
             {
                 if(titles[i].ApplicationId == ApplicationId)
                 {
@@ -313,21 +313,6 @@ namespace gleaf::horizon
     std::string GetExportedNACPPath(u64 ApplicationId)
     {
         return ("sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".nacp");
-    }
-
-    std::string GetProgramNCAFileName(u64 ApplicationId)
-    {
-        std::string pth;
-        LrLocationResolver lres;
-        Result rc = lrOpenLocationResolver(FsStorageId_NandSystem, &lres);
-        if(rc == 0)
-        {
-            char cpath[FS_MAX_PATH] = { 0 };
-            rc = lrLrResolveProgramPath(&lres, ApplicationId, cpath);
-            if(rc == 0) pth = gleaf::fs::GetFileName(std::string(cpath));
-        }
-        serviceClose(&lres.s);
-        return pth;
     }
 
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)

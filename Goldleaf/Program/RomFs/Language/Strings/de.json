@@ -268,5 +268,10 @@
     "Fehler",
     "mit Update und DLC",
     "mit Update",
-    "mit DLC"
+    "mit DLC",
+    "Text Datei",
+    "Binär Datei",
+    "Die Inhalte der NSP scheinen bereits installiert zu sein.",
+    "(eventuell ältere Inhalte des Titels)",
+    "Soll der Inhalt über den vorhandenen installiert werden?" 
 ]

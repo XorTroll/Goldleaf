@@ -60,21 +60,6 @@ namespace gleaf::horizon
         return (charger > ChargerType_None);
     }
 
-    bool ExportQlaunchRomFs()
-    {
-        if(!HasKeyFile()) return false;
-        FsFileSystem nandfs;
-        fsOpenBisFileSystem(&nandfs, 31, "");
-        fsdevMountDevice("qnand", nandfs);
-        std::string path = "qnand:/Contents/registered/" + GetProgramNCAFileName(0x0100000000001000);
-        bool ex = hactool::Process(path, hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
-        if(!ex) return ex;
-        path = "qnand:/Contents/registered/" + GetProgramNCAFileName(0x0100000000001013);
-        ex = hactool::Process(path, hactool::Extraction::MakeRomFs("sdmc:/goldleaf/qlaunch"), hactool::ExtractionFormat::NCA, GetKeyFilePath()).Ok;
-        fsdevUnmountDevice("qnand");
-        return ex;
-    }
-
     std::string GetCurrentTime()
     {
         time_t timet = time(NULL);

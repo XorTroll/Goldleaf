@@ -20,6 +20,7 @@ namespace gleaf::usb
             Result ProcessRecords(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             Result ProcessContent(u32 Index, std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
             Result ProcessContents(std::function<void(std::string Name, u32 Index, u32 Count, int Percentage, double Speed)> Callback);
+            u64 GetApplicationId();
             Result GetLatestResult();
             void Finalize();
         private:
@@ -32,5 +33,6 @@ namespace gleaf::usb
             bool itik;
             std::unique_ptr<u8[]> btik;
             size_t stik;
+            u64 appid;
     };
 }

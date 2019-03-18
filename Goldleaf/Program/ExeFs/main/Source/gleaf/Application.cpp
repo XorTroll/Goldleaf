@@ -28,11 +28,8 @@ namespace gleaf
         if(R_FAILED(setInitialize())) exit(1);
         if(R_FAILED(setsysInitialize())) exit(1);
         if(R_FAILED(usbCommsInitialize())) exit(1);
-        if(R_FAILED(lrInitialize())) exit(1);
         if(R_FAILED(splInitialize())) exit(1);
         if(R_FAILED(bpcInitialize())) exit(1);
-        if(R_FAILED(gpioInitialize())) exit(1);
-        horizon::InitializeGpioInputHandling();
         EnsureDirectories();
     }
 
@@ -49,11 +46,8 @@ namespace gleaf
         delete nusr;
         delete prif;
         delete sdcd;
-        horizon::FinalizeGpioInputHandling();
-        gpioExit();
         bpcExit();
         splExit();
-        lrExit();
         usbCommsExit();
         setsysExit();
         setExit();
@@ -71,11 +65,11 @@ namespace gleaf
     void EnsureDirectories()
     {
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+        fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
         fs::CreateDirectory(nsys->FullPathFor("contents/temp"));
         fs::CreateDirectory("sdmc:/goldleaf");
         fs::CreateDirectory("sdmc:/goldleaf/meta");
         fs::CreateDirectory("sdmc:/goldleaf/title");
-        fs::CreateDirectory("sdmc:/goldleaf/qlaunch");
         fs::CreateDirectory("sdmc:/goldleaf/dump");
         fs::CreateDirectory("sdmc:/goldleaf/userdata");
         fs::CreateDirectory("sdmc:/goldleaf/dump/temp");

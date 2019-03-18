@@ -120,13 +120,12 @@ namespace gleaf::horizon
 
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
-    Title &Locate(u64 ApplicationId);
+    Title Locate(u64 ApplicationId);
     bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId);
     std::vector<Ticket> GetAllTickets();
     Result RemoveTitle(Title &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
     std::string GetExportedNACPPath(u64 ApplicationId);
-    std::string GetProgramNCAFileName(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
     TicketData ReadTicket(std::string Path);

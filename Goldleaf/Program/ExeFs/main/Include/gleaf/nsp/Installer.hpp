@@ -50,6 +50,7 @@ namespace gleaf::nsp
             u64 basetid;
             std::vector<ncm::ContentRecord> ncas;
             FsFileSystem idfs;
+            FsFileSystem cnmtfs;
             ByteBuffer cnmtbuf;
             ncm::ContentMeta cmeta;
             std::string stik;

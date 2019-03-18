@@ -268,5 +268,11 @@
     "Error",
     "with update and DLC",
     "with update",
-    "with DLC"
+    "with DLC",
+    "text file",
+    "binary file",
+    "The NSP's content seems to be already installed.",
+    "(might be an older version of the title)",
+    "Would you like to reinstall it over the actual installed one?",
+    "The "
 ]

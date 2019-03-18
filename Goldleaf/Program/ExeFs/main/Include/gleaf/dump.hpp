@@ -9,5 +9,4 @@
 */
 
 #pragma once
-#include <gleaf/dump/DebugTypes.hpp>
 #include <gleaf/dump/Dump.hpp>

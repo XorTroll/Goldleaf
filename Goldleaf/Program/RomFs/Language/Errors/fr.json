@@ -9,5 +9,7 @@
     "Les métadonnées n'ont pas pu être localisées dans la NCA",
     "Le titre est déjà installé sur cette console",
     "Commande USB non valide",
-    "Un autre fichier ou répertoire du même nom existe déjà"
+    "Un autre fichier ou répertoire du même nom existe déjà",
+    "Impossible de trouver le contenu du titre",
+    "Impossible de construire le PFS0 (NSP)"
 ]

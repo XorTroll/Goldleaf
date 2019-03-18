@@ -23,27 +23,26 @@ namespace gleaf::nsp
             this->Finalize();
             return;
         }
-        fsdevUnmountDevice("gnspi");
-        fsdevMountDevice("gnspi", this->idfs);
-        std::string tikname = fs::SearchForFile(this->idfs, "tik");
-        if(tikname == "") this->tik = false;
+        fsdevMountDevice("ginst-nsp", this->idfs);
+        std::string tikname = fs::SearchForFileInPath("ginst-nsp:/", "tik");
+        if(tikname.empty()) this->tik = false;
         else
         {
             this->tik = true;
-            this->stik = "gnspi:/" + tikname;
+            this->stik = "ginst-nsp:/" + tikname;
             this->tikdata = horizon::ReadTicket(this->stik);
         }
         ByteBuffer cnmt;
-        std::string cnmtname = fs::SearchForFile(this->idfs, "cnmt.nca");
-        if(cnmtname == "")
+        std::string cnmtname = fs::SearchForFileInPath("ginst-nsp:/", "cnmt.nca");
+        if(cnmtname.empty())
         {
             this->rc = err::Make(err::ErrorDescription::MetaNotFound);
             this->Finalize();
             return;
         }
-        FsFile cnmtfile;
         std::string ocnmtn = "/" + cnmtname;
         ocnmtn.reserve(FS_MAX_PATH);
+        FsFile cnmtfile;
         this->rc = fsFsOpenFile(&this->idfs, ocnmtn.c_str(), FS_OPEN_READ, &cnmtfile);
         if(this->rc != 0)
         {
@@ -52,71 +51,58 @@ namespace gleaf::nsp
         }
         u64 cnmtsize = 0;
         this->rc = fsFileGetSize(&cnmtfile, &cnmtsize);
+        fsFileClose(&cnmtfile);
         if(this->rc != 0)
         {
-            fsFileClose(&cnmtfile);
             this->Finalize();
             return;
         }
-        fsFileClose(&cnmtfile);
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        fs::CopyFile("gnspi:/" + cnmtname, nsys->FullPathFor("contents/temp/" + cnmtname));
+        fs::CopyFile("ginst-nsp:/" + cnmtname, nsys->FullPathFor("contents/temp/" + cnmtname));
         std::string cnmtabs = "@SystemContent://temp/" + cnmtname;
         ncm::ContentRecord record = { 0 };
         record.NCAId = horizon::GetNCAIdFromString(cnmtname);
         *(u64*)record.Size = (cnmtsize & 0xffffffffffff);
         record.Type = ncm::ContentType::Meta;
-        FsFileSystem cnmtfs;
         cnmtabs.reserve(FS_MAX_PATH);
-        this->rc = fsOpenFileSystemWithId(&cnmtfs, 0, FsFileSystemType_ContentMeta, cnmtabs.c_str());
+        this->rc = fsOpenFileSystemWithId(&this->cnmtfs, 0, FsFileSystemType_ContentMeta, cnmtabs.c_str());
         if(this->rc != 0)
         {
-            fsFsClose(&cnmtfs);
             this->Finalize();
             return;
         }
-        std::string fcnmtname = fs::SearchForFile(cnmtfs, "cnmt");
-        if(fcnmtname == "")
+        fsdevMountDevice("ginst-cnmt", this->cnmtfs);
+        std::string fcnmtname = fs::SearchForFileInPath("ginst-cnmt:/", "cnmt");
+        if(fcnmtname.empty())
         {
-            fsFsClose(&cnmtfs);
             this->rc = err::Make(err::ErrorDescription::CNMTNotFound);
-            this->Finalize();
             return;
         }
-        FsFile fcnmtfile;
-        fcnmtname.reserve(FS_MAX_PATH);
-        std::string fcname = "/" + fcnmtname;
-        fcname.reserve(FS_MAX_PATH);
-        this->rc = fsFsOpenFile(&cnmtfs, fcname.c_str(), FS_OPEN_READ, &fcnmtfile);
-        if(this->rc != 0)
-        {
-            fsFsClose(&cnmtfs);
-            this->Finalize();
-            return;
-        }
-        u64 fcnmtsize = 0;
-        this->rc = fsFileGetSize(&fcnmtfile, &fcnmtsize);
-        if(this->rc != 0)
-        {
-            fsFileClose(&fcnmtfile);
-            fsFsClose(&cnmtfs);
-            this->Finalize();
-            return;
-        }
+        std::string fcname = "ginst-cnmt:/" + fcnmtname;
+        u64 fcnmtsize = fs::GetFileSize(fcname);
         ByteBuffer fcnmt;
         fcnmt.Resize(fcnmtsize);
-        size_t rout = 0;
-        this->rc = fsFileRead(&fcnmtfile, 0, fcnmt.GetData(), fcnmt.GetSize(), &rout);
+        FILE *ffcnmt = fopen(fcname.c_str(), "rb");
+        if(!ffcnmt)
+        {
+            this->rc = err::Make(err::ErrorDescription::CNMTNotFound);
+            return;
+        }
+        fread(fcnmt.GetData(), 1, fcnmt.GetSize(), ffcnmt);
+        fclose(ffcnmt);
+        fsdevUnmountDevice("ginst-cnmt");
+        this->cmeta = ncm::ContentMeta(fcnmt.GetData(), fcnmt.GetSize());
+        NcmContentStorage cst;
+        this->rc = ncmOpenContentStorage(stid, &cst);
         if(this->rc != 0)
         {
-            fsFileClose(&fcnmtfile);
-            fsFsClose(&cnmtfs);
             this->Finalize();
             return;
         }
-        this->cmeta = ncm::ContentMeta(fcnmt.GetData(), fcnmt.GetSize());
-        ncm::ContentStorage cnmts(stid);
-        if(!cnmts.Has(record.NCAId)) this->ncas.push_back(record);
+        bool hascnmt = false;
+        ncmContentStorageHas(&cst, &record.NCAId, &hascnmt);
+        serviceClose(&cst.s);
+        if(!hascnmt) this->ncas.push_back(record);
         else this->icnmt = true;
         this->cmeta.GetInstallContentMeta(cnmtbuf, record, IgnoreVersion);
         NcmMetaRecord metakey = this->cmeta.GetContentMetaKey();
@@ -127,14 +113,14 @@ namespace gleaf::nsp
             if(record.Type == ncm::ContentType::Control)
             {
                 std::string cnca = horizon::GetStringFromNCAId(record.NCAId) + ".nca";
-                fs::CopyFile("gnspi:/" + cnca, nsys->FullPathFor("contents/temp/" + cnca));
+                fs::CopyFile("ginst-nsp:/" + cnca, nsys->FullPathFor("contents/temp/" + cnca));
                 std::string ncaname = "@SystemContent://temp/" + cnca;
                 ncaname.reserve(FS_MAX_PATH);
-                FsFileSystem gnspcnca;
-                Result crc = fsOpenFileSystemWithId(&gnspcnca, this->basetid, FsFileSystemType_ContentControl, ncaname.c_str());
+                FsFileSystem ginstctrl;
+                Result crc = fsOpenFileSystemWithId(&ginstctrl, this->basetid, FsFileSystemType_ContentControl, ncaname.c_str());
                 if(crc != 0) continue;
-                fsdevMountDevice("gnspcnca", gnspcnca);
-                DIR *d = opendir("gnspcnca:/");
+                fsdevMountDevice("ginst-ctrl", ginstctrl);
+                DIR *d = opendir("ginst-ctrl:/");
                 if(!d) continue;
                 dirent *dent;
                 std::string icon;
@@ -145,27 +131,25 @@ namespace gleaf::nsp
                     std::string fle = std::string(dent->d_name);
                     if(fle.substr(fle.length() - 3) == "dat")
                     {
-                        icon = "gnspcnca:/" + fle;
+                        icon = "ginst-ctrl:/" + fle;
                         break;
                     }
                 }
                 closedir(d);
-                std::ifstream dat(icon);
                 this->icn = "sdmc:/goldleaf/meta/" + horizon::GetStringFromNCAId(record.NCAId) + ".jpg";
-                fs::DeleteFile(this->icn);
-                std::ofstream out(this->icn);
-                out << dat.rdbuf();
-                out.close();
-                dat.close();
-                FILE *f = fopen("gnspcnca:/control.nacp", "rb");
-                this->nacps = (NacpStruct*)malloc(sizeof(NacpStruct));
-                fread(this->nacps, sizeof(NacpStruct), 1, f);
+                fs::CopyFile(icon, this->icn);
+                FILE *f = fopen("ginst-ctrl:/control.nacp", "rb");
+                if(f)
+                {
+                    this->nacps = (NacpStruct*)malloc(sizeof(NacpStruct));
+                    fread(this->nacps, sizeof(NacpStruct), 1, f);
+                }
                 fclose(f);
-                fsdevUnmountDevice("gnspcnca");
+                fsdevUnmountDevice("ginst-ctrl");
+                fs::DeleteFile(nsys->FullPathFor("contents/temp/" + cnca));
             }
         }
-        fsFileClose(&fcnmtfile);
-        fsFsClose(&cnmtfs);
+        fsdevUnmountDevice("ginst-ctrl");
     }
 
     Installer::~Installer()
@@ -242,7 +226,7 @@ namespace gleaf::nsp
         csrecord.StorageId = stid;
         records.push_back(csrecord);
         ns::DeleteApplicationRecord(this->basetid);
-        this->rc = ns::PushApplicationRecord(this->basetid, 0x3, records.data(), records.size() * sizeof(ns::ContentStorageRecord));
+        this->rc = ns::PushApplicationRecord(this->basetid, 3, records.data(), records.size() * sizeof(ns::ContentStorageRecord));
         if(this->rc != 0)
         {
             this->Finalize();
@@ -353,7 +337,7 @@ namespace gleaf::nsp
     bool Installer::HasContent(ncm::ContentType Type)
     {
         bool has = false;
-        if(!this->ncas.empty()) for(u32 i = 0; i < this->ncas.size(); i++) if(this->ncas[i].Type == Type)
+        for(u32 i = 0; i < this->ncas.size(); i++) if(this->ncas[i].Type == Type)
         {
             has = true;
             break;
@@ -383,11 +367,11 @@ namespace gleaf::nsp
 
     void Installer::Finalize()
     {
-        fsdevUnmountDevice("gnspcnca");
-        fsdevUnmountDevice("gnspi");
-        fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
-        fs::CreateDirectory(nsys->FullPathFor("contents/temp"));
+        this->ncas.clear();
+        fsdevUnmountDevice("ginst-cnmt");
+        fsdevUnmountDevice("ginst-ctrl");
+        fsdevUnmountDevice("ginst-nsp");
+        EnsureDirectories();
         if(this->nacps != NULL)
         {
             free(this->nacps);

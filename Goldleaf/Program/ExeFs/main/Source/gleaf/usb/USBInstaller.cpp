@@ -23,6 +23,7 @@ namespace gleaf::usb
         this->gtik = false;
         this->itik = false;
         this->stik = 0;
+        this->appid = 0;
         Command req = ReadCommand(Callback);
         if(CommandMagicOk(req) && IsCommandId(req, CommandId::NSPData))
         {
@@ -106,6 +107,7 @@ namespace gleaf::usb
         cmeta.GetInstallContentMeta(cnmtbuf, cnmtr, this->iver);
         NcmContentMetaDatabase metadb;
         NcmMetaRecord metakey = cmeta.GetContentMetaKey();
+        this->appid = metakey.titleId;
         if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, metakey.titleId))
         {
             this->rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
@@ -347,6 +349,11 @@ namespace gleaf::usb
             else this->ProcessContent(i, Callback);
         }
         return this->rc;
+    }
+
+    u64 Installer::GetApplicationId()
+    {
+        return this->appid;
     }
 
     Result Installer::GetLatestResult()
