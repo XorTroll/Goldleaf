@@ -274,5 +274,6 @@
     "Die Inhalte der NSP scheinen bereits installiert zu sein.",
     "(eventuell ältere Inhalte des Titels)",
     "Soll der Inhalt über den vorhandenen installiert werden?",
-    "Der Titel würde gelöscht. Wähle die NSP um es erneut zu installieren."
+    "Der Titel würde gelöscht. Wähle die NSP um es erneut zu installieren.",
+    "Der einzige Benutzer dieser Konsole kann nicht gelöscht werden"
 ]
