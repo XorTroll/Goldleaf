@@ -10,7 +10,6 @@
 
 #pragma once
 #include <gleaf/Types.hpp>
-#include <gleaf/BufferedPlaceHolderWriter.hpp>
 
 namespace gleaf::usb
 {
@@ -40,18 +39,9 @@ namespace gleaf::usb
         u64 Size;
     };
 
-    struct ContentThreadArguments
-    {
-        u32 Index;
-        u64 Size;
-        BufferedPlaceHolderWriter *WriterRef;
-    };
-
     Command MakeCommand(CommandId Id);
     bool CommandMagicOk(Command Cmd);
     bool IsCommandId(Command Cmd, usb::CommandId Id);
-    int OnContentRead(void *Args);
-    int OnContentAppend(void *Args);
 
     static const u32 GLUC = 0x43554c47;
 }

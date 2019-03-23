@@ -178,7 +178,7 @@ namespace gtree
                                                     USB.Read(out uint idx);
                                                     Log.Log("Sending content \'" + pnsp.Files[idx].Name + "\'... (" + (idx + 1) + " of " + pnsp.Files.Length + ")");
                                                     PfsFileEntry ent = pnsp.Files[idx];
-                                                    long rsize = 0x800000;
+                                                    long rsize = 0x100000;
                                                     long coffset = pnsp.HeaderSize + ent.Offset;
                                                     long toread = ent.Size;
                                                     long tmpread = 1;

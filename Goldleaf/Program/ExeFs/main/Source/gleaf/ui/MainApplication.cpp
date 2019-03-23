@@ -934,12 +934,15 @@ namespace gleaf::ui
                     if(t.ApplicationId == 0) sopt = -1;
                     else
                     {
-                        Result rc = horizon::RemoveTitle(t);
-                        if(rc != 0)
+                        Result rc2 = horizon::RemoveTitle(t);
+                        if(rc2 == 0)
                         {
-                            HandleResult(rc, set::GetDictionaryEntry(251));
-                            sopt = -1;
+                            mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(275), { set::GetDictionaryEntry(234) }, true);
+                            mainapp->LoadLayout(Prev);
+                            return;
                         }
+                        else HandleResult(rc2, set::GetDictionaryEntry(247));
+                        if(rc != 0) sopt = -1;
                     }
                 }
             }
@@ -948,6 +951,11 @@ namespace gleaf::ui
                 if(IsInstalledTitle()) appletEndBlockingHomeButton();
                 delete Inst;
                 Inst = NULL;
+                if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+                {
+                    horizon::Title t = horizon::Locate(Inst->GetApplicationId());
+                    horizon::RemoveTitle(t);
+                }
                 HandleResult(rc, set::GetDictionaryEntry(251));
                 mainapp->LoadLayout(Prev);
                 return;
@@ -958,6 +966,11 @@ namespace gleaf::ui
                 if(IsInstalledTitle()) appletEndBlockingHomeButton();
                 delete Inst;
                 Inst = NULL;
+                if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+                {
+                    horizon::Title t = horizon::Locate(Inst->GetApplicationId());
+                    horizon::RemoveTitle(t);
+                }
                 HandleResult(rc, set::GetDictionaryEntry(251));
                 mainapp->LoadLayout(Prev);
                 return;
@@ -979,6 +992,11 @@ namespace gleaf::ui
             if(IsInstalledTitle()) appletEndBlockingHomeButton();
             delete Inst;
             Inst = NULL;
+            if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+            {
+                horizon::Title t = horizon::Locate(Inst->GetApplicationId());
+                horizon::RemoveTitle(t);
+            }
             HandleResult(rc, set::GetDictionaryEntry(251));
             mainapp->LoadLayout(Prev);
             return;
@@ -987,7 +1005,15 @@ namespace gleaf::ui
         delete Inst;
         Inst = NULL;
         if(rc == 0) mainapp->UpdateFooter(set::GetDictionaryEntry(150));
-        else HandleResult(rc, set::GetDictionaryEntry(251));
+        else
+        {
+            if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+            {
+                horizon::Title t = horizon::Locate(Inst->GetApplicationId());
+                horizon::RemoveTitle(t);
+            }
+            HandleResult(rc, set::GetDictionaryEntry(251));
+        }
         mainapp->LoadLayout(Prev);
     }
 
@@ -1074,6 +1100,11 @@ namespace gleaf::ui
                         if(rc != 0)
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
+                            if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+                            {
+                                horizon::Title t = horizon::Locate(inst.GetApplicationId());
+                                horizon::RemoveTitle(t);
+                            }
                             HandleResult(rc, set::GetDictionaryEntry(251));
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
@@ -1093,6 +1124,11 @@ namespace gleaf::ui
                         if(rc != 0)
                         {
                             if(IsInstalledTitle()) appletEndBlockingHomeButton();
+                            if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+                            {
+                                horizon::Title t = horizon::Locate(inst.GetApplicationId());
+                                horizon::RemoveTitle(t);
+                            }
                             HandleResult(rc, set::GetDictionaryEntry(251));
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
@@ -1114,6 +1150,11 @@ namespace gleaf::ui
                         if(IsInstalledTitle()) appletEndBlockingHomeButton();
                         if(rc != 0)
                         {
+                            if(rc != err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+                            {
+                                horizon::Title t = horizon::Locate(inst.GetApplicationId());
+                                horizon::RemoveTitle(t);
+                            }
                             HandleResult(rc, set::GetDictionaryEntry(251));
                             mainapp->UnloadMenuData();
                             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
@@ -1307,36 +1348,45 @@ namespace gleaf::ui
         std::vector<horizon::Title> gcrt = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::GameCart);
         bool hasupd = false;
         bool hasdlc = false;
-        for(u32 i = 0; i < nusr.size(); i++)
+        if(!nusr.empty())
         {
-            if(Content.CheckBase(nusr[i]))
+            for(u32 i = 0; i < nusr.size(); i++)
             {
-                if(nusr[i].IsUpdate()) hasupd = true;
-                if(nusr[i].IsDLC()) hasdlc = true;
-                this->subcnts.push_back(nusr[i]);
+                if(Content.CheckBase(nusr[i]))
+                {
+                    if(nusr[i].IsUpdate()) hasupd = true;
+                    if(nusr[i].IsDLC()) hasdlc = true;
+                    this->subcnts.push_back(nusr[i]);
+                }
             }
+            nusr.clear();
         }
-        nusr.clear();
-        for(u32 i = 0; i < sdc.size(); i++)
+        if(!sdc.empty())
         {
-            if(Content.CheckBase(sdc[i]))
+            for(u32 i = 0; i < sdc.size(); i++)
             {
-                if(sdc[i].IsUpdate()) hasupd = true;
-                if(sdc[i].IsDLC()) hasdlc = true;
-                this->subcnts.push_back(sdc[i]);
+                if(Content.CheckBase(sdc[i]))
+                {
+                    if(sdc[i].IsUpdate()) hasupd = true;
+                    if(sdc[i].IsDLC()) hasdlc = true;
+                    this->subcnts.push_back(sdc[i]);
+                }
             }
+            sdc.clear();
         }
-        sdc.clear();
-        for(u32 i = 0; i < gcrt.size(); i++)
+        if(!gcrt.empty())
         {
-            if(Content.CheckBase(gcrt[i]))
+            for(u32 i = 0; i < gcrt.size(); i++)
             {
-                if(gcrt[i].IsUpdate()) hasupd = true;
-                if(gcrt[i].IsDLC()) hasdlc = true;
-                this->subcnts.push_back(gcrt[i]);
+                if(Content.CheckBase(gcrt[i]))
+                {
+                    if(gcrt[i].IsUpdate()) hasupd = true;
+                    if(gcrt[i].IsDLC()) hasdlc = true;
+                    this->subcnts.push_back(gcrt[i]);
+                }
             }
+            gcrt.clear();
         }
-        gcrt.clear();
         NacpStruct *nacp = Content.TryGetNACP();
         std::string tcnt = horizon::FormatApplicationId(Content.ApplicationId);
         if(nacp != NULL)
@@ -1355,8 +1405,13 @@ namespace gleaf::ui
             }
             free(nacp);
         }
-        std::string icon = gsets.PathForResource("/Common/Storage.png");
-        if(Content.TryGetIcon() != NULL) icon = horizon::GetExportedIconPath(Content.ApplicationId);
+        std::string icon;
+        u8 *cicon = Content.TryGetIcon();
+        if(cicon != NULL)
+        {
+            icon = horizon::GetExportedIconPath(Content.ApplicationId);
+            free(cicon);
+        }
         mainapp->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);
         this->UpdateElements();
     }
@@ -1408,7 +1463,11 @@ namespace gleaf::ui
                 {
                     NacpStruct *nacp = cnt.TryGetNACP();
                     std::string name = horizon::FormatApplicationId(cnt.ApplicationId);
-                    if(nacp != NULL) name = horizon::GetNACPName(nacp);
+                    if(nacp != NULL)
+                    {
+                        name = horizon::GetNACPName(nacp);
+                        free(nacp);
+                    }
                     pu::element::MenuItem *itm = new pu::element::MenuItem(name);
                     itm->SetColor(gsets.CustomScheme.Text);
                     bool hicon = cnt.DumpControlData();
@@ -1923,8 +1982,8 @@ namespace gleaf::ui
 
     void AccountLayout::optsIcon_Click()
     {
-        std::string iconpth = "sdmc:/goldleaf/userdata/" + horizon::FormatHex128(this->uid) + ".jpg";
-        mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(217) + "\n\'" + iconpth + "\'", { set::GetDictionaryEntry(234) }, false, iconpth);
+        std::string iconpth = "/goldleaf/userdata/" + horizon::FormatHex128(this->uid) + ".jpg";
+        mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(217) + "\n\'SdCard:" + iconpth + "\'", { set::GetDictionaryEntry(234) }, false, "sdmc:" + iconpth);
     }
 
     void AccountLayout::optsDelete_Click()
@@ -1932,6 +1991,13 @@ namespace gleaf::ui
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(218), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
         if(sopt == 0)
         {
+            s32 ucount = 0;
+            accountGetUserCount(&ucount);
+            if(ucount < 2)
+            {
+                mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(276), { set::GetDictionaryEntry(234) }, true);
+                return;
+            }
             Result rc = acc::DeleteUser(this->uid);
             if(rc == 0)
             {
