@@ -29,6 +29,7 @@ namespace gleaf
     bool IsAtmosphere();
     bool IsReiNX();
     bool IsSXOS();
+    u32 RandomFromRange(u32 Min, u32 Max);
     std::string GetKeyFilePath();
     std::vector<std::string> GetKeyFilePossibleNames();
 }

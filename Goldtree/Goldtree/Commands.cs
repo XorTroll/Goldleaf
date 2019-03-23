@@ -27,7 +27,8 @@ namespace gtree
 
         public static void Write(this UsbK USB, Command Data)
         {
-            USB.Write(Data.AsData());
+            USB.Write(Data.Magic);
+            USB.Write((uint)Data.CommandId);
         }
 
         public static void Write(this UsbK USB, uint Data)

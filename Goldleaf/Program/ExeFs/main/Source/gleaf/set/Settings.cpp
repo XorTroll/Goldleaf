@@ -37,7 +37,9 @@ namespace gleaf::set
             case 3:
                 gset.CustomLanguage = Language::German;
                 break;
-            // case 4:
+            case 4:
+                gset.CustomLanguage = Language::Italian;
+                break;
             case 5:
             case 14:
                 gset.CustomLanguage = Language::Spanish;
@@ -57,9 +59,8 @@ namespace gleaf::set
                 break;
         }
         gset.KeysPath = "sdmc:/switch/prod.keys";
-        gset.AllowRemoveSystemTitles = false;
-        gset.WarnRemoveUsedTickets = true;
         gset.RomFsReplacePath = "";
+        gset.BrowserItemSize = 50;
         ColorSetId csid = ColorSetId_Light;
         setsysGetColorSetId(&csid);
         if(csid == ColorSetId_Dark) gset.CustomScheme = ui::DefaultDark;
@@ -76,13 +77,16 @@ namespace gleaf::set
                 else if(lang == "es") gset.CustomLanguage = Language::Spanish;
                 else if(lang == "de") gset.CustomLanguage = Language::German;
                 else if(lang == "fr") gset.CustomLanguage = Language::French;
+                else if(lang == "it") gset.CustomLanguage = Language::Italian;
             }
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
-            gset.AllowRemoveSystemTitles = inir.GetBoolean("Content", "allowRemoveSystemTitles", false);
-            gset.WarnRemoveUsedTickets = inir.GetBoolean("Content", "warnRemoveUsedTickets", true);
-            std::string prom = inir.Get("UI", "romFsReplacePath", "");
-            if(!prom.empty()) gset.RomFsReplacePath = "sdmc:/" + prom;
-            else gset.RomFsReplacePath = prom;
+            bool rrom = inir.GetBoolean("UI", "romfsReplace", false);
+            if(rrom)
+            {
+                std::string prom = inir.Get("UI", "romFsReplacePath", "");
+                if(!prom.empty()) gset.RomFsReplacePath = "sdmc:/" + prom;
+                else gset.RomFsReplacePath = prom;
+            }
             bool usecc = inir.GetBoolean("UI", "useCustomColors", false);
             if(usecc)
             {
@@ -135,6 +139,11 @@ namespace gleaf::set
                     step++;
                     rawctx.erase(0, ipos + 1);
                 }
+            }
+            bool usecsz = inir.GetBoolean("UI", "useCustomSizes", false);
+            if(usecsz)
+            {
+                gset.BrowserItemSize = inir.GetInteger("UI", "fileBrowserItemsSize", 50);
             }
         }
         return gset;

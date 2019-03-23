@@ -439,4 +439,28 @@ namespace gleaf::fs
         delete fexp;
         return path;
     }
+
+    std::string SearchForFileInPath(std::string Base, std::string Extension)
+    {
+        std::string path;
+        DIR *dp = opendir(Base.c_str());
+        if(dp)
+        {
+            dirent *dt;
+            while(true)
+            {
+                dt = readdir(dp);
+                if(dt == NULL) break;
+                std::string pth = std::string(dt->d_name);
+                std::string seq = pth.substr(pth.length() - Extension.length());
+                if(seq == Extension)
+                {
+                    path = pth;
+                    break;
+                }
+            }
+        }
+        closedir(dp);
+        return path;
+    }
 }

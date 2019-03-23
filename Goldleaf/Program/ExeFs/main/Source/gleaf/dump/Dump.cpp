@@ -1,5 +1,4 @@
 #include <gleaf/dump/Dump.hpp>
-#include <gleaf/dump/DebugTypes.hpp>
 #include <gleaf/Application.hpp>
 #include <gleaf/hactool.hpp>
 #include <gleaf/horizon.hpp>
@@ -19,32 +18,33 @@ namespace gleaf::dump
         u64 szrem = ncasize;
         FILE *f = fopen(Path.c_str(), "wb");
         u64 off = 0;
+        u64 rmax = 0x100000;
+        u8 *data = (u8*)malloc(rmax);
         while(szrem)
         {
-            u64 rsize = std::min((u64)1048576, szrem);
-            u8 *data = (u8*)malloc(sizeof(u8) * rsize);
+            u64 rsize = std::min(rmax, szrem);
             if(ncmContentStorageReadContentIdFile(ncst, &NCAId, off, data, rsize) != 0) break;
             fwrite(data, 1, rsize, f);
             szrem -= rsize;
             off += rsize;
             u8 perc = ((double)((double)off / (double)ncasize) * 100.0);
             Callback(perc);
-            free(data);
         }
+        free(data);
         fclose(f);
     }
 
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out)
     {
         size_t size = sizeof(NcmApplicationContentMetaKey) * 128;
-        NcmApplicationContentMetaKey *metas = (NcmApplicationContentMetaKey*)malloc(size);
+        NcmMetaRecord *metas = (NcmMetaRecord*)malloc(size);
         u32 total = 0;
         u32 written = 0;
         bool got = false;
-        Result rc = ncmContentMetaDatabaseListApplication(metadb, 0x80, metas, size, &written, &total);
-        if(rc == 0) if(total > 0) for(u32 i = 0; i < total; i++) if(metas[i].metaRecord.titleId == ApplicationId)
+        Result rc = ncmContentMetaDatabaseList(metadb, 0, ApplicationId, ApplicationId, ApplicationId, metas, size, &written, &total);
+        if(rc == 0) if(written > 0) for(u32 i = 0; i < written; i++) if(metas[i].titleId == ApplicationId)
         {
-            *out = metas[i].metaRecord;
+            *out = metas[i];
             got = true;
             break;
         }

@@ -11,6 +11,6 @@ int main()
     gleaf::ui::SetMainApplication(mainapp);
     mainapp->Show();
     delete mainapp;
-    gleaf::Finalize();
+    atexit(gleaf::Finalize);
     return 0;
 }

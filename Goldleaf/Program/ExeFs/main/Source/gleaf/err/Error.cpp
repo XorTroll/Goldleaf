@@ -14,35 +14,41 @@ namespace gleaf::err
         return MAKERESULT(ErrnoErrorModule, (u32)errno);
     }
 
-    set::Dictionary GetDictionary()
-    {
-        Language slang = set::GetDictionary().DictLanguage;
-        set::Dictionary dict = English;
-        switch(slang)
-        {
-            default:
-                dict = English;
-                break;
-        }
-        return dict;
-    }
-
     Error DetermineError(Result OSError)
     {
         Error err = { 0 };
         u32 vecidx = 0;
         u32 modidx = 0;
         u32 mod = R_MODULE(OSError);
+        u32 desc = R_DESCRIPTION(OSError);
         if(mod == 358) vecidx = 5;
+        else if(mod == 356) vecidx = desc + 4;
         else switch(OSError)
         {
             case 0x202:
                 vecidx = 1;
                 break;
             case 0x234a02:
+            case 0x234c02:
+            case 0x234e02:
+            case 0x235002:
+            case 0x235202:
+            case 0x235602:
+            case 0x235802:
+            case 0x235a02:
+            case 0x235c02:
+            case 0x235e02:
+            case 0x236002:
+            case 0x236202:
                 vecidx = 2;
                 break;
+            case 0x236802:
+            case 0x236a02:
+            case 0x236c02:
             case 0x236e02:
+            case 0x244402:
+            case 0x244602:
+            case 0x244802:
                 vecidx = 3;
                 break;
             default:
@@ -102,7 +108,7 @@ namespace gleaf::err
         }
         err.OSError = OSError;
         err.Module = Modules[modidx];
-        err.Description = GetDictionary().Strings[vecidx];
+        err.Description = set::GetErrorEntry(vecidx);
         err.DescIndex = vecidx;
         return err;
     }
