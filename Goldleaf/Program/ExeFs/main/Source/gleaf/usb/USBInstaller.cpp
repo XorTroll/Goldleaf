@@ -196,26 +196,9 @@ namespace gleaf::usb
             {
                 cst.DeletePlaceHolder(ncaid);
                 cst.CreatePlaceHolder(ncaid, ncaid, cnt.Size);
-                /*
-                BufferedPlaceHolderWriter bphw(&cst, ncaid, cnt.Size);
-                ContentThreadArguments targs;
-                targs.Index = cnt.Index;
-                targs.Size = cnt.Size;
-                targs.WriterRef = &bphw;
-
-                thrd_t tcntread;
-                thrd_t tcntappend;
-                thrd_create(&tcntread, OnContentRead, &targs);
-                thrd_create(&tcntappend, OnContentAppend, &targs);
-
-                u64 freq = armGetSystemTickFreq();
-                u64 tstart = armGetSystemTick();
-                size_t bssize = 0;
-                double speed = 0.0;
-                */
                 WriteCommand(CommandId::NSPContent);
                 Write32(cnt.Index);
-                size_t reads = 0x800000;
+                size_t reads = 0x200000;
                 u64 noff = 0;
                 u8 *readbuf = (u8*)memalign(0x1000, reads);
                 float progress = 0.0f;
@@ -243,81 +226,6 @@ namespace gleaf::usb
                     noff += rout;
                 }
                 free(readbuf);
-
-                /*
-                u64 szrem = cnt.Size;
-                size_t tmpread = 0;
-                while(true)
-                {
-                    if(szrem)
-                    {
-                        tmpread = usb::Read(data, std::min(szrem, rsize));
-                        szrem -= tmpread;
-                        while(!bphw.CanAppendData(tmpread));
-                        bphw.AppendData(data, tmpread);
-                    }
-                    else
-                    {
-                        if(data != NULL)
-                        {
-                            free(data);
-                            data = NULL;
-                        }
-                    }
-                    if(!bphw.IsPlaceHolderComplete())
-                    {
-                        if(bphw.CanWriteSegmentToPlaceHolder()) bphw.WriteSegmentToPlaceHolder();
-                    }
-                    if(!bphw.IsBufferDataComplete())
-                    {
-                        u64 tnew = armGetSystemTick();
-                        if((tnew - tstart) >= freq)
-                        {
-                            size_t bnsize = bphw.GetSizeBuffered();
-                            double mbbuf = ((bnsize / 1000000.0) - (bssize / 1000000.0));
-                            double dtime = ((double)(tnew - tstart) / (double)freq);
-                            speed = (mbbuf / dtime);
-                            tstart = tnew;
-                            bssize = bnsize;
-                        }
-                        u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
-                        u64 mbdlsz = (bphw.GetSizeBuffered() / 1000000);
-                        int perc = (int)(((double)bphw.GetSizeBuffered() / (double)bphw.GetTotalDataSize()) * 100.0);
-                        Callback(name, Index, cnts.size(), perc, speed);
-                    }
-                    else break;
-                }
-
-                while(!bphw.IsBufferDataComplete())
-                {
-                    u64 tnew = armGetSystemTick();
-                    if((tnew - tstart) >= freq)
-                    {
-                        size_t bnsize = bphw.GetSizeBuffered();
-                        double mbbuf = ((bnsize / 1000000.0) - (bssize / 1000000.0));
-                        double dtime = ((double)(tnew - tstart) / (double)freq);
-                        speed = (mbbuf / dtime);
-                        tstart = tnew;
-                        bssize = bnsize;
-                    }
-                    u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
-                    u64 mbdlsz = (bphw.GetSizeBuffered() / 1000000);
-                    int perc = (int)(((double)bphw.GetSizeBuffered() / (double)bphw.GetTotalDataSize()) * 100.0);
-                    Callback(name, Index, cnts.size(), perc, speed);
-                }
-                u64 mbtotal = (bphw.GetTotalDataSize() / 1000000);
-                while(!bphw.IsPlaceHolderComplete())
-                {
-                    u64 mbinsz = (bphw.GetSizeWrittenToPlaceHolder() / 1000000);
-                    int perc = (int)(((double)bphw.GetSizeWrittenToPlaceHolder() / (double)bphw.GetTotalDataSize()) * 100.0);
-                    // Callback(name, Index, cnts.size(), perc, speed);
-                }
-                */
-
-                /*
-                thrd_join(tcntread, NULL);
-                thrd_join(tcntappend, NULL);
-                */
                 cst.Register(ncaid, ncaid);
                 cst.DeletePlaceHolder(ncaid);
             }

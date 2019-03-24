@@ -15,15 +15,17 @@
 
 ## Features
 
-Goldleaf has a very similar concept to [FBI](https://github.com/Steveice10/FBI), a similar homebrew tool for Nintendo 3DS.
+Goldleaf has a very similar concept to [FBI](https://github.com/Steveice10/FBI), which is a similar tool for Nintendo 3DS homebrew.
+
+As installed content, it's application Id / titleId is `050032A5CF12E000`.
 
 These are its main features:
 
-- **SD card browser**:  A simple but fully equiped file browser for the SD card, supporting several file formats (such as NSP, NRO, NACP, NXTheme, JPG...), and with support for copying, pasting, renaming, deleting and creating files and directories.
+- **SD card browser**:  A simple but fully equiped file browser for the SD card, supporting several file formats (such as NSP, NRO, NACP, NXTheme, JPEG, tickets...), and with support for copying, pasting, renaming, deleting and creating files and directories.
 
 - **Console memory browser**: Same browser but to be used with NAND partitions, which also warns when writing or deleting content as it can be dangerous.
 
-- **USB installer**: Via USB connection, you can send NSPs from a PC client and install them into your console. Keep in mind that this feature is unstable, and might face bugs and issues.
+- **USB installer**: Via USB connection, you can send NSPs from **Goldtree** or other PC clients and install them into your console. Keep in mind that this feature is unstable, and might face bugs and issues.
 
 - **Content manager**: Browse any kind of content in your SD card, console memory or game cartridge. You can browse all the NCAs, and as title options, you can remove the content, or export it as a NSP. NAND SYSTEM contents (system titles or contents) aren't allowed to be deleted. Invidual contents such as updates or DLC can be removed individually.
 
@@ -35,13 +37,23 @@ These are its main features:
 
 - **Console information**: Simple menu to see current firmware string, and the total free and occupied size on SD card and console memory.
 
-Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: English, Spanish, German, French and Italian.
+Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: **English**, **Spanish**, **German**, **French** and **Italian**.
+
+### Common controls
+
+- **(L-stick / D-pad)** Move through the menu
+
+- **(R-stick)** Move (very) fast through the menu
+
+- **(ZL / ZR)** Show a dialog to shut down or reboot the console.
+
+- **(+ / -)** [NRO only] exit the application in order to return to hbmenu.
 
 ## Disclaimer
 
 ### NSP installs
 
-Always keep in mind that installing NSPs can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a way smaller chance to get banned.
+Always keep in mind that installing NSPs can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a smaller chance to get banned.
 
 NEVER install untrusted NSPs. Goldleaf can identify (according to the NSP's application ID) whether the NSP is a homebrew NSP (IDs starting with "05", usually for forwarders), or a regular title (official ID range just allows IDs starting with "01")
 
@@ -59,7 +71,7 @@ Goldleaf supports the customization of colors, assets and other options via a IN
 
 ### Options
 
-These are the options supported on the INI file:
+These are the options supported on the INI file (not found boolean options are defaulted to false):
 
 | Section | Option               | Description                                                                          |
 |---------|----------------------|--------------------------------------------------------------------------------------|
@@ -80,7 +92,7 @@ These are the options supported on the INI file:
 
 Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/FileSystem/FileDataFont.ttf` resource font, if `romfsReplace` is true and `romfsReplacePath` is, for instance, `/goldleaf/testromfs`, Goldleaf will look if `sd:/goldleaf/testromfs/FileSystem/FileDataFont.ttf` exists and use it if so, otherwise will use RomFs's one.
 
-So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more stuff which will be added in future updates.
+So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets which will be added in future updates.
 
 ## Credits and support
 

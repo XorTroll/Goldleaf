@@ -10,6 +10,7 @@
 
 #pragma once
 #include <usb/Commands.hpp>
+#include <ByteBuffer.hpp>
 
 namespace gleaf::usb
 {

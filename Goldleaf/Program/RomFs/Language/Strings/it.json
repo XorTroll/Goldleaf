@@ -273,5 +273,7 @@
     "file binario",
     "Questo NSP è già installato.",
     "(potrebbe essere una vecchia versione del titolo)",
-    "Vuoi sovrascriverlo?"
+    "Vuoi sovrascriverlo?",
+    "Il titolo è stato disinstallato. Seleziona questo NSP di nuovo per installarlo.",
+    "Non puoi eliminare l'unico utente della console"
 ]

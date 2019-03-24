@@ -273,5 +273,7 @@
     "archivo binario",
     "El contenido del NSP parece estar ya instalado.",
     "(podría tratarse de una versión antigua del contenido)",
-    "¿Le gustaría reinstalarlo?"
+    "¿Le gustaría reinstalarlo?",
+    "El título se ha desinstalado. Vuelva a seleccionar este NSP para instalarlo.",
+    "No se puede borrar el único usuario de la consola."
 ]

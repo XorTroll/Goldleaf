@@ -273,5 +273,7 @@
     "fichier binaire",
     "Le contenu du NSP semble déjà installé",
     "(il peut s'agir d'une version plus ancienne du titre)",
-    "Voulez-vous le réinstaller sur celui qui est déjà installé ?"
+    "Voulez-vous le réinstaller sur celui qui est déjà installé ?",
+    "Le titre a été désinstallé. Sélectionnez à nouveau ce NSP pour l'installer.",
+    "Impossible de supprimer le seul utilisateur de cette console."
 ]
