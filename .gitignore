@@ -331,7 +331,7 @@ ASALocalRun/
 # Local History for Visual Studio
 .localhistory/
 
-#C++
+#C++/Libnx
 *.elf
 *.kip
 *.o
