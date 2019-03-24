@@ -1430,7 +1430,6 @@ namespace gleaf::ui
     void StorageContentsLayout::contents_Click()
     {
         horizon::Title selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
-        mainapp->CreateShowDialog("TITLE TEST", horizon::FormatApplicationId(selcnt.ApplicationId), { "Ok" }, true);
         if(selcnt.IsBaseTitle() || (selcnt.Location == Storage::NANDSystem))
         {
             mainapp->GetContentInformationLayout()->LoadContent(selcnt);
