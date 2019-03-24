@@ -1,20 +1,20 @@
 ---
+
 name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: enhancement
-assignees: ''
+about: Suggest an idea or new feature to improve Goldleaf
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+# [ Feature name or title ]
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+## Feature description
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+[ Please describe your desired feature as detailed as possible here. ]
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+## Benefits
+
+[ Describe the benefits the feature would have, aka the things it would make possible to do (or not do). ]
+
+## Additional information
+
+[ In case you have any further ideas, mockups or information about the possible feature, place them here. ] 

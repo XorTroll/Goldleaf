@@ -1,38 +1,32 @@
 ---
+
 name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+about: Create a report of any issues or bugs you find on Goldleaf
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+# [ Bug report title ]
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## Bug description
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+[ Please describe your bug as detailed as possible here. ]
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Your setup
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+- **Console firmware**: [ e.g. 5.1, 6.2, 7.0.1 ]
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+- **CFW with version**: [ e.g. ReiNX 2.1 or Atmosphere 0.85 ]
 
-**Additional context**
-Add any other context about the problem here.
+- **Goldleaf version**: [ e.g. 0.5 or the exact nightly build ]
+
+- **Goldtree version**: [ e.g. 0.5 ]
+
+
+## Bug reproduction
+
+[ Describe as detailed as possible how to reproduce your bug, for others to be able to verify it. ]
+
+
+## Additional information
+
+[ Please add some extra information or screenshots. ] 
