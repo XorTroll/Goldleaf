@@ -113,7 +113,7 @@ namespace gleaf::ui
             ContentInformationLayout();
             void UpdateElements();
             void options_Click();
-            void LoadContent(horizon::Title Content);
+            void LoadContent(horizon::Title &Content);
         private:
             horizon::Title content;
             std::vector<horizon::Title> subcnts;

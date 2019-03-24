@@ -7,7 +7,6 @@ namespace gleaf::ui
 {
     MainApplication *mainapp;
     extern std::string clipboard;
-    ApplicationHolder launchapp;
 
     MainMenuLayout::MainMenuLayout() : pu::Layout()
     {
@@ -1208,14 +1207,14 @@ namespace gleaf::ui
         this->baseTitleItem->SetColor(gsets.CustomScheme.Text);
         this->baseTitleItem->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
         this->optionsMenu->AddItem(this->baseTitleItem);
-        for(u32 i = 0; i < this->subcnts.size(); i++)
+        if(!this->subcnts.empty()) for(u32 i = 0; i < this->subcnts.size(); i++)
         {
-            horizon::Title scnt = this->subcnts[i];
-            pu::element::MenuItem *subcnt = new pu::element::MenuItem(scnt.IsUpdate() ? set::GetDictionaryEntry(262) : set::GetDictionaryEntry(263));
+            pu::element::MenuItem *subcnt = new pu::element::MenuItem(this->subcnts[i].IsUpdate() ? set::GetDictionaryEntry(262) : set::GetDictionaryEntry(263));
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
             this->optionsMenu->AddItem(subcnt);
         }
+        this->optionsMenu->SetSelectedIndex(0);
     }
 
     void ContentInformationLayout::options_Click()
@@ -1338,55 +1337,55 @@ namespace gleaf::ui
         }
     }
 
-    void ContentInformationLayout::LoadContent(horizon::Title Content)
+    void ContentInformationLayout::LoadContent(horizon::Title &Content)
     {
         this->subcnts.clear();
         this->content = Content;
         this->contents = Content.GetContents();
-        std::vector<horizon::Title> nusr = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
-        std::vector<horizon::Title> sdc = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
-        std::vector<horizon::Title> gcrt = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::GameCart);
         bool hasupd = false;
         bool hasdlc = false;
-        if(!nusr.empty())
+        std::vector<horizon::Title> tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::GameCart);
+        if(!tts.empty())
         {
-            for(u32 i = 0; i < nusr.size(); i++)
+            for(u32 i = 0; i < tts.size(); i++)
             {
-                if(Content.CheckBase(nusr[i]))
+                if(Content.CheckBase(tts[i]))
                 {
-                    if(nusr[i].IsUpdate()) hasupd = true;
-                    if(nusr[i].IsDLC()) hasdlc = true;
-                    this->subcnts.push_back(nusr[i]);
+                    if(tts[i].IsUpdate()) hasupd = true;
+                    if(tts[i].IsDLC()) hasdlc = true;
+                    this->subcnts.push_back(tts[i]);
                 }
             }
-            nusr.clear();
         }
-        if(!sdc.empty())
+        tts.clear();
+        tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
+        if(!tts.empty())
         {
-            for(u32 i = 0; i < sdc.size(); i++)
+            for(u32 i = 0; i < tts.size(); i++)
             {
-                if(Content.CheckBase(sdc[i]))
+                if(Content.CheckBase(tts[i]))
                 {
-                    if(sdc[i].IsUpdate()) hasupd = true;
-                    if(sdc[i].IsDLC()) hasdlc = true;
-                    this->subcnts.push_back(sdc[i]);
+                    if(tts[i].IsUpdate()) hasupd = true;
+                    if(tts[i].IsDLC()) hasdlc = true;
+                    this->subcnts.push_back(tts[i]);
                 }
             }
-            sdc.clear();
         }
-        if(!gcrt.empty())
+        tts.clear();
+        tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
+        if(!tts.empty())
         {
-            for(u32 i = 0; i < gcrt.size(); i++)
+            for(u32 i = 0; i < tts.size(); i++)
             {
-                if(Content.CheckBase(gcrt[i]))
+                if(Content.CheckBase(tts[i]))
                 {
-                    if(gcrt[i].IsUpdate()) hasupd = true;
-                    if(gcrt[i].IsDLC()) hasdlc = true;
-                    this->subcnts.push_back(gcrt[i]);
+                    if(tts[i].IsUpdate()) hasupd = true;
+                    if(tts[i].IsDLC()) hasdlc = true;
+                    this->subcnts.push_back(tts[i]);
                 }
             }
-            gcrt.clear();
         }
+        tts.clear();
         NacpStruct *nacp = Content.TryGetNACP();
         std::string tcnt = horizon::FormatApplicationId(Content.ApplicationId);
         if(nacp != NULL)
@@ -1431,6 +1430,7 @@ namespace gleaf::ui
     void StorageContentsLayout::contents_Click()
     {
         horizon::Title selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
+        mainapp->CreateShowDialog("TITLE TEST", horizon::FormatApplicationId(selcnt.ApplicationId), { "Ok" }, true);
         if(selcnt.IsBaseTitle() || (selcnt.Location == Storage::NANDSystem))
         {
             mainapp->GetContentInformationLayout()->LoadContent(selcnt);
@@ -1445,8 +1445,12 @@ namespace gleaf::ui
             this->contentsMenu->ClearItems();
             this->contents.clear();
         }
-        this->contentsMenu->SetCooldownEnabled(true);
-        this->contents = horizon::SearchTitles(ncm::ContentMetaType::Any, Location);
+        std::vector<horizon::Title> cnts = horizon::SearchTitles(ncm::ContentMetaType::Any, Location);
+        if(!cnts.empty()) for(u32 i = 0; i < cnts.size(); i++)
+        {
+            if(cnts[i].IsBaseTitle() || (cnts[i].Location == Storage::NANDSystem)) this->contents.push_back(cnts[i]);
+        }
+        cnts.clear();
         if(this->contents.empty())
         {
             this->noContentsText->SetVisible(true);
@@ -1454,15 +1458,15 @@ namespace gleaf::ui
         }
         else
         {
+            this->contentsMenu->SetCooldownEnabled(true);
             this->noContentsText->SetVisible(false);
             this->contentsMenu->SetVisible(true);
             for(u32 i = 0; i < this->contents.size(); i++)
             {
-                horizon::Title cnt = this->contents[i];
-                if(cnt.IsBaseTitle() || (cnt.Location == Storage::NANDSystem))
+                if(this->contents[i].IsBaseTitle() || (this->contents[i].Location == Storage::NANDSystem))
                 {
-                    NacpStruct *nacp = cnt.TryGetNACP();
-                    std::string name = horizon::FormatApplicationId(cnt.ApplicationId);
+                    NacpStruct *nacp = this->contents[i].TryGetNACP();
+                    std::string name = horizon::FormatApplicationId(this->contents[i].ApplicationId);
                     if(nacp != NULL)
                     {
                         name = horizon::GetNACPName(nacp);
@@ -1470,8 +1474,8 @@ namespace gleaf::ui
                     }
                     pu::element::MenuItem *itm = new pu::element::MenuItem(name);
                     itm->SetColor(gsets.CustomScheme.Text);
-                    bool hicon = cnt.DumpControlData();
-                    if(hicon) itm->SetIcon(horizon::GetExportedIconPath(cnt.ApplicationId));
+                    bool hicon = this->contents[i].DumpControlData();
+                    if(hicon) itm->SetIcon(horizon::GetExportedIconPath(this->contents[i].ApplicationId));
                     itm->AddOnClick(std::bind(&StorageContentsLayout::contents_Click, this));
                     this->contentsMenu->AddItem(itm);
                 }

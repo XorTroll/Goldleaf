@@ -191,12 +191,13 @@ namespace gleaf::horizon
             u32 wrt = 0;
             u32 total = 0;
             rc = ncmContentMetaDatabaseList(&metadb, static_cast<u32>(Type), 0, 0, UINT64_MAX, recs, srecs, &wrt, &total);
-            if(rc == 0)
+            if((rc == 0) && (wrt > 0))
             {
                 titles.reserve(wrt);
                 for(u32 i = 0; i < wrt; i++)
                 {
-                    Title t = {};
+                    Title t;
+                    memset(&t, 0, sizeof(t));
                     t.ApplicationId = recs[i].titleId;
                     t.Type = static_cast<ncm::ContentMetaType>(recs[i].type);
                     t.Version = recs[i].version;
@@ -206,8 +207,8 @@ namespace gleaf::horizon
                 }
             }
             free(recs);
+            serviceClose(&metadb.s);
         }
-        serviceClose(&metadb.s);
         return titles;
     }
 
