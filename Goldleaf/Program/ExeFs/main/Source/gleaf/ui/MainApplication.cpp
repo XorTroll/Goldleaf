@@ -1224,6 +1224,7 @@ namespace gleaf::ui
         msg += set::GetDictionaryEntry(170) + " ";
         std::vector<std::string> opts = { set::GetDictionaryEntry(245) };
         std::string icn;
+        horizon::Title subcnt;
         if(idx == 0)
         {
             if(fs::IsFile(horizon::GetExportedIconPath(this->content.ApplicationId))) icn = horizon::GetExportedIconPath(this->content.ApplicationId);
@@ -1256,7 +1257,7 @@ namespace gleaf::ui
         }
         else
         {
-            horizon::Title subcnt = this->subcnts[idx - 1];
+            subcnt = this->subcnts[idx - 1];
             if(fs::IsFile(horizon::GetExportedIconPath(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)))) icn = horizon::GetExportedIconPath(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type));
             horizon::TitleContents subcnts = subcnt.GetContents();
             switch(subcnt.Type)
@@ -1333,7 +1334,19 @@ namespace gleaf::ui
         }
         else
         {
-
+            if(sopt == 0)
+            {
+                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+                if(sopt < 0) return;
+                Result rc = horizon::RemoveTitle(subcnt);
+                if(rc == 0)
+                {
+                    mainapp->UpdateFooter(set::GetDictionaryEntry(246));
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                }
+                else HandleResult(rc, set::GetDictionaryEntry(247));
+            }
         }
     }
 
