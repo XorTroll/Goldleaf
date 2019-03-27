@@ -9,9 +9,16 @@
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
 3. [Configuration](#configuration)
-4. [Credits and support](#credits-and-support)
+4. [Known bugs](#known-bugs)
+5. [Credits and support](#credits-and-support)
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
+
+<p>
+<a href="https://www.patreon.com/xortroll"><img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" height="50" width="220"></a>
+<br>
+<b>If you like my work, consider becoming a patron and supporting all my work!</b>
+</p>
 
 ## Features
 
@@ -94,6 +101,12 @@ Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/File
 
 So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets which will be added in future updates.
 
+## Known bugs
+
+- On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares.
+
+- USB installation in general seems to have several bugs, most of them related to the UI system.
+
 ## Credits and support
 
 ### Credits
@@ -126,12 +139,6 @@ The main concepts of Goldleaf are and have been developed by XorTroll, but witho
 
 - All the testers, for reporting bugs and helping a lot with the project's development.
 
-### Support
+### Discord server
 
 If you would like to be more informed about my projects' status and support, you should check [H&H](https://discord.gg/3KpFyaH), my Discord server. It's a simple server for Homebrew and Hacking, focused on my projects. If you would like to be a beta-tester, you might be interested on the nightly building system we have there for testers.
-
-If you like my work, you should take a look at my [Patreon](https://patreon.com/xortroll) page. For those who support me, you will be credited on my projects, and you'll gain some nice extras on H&H!
-
-Special thanks to my Patreon supporters:
-
-- Yurner

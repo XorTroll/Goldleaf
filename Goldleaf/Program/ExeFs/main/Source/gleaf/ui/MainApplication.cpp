@@ -865,9 +865,10 @@ namespace gleaf::ui
 
     CopyLayout::CopyLayout()
     {
-        this->infoText = new pu::element::TextBlock(400, 300, set::GetDictionaryEntry(140));
+        this->infoText = new pu::element::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->infoText->SetTextAlign(pu::element::TextAlign::CenterHorizontal);
         this->infoText->SetColor(gsets.CustomScheme.Text);
-        this->copyBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->copyBar = new pu::element::ProgressBar(340, 360, 600, 30);
         this->AddChild(this->infoText);
         this->AddChild(this->copyBar);
     }
@@ -906,10 +907,10 @@ namespace gleaf::ui
 
     InstallLayout::InstallLayout() : pu::Layout()
     {
-        this->installText = new pu::element::TextBlock(150, 325, set::GetDictionaryEntry(144));
+        this->installText = new pu::element::TextBlock(150, 320, set::GetDictionaryEntry(151));
         this->installText->SetTextAlign(pu::element::TextAlign::CenterHorizontal);
         this->installText->SetColor(gsets.CustomScheme.Text);
-        this->installBar = new pu::element::ProgressBar(240, 400, 800, 50);
+        this->installBar = new pu::element::ProgressBar(340, 360, 600, 30);
         this->AddChild(this->installText);
         this->AddChild(this->installBar);
     }
@@ -1021,7 +1022,7 @@ namespace gleaf::ui
         this->installText = new pu::element::TextBlock(150, 320, set::GetDictionaryEntry(151));
         this->installText->SetTextAlign(pu::element::TextAlign::CenterHorizontal);
         this->installText->SetColor(gsets.CustomScheme.Text);
-        this->installBar = new pu::element::ProgressBar(240, 400, 800, 50);
+        this->installBar = new pu::element::ProgressBar(340, 360, 600, 30);
         this->installBar->SetVisible(false);
         this->AddChild(this->installText);
         this->AddChild(this->installBar);
@@ -1042,7 +1043,6 @@ namespace gleaf::ui
             mainapp->CreateShowDialog(set::GetDictionaryEntry(156), set::GetDictionaryEntry(152) + "\n" + set::GetDictionaryEntry(153), { set::GetDictionaryEntry(234) }, true);
             mainapp->UnloadMenuData();
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            mainapp->CallForRender();
             return;
         }
         this->installText->SetText(set::GetDictionaryEntry(155));
@@ -1555,9 +1555,10 @@ namespace gleaf::ui
 
     TitleDumperLayout::TitleDumperLayout()
     {
-        this->dumpText = new pu::element::TextBlock(300, 300, set::GetDictionaryEntry(191));
+        this->dumpText = new pu::element::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->dumpText->SetTextAlign(pu::element::TextAlign::CenterHorizontal);
         this->dumpText->SetColor(gsets.CustomScheme.Text);
-        this->ncaBar = new pu::element::ProgressBar(490, 335, 300, 50);
+        this->ncaBar = new pu::element::ProgressBar(340, 360, 600, 30);
         this->ncaBar->SetVisible(false);
         this->AddChild(this->dumpText);
         this->AddChild(this->ncaBar);
