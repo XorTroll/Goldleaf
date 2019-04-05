@@ -1,6 +1,6 @@
 ![Logo](Goldleaf/Program/RomFs/Logo.png)
 
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)]() [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)]()
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
 
@@ -17,7 +17,7 @@
 <p>
 <a href="https://www.patreon.com/xortroll"><img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" height="50" width="220"></a>
 <br>
-<b>If you like my work, consider becoming a patron and supporting all my work!</b>
+<b>If you like my work, consider becoming a patron and supporting it!</b>
 </p>
 
 ## Features

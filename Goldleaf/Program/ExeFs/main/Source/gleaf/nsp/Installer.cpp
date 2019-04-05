@@ -374,7 +374,6 @@ namespace gleaf::nsp
         fsdevUnmountDevice("ginst-cnmt");
         fsdevUnmountDevice("ginst-ctrl");
         fsdevUnmountDevice("ginst-nsp");
-        EnsureDirectories();
         if(this->nacps != NULL)
         {
             free(this->nacps);

@@ -87,7 +87,6 @@ namespace gtree
             Warn.Log("Make sure to open Goldtree after having launched Goldleaf on your console. Waiting for connection...");
         }
 
-        [STAThread]
         public static void Main(string[] Args)
         {
             Initialize();
