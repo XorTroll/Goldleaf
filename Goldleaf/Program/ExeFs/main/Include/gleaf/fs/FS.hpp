@@ -45,6 +45,7 @@ namespace gleaf::fs
     u64 GetDirectorySize(std::string Path);
     std::string GetFileName(std::string Path);
     std::string GetExtension(std::string Path);
+    std::string GetPathRoot(std::string Path);
     std::string GetPathWithoutRoot(std::string Path);
     u64 GetTotalSpaceForPartition(Partition Partition);
     u64 GetFreeSpaceForPartition(Partition Partition);

@@ -22,4 +22,11 @@ namespace gleaf::usb
     {
         return (Cmd.CommandId == static_cast<u32>(Id));
     }
+
+    bool WriteCommandInput(NewCommandId Id)
+    {
+        Write32(GUCI);
+        Write32(static_cast<u32>(Id));
+        return true;
+    }
 }

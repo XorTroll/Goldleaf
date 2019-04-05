@@ -19,6 +19,7 @@
 #include <gleaf/hactool.hpp>
 #include <gleaf/horizon.hpp>
 #include <gleaf/ncm.hpp>
+#include <gleaf/net.hpp>
 #include <gleaf/ns.hpp>
 #include <gleaf/nsp.hpp>
 #include <gleaf/set.hpp>

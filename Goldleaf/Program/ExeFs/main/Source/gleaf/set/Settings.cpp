@@ -80,6 +80,7 @@ namespace gleaf::set
                 else if(lang == "it") gset.CustomLanguage = Language::Italian;
             }
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
+            gset.IgnoreRequiredFirmwareVersion = inir.GetBoolean("NSP", "ignoreRequiredFwVer", true);
             bool rrom = inir.GetBoolean("UI", "romfsReplace", false);
             if(rrom)
             {

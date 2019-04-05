@@ -25,6 +25,26 @@ namespace gleaf::usb
         Finish = 7,
     };
 
+    enum class NewCommandId
+    {
+        ListSystemDrives,
+        GetPathType,
+        ListDirectories,
+        ListFiles,
+        GetFileSize,
+        FileRead,
+        FileWrite,
+        CreateFile,
+        CreateDirectory,
+        DeleteFile,
+        DeleteDirectory,
+        RenameFile,
+        RenameDirectory,
+        GetDriveTotalSpace,
+        GetDriveFreeSpace,
+        GetNSPContents,
+    };
+
     struct Command
     {
         u32 Magic;
@@ -44,4 +64,9 @@ namespace gleaf::usb
     bool IsCommandId(Command Cmd, usb::CommandId Id);
 
     static const u32 GLUC = 0x43554c47;
+
+    bool WriteCommandInput(NewCommandId Id);
+
+    static const u32 GUCI = 0x49435547;
+    static const u32 GUCO = 0x4f435547;
 }

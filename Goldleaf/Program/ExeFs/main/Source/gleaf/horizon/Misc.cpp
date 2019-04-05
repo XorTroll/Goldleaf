@@ -149,7 +149,8 @@ namespace gleaf::horizon
     void PayloadProcess(std::string Path)
     {
         alignas(0x1000) u8 payload[0x2f000];
-        std::vector<u8> data = fs::ReadFile(Path);
+        auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
+        std::vector<u8> data = fexp->ReadFile(Path);
         if(!data.empty())
         {
             memcpy(payload, data.data(), std::min(0x2f000, (int)data.size()));

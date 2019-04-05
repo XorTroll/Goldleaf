@@ -102,22 +102,6 @@ namespace gleaf::horizon
         u8 KeyGeneration;
     };
 
-    struct PartitionFsHeader
-    {
-        u32 Magic;
-        u32 FileCount;
-        u32 StringTableSize;
-        u32 Reserved;
-    } PACKED;
-
-    struct PartitionFsFileEntry
-    {
-        u64 Offset;
-        u64 Size;
-        u64 StringTableOffset;
-        u32 Pad;
-    } PACKED;
-
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
     Title Locate(u64 ApplicationId);

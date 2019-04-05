@@ -56,80 +56,26 @@ namespace gleaf::fs
 
     void CopyFile(std::string Path, std::string NewPath)
     {
-        std::ifstream ifs(Path);
-        fs::DeleteFile(NewPath);
-        std::ofstream ofs(NewPath);
-        if(ifs.good() && ofs.good()) ofs << ifs.rdbuf();
-        ofs.close();
-        ifs.close();
+        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
+        gexp->CopyFile(Path, NewPath);
     }
 
     void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback)
     {
-        FILE *f = fopen(Path.c_str(), "rb");
-        fs::DeleteFile(NewPath);
-        FILE *of = fopen(NewPath.c_str(), "wb");
-        fseek(f, 0, SEEK_END);
-        u64 fsize = ftell(f);
-        rewind(f);
-        u64 szrem = fsize;
-        u64 read = 0;
-        u64 rsize = 0x800000;
-        u8 *data = (u8*)malloc(rsize);
-        while(szrem)
-        {
-            u64 rc = fread(data, 1, rsize, f);
-            fwrite(data, 1, rc, of);
-            szrem -= rc;
-            read += rc;
-            u8 perc = ((double)((double)read / (double)fsize) * 100.0);
-            Callback(perc);
-        }
-        free(data);
-        fclose(of);
-        fclose(f);
+        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
+        gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 
     void CopyDirectory(std::string Dir, std::string NewDir)
     {
-        mkdir(NewDir.c_str(), 777);
-        DIR *from = opendir(Dir.c_str());
-        if(from)
-        {
-            struct dirent *dent;
-            while(true)
-            {
-                dent = readdir(from);
-                if(dent == NULL) break;
-                std::string nd = dent->d_name;
-                std::string dfrom = Dir + "/" + nd;
-                std::string dto = NewDir + "/" + nd;
-                if(gleaf::fs::IsFile(dfrom)) CopyFile(dfrom, dto);
-                else CopyDirectory(dfrom, dto);
-            }
-        }
-        closedir(from);
+        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Dir));
+        gexp->CopyDirectory(Dir, NewDir);
     }
 
     void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback)
     {
-        mkdir(NewDir.c_str(), 777);
-        DIR *from = opendir(Dir.c_str());
-        if(from)
-        {
-            struct dirent *dent;
-            while(true)
-            {
-                dent = readdir(from);
-                if(dent == NULL) break;
-                std::string nd = dent->d_name;
-                std::string dfrom = Dir + "/" + nd;
-                std::string dto = NewDir + "/" + nd;
-                if(gleaf::fs::IsFile(dfrom)) CopyFileProgress(dfrom, dto, Callback);
-                else CopyDirectoryProgress(dfrom, dto, Callback);
-            }
-        }
-        closedir(from);
+        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Dir));
+        gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
     }
 
     Result DeleteFile(std::string Path)
@@ -352,6 +298,11 @@ namespace gleaf::fs
         return Path.substr(Path.find_last_of(".") + 1);
     }
 
+    std::string GetPathRoot(std::string Path)
+    {
+        return Path.substr(0, Path.find_first_of(":"));
+    }
+
     std::string GetPathWithoutRoot(std::string Path)
     {
         return Path.substr(Path.find_first_of(":") + 1);
@@ -419,25 +370,6 @@ namespace gleaf::fs
         std::stringstream strm;
         strm << rbt;
         return (strm.str() + sufs[plc]);
-    }
-
-    std::string SearchForFile(FsFileSystem IFS, std::string Extension)
-    {
-        std::string path;
-        fs::Explorer *fexp = new fs::Explorer(IFS, "Default");
-        std::vector<std::string> fls = fexp->GetFiles();
-        for(u32 i = 0; i < fls.size(); i++)
-        {
-            std::string pth = fls[i];
-            std::string seq = pth.substr(pth.length() - Extension.length());
-            if(seq == Extension)
-            {
-                path = pth;
-                break;
-            }
-        }
-        delete fexp;
-        return path;
     }
 
     std::string SearchForFileInPath(std::string Base, std::string Extension)

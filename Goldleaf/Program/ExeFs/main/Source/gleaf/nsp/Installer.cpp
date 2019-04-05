@@ -1,10 +1,11 @@
 #include <gleaf/nsp/Installer.hpp>
 #include <gleaf/err.hpp>
 #include <gleaf/fs.hpp>
-#include <gleaf/ui.hpp>
 #include <sys/stat.h>
 #include <fstream>
 #include <dirent.h>
+
+extern gleaf::set::Settings gsets;
 
 namespace gleaf::nsp
 {
@@ -206,6 +207,7 @@ namespace gleaf::nsp
             return this->rc;
         }
         u32 cmetacount = std::get<1>(nst);
+        /*
         if(cmetacount > 0)
         {
             records.resize(cmetacount);
@@ -221,6 +223,7 @@ namespace gleaf::nsp
             csbuf = (ns::ContentStorageRecord*)std::get<2>(listt);
             memcpy(records.data(), csbuf, csbufs);
         }
+        */
         ns::ContentStorageRecord csrecord;
         csrecord.Record = metakey;
         csrecord.StorageId = stid;
@@ -377,5 +380,214 @@ namespace gleaf::nsp
             free(this->nacps);
             this->nacps = NULL;
         }
+    }
+
+    Result Install(std::string Path, fs::Explorer *Exp, Storage Location, std::function<bool(ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs)> OnInitialProcess, std::function<void()> OnRecordProcess, std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, u8 Percentage)> OnContentWrite)
+    {
+        Result rc = 0xf601;
+        FsStorageId storage = static_cast<FsStorageId>(Location);
+        PFS0 nsp(Exp, Path);
+        if(nsp.IsOk())
+        {
+            rc = 0;
+            std::string cnmtnca;
+            u32 idxcnmtnca = 0;
+            u64 scnmtnca = 0;
+            std::string tik;
+            u32 idxtik = 0;
+            u64 stik = 0;
+            auto files = nsp.GetFiles();
+            for(u32 i = 0; i < files.size(); i++)
+            {
+                std::string file = files[i];
+                if(fs::GetExtension(file) == "tik")
+                {
+                    tik = file;
+                    idxtik = i;
+                    stik = nsp.GetFileSize(i);
+                }
+                else if(file.substr(file.length() - 8) == "cnmt.nca")
+                {
+                    cnmtnca = file;
+                    idxcnmtnca = i;
+                    scnmtnca = nsp.GetFileSize(i);
+                }
+            }
+            std::string icnmtnca = fs::GetFileName(cnmtnca);
+            fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+            nsys->CreateDirectory("Contents/temp");
+            std::string ncnmtnca = nsys->FullPathFor("Contents/temp/" + icnmtnca);
+            nsys->DeleteFile(ncnmtnca);
+            nsp.SaveFile(idxcnmtnca, nsys, ncnmtnca);
+            std::string acnmtnca = "@SystemContent://temp/" + icnmtnca;
+            acnmtnca.reserve(FS_MAX_PATH);
+            ByteBuffer bcnmt;
+            FsFileSystem cnmtncafs;
+            std::vector<std::string> cnts;
+            rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.c_str());
+            {
+                fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs, true);
+                cnts = cnmtfs.GetContents();
+                std::string fcnmt;
+                for(u32 i = 0; i < cnts.size(); i++)
+                {
+                    if(fs::GetExtension(cnts[i]) == "cnmt")
+                    {
+                        fcnmt = cnts[i];
+                        break;
+                    }
+                }
+                u64 fcnmtsz = cnmtfs.GetFileSize(fcnmt);
+                bcnmt.Resize(fcnmtsz);
+                cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, bcnmt.GetData());
+            }
+            ncm::ContentRecord record = { 0 };
+            record.NCAId = horizon::GetNCAIdFromString(icnmtnca);
+            *(u64*)record.Size = (scnmtnca & 0xffffffffffff);
+            record.Type = ncm::ContentType::Meta;
+            ncm::ContentMeta cnmt(bcnmt.GetData(), bcnmt.GetSize());
+            NcmMetaRecord mrec = cnmt.GetContentMetaKey();
+            if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, mrec.titleId))
+            {
+                rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
+                return rc;
+            }
+            if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, mrec.titleId))
+            {
+                rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
+                return rc;
+            }
+            NcmContentStorage cst;
+            rc = ncmOpenContentStorage(storage, &cst);
+            bool hascnmt = false;
+            ncmContentStorageHas(&cst, &record.NCAId, &hascnmt);
+            serviceClose(&cst.s);
+            std::vector<ncm::ContentRecord> ncas;
+            if(!hascnmt) ncas.push_back(record);
+            u64 baseappid = horizon::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
+            auto recs = cnmt.GetContentRecords();
+            NacpStruct nacp;
+            memset(&nacp, 0, sizeof(nacp));
+            horizon::TicketData tikd;
+            if(stik > 0) tikd = horizon::ReadTicket(tik);
+            std::string icon;
+            for(u32 i = 0; i < recs.size(); i++)
+            {
+                ncas.push_back(recs[i]);
+                if(recs[i].Type == ncm::ContentType::Control)
+                {
+                    std::string controlnca = horizon::GetStringFromNCAId(recs[i].NCAId) + ".nca";
+                    u32 idxcontrolnca = nsp.GetFileIndexByName(controlnca);
+                    std::string ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
+                    nsp.SaveFile(idxcontrolnca, nsys, ncontrolnca);
+                    std::string acontrolnca = "@SystemContent://temp/" + controlnca;
+                    acontrolnca.reserve(FS_MAX_PATH);
+                    FsFileSystem controlncafs;
+                    rc = fsOpenFileSystemWithId(&controlncafs, baseappid, FsFileSystemType_ContentControl, acontrolnca.c_str());
+                    if(rc == 0)
+                    {
+                        fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs, true);
+                        cnts = controlfs.GetContents();
+                        for(u32 i = 0; i < cnts.size(); i++)
+                        {
+                            if(fs::GetExtension(cnts[i]) == "dat")
+                            {
+                                std::string cicon = cnts[i];
+                                icon = "sdmc:/goldleaf/meta/" + horizon::GetStringFromNCAId(recs[i].NCAId) + ".jpg";
+                                controlfs.CopyFile(cicon, icon);
+                                break;
+                            }
+                        }
+                        controlfs.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)&nacp);
+                    }
+                    rc = 0;
+                }
+            }
+            if(!OnInitialProcess(static_cast<ncm::ContentMetaType>(mrec.type), mrec.titleId, icon, (icon.empty() ? NULL : &nacp), ((stik > 0) ? &tikd : NULL), ncas)) return rc;
+            NcmContentMetaDatabase mdb;
+            rc = ncmOpenContentMetaDatabase(storage, &mdb);
+            if(rc != 0) return rc;
+            ByteBuffer ccnmt;
+            cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
+            rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetSize(), (NcmContentMetaRecordsHeader*)ccnmt.GetData());
+            if(rc != 0)
+            {
+                serviceClose(&mdb.s);
+                return rc;
+            }
+            rc = ncmContentMetaDatabaseCommit(&mdb);
+            serviceClose(&mdb.s);
+            if(rc != 0) return rc;
+            auto res1 = ns::CountApplicationContentMeta(baseappid);
+            rc = std::get<0>(res1);
+            if(rc == 0x410) rc = 0;
+            if(rc != 0) return rc;
+            u32 cmetacount = std::get<1>(res1);
+            std::vector<ns::ContentStorageRecord> srecs;
+            if(cmetacount > 0)
+            {
+                size_t csbufs = (cmetacount * sizeof(ns::ContentStorageRecord));
+                ns::ContentStorageRecord *csbuf = (ns::ContentStorageRecord*)malloc(csbufs);
+                auto res2 = ns::ListApplicationRecordContentMeta(0, baseappid, csbuf, csbufs);
+                rc = std::get<0>(res2);
+                if(rc != 0)
+                {
+                    free(csbuf);
+                    return rc;
+                }
+                for(u32 i = 0; i < cmetacount; i++) srecs.push_back(csbuf[i]);
+                free(csbuf);
+            }
+            ns::ContentStorageRecord csrecord;
+            csrecord.Record = mrec;
+            csrecord.StorageId = storage;
+            srecs.push_back(csrecord);
+            ns::DeleteApplicationRecord(baseappid);
+            rc = ns::PushApplicationRecord(baseappid, 3, srecs.data(), srecs.size() * sizeof(ns::ContentStorageRecord));
+            if(rc != 0) return rc;
+            if(stik > 0)
+            {
+                ByteBuffer btik;
+                btik.Resize(stik);
+                nsp.ReadFromFile(idxtik, 0, btik.GetSize(), btik.GetData());
+                es::ImportTicket(btik.GetData(), btik.GetSize(), es::CertData, 1792);
+            }
+            OnRecordProcess();
+            for(u32 i = 0; i < ncas.size(); i++)
+            {
+                ncm::ContentRecord rnca = ncas[i];
+                NcmNcaId curid = rnca.NCAId;
+                std::string ncaname = horizon::GetStringFromNCAId(curid);
+                if(rnca.Type == ncm::ContentType::Meta) ncaname += ".cnmt";
+                ncaname += ".nca";
+                u32 idxncaname = nsp.GetFileIndexByName(ncaname);
+                u64 ncasize = nsp.GetFileSize(idxncaname);
+                NcmContentStorage cst;
+                ncmOpenContentStorage(storage, &cst);
+                ncm::DeletePlaceHolder(&cst, &curid);
+                ncm::CreatePlaceHolder(&cst, &curid, &curid, ncasize);
+                u64 noff = 0;
+                u64 szrem = ncasize;
+                u64 reads = 0x400000;
+                u8 *rdata = (u8*)malloc(reads);
+                float progress = 0.0f;
+                while(szrem)
+                {
+                    u64 tread = std::min(szrem, reads);
+                    u64 rbytes = nsp.ReadFromFile(idxncaname, noff, tread, rdata);
+                    ncm::WritePlaceHolder(&cst, &curid, noff, rdata, rbytes);
+                    noff += rbytes;
+                    szrem -= rbytes;
+                    progress = (float)noff / (float)ncasize;
+                    OnContentWrite(rnca, i, ncas.size(), (u8)(progress * 100.0));
+                }
+                free(rdata);
+                ncmContentStorageRegister(&cst, &curid, &curid);
+                ncm::DeletePlaceHolder(&cst, &curid);
+                serviceClose(&cst.s);
+            }
+            nsys->DeleteDirectory("Contents/temp");
+        }
+        return rc;
     }
 }

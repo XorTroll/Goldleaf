@@ -30,8 +30,7 @@ namespace gleaf::usb
             u32 filecount = Read32(Callback);
             for(u32 i = 0; i < filecount; i++)
             {
-                u32 namelen = Read32(Callback);
-                std::string name = ReadString(namelen, Callback);
+                std::string name = ReadString(Callback);
                 u64 offset = Read64(Callback);
                 u64 size = Read64(Callback);
                 this->cnts.push_back({ i, name, offset, size });
@@ -57,6 +56,7 @@ namespace gleaf::usb
         ncm::ContentStorage cst(this->stid);
         std::string cnmtabs = cst.GetPath(cnmtid);
         FsFileSystem cnmtfs;
+        fsdevMountDevice("gusbcnmtfs", cnmtfs);
         cnmtabs.reserve(FS_MAX_PATH);
         this->rc = fsOpenFileSystemWithId(&cnmtfs, 0, FsFileSystemType_ContentMeta, cnmtabs.c_str());
         if(this->rc != 0)
@@ -64,7 +64,7 @@ namespace gleaf::usb
             this->Finalize();
             return this->rc;
         }
-        std::string fcnmtname = fs::SearchForFile(cnmtfs, "cnmt");
+        std::string fcnmtname = fs::SearchForFileInPath("gusbcnmtfs:/", "cnmt");
         if(fcnmtname == "")
         {
             this->rc = err::Make(err::ErrorDescription::CNMTNotFound);
@@ -154,6 +154,7 @@ namespace gleaf::usb
             return this->rc;
         }
         u32 cmetacount = std::get<1>(nst);
+        /*
         if(cmetacount > 0)
         {
             records.resize(cmetacount);
@@ -169,6 +170,7 @@ namespace gleaf::usb
             csbuf = (ns::ContentStorageRecord*)std::get<2>(listt);
             memcpy(records.data(), csbuf, csbufs);
         }
+        */
         ns::ContentStorageRecord csrecord;
         csrecord.Record = metakey;
         csrecord.StorageId = stid;

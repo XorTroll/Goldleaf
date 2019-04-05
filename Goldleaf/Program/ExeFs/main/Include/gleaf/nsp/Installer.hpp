@@ -13,7 +13,7 @@
 #include <vector>
 #include <functional>
 #include <memory>
-#include <gleaf/Types.hpp>
+#include <gleaf/nsp/PFS0.hpp>
 #include <gleaf/es/ES.hpp>
 #include <gleaf/ns/NS.hpp>
 #include <gleaf/fs/FS.hpp>
@@ -56,4 +56,6 @@ namespace gleaf::nsp
             std::string stik;
             horizon::TicketData tikdata;
     };
+
+    Result Install(std::string Path, fs::Explorer *Exp, Storage Location, std::function<bool(ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs)> OnInitialProcess, std::function<void()> OnRecordProcess, std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, u8 Percentage)> OnContentWrite);
 }

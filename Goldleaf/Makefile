@@ -17,8 +17,8 @@ TARGET      := Goldleaf
 ICON		:= Control/RomFs/icon_AmericanEnglish.dat
 
 BUILD       := Build
-SOURCES     := Program/ExeFs/main/Source Program/ExeFs/main/Source/fatfs Program/ExeFs/main/Source/gleaf Program/ExeFs/main/Source/gleaf/acc Program/ExeFs/main/Source/gleaf/dump Program/ExeFs/main/Source/gleaf/err Program/ExeFs/main/Source/gleaf/es Program/ExeFs/main/Source/gleaf/fs Program/ExeFs/main/Source/gleaf/hacpack Program/ExeFs/main/Source/gleaf/hactool Program/ExeFs/main/Source/gleaf/horizon Program/ExeFs/main/Source/gleaf/ini Program/ExeFs/main/Source/gleaf/ncm Program/ExeFs/main/Source/gleaf/ns Program/ExeFs/main/Source/gleaf/nsp Program/ExeFs/main/Source/gleaf/set Program/ExeFs/main/Source/gleaf/ui Program/ExeFs/main/Source/gleaf/usb
-INCLUDES    := Program/ExeFs/main/Include Program/ExeFs/main/Include/fatfs Program/ExeFs/main/Include/gleaf Program/ExeFs/main/Include/gleaf/acc Program/ExeFs/main/Include/gleaf/dump Program/ExeFs/main/Include/gleaf/err Program/ExeFs/main/Include/gleaf/es Program/ExeFs/main/Include/gleaf/fs Program/ExeFs/main/Include/gleaf/hacpack Program/ExeFs/main/Include/gleaf/hactool Program/ExeFs/main/Include/gleaf/horizon Program/ExeFs/main/Include/gleaf/ini Program/ExeFs/main/Include/gleaf/ncm Program/ExeFs/main/Include/gleaf/ns Program/ExeFs/main/Include/gleaf/nsp Program/ExeFs/main/Include/gleaf/set Program/ExeFs/main/Include/gleaf/ui Program/ExeFs/main/Include/gleaf/usb
+SOURCES     := Program/ExeFs/main/Source Program/ExeFs/main/Source/fatfs Program/ExeFs/main/Source/gleaf Program/ExeFs/main/Source/gleaf/acc Program/ExeFs/main/Source/gleaf/dump Program/ExeFs/main/Source/gleaf/err Program/ExeFs/main/Source/gleaf/es Program/ExeFs/main/Source/gleaf/fs Program/ExeFs/main/Source/gleaf/hacpack Program/ExeFs/main/Source/gleaf/hactool Program/ExeFs/main/Source/gleaf/horizon Program/ExeFs/main/Source/gleaf/ini Program/ExeFs/main/Source/gleaf/ncm Program/ExeFs/main/Source/gleaf/net Program/ExeFs/main/Source/gleaf/ns Program/ExeFs/main/Source/gleaf/nsp Program/ExeFs/main/Source/gleaf/set Program/ExeFs/main/Source/gleaf/ui Program/ExeFs/main/Source/gleaf/usb
+INCLUDES    := Program/ExeFs/main/Include Program/ExeFs/main/Include/fatfs Program/ExeFs/main/Include/gleaf Program/ExeFs/main/Include/gleaf/acc Program/ExeFs/main/Include/gleaf/dump Program/ExeFs/main/Include/gleaf/err Program/ExeFs/main/Include/gleaf/es Program/ExeFs/main/Include/gleaf/fs Program/ExeFs/main/Include/gleaf/hacpack Program/ExeFs/main/Include/gleaf/hactool Program/ExeFs/main/Include/gleaf/horizon Program/ExeFs/main/Include/gleaf/ini Program/ExeFs/main/Include/gleaf/ncm Program/ExeFs/main/Include/gleaf/net Program/ExeFs/main/Include/gleaf/ns Program/ExeFs/main/Include/gleaf/nsp Program/ExeFs/main/Include/gleaf/set Program/ExeFs/main/Include/gleaf/ui Program/ExeFs/main/Include/gleaf/usb
 ROMFS       := Program/RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
@@ -26,15 +26,15 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections -fpermissive \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ $(QFLAG)
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID) $(QFLAG)
 
 CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lnx -lfatdrive -lnx -lpu -lhactool -lmbedcrypto -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
-LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../libnx-Goldleaf/nx $(CURDIR)/../libnx-Goldleaf/nx/fatdrive $(CURDIR)/Program/ExeFs/main/External/pu $(CURDIR)/Program/ExeFs/main/External/json $(CURDIR)/Program/ExeFs/main/External/hactool $(CURDIR)/Program/ExeFs/main/External/mbedtls
+LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lfatdrive -lnx -lpu -lhactool -lmbedcrypto -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../libnx-Goldleaf/nx $(CURDIR)/../libnx-Goldleaf/nx/external/bsd $(CURDIR)/../libnx-Goldleaf/nx/fatdrive $(CURDIR)/Program/ExeFs/main/External/pu $(CURDIR)/Program/ExeFs/main/External/json $(CURDIR)/Program/ExeFs/main/External/hactool
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 

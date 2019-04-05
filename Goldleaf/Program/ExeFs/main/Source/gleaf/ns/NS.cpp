@@ -121,13 +121,12 @@ namespace gleaf::ns
         return rc;
     }
 
-    std::tuple<Result, u32, void*> ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, size_t OutBufferSize)
+    std::tuple<Result, u32> ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize)
     {
         u32 OutCount = 0;
-        void *OutBuffer = malloc(OutBufferSize);
         IpcCommand c;
         ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, OutBuffer, OutBufferSize, BufferType_Normal);
+        ipcAddRecvBuffer(&c, Out, OutBufferSize, BufferType_Normal);
         struct Raw
         {
             u64 Magic;
@@ -154,7 +153,7 @@ namespace gleaf::ns
             rc = resp->Result;
             if(R_SUCCEEDED(rc)) OutCount = resp->Count;
         }
-        return std::make_tuple(rc, OutCount, OutBuffer);
+        return std::make_tuple(rc, OutCount);
     }
 
     Result DeleteApplicationRecord(u64 ApplicationId)

@@ -23,7 +23,7 @@ namespace gleaf::ns
     
     Result DeleteApplicationCompletely(u64 ApplicationId);
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize);
-    std::tuple<Result, u32, void*> ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, size_t OutBufferSize);
+    std::tuple<Result, u32> ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize);
     Result DeleteApplicationRecord(u64 ApplicationId);
     std::tuple<Result, u32> CountApplicationContentMeta(u64 ApplicationId);
 }

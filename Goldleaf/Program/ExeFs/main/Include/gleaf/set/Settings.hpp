@@ -22,6 +22,7 @@ namespace gleaf::set
         std::string RomFsReplacePath;
         ColorScheme CustomScheme;
         u32 BrowserItemSize;
+        bool IgnoreRequiredFirmwareVersion;
 
         std::string PathForResource(std::string Path);
     };

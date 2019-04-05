@@ -25,6 +25,8 @@ namespace gleaf
     std::vector<std::string> GetSdCardCFWs();
     std::vector<std::string> GetSdCardCFWNames();
     std::string GetCFWName(std::string Path);
+    std::string GetVersion();
+    u64 GetApplicationId();
     bool HasKeyFile();
     bool IsAtmosphere();
     bool IsReiNX();

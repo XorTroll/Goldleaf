@@ -17,6 +17,7 @@ namespace gleaf
             if(R_FAILED(svcSetHeapSize(&ghaddr, 0x10000000))) exit(1);
             if(IsNRO()) fake_heap_end = (char*)ghaddr + 0x10000000;
         }
+        if(R_FAILED(socketInitializeDefault())) exit(1);
         if(R_FAILED(ncm::Initialize())) exit(1);
         if(R_FAILED(acc::Initialize())) exit(1);
         if(R_FAILED(accountInitialize())) exit(1);
@@ -30,6 +31,7 @@ namespace gleaf
         if(R_FAILED(usbCommsInitialize())) exit(1);
         if(R_FAILED(splInitialize())) exit(1);
         if(R_FAILED(bpcInitialize())) exit(1);
+        if(R_FAILED(nifmInitialize())) exit(1);
         EnsureDirectories();
     }
 
@@ -40,12 +42,12 @@ namespace gleaf
         fs::Explorer *nusr = fs::GetNANDUserExplorer();
         fs::Explorer *prif = fs::GetPRODINFOFExplorer();
         fs::Explorer *sdcd = fs::GetSdCardExplorer();
-        fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
         delete nsys;
         delete nsfe;
         delete nusr;
         delete prif;
         delete sdcd;
+        nifmExit();
         bpcExit();
         splExit();
         usbCommsExit();
@@ -59,14 +61,15 @@ namespace gleaf
         acc::Finalize();
         ncm::Finalize();
         ncmExit();
+        socketExit();
         if(IsNRO()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
     }
 
     void EnsureDirectories()
     {
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        fs::DeleteDirectory(nsys->FullPathFor("contents/temp"));
-        fs::CreateDirectory(nsys->FullPathFor("contents/temp"));
+        nsys->DeleteDirectory("Contents/temp");
+        nsys->CreateDirectory("Contents/temp");    
         fs::CreateDirectory("sdmc:/goldleaf");
         fs::CreateDirectory("sdmc:/goldleaf/meta");
         fs::CreateDirectory("sdmc:/goldleaf/title");
@@ -139,6 +142,16 @@ namespace gleaf
         else if(Path == "sdmc:/reinx") name = "ReiNX";
         else if(Path == "sdmc:/sxos") name = "SX OS";
         return name;
+    }
+
+    std::string GetVersion()
+    {
+        return std::string(GOLDLEAF_VERSION);
+    }
+
+    u64 GetApplicationId()
+    {
+        return GOLDLEAF_APPID;
     }
 
     bool HasKeyFile()

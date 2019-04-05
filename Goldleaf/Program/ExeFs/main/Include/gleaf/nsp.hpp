@@ -11,3 +11,4 @@
 #pragma once
 #include <gleaf/nsp/Builder.hpp>
 #include <gleaf/nsp/Installer.hpp>
+#include <gleaf/nsp/PFS0.hpp>

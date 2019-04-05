@@ -9,13 +9,10 @@
 */
 
 #pragma once
-#include <gleaf/set/json.hpp>
 #include <gleaf/set/Settings.hpp>
 
 namespace gleaf::set
 {
-    using json = nlohmann::json;
-
     struct Dictionary
     {
         Language DictLanguage;

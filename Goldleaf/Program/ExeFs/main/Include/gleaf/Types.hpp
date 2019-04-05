@@ -18,6 +18,8 @@
 
 namespace gleaf
 {
+    using json = nlohmann::json;
+
     enum class RunMode
     {
         Unknown,
@@ -77,5 +79,18 @@ namespace gleaf
         pu::draw::Color Base;
         pu::draw::Color BaseFocus;
         pu::draw::Color Text;
+    };
+
+    struct Version
+    {
+        u32 Major;
+        u32 Minor;
+        s32 BugFix;
+
+        std::string AsString();
+        static Version FromString(std::string StrVersion);
+        bool IsLower(Version Other);
+        bool IsHigher(Version Other);
+        bool IsEqual(Version Other);
     };
 }

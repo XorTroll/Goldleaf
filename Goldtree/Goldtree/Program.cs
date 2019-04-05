@@ -3,8 +3,6 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using libusbK;
-using LibHac;
-using LibHac.IO;
 
 namespace gtree
 {
@@ -41,11 +39,11 @@ namespace gtree
             if(NewLine) Console.WriteLine();
             if(Close)
             {
-                if(Program.USB != null)
+                /*if(Program.USB != null)
                 {
                     Command c = new Command(CommandId.Finish);
                     Program.USB.Write(c);
-                }
+                }*/
                 Console.WriteLine("Press any key to exit...");
                 Console.ReadKey();
                 Environment.Exit(1);
@@ -92,8 +90,23 @@ namespace gtree
         [STAThread]
         public static void Main(string[] Args)
         {
-            usbnsp:
-            Console.Clear();
+            Initialize();
+            var pat = new KLST_PATTERN_MATCH { DeviceID = @"USB\VID_057E&PID_3000" };
+            var lst = new LstK(0, ref pat);
+            try
+            {
+                lst.MoveNext(out var dinfo);
+                USB = new UsbK(dinfo);
+            }
+            catch
+            {
+                // System.Diagnostics.Process.Start(System.Windows.Forms.Application.ExecutablePath);
+                return;
+            }
+            while(USB.HandleNextCommand() == CommandHandleResult.Success);
+            /*
+        usbnsp:
+            // Console.Clear();
             Initialize();
             try
             {
@@ -276,6 +289,7 @@ namespace gtree
                 Environment.Exit(0);
             }
             else goto usbnsp;
+            */
         }
     }
 }

@@ -74,22 +74,20 @@ namespace gleaf::horizon
         bool hicon = false;
         std::string fappid = FormatApplicationId(this->ApplicationId);
         NacpStruct *nacp = this->TryGetNACP();
+        auto sdexp = fs::GetSdCardExplorer();
         if(nacp != NULL)
         {
-            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".nacp");
-            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".nacp").c_str(), "wb");
-            fwrite(nacp, sizeof(NacpStruct), 1, f);
-            fclose(f);
+            std::string fnacp = "goldleaf/title/" + fappid + ".nacp";
+            sdexp->DeleteFile(fnacp);
+            sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
             free(nacp);
         }
         u8 *jpg = this->TryGetIcon();
         if(jpg != NULL)
         {
-            hicon = true;
-            fs::DeleteFile("sdmc:/goldleaf/title/" + fappid + ".jpg");
-            FILE *f = fopen(("sdmc:/goldleaf/title/" + fappid + ".jpg").c_str(), "wb");
-            fwrite(jpg, 0x20000, 1, f);
-            fclose(f);
+            std::string fjpg = "goldleaf/title/" + fappid + ".jpg";
+            sdexp->DeleteFile(fjpg);
+            sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
             free(jpg);
         }
         return hicon;
@@ -308,12 +306,12 @@ namespace gleaf::horizon
 
     std::string GetExportedIconPath(u64 ApplicationId)
     {
-        return ("sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".jpg");
+        return fs::GetSdCardExplorer()->FullPathFor("/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".jpg");
     }
 
     std::string GetExportedNACPPath(u64 ApplicationId)
     {
-        return ("sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".nacp");
+        return fs::GetSdCardExplorer()->FullPathFor("/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".nacp");
     }
 
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
@@ -345,56 +343,53 @@ namespace gleaf::horizon
 
     TicketData ReadTicket(std::string Path)
     {
+        auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
         TicketData tik;
-        std::ifstream ifs(Path, std::ios::binary);
-        if(ifs.good())
+        u64 off = 0;
+        u32 tiksig = 0;
+        fexp->ReadFileBlock(Path, off, sizeof(u32), (u8*)&tiksig);
+        tik.Signature = static_cast<TicketSignature>(tiksig);
+        u32 sigsz = 0;
+        u32 padsz = 0;
+        switch(tiksig)
         {
-            u32 tiksig = 0;
-            ifs.read((char*)&tiksig, sizeof(u32));
-            tik.Signature = static_cast<TicketSignature>(tiksig);
-            u32 sigsz = 0;
-            u32 padsz = 0;
-            switch(tiksig)
-            {
-                case 0x10000:
-                    sigsz = 0x200;
-                    padsz = 0x3c;
-                    break;
-                case 0x10001:
-                    sigsz = 0x100;
-                    padsz = 0x3c;
-                    break;
-                case 0x10002:
-                    sigsz = 0x3c;
-                    padsz = 0x40;
-                    break;
-                case 0x10003:
-                    sigsz = 0x200;
-                    padsz = 0x3c;
-                    break;
-                case 0x10004:
-                    sigsz = 0x100;
-                    padsz = 0x3c;
-                    break;
-                case 0x10005:
-                    sigsz = 0x3c;
-                    padsz = 0x40;
-                    break;
-            }
-            u32 tikdata = (4 + sigsz + padsz);
-            ifs.seekg(tikdata + 0x40, std::ios::beg);
-            u8 tkey[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            ifs.read((char*)tkey, 0x10);
-            std::stringstream strm;
-            strm << std::uppercase << std::setfill('0') << std::hex;
-            for(u32 i = 0; i < 0x10; i++) strm << (u32)tkey[i];
-            tik.TitleKey = strm.str();
-            ifs.seekg(tikdata + 0x160 + 0xf, std::ios::beg);
-            u8 kgen = 0;
-            ifs.read((char*)&kgen, 1);
-            tik.KeyGeneration = kgen;
+            case 0x10000:
+                sigsz = 0x200;
+                padsz = 0x3c;
+                break;
+            case 0x10001:
+                sigsz = 0x100;
+                padsz = 0x3c;
+                break;
+            case 0x10002:
+                sigsz = 0x3c;
+                padsz = 0x40;
+                break;
+            case 0x10003:
+                sigsz = 0x200;
+                padsz = 0x3c;
+                break;
+            case 0x10004:
+                sigsz = 0x100;
+                padsz = 0x3c;
+                break;
+            case 0x10005:
+                sigsz = 0x3c;
+                padsz = 0x40;
+                break;
         }
-        ifs.close();
+        u32 tikdata = (4 + sigsz + padsz);
+        off = tikdata + 0x40;
+        u8 tkey[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        fexp->ReadFileBlock(Path, off, 0x10, tkey);
+        std::stringstream strm;
+        strm << std::uppercase << std::setfill('0') << std::hex;
+        for(u32 i = 0; i < 0x10; i++) strm << (u32)tkey[i];
+        tik.TitleKey = strm.str();
+        off = tikdata + 0x160 + 0xf;
+        u8 kgen = 0;
+        fexp->ReadFileBlock(Path, off, 1, &kgen);
+        tik.KeyGeneration = kgen;
         return tik;
     }
 

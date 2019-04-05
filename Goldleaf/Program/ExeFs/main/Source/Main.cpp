@@ -7,10 +7,10 @@
 int main()
 {
     gleaf::Initialize();
+    atexit(gleaf::Finalize);
     gleaf::ui::MainApplication *mainapp = new gleaf::ui::MainApplication();
     gleaf::ui::SetMainApplication(mainapp);
     mainapp->Show();
     delete mainapp;
-    atexit(gleaf::Finalize);
     return 0;
 }
