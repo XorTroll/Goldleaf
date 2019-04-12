@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Goldtree.API;
 using libusbK;
 
 namespace gtree
@@ -58,71 +59,14 @@ namespace gtree
             return Str.Replace('/', '\\');
         }
     }
-
-    public static class UsbKWriteExtras
+    
+    public static class UsbReadExtras
     {
-        public static void WriteBytes(this UsbK USB, byte[] Data)
-        {
-            USB.WritePipe(1, Data, Data.Length, out _, IntPtr.Zero);
-        }
-
-        public static void Write8(this UsbK USB, byte Data)
-        {
-            USB.WriteBytes(new byte[] { Data });
-        }
-
-        public static void Write32(this UsbK USB, uint Data)
-        {
-            USB.WriteBytes(BitConverter.GetBytes(Data));
-        }
-
-        public static void Write64(this UsbK USB, ulong Data)
-        {
-            USB.WriteBytes(BitConverter.GetBytes(Data));
-        }
-
-        public static void WriteString(this UsbK USB, string Data)
-        {
-            USB.Write32((uint)Data.Length);
-            USB.WriteBytes(Encoding.ASCII.GetBytes(Data));
-        }
-    }
-
-    public static class UsbKReadExtras
-    {
-        public static byte[] ReadBytes(this UsbK USB, int Length)
-        {
-            byte[] b = new byte[Length];
-            USB.ReadPipe(0x81, b, Length, out _, IntPtr.Zero);
-            return b;
-        }
-
-        public static byte Read8(this UsbK USB)
-        {
-            return USB.ReadBytes(1)[0];
-        }
-
-        public static uint Read32(this UsbK USB)
-        {
-            return BitConverter.ToUInt32(USB.ReadBytes(4), 0);
-        }
-
-        public static ulong Read64(this UsbK USB)
-        {
-            return BitConverter.ToUInt64(USB.ReadBytes(8), 0);
-        }
-
-        public static string ReadString(this UsbK USB)
-        {
-            uint strlen = USB.Read32();
-            return Encoding.UTF8.GetString(USB.ReadBytes((int)strlen));
-        }
-
-        public static CommandReadResult ReadCommandInput(this UsbK USB, out NewCommandId Type)
+        public static CommandReadResult ReadCommandInput(this Usb USB, out NewCommandId Type)
         {
             CommandReadResult res = CommandReadResult.Success;
             uint magic = USB.Read32();
-            while(magic == 0)
+            while (magic == 0)
             {
                 magic = USB.Read32();
             }
@@ -131,7 +75,7 @@ namespace gtree
             return res;
         }
 
-        public static CommandHandleResult HandleNextCommand(this UsbK USB)
+        public static CommandHandleResult HandleNextCommand(this Usb USB)
         {
             CommandHandleResult res = CommandHandleResult.Success;
             CommandReadResult rres = USB.ReadCommandInput(out NewCommandId cmdid);

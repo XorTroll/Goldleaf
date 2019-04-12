@@ -253,12 +253,12 @@ namespace libusbK
             AllKFunctions.LstK_MoveNext(mHandleStruct, out DeviceInfo);
     }
 
-    public class UsbK
+    public class UsbKDevice
     {
         protected KUSB_DRIVER_API driverAPI;
         protected IntPtr mHandleStruct;
 
-        public UsbK(KLST_DEVINFO_HANDLE DevInfo)
+        public UsbKDevice(KLST_DEVINFO_HANDLE DevInfo)
         {
             var success = AllKFunctions.LibK_LoadDriverAPI(out driverAPI, DevInfo.DriverID);
             if (!success) throw new Exception();

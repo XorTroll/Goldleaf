@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Windows.Forms;
+using Goldtree.API;
 using libusbK;
 
 namespace gtree
@@ -60,7 +60,7 @@ namespace gtree
         public static readonly LogMode Warn = new LogMode("Warn", ConsoleColor.Yellow);
         public static readonly LogMode Error = new LogMode("Error", ConsoleColor.Red, true);
 
-        public static UsbK USB = null;
+        public static Usb USB = null;
 
         public static void Initialize()
         {
@@ -90,12 +90,10 @@ namespace gtree
         public static void Main(string[] Args)
         {
             Initialize();
-            var pat = new KLST_PATTERN_MATCH { DeviceID = @"USB\VID_057E&PID_3000" };
-            var lst = new LstK(0, ref pat);
+
             try
             {
-                lst.MoveNext(out var dinfo);
-                USB = new UsbK(dinfo);
+                USB = new Goldtree.LibUsbK.UsbK(0x057E, 0x3000);
             }
             catch
             {

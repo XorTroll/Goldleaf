@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.28307.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree", "Goldtree\Goldtree.csproj", "{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree.LibUsbK", "Goldtree.LibUsbK\Goldtree.LibUsbK.csproj", "{5131179D-3205-457F-8FE3-D01663B4C33A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldtree.API", "Goldtree.API\Goldtree.API.csproj", "{6338A965-3B70-4B32-A7D4-86832E3A3142}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FEE2E92-7539-4597-8AA7-C06FEF08A9C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5131179D-3205-457F-8FE3-D01663B4C33A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5131179D-3205-457F-8FE3-D01663B4C33A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5131179D-3205-457F-8FE3-D01663B4C33A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5131179D-3205-457F-8FE3-D01663B4C33A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6338A965-3B70-4B32-A7D4-86832E3A3142}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6338A965-3B70-4B32-A7D4-86832E3A3142}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6338A965-3B70-4B32-A7D4-86832E3A3142}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6338A965-3B70-4B32-A7D4-86832E3A3142}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
