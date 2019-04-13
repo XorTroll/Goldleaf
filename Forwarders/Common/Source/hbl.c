@@ -7,6 +7,9 @@
 
 const char* g_easterEgg = "Do you mean to tell me that you're thinking seriously of building that way, when and if you are an architect?";
 
+static char g_basePath[2048];
+static char g_baseArgv[2048];
+
 static char g_argv[2048];
 static char g_nextArgv[2048];
 static char g_nextNroPath[512];
@@ -225,7 +228,7 @@ void getOwnProcessHandle(void)
     smExit();
 }
 
-void loadNro(const char *path, const char *argv)
+void loadNro()
 {
     NroHeader* header = NULL;
     size_t rw_size=0;
@@ -272,10 +275,10 @@ void loadNro(const char *path, const char *argv)
         g_nroAddr = g_nroSize = 0;
     }
 
-    if (strlen(g_nextNroPath) == 0)
+    if(strlen(g_nextNroPath) == 0)
     {
-        strcpy(g_nextNroPath, path);
-        strcpy(g_nextArgv, argv);
+        strcpy(g_nextNroPath, g_basePath);
+        strcpy(g_nextArgv, g_baseArgv);
     }
 
     memcpy(g_argv, g_nextArgv, sizeof g_argv);
@@ -436,7 +439,9 @@ void targetNro(const char *path, const char *argv)
     getIsAutomaticGameplayRecording();
     setupHbHeap();
     getOwnProcessHandle();
-    loadNro(path, argv);
+    strcpy(g_basePath, path);
+    strcpy(g_baseArgv, argv);
+    loadNro();
 
     fatalSimple(MAKERESULT(MODULE_HBL, 8));
 }
