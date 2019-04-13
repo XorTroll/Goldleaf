@@ -14,27 +14,27 @@ APP_AUTHOR  := XorTroll
 APP_VERSION := 0.6
 APP_TITLEID	:= 050032A5CF12E000
 TARGET      := Goldleaf
-ICON		:= Control/RomFs/icon_AmericanEnglish.dat
+ICON		:= Icon.jpg
 
 BUILD       := Build
-SOURCES     := Program/ExeFs/main/Source Program/ExeFs/main/Source/fatfs Program/ExeFs/main/Source/gleaf Program/ExeFs/main/Source/gleaf/acc Program/ExeFs/main/Source/gleaf/dump Program/ExeFs/main/Source/gleaf/err Program/ExeFs/main/Source/gleaf/es Program/ExeFs/main/Source/gleaf/fs Program/ExeFs/main/Source/gleaf/hacpack Program/ExeFs/main/Source/gleaf/hactool Program/ExeFs/main/Source/gleaf/horizon Program/ExeFs/main/Source/gleaf/ini Program/ExeFs/main/Source/gleaf/ncm Program/ExeFs/main/Source/gleaf/net Program/ExeFs/main/Source/gleaf/ns Program/ExeFs/main/Source/gleaf/nsp Program/ExeFs/main/Source/gleaf/set Program/ExeFs/main/Source/gleaf/ui Program/ExeFs/main/Source/gleaf/usb
-INCLUDES    := Program/ExeFs/main/Include Program/ExeFs/main/Include/fatfs Program/ExeFs/main/Include/gleaf Program/ExeFs/main/Include/gleaf/acc Program/ExeFs/main/Include/gleaf/dump Program/ExeFs/main/Include/gleaf/err Program/ExeFs/main/Include/gleaf/es Program/ExeFs/main/Include/gleaf/fs Program/ExeFs/main/Include/gleaf/hacpack Program/ExeFs/main/Include/gleaf/hactool Program/ExeFs/main/Include/gleaf/horizon Program/ExeFs/main/Include/gleaf/ini Program/ExeFs/main/Include/gleaf/ncm Program/ExeFs/main/Include/gleaf/net Program/ExeFs/main/Include/gleaf/ns Program/ExeFs/main/Include/gleaf/nsp Program/ExeFs/main/Include/gleaf/set Program/ExeFs/main/Include/gleaf/ui Program/ExeFs/main/Include/gleaf/usb
-ROMFS       := Program/RomFs
+SOURCES     := Source Source/fatfs Source/gleaf Source/gleaf/acc Source/gleaf/dump Source/gleaf/err Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/ini Source/gleaf/ncm Source/gleaf/net Source/gleaf/ns Source/gleaf/nsp Source/gleaf/set Source/gleaf/ui Source/gleaf/usb
+INCLUDES    := Include Include/fatfs Include/gleaf Include/gleaf/acc Include/gleaf/dump Include/gleaf/err Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/ini Include/gleaf/ncm Include/gleaf/net Include/gleaf/ns Include/gleaf/nsp Include/gleaf/set Include/gleaf/ui Include/gleaf/usb
+ROMFS       := RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections -fpermissive \
+CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID) $(QFLAG)
 
-CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
+CXXFLAGS	:= $(CFLAGS) -fpermissive -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lfatdrive -lnx -lpu -lhactool -lmbedcrypto -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
-LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../libnx-Goldleaf/nx $(CURDIR)/../libnx-Goldleaf/nx/external/bsd $(CURDIR)/../libnx-Goldleaf/nx/fatdrive $(CURDIR)/Program/ExeFs/main/External/pu $(CURDIR)/Program/ExeFs/main/External/json $(CURDIR)/Program/ExeFs/main/External/hactool
+LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../libnx-Goldleaf/nx $(CURDIR)/../libnx-Goldleaf/nx/external/bsd $(CURDIR)/../libnx-Goldleaf/nx/fatdrive $(CURDIR)/External/pu $(CURDIR)/External/json $(CURDIR)/External/hactool
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -88,7 +88,7 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(CURDIR)/Control/RomFs/control.nacp
+	export NROFLAGS += --nacp=$(OUTPUT).nacp
 endif
 
 ifneq ($(APP_TITLEID),)
@@ -99,81 +99,17 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) nro nsp qlaunch clean
-
-nro: $(BUILD)
+.PHONY: $(BUILD) clean
 
 $(BUILD):
-	@mkdir -p $@ $(CURDIR)/Output
-	@echo Goldleaf[nro]: Compiling and generating NRO...
+	@[ -d $@ ] || mkdir -p $@
+	@[ -d $(CURDIR)/Output ] || mkdir -p $(CURDIR)/Output
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@rm -f $(CURDIR)/Output/Goldleaf.nso
-	@echo Goldleaf[nro]: Build finished!
-
-qlaunch:
-	@mkdir -p $(BUILD) $(CURDIR)/Output
-	@echo Goldleaf[qlaunch]: Compiling and generating as qlaunch replacement...
-	@$(MAKE) --no-print-directory QFLAG=-DGOLDLEAF_QLAUNCH -C $(BUILD) -f $(CURDIR)/Makefile
-	@rm -f $(CURDIR)/Output/Goldleaf.nro
-	@rm -rf $(CURDIR)/Output/titles
-	@mkdir -p $(CURDIR)/Output/titles/0100000000001000/exefs $(CURDIR)/Output/titles/0100000000001000/romfs
-	@touch $(CURDIR)/Output/titles/0100000000001000/fsmitm.flag
-	@touch $(CURDIR)/Output/titles/0100000000001000/exefs/rtld.stub
-	@cp $(CURDIR)/Program/ExeFs/main.npdm/qlaunch.npdm $(CURDIR)/Output/titles/0100000000001000/exefs/main.npdm
-	@cp -a $(CURDIR)/Program/RomFs/. $(CURDIR)/Output/titles/0100000000001000/romfs/
-	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Output/titles/0100000000001000/exefs/main
-	@echo Goldleaf[qlaunch]: Build finished!
-
-nsp:
-	@echo Goldleaf[nsp]: Starting build process...
-	@mkdir -p $(CURDIR)/Output
-	@echo Goldleaf[nsp]: Compiling source code...
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@echo Goldleaf[nsp]: Ensuring content directories...
-	@rm -rf $(CURDIR)/Control/_content
-	@mkdir -p $(CURDIR)/Control/_content
-	@rm -rf $(CURDIR)/HtmlDocument/_content
-	@mkdir -p $(CURDIR)/HtmlDocument/_content
-	@rm -rf $(CURDIR)/LegalInfo/_content
-	@mkdir -p $(CURDIR)/LegalInfo/_content
-	@rm -rf $(CURDIR)/Program/_content
-	@mkdir -p $(CURDIR)/Program/_content
-	@rm -rf $(CURDIR)/Program/_temp
-	@mkdir -p $(CURDIR)/Program/_temp
-	@rm -rf $(CURDIR)/Output/_meta
-	@mkdir -p $(CURDIR)/Output/_meta
-	@mv $(CURDIR)/Output/Goldleaf.nso $(CURDIR)/Program/_temp/main
-	@cp $(CURDIR)/Program/ExeFs/main.npdm/default.npdm $(CURDIR)/Program/_temp/main.npdm
-	@echo Goldleaf[nsp]: Generating program NCA...
-	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype program --titleid $(APP_TITLEID) --exefsdir=$(CURDIR)/Program/_temp --romfsdir=$(CURDIR)/Program/RomFs --logodir=$(CURDIR)/Program/Logo --outdir=$(CURDIR)/Program/_content
-	$(eval CPROGRAM = $(shell ls -t $(CURDIR)/Program/_content | head -n 1))
-	@echo Goldleaf[nsp]: Generating control NCA...
-	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype control --titleid $(APP_TITLEID) --romfsdir=$(CURDIR)/Control/RomFs --outdir=$(CURDIR)/Control/_content
-	$(eval CCONTROL = $(shell ls -t $(CURDIR)/Control/_content | head -n 1))
-	@echo Goldleaf[nsp]: Generating HTML document NCA...
-	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype manual --titleid $(APP_TITLEID) --romfsdir=$(CURDIR)/HtmlDocument/RomFs --outdir=$(CURDIR)/HtmlDocument/_content
-	$(eval CHTMLDOC = $(shell ls -t $(CURDIR)/HtmlDocument/_content | head -n 1))
-	@echo Goldleaf[nsp]: Generating legal information NCA...
-	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype manual --titleid $(APP_TITLEID) --romfsdir=$(CURDIR)/LegalInfo/RomFs --outdir=$(CURDIR)/LegalInfo/_content
-	$(eval CLEGALINFO = $(shell ls -t $(CURDIR)/LegalInfo/_content | head -n 1))
-	@echo Goldleaf[nsp]: Generating meta CNMT NCA...
-	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nca --ncatype meta --titleid $(APP_TITLEID) --titletype application --programnca $(CURDIR)/Program/_content/$(CPROGRAM) --controlnca $(CURDIR)/Control/_content/$(CCONTROL) --htmldocnca $(CURDIR)/HtmlDocument/_content/$(CHTMLDOC) --legalnca $(CURDIR)/LegalInfo/_content/$(CLEGALINFO) --outdir=$(CURDIR)/Output/_meta
-	$(eval CMETA = $(shell ls -t $(CURDIR)/Output/_meta | head -n 1))
-	@cp $(CURDIR)/Program/_content/$(CPROGRAM) $(CURDIR)/Output/_meta/$(CPROGRAM)
-	@cp $(CURDIR)/Control/_content/$(CCONTROL) $(CURDIR)/Output/_meta/$(CCONTROL)
-	@cp $(CURDIR)/HtmlDocument/_content/$(CHTMLDOC) $(CURDIR)/Output/_meta/$(CHTMLDOC)
-	@cp $(CURDIR)/LegalInfo/_content/$(CLEGALINFO) $(CURDIR)/Output/_meta/$(CLEGALINFO)
-	@echo Goldleaf[nsp]: Contents copied. Generating final NSP...
-	@$(CURDIR)/BuildTools/hacpack -k $(CURDIR)/BuildTools/prod.keys --type nsp --titleid $(APP_TITLEID) --ncadir $(CURDIR)/Output/_meta --outdir=$(CURDIR)/Output
-	@mv $(CURDIR)/Output/050032a5cf12e000.nsp $(CURDIR)/Output/Goldleaf.nsp
-	@rm -rf $(CURDIR)/hacpack_backup
-	@echo Goldleaf[nsp]: Build finished!
 
 clean:
-	@echo Goldleaf[clean]: Cleaning output and build data...
+	@echo Goldleaf: Cleaning...
 	@rm -fr $(BUILD)
 	@rm -fr $(CURDIR)/Output
-	@echo Goldleaf[clean]: Clean finished!
 
 else
 
@@ -181,11 +117,16 @@ else
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
-all: $(OUTPUT).nro $(OUTPUT).nso
+all: $(OUTPUT).nro
 
-$(OUTPUT).nso	:	$(OUTPUT).elf
+ifeq ($(strip $(NO_NACP)),)
+$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
+else
 $(OUTPUT).nro	:	$(OUTPUT).elf
+endif
+
 $(OUTPUT).elf	:	$(OFILES)
+
 $(OFILES_SRC)	: $(HFILES_BIN)
 
 -include $(DEPENDS)

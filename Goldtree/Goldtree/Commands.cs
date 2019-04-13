@@ -6,34 +6,17 @@ using libusbK;
 
 namespace gtree
 {
-    public enum CommandId
-    {
-        ConnectionRequest,
-        ConnectionResponse,
-        NSPName,
-        Start,
-        NSPData,
-        NSPContent,
-        NSPTicket,
-        Finish, 
-    }
-
-    public enum CommandHandleResult
-    {
-        Success,
-        BadInArguments,
-    }
-
     public enum CommandReadResult
     {
         Success,
         InvalidMagic,
-        InvalidCommand,
+        InvalidCommandId,
     }
 
-    public enum NewCommandId
+    public enum CommandId
     {
         ListSystemDrives,
+        GetEnvironmentPaths,
         GetPathType,
         ListDirectories,
         ListFiles,
@@ -49,6 +32,7 @@ namespace gtree
         GetDriveTotalSpace,
         GetDriveFreeSpace,
         GetNSPContents,
+        Max,
     }
 
     public static class StringExtras
@@ -57,6 +41,11 @@ namespace gtree
         {
             return Str.Replace('/', '\\');
         }
+
+        public static string NormalizeAsGoldleafPath(this string Str)
+        {
+            return Str.Replace('\\', '/');
+        }
     }
 
     public static class UsbKWriteExtras
@@ -64,11 +53,6 @@ namespace gtree
         public static void WriteBytes(this UsbK USB, byte[] Data)
         {
             USB.WritePipe(1, Data, Data.Length, out _, IntPtr.Zero);
-        }
-
-        public static void Write8(this UsbK USB, byte Data)
-        {
-            USB.WriteBytes(new byte[] { Data });
         }
 
         public static void Write32(this UsbK USB, uint Data)
@@ -115,32 +99,34 @@ namespace gtree
         public static string ReadString(this UsbK USB)
         {
             uint strlen = USB.Read32();
-            return Encoding.UTF8.GetString(USB.ReadBytes((int)strlen));
+            return Encoding.ASCII.GetString(USB.ReadBytes((int)strlen));
         }
 
-        public static CommandReadResult ReadCommandInput(this UsbK USB, out NewCommandId Type)
+        public static CommandReadResult ReadCommandInput(this UsbK USB, out CommandId Type)
         {
             CommandReadResult res = CommandReadResult.Success;
-            uint magic = USB.Read32();
-            while(magic == 0)
+            uint magic = 0;
+            do
             {
                 magic = USB.Read32();
-            }
+            } while(magic != Command.GLUC);
             uint cmdid = USB.Read32();
-            Type = (NewCommandId)cmdid;
+            Type = (CommandId)cmdid;
+            if(magic != Command.GLUC) res = CommandReadResult.InvalidMagic;
+            if(cmdid >= (uint)CommandId.Max) res = CommandReadResult.InvalidCommandId;
             return res;
         }
 
-        public static CommandHandleResult HandleNextCommand(this UsbK USB)
+        public static bool HandleNextCommand(this UsbK USB)
         {
-            CommandHandleResult res = CommandHandleResult.Success;
-            CommandReadResult rres = USB.ReadCommandInput(out NewCommandId cmdid);
+            bool ok = true;
+            CommandReadResult rres = USB.ReadCommandInput(out CommandId cmdid);
             if(rres == CommandReadResult.Success)
             {
-                // Console.WriteLine("Received command: " + cmdid.ToString());
+                Program.Command.LogL("Received request (Command: " + cmdid + ")");
                 switch(cmdid)
                 {
-                    case NewCommandId.ListSystemDrives:
+                    case CommandId.ListSystemDrives:
                         {
                             var drives = DriveInfo.GetDrives();
                             List<DriveInfo> adrives = new List<DriveInfo>();
@@ -159,7 +145,24 @@ namespace gtree
                             }
                             break;
                         }
-                    case NewCommandId.GetPathType:
+                    case CommandId.GetEnvironmentPaths:
+                        {
+                            var envpaths = new Dictionary<string, Environment.SpecialFolder>()
+                            {
+                                { "Desktop", Environment.SpecialFolder.Desktop },
+                                { "Documents", Environment.SpecialFolder.MyDocuments },
+                            };
+                            USB.Write32((uint)envpaths.Count);
+                            foreach(var path in envpaths)
+                            {
+                                string pth = Environment.GetFolderPath(path.Value);
+                                string spth = pth.NormalizeAsGoldleafPath();
+                                USB.WriteString(path.Key);
+                                USB.WriteString(spth);
+                            }
+                            break;
+                        }
+                    case CommandId.GetPathType:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
@@ -169,7 +172,7 @@ namespace gtree
                             USB.Write32(ptype);
                             break;
                         }
-                    case NewCommandId.ListDirectories:
+                    case CommandId.ListDirectories:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
@@ -182,7 +185,7 @@ namespace gtree
                             }
                             break;
                         }
-                    case NewCommandId.ListFiles:
+                    case CommandId.ListFiles:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
@@ -195,7 +198,7 @@ namespace gtree
                             }
                             break;
                         }
-                    case NewCommandId.GetFileSize:
+                    case CommandId.GetFileSize:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
@@ -211,85 +214,84 @@ namespace gtree
                             USB.Write64(size);
                             break;
                         }
-                    case NewCommandId.FileRead:
+                    case CommandId.FileRead:
                         {
                             ulong offset = USB.Read64();
                             ulong size = USB.Read64();
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
                             ulong rbytes = 0;
-                            Console.WriteLine("FileRead - Path: " + path + ", Offset: " + offset + ", Size: " + size);
                             byte[] data = new byte[size];
                             try
                             {
                                 var fs = new FileStream(path, FileMode.Open, FileAccess.Read)
                                 {
-                                    Position = (long)offset
+                                    Position = (long)offset,
                                 };
                                 rbytes = (uint)fs.Read(data, 0, (int)size);
                                 fs.Close();
                             }
-                            catch(Exception ex)
+                            catch
                             {
-                                Console.WriteLine("FileRead (" + path + ") - Error reading file: " + ex.Message);
+                                
                             }
-                            USB.Write64(rbytes);
-                            Console.WriteLine("FileRead - Read bytes: " + rbytes);
-                            if (rbytes > 0) USB.WriteBytes(data);
+                            finally
+                            {
+                                USB.Write64(rbytes);
+                                if(rbytes > 0) USB.WriteBytes(data);
+                            }
                             break;
                         }
-                    case NewCommandId.FileWrite:
+                    case CommandId.FileWrite:
                         {
+                            ulong offset = USB.Read64();
+                            ulong size = USB.Read64();
                             string spath = USB.ReadString();
-                            USB.Read32();
-                            uint offset = USB.Read32();
-                            uint size = USB.Read32();
                             byte[] data = USB.ReadBytes((int)size);
                             string path = spath.NormalizeAsPath();
-                            Console.WriteLine("FileWrite - Path: (" + path + "), Offset: " + offset + ", Size: " + size);
                             try
                             {
-                                var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read);
-                                var bw = new BinaryWriter(fs);
-                                bw.BaseStream.Position = offset;
-                                bw.Write(data, 0, (int)size);
-                                bw.Close();
+                                var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write)
+                                {
+                                    Position = (long)offset,
+                                };
+                                fs.Write(data, 0, (int)size);
+                                fs.Close();
                             }
                             catch
                             {
-                                Console.WriteLine("FileWrite (" + path + ") - Error writing file");
                             }
                             break;
                         }
-                    case NewCommandId.CreateFile:
+                    case CommandId.CreateFile:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
                             File.Create(path);
                             break;
                         }
-                    case NewCommandId.CreateDirectory:
+                    case CommandId.CreateDirectory:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
                             Directory.CreateDirectory(path);
                             break;
                         }
-                    case NewCommandId.DeleteFile:
+                    case CommandId.DeleteFile:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
                             File.Delete(path);
                             break;
                         }
-                    case NewCommandId.DeleteDirectory:
+                    case CommandId.DeleteDirectory:
                         {
                             string spath = USB.ReadString();
                             string path = spath.NormalizeAsPath();
                             Directory.Delete(path, true);
                             break;
                         }
-                    case NewCommandId.RenameFile:
+                    case CommandId.RenameFile:
                         {
                             string spath = USB.ReadString();
                             string newname = USB.ReadString();
@@ -298,7 +300,7 @@ namespace gtree
                             File.Move(path, npath);
                             break;
                         }
-                    case NewCommandId.RenameDirectory:
+                    case CommandId.RenameDirectory:
                         {
                             string spath = USB.ReadString();
                             string newname = USB.ReadString();
@@ -307,14 +309,14 @@ namespace gtree
                             Directory.Move(path, npath);
                             break;
                         }
-                    case NewCommandId.GetDriveTotalSpace:
+                    case CommandId.GetDriveTotalSpace:
                         {
                             string sdrive = USB.ReadString();
                             var drives = DriveInfo.GetDrives();
                             ulong space = 0;
                             if(drives.Length > 0) foreach(var drive in drives)
                             {
-                                if(drive.Name.StartsWith(sdrive))
+                                if(drive.IsReady && (drive.Name == sdrive))
                                 {
                                     space = (ulong)drive.TotalSize;
                                     break;
@@ -323,14 +325,14 @@ namespace gtree
                             USB.Write64(space);
                             break;
                         }
-                    case NewCommandId.GetDriveFreeSpace:
+                    case CommandId.GetDriveFreeSpace:
                         {
                             string sdrive = USB.ReadString();
                             var drives = DriveInfo.GetDrives();
                             ulong space = 0;
                             if(drives.Length > 0) foreach(var drive in drives)
                             {
-                                if(drive.IsReady && drive.Name.StartsWith(sdrive))
+                                if(drive.IsReady && (drive.Name == sdrive))
                                 {
                                     space = (ulong)drive.TotalFreeSpace;
                                     break;
@@ -341,14 +343,13 @@ namespace gtree
                         }
                 }
             }
-            else res = CommandHandleResult.BadInArguments;
-            return res;
+            else ok = false;
+            return ok;
         }
     }
 
     public static class Command
     {
-        public static readonly uint GUCIMagic = 0x49435547;
-        public static readonly uint GUCOMagic = 0x4f435547;
+        public static readonly uint GLUC = 0x43554c47;
     }
 }
