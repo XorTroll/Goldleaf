@@ -17,6 +17,13 @@ namespace gleaf::fs
     static Explorer *enss = NULL;
     static Explorer *epcdrv = NULL;
 
+    bool InternalCaseCompare(std::string a, std::string b)
+    {
+        std::transform(a.begin(), a.end(), a.begin(), ::tolower);
+        std::transform(b.begin(), b.end(), b.begin(), ::tolower);
+        return (a < b);
+    }
+
     Explorer::~Explorer()
     {
         this->Close();
@@ -60,6 +67,8 @@ namespace gleaf::fs
         std::vector<std::string> dirs = this->GetDirectories(this->ecwd);
         std::vector<std::string> files = this->GetFiles(this->ecwd);
         if(dirs.empty() && files.empty()) return all;
+        if(!dirs.empty()) std::sort(dirs.begin(), dirs.end(), InternalCaseCompare);
+        if(!files.empty()) std::sort(files.begin(), files.end(), InternalCaseCompare);
         all.reserve(dirs.size() + files.size());
         all.insert(all.end(), dirs.begin(), dirs.end());
         all.insert(all.end(), files.begin(), files.end());
