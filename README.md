@@ -1,4 +1,4 @@
-![Logo](Goldleaf/Program/RomFs/Logo.png)
+![Logo](Goldleaf/RomFs/Logo.png)
 
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)]() [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)]()
 
@@ -8,9 +8,10 @@
 
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
-3. [Configuration](#configuration)
-4. [Known bugs](#known-bugs)
-5. [Credits and support](#credits-and-support)
+3. [Forwarding](#forwarding)
+4. [Configuration](#configuration)
+5. [Known bugs](#known-bugs)
+6. [Credits and support](#credits-and-support)
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
@@ -23,8 +24,6 @@
 ## Features
 
 Goldleaf has a very similar concept to [FBI](https://github.com/Steveice10/FBI), which is a similar tool for Nintendo 3DS homebrew.
-
-As installed content, it's application Id / titleId is `050032A5CF12E000`.
 
 These are its main features:
 
@@ -71,6 +70,22 @@ Tickets represent a game purchase, but technically speaking, you can't boot a ti
 NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Standard-crypto titles aren't offical (usually reconverted content to avoid importing tickets).
 
 Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access titles' content which require a ticket. Otherwise, they are undecryptable, hence unlaunchable by the system.
+
+## Forwarding
+
+> **IMPORTANT!** *This is going to be part of 0.6 and following releases. This information doesn't apply for 0.5 or pre0.5 versions of Goldleaf.*
+
+Goldleaf itself is a regular homebrew project, thus a simple NRO. However, via the forwarding projects' system, you can launch Goldleaf as an installed title (installing a forwarder NSP), or even replace HOME menu!
+
+### Forwarder projects
+
+The forwarding process is common and simple: locate Goldleaf's NRO, launch it via argc/argv. These are the forwarders available:
+
+- **Normal forwarder**: Locates and launches normally Goldleaf NRO. Consists on an installable NSP, whose ApplicationId (aka TitleID) is `050032A5CF12E000`.
+
+- **hbmenu(ish) forwarder**: Locates and launches Goldleaf NRO, but in hbmenu mode, which will make Goldleaf display a different initial menu, UI... made for homebrew NRO browsing and launching. This one consists on an installable NSP, whose ApplicationId (aka TitleID) is `0500E83A507FE000`, and on a single NRO which can be replaced with *hbmenu.nro* to use Goldleaf as hbmenu instead of the common one.
+
+- **HOME menu forwarder (LFS replacement)**: This one is a simple ExeFs replacement, to be applied to the CFW being used, which will locate Goldleaf's NRO and start it. For the moment Goldleaf will display the same UI, but soon a special UI will be made for this mode, like hbmenu forwarder's one.
 
 ## Configuration
 
