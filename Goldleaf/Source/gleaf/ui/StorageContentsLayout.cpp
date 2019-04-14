@@ -75,7 +75,7 @@ namespace gleaf::ui
             this->contentsMenu->SetVisible(true);
             for(u32 i = 0; i < this->contents.size(); i++)
             {
-                if(this->contents[i].IsBaseTitle() || (this->contents[i].Location == Storage::NANDSystem))
+                if(true)//(this->contents[i].IsBaseTitle() || (this->contents[i].Location == Storage::NANDSystem))
                 {
                     NacpStruct *nacp = this->contents[i].TryGetNACP();
                     std::string name = horizon::FormatApplicationId(this->contents[i].ApplicationId);

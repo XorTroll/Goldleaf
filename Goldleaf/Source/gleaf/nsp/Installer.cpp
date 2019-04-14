@@ -5,6 +5,7 @@
 #include <fstream>
 #include <malloc.h>
 #include <dirent.h>
+#include <chrono>
 
 extern gleaf::set::Settings gsets;
 
@@ -382,7 +383,7 @@ namespace gleaf::nsp
         }
     }
 
-    Result Install(std::string Path, fs::Explorer *Exp, Storage Location, std::function<bool(ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs)> OnInitialProcess, std::function<void()> OnRecordProcess, std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total)> OnContentWrite)
+    Result Install(std::string Path, fs::Explorer *Exp, Storage Location, std::function<bool(ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs)> OnInitialProcess, std::function<void()> OnRecordProcess, std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite)
     {
         Result rc = 0xf601;
         FsStorageId storage = static_cast<FsStorageId>(Location);
@@ -575,10 +576,21 @@ namespace gleaf::nsp
                 ncm::CreatePlaceHolder(&cst, &curid, &curid, ncasize);
                 u64 noff = 0;
                 u64 szrem = ncasize;
-                u64 reads = 0x100000;
-                u8 *rdata = (u8*)malloc(reads);
+                u64 reads = 0x400000;
+                u8 *rdata = (u8*)memalign(0x1000, reads);
+                u64 tmpwritten = 0;
+                u64 bsec = 0;
+                auto t1 = std::chrono::steady_clock::now();
                 while(szrem)
                 {
+                    auto t2 = std::chrono::steady_clock::now();
+                    u64 diff = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count();
+                    if(diff >= 1)
+                    {
+                        t1 = t2;
+                        bsec = tmpwritten;
+                        tmpwritten = 0;
+                    }
                     u64 rbytes = 0;
                     u64 rsize = std::min(szrem, reads);
                     switch(rnca.Type)
@@ -593,15 +605,16 @@ namespace gleaf::nsp
                     }
                     ncm::WritePlaceHolder(&cst, &curid, noff, rdata, rbytes);
                     noff += rbytes;
+                    tmpwritten += (double)rbytes;
                     szrem -= rbytes;
-                    OnContentWrite(rnca, i, ncas.size(), (double)noff, (double)ncasize);
+                    OnContentWrite(rnca, i, ncas.size(), (double)noff, (double)ncasize, bsec);
                 }
                 free(rdata);
                 ncmContentStorageRegister(&cst, &curid, &curid);
                 ncm::DeletePlaceHolder(&cst, &curid);
                 serviceClose(&cst.s);
             }
-            nsys->DeleteDirectory("Contents/temp");
+            // nsys->DeleteDirectory("Contents/temp");
         }
         return rc;
     }

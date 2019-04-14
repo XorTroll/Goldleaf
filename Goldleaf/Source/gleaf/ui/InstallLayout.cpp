@@ -169,12 +169,13 @@ namespace gleaf::ui
             this->installText->SetText(set::GetDictionaryEntry(146));
             mainapp->CallForRender();
             this->installBar->SetVisible(true);
-        }, [&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total)
+        }, [&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
         {
             this->installBar->SetMaxValue(Total);
             std::string name = set::GetDictionaryEntry(148) + " \'"  + horizon::GetStringFromNCAId(Record.NCAId);
             if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
-            name += ".nca\'... (NCA " + std::to_string(Content + 1) + " " + set::GetDictionaryEntry(149) + " " + std::to_string(ContentCount) + ")";
+            // name += ".nca\'... (NCA " + std::to_string(Content + 1) + " " + set::GetDictionaryEntry(149) + " " + std::to_string(ContentCount) + ")";
+            name += ".nca\'... (" + fs::FormatSize(BytesSec) + "/s)";
             this->installText->SetText(name);
             this->installBar->SetProgress(Done);
             mainapp->CallForRender();

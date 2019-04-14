@@ -43,6 +43,7 @@ namespace gleaf::nsp
     {
         public:
             PFS0(fs::Explorer *Exp, std::string Path);
+            ~PFS0();
             u32 GetCount();
             std::string GetFile(u32 Index);
             u64 ReadFromFile(u32 Index, u64 Offset, u64 Size, u8 *Out);

@@ -36,7 +36,7 @@ SOURCES		:=	source ../Common/Source
 DATA		:=	data
 INCLUDES	:=	include ../Common/Include
 EXEFS_SRC	:=	ExeFs
-ICON := Control/icon_AmericanEnglish.dat
+
 # ROMFS	:=	romfs
 
 APP_TITLE := Goldleaf
@@ -153,8 +153,10 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(CURDIR)/Output/temp ] || mkdir -p $(CURDIR)/Output/temp
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@rm -rf $(CURDIR)/Control/control.nacp
+	@rm -rf $(CURDIR)/Control
+	mkdir -p $(CURDIR)/Control
 	@cp $(OUTPUT).nacp $(CURDIR)/Control/control.nacp
+	@cp $(CURDIR)/../../Goldleaf/Icon.jpg $(CURDIR)/Control/icon_AmericanEnglish.dat
 	@$(CURDIR)/../../BuildTools/hacbrewpack -k $(CURDIR)/../../BuildTools/keys.dat --exefsdir $(BUILD)/exefs --noromfs --logodir $(CURDIR)/../Common/Logo --controldir $(CURDIR)/Control --nspdir $(CURDIR)/build
 	@rm -rf $(CURDIR)/Output/temp
 	@mv $(CURDIR)/build/050032a5cf12e000.nsp $(CURDIR)/Output/Goldleaf.nsp
