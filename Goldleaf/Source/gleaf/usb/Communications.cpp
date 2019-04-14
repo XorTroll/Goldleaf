@@ -3,6 +3,18 @@
 
 namespace gleaf::usb
 {
+    size_t ReadSimple(void *Out, size_t Size, UsbCallbackFn LoopCallback)
+    {
+        size_t sz = 0;
+        usbCommsRead(Out, Size, &sz, LoopCallback);
+        return sz;
+    }
+
+    size_t WriteSimple(const void *Buffer, size_t Size)
+    {
+        return usbCommsWrite(Buffer, Size);
+    }
+
     size_t Read(void *Out, size_t Size, UsbCallbackFn LoopCallback)
     {
         u8 *bufptr = (u8*)Out;

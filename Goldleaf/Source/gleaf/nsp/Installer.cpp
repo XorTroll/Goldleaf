@@ -416,10 +416,10 @@ namespace gleaf::nsp
             std::string icnmtnca = fs::GetFileName(cnmtnca);
             fs::Explorer *nsys = fs::GetNANDSystemExplorer();
             nsys->CreateDirectory("Contents/temp");
-            std::string ncnmtnca = nsys->FullPathFor("Contents/temp/" + icnmtnca);
+            std::string ncnmtnca = nsys->FullPathFor("Contents/temp/" + cnmtnca);
             nsys->DeleteFile(ncnmtnca);
             nsp.SaveFile(idxcnmtnca, nsys, ncnmtnca);
-            std::string acnmtnca = "@SystemContent://temp/" + icnmtnca;
+            std::string acnmtnca = "@SystemContent://temp/" + cnmtnca;
             acnmtnca.reserve(FS_MAX_PATH);
             ByteBuffer bcnmt;
             FsFileSystem cnmtncafs;
@@ -478,6 +478,7 @@ namespace gleaf::nsp
                 tikd = horizon::ReadTicket(ptik);
             }
             std::string icon;
+            std::string ncontrolnca;
             for(u32 i = 0; i < recs.size(); i++)
             {
                 ncas.push_back(recs[i]);
@@ -486,7 +487,7 @@ namespace gleaf::nsp
                     std::string controlncaid = horizon::GetStringFromNCAId(recs[i].NCAId);
                     std::string controlnca = controlncaid + ".nca";
                     u32 idxcontrolnca = nsp.GetFileIndexByName(controlnca);
-                    std::string ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
+                    ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
                     nsp.SaveFile(idxcontrolnca, nsys, ncontrolnca);
                     std::string acontrolnca = "@SystemContent://temp/" + controlnca;
                     acontrolnca.reserve(FS_MAX_PATH);
@@ -574,11 +575,22 @@ namespace gleaf::nsp
                 ncm::CreatePlaceHolder(&cst, &curid, &curid, ncasize);
                 u64 noff = 0;
                 u64 szrem = ncasize;
-                u64 reads = 0x800000;
-                u8 *rdata = (u8*)memalign(0x1000, reads);
+                u64 reads = 0x100000;
+                u8 *rdata = (u8*)malloc(reads);
                 while(szrem)
                 {
-                    u64 rbytes = nsp.ReadFromFile(idxncaname, noff, std::min(szrem, reads), rdata);
+                    u64 rbytes = 0;
+                    u64 rsize = std::min(szrem, reads);
+                    switch(rnca.Type)
+                    {
+                        case ncm::ContentType::Meta:
+                        case ncm::ContentType::Control:
+                            rbytes = nsys->ReadFileBlock("Contents/temp/" + ncaname, noff, rsize, rdata);
+                            break;
+                        default:
+                            rbytes = nsp.ReadFromFile(idxncaname, noff, rsize, rdata);
+                            break;   
+                    }
                     ncm::WritePlaceHolder(&cst, &curid, noff, rdata, rbytes);
                     noff += rbytes;
                     szrem -= rbytes;

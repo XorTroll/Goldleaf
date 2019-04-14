@@ -35,17 +35,23 @@ namespace gleaf::dump
 
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out)
     {
-        size_t size = sizeof(NcmApplicationContentMetaKey) * 128;
+        size_t size = sizeof(NcmMetaRecord) * 128;
         NcmMetaRecord *metas = (NcmMetaRecord*)malloc(size);
         u32 total = 0;
         u32 written = 0;
         bool got = false;
-        Result rc = ncmContentMetaDatabaseList(metadb, 0, ApplicationId, ApplicationId, ApplicationId, metas, size, &written, &total);
-        if(rc == 0) if(written > 0) for(u32 i = 0; i < written; i++) if(metas[i].titleId == ApplicationId)
+        Result rc = ncmContentMetaDatabaseList(metadb, 0, ApplicationId, 0, U64_MAX, metas, size, &written, &total);
+        if((rc == 0) && (written > 0)) 
         {
-            *out = metas[i];
-            got = true;
-            break;
+            for(u32 i = 0; i < written; i++)
+            {
+                if(metas[i].titleId == ApplicationId)
+                {
+                    *out = metas[i];
+                    got = true;
+                    break;
+                }
+            }
         }
         return got;
     }

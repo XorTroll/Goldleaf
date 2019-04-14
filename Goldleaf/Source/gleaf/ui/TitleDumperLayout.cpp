@@ -63,17 +63,6 @@ namespace gleaf::ui
             serviceClose(&cmdb.s);
             return;
         }
-        NcmNcaId program;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
-        if(!ok)
-        {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
-            mainapp->LoadLayout(mainapp->GetContentManagerLayout());
-            serviceClose(&cst.s);
-            serviceClose(&cmdb.s);
-            return;
-        }
-        std::string sprogram = dump::GetNCAIdPath(&cst, &program);
         NcmNcaId meta;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
@@ -85,6 +74,11 @@ namespace gleaf::ui
             return;
         }
         std::string smeta = dump::GetNCAIdPath(&cst, &meta);
+        NcmNcaId program;
+        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
+        bool hasprogram = ok;
+        std::string sprogram;
+        if(ok) sprogram = dump::GetNCAIdPath(&cst, &program);
         NcmNcaId control;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
         bool hascontrol = ok;
@@ -116,15 +110,6 @@ namespace gleaf::ui
         if(stid == FsStorageId_SdCard)
         {
             this->dumpText->SetText(set::GetDictionaryEntry(194));
-            xprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
-            this->ncaBar->SetVisible(true);
-            dump::DecryptCopyNAX0ToNCA(&cst, program, xprogram, [&](double Done, double Total)
-            {
-                this->ncaBar->SetMaxValue(Total);
-                this->ncaBar->SetProgress(Done);
-                mainapp->CallForRender();
-            });
-            this->ncaBar->SetVisible(false);
             xmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
             this->ncaBar->SetVisible(true);
             dump::DecryptCopyNAX0ToNCA(&cst, meta, xmeta, [&](double Done, double Total)
@@ -134,6 +119,18 @@ namespace gleaf::ui
                 mainapp->CallForRender();
             });
             this->ncaBar->SetVisible(false);
+            if(hasprogram)
+            {
+                xprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
+                this->ncaBar->SetVisible(true);
+                dump::DecryptCopyNAX0ToNCA(&cst, program, xprogram, [&](double Done, double Total)
+                {
+                    this->ncaBar->SetMaxValue(Total);
+                    this->ncaBar->SetProgress(Done);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+            }
             if(hascontrol)
             {
                 xcontrol = outdir + "/" + horizon::GetStringFromNCAId(control) + ".nca";
@@ -197,16 +194,6 @@ namespace gleaf::ui
                 return;
             }
             this->dumpText->SetText(set::GetDictionaryEntry(195));
-            xprogram = nexp->FullPathFor("Contents/" + xprogram.substr(15));
-            std::string txprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
-            this->ncaBar->SetVisible(true);
-            fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
-            {
-                this->ncaBar->SetProgress(p);
-                mainapp->CallForRender();
-            });
-            this->ncaBar->SetVisible(false);
-            xprogram = txprogram;
             xmeta = nexp->FullPathFor("Contents/" + xmeta.substr(15));
             std::string txmeta = outdir + "/" + horizon::GetStringFromNCAId(meta) + ".cnmt.nca";
             this->ncaBar->SetVisible(true);
@@ -217,6 +204,19 @@ namespace gleaf::ui
             });
             this->ncaBar->SetVisible(false);
             xmeta = txmeta;
+            if(hasprogram)
+            {
+                xprogram = nexp->FullPathFor("Contents/" + xprogram.substr(15));
+                std::string txprogram = outdir + "/" + horizon::GetStringFromNCAId(program) + ".nca";
+                this->ncaBar->SetVisible(true);
+                fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
+                {
+                    this->ncaBar->SetProgress(p);
+                    mainapp->CallForRender();
+                });
+                this->ncaBar->SetVisible(false);
+                xprogram = txprogram;
+            }
             if(hascontrol)
             {
                 xcontrol = nexp->FullPathFor("Contents/" + xcontrol.substr(15));

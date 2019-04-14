@@ -56,8 +56,7 @@ namespace gleaf::nsp
 
     u64 PFS0::ReadFromFile(u32 Index, u64 Offset, u64 Size, u8 *Out)
     {
-        u64 foffset = this->headersize + this->files[Index].Entry.Offset + Offset;
-        return this->gexp->ReadFileBlock(this->path, foffset, Size, Out);
+        return this->gexp->ReadFileBlock(this->path, (this->headersize + this->files[Index].Entry.Offset + Offset), Size, Out);
     }
 
     std::vector<std::string> PFS0::GetFiles()

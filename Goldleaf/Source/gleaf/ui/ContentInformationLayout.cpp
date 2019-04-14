@@ -21,13 +21,12 @@ namespace gleaf::ui
     void ContentInformationLayout::UpdateElements()
     {
         this->optionsMenu->ClearItems();
-        this->baseTitleItem = new pu::element::MenuItem(set::GetDictionaryEntry(261));
-        this->baseTitleItem->SetColor(gsets.CustomScheme.Text);
-        this->baseTitleItem->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
-        this->optionsMenu->AddItem(this->baseTitleItem);
-        if(!this->subcnts.empty()) for(u32 i = 0; i < this->subcnts.size(); i++)
+        if(!this->tcontents.empty()) for(u32 i = 0; i < this->tcontents.size(); i++)
         {
-            pu::element::MenuItem *subcnt = new pu::element::MenuItem(this->subcnts[i].IsUpdate() ? set::GetDictionaryEntry(262) : set::GetDictionaryEntry(263));
+            std::string name = set::GetDictionaryEntry(261);
+            if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
+            if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(262);
+            pu::element::MenuItem *subcnt = new pu::element::MenuItem(name);
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
             this->optionsMenu->AddItem(subcnt);
@@ -40,45 +39,40 @@ namespace gleaf::ui
         u32 idx = this->optionsMenu->GetSelectedIndex();
         std::string msg = set::GetDictionaryEntry(169) + "\n\n";
         msg += set::GetDictionaryEntry(160) + " ";
-        std::vector<std::string> opts = { set::GetDictionaryEntry(245) };
+        std::vector<std::string> opts = { set::GetDictionaryEntry(245), set::GetDictionaryEntry(244) };
         std::string icn;
-        horizon::Title subcnt;
-        if(idx == 0)
+        horizon::Title cnt = this->tcontents[idx];
+        if(fs::IsFile(horizon::GetExportedIconPath(cnt.ApplicationId))) icn = horizon::GetExportedIconPath(cnt.ApplicationId);
+        switch(cnt.Type)
         {
-            if(fs::IsFile(horizon::GetExportedIconPath(this->content.ApplicationId))) icn = horizon::GetExportedIconPath(this->content.ApplicationId);
-            opts.push_back(set::GetDictionaryEntry(244));
-            switch(this->content.Type)
-            {
-                case ncm::ContentMetaType::Application:
-                    msg += set::GetDictionaryEntry(171);
-                    break;
-                case ncm::ContentMetaType::AddOnContent:
-                    msg += set::GetDictionaryEntry(172);
-                    break;
-                case ncm::ContentMetaType::Patch:
-                    msg += set::GetDictionaryEntry(173);
-                    break;
-                case ncm::ContentMetaType::SystemProgram:
-                    msg += set::GetDictionaryEntry(174);
-                    break;
-                case ncm::ContentMetaType::SystemData:
-                    msg += set::GetDictionaryEntry(175);
-                    break;
-                default:
-                    msg += set::GetDictionaryEntry(176);
-                    break;
-            }
-            msg += "\n" + set::GetDictionaryEntry(90) + " " + horizon::FormatApplicationId(this->content.ApplicationId);
-            msg += "\n\n" + set::GetDictionaryEntry(177) + " " + this->contents.GetFormattedTotalSize();
-            msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(this->content.Version);
-            if(this->content.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(this->content.Version >> 16) + "]";
+            case ncm::ContentMetaType::Application:
+                msg += set::GetDictionaryEntry(171);
+                break;
+            case ncm::ContentMetaType::AddOnContent:
+                msg += set::GetDictionaryEntry(172);
+                break;
+            case ncm::ContentMetaType::Patch:
+                msg += set::GetDictionaryEntry(173);
+                break;
+            case ncm::ContentMetaType::SystemProgram:
+                msg += set::GetDictionaryEntry(174);
+                break;
+            case ncm::ContentMetaType::SystemData:
+                msg += set::GetDictionaryEntry(175);
+                break;
+            default:
+                msg += set::GetDictionaryEntry(176);
+                break;
         }
+        msg += "\n" + set::GetDictionaryEntry(90) + " " + horizon::FormatApplicationId(cnt.ApplicationId);
+        msg += "\n\n" + set::GetDictionaryEntry(177) + " " + this->contents.GetFormattedTotalSize();
+        msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
+        if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
         else
         {
-            subcnt = this->subcnts[idx - 1];
-            if(fs::IsFile(horizon::GetExportedIconPath(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type)))) icn = horizon::GetExportedIconPath(horizon::GetBaseApplicationId(subcnt.ApplicationId, subcnt.Type));
-            horizon::TitleContents subcnts = subcnt.GetContents();
-            switch(subcnt.Type)
+            if(fs::IsFile(horizon::GetExportedIconPath(horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type)))) icn = horizon::GetExportedIconPath(horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type));
+            horizon::TitleContents subcnts = cnt.GetContents();
+            switch(cnt.Type)
             {
                 case ncm::ContentMetaType::Application:
                     msg += set::GetDictionaryEntry(171);
@@ -99,12 +93,12 @@ namespace gleaf::ui
                     msg += set::GetDictionaryEntry(176);
                     break;
             }
-            msg += "\n" + set::GetDictionaryEntry(90) + " " + horizon::FormatApplicationId(subcnt.ApplicationId);
+            msg += "\n" + set::GetDictionaryEntry(90) + " " + horizon::FormatApplicationId(cnt.ApplicationId);
             msg += "\n\n" + set::GetDictionaryEntry(177) + " " + subcnts.GetFormattedTotalSize();
-            msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(subcnt.Version);
-            if(subcnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(subcnt.Version >> 16) + "]";
+            msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
+            if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
         }
-        if((idx == 0) && (this->content.Location == Storage::GameCart))
+        if((idx == 0) && (cnt.Location == Storage::GameCart))
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
@@ -112,127 +106,83 @@ namespace gleaf::ui
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
-        if(idx == 0)
+        if(sopt == 0)
         {
-            if(sopt == 0)
+            if(cnt.Location == Storage::NANDSystem)
             {
-                if(this->content.Location == Storage::NANDSystem)
-                {
-                    mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(185), { set::GetDictionaryEntry(234) }, true);
-                    return;
-                }
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
-                if(sopt < 0) return;
-                Result rc = horizon::RemoveTitle(this->content);
-                if(rc == 0)
-                {
-                    mainapp->ShowNotification(set::GetDictionaryEntry(246));
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                }
-                else HandleResult(rc, set::GetDictionaryEntry(247));
+                mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(185), { set::GetDictionaryEntry(234) }, true);
+                return;
             }
-            else if(sopt == 1)
+            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            if(sopt < 0) return;
+            Result rc = horizon::RemoveTitle(cnt);
+            if(rc == 0)
             {
-                if(this->contents.GetTotalSize() >= 0x100000000)
-                {
-                    sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(183), { set::GetDictionaryEntry(234), set::GetDictionaryEntry(18) }, true);
-                    if(sopt < 0) return;
-                }
-                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
-                if(sopt < 0) return;
-                if(sopt == 0)
-                {
-                    mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
-                    mainapp->GetTitleDumperLayout()->StartDump(this->content);
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                }
+                mainapp->ShowNotification(set::GetDictionaryEntry(246));
+                mainapp->UnloadMenuData();
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             }
+            else HandleResult(rc, set::GetDictionaryEntry(247));
         }
-        else
+        else if(sopt == 1)
         {
+            if(this->contents.GetTotalSize() >= 0x100000000)
+            {
+                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(183), { set::GetDictionaryEntry(234), set::GetDictionaryEntry(18) }, true);
+                if(sopt < 0) return;
+            }
+            sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            if(sopt < 0) return;
             if(sopt == 0)
             {
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
-                if(sopt < 0) return;
-                Result rc = horizon::RemoveTitle(subcnt);
-                if(rc == 0)
-                {
-                    mainapp->ShowNotification(set::GetDictionaryEntry(246));
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                }
-                else HandleResult(rc, set::GetDictionaryEntry(247));
+                mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
+                mainapp->GetTitleDumperLayout()->StartDump(cnt);
+                mainapp->UnloadMenuData();
+                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             }
         }
     }
 
     void ContentInformationLayout::LoadContent(horizon::Title &Content)
     {
-        this->subcnts.clear();
-        this->content = Content;
+        this->tcontents.clear();
+        this->tcontents.push_back(Content);
         this->contents = Content.GetContents();
-        bool hasupd = false;
-        bool hasdlc = false;
-        std::vector<horizon::Title> tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::GameCart);
-        if(!tts.empty())
+        if(Content.IsBaseTitle())
         {
-            for(u32 i = 0; i < tts.size(); i++)
+            std::vector<horizon::Title> tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::GameCart);
+            if(!tts.empty())
             {
-                if(Content.CheckBase(tts[i]))
+                for(u32 i = 0; i < tts.size(); i++)
                 {
-                    if(tts[i].IsUpdate()) hasupd = true;
-                    if(tts[i].IsDLC()) hasdlc = true;
-                    this->subcnts.push_back(tts[i]);
+                    if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
                 }
             }
-        }
-        tts.clear();
-        tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
-        if(!tts.empty())
-        {
-            for(u32 i = 0; i < tts.size(); i++)
+            tts.clear();
+            tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
+            if(!tts.empty())
             {
-                if(Content.CheckBase(tts[i]))
+                for(u32 i = 0; i < tts.size(); i++)
                 {
-                    if(tts[i].IsUpdate()) hasupd = true;
-                    if(tts[i].IsDLC()) hasdlc = true;
-                    this->subcnts.push_back(tts[i]);
+                    if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
                 }
             }
-        }
-        tts.clear();
-        tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
-        if(!tts.empty())
-        {
-            for(u32 i = 0; i < tts.size(); i++)
+            tts.clear();
+            tts = horizon::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
+            if(!tts.empty())
             {
-                if(Content.CheckBase(tts[i]))
+                for(u32 i = 0; i < tts.size(); i++)
                 {
-                    if(tts[i].IsUpdate()) hasupd = true;
-                    if(tts[i].IsDLC()) hasdlc = true;
-                    this->subcnts.push_back(tts[i]);
+                    if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
                 }
             }
+            tts.clear();
         }
-        tts.clear();
         NacpStruct *nacp = Content.TryGetNACP();
         std::string tcnt = horizon::FormatApplicationId(Content.ApplicationId);
         if(nacp != NULL)
         {
-            tcnt = horizon::GetNACPName(nacp);
-            tcnt += " (" + std::string(nacp->version);
-            if(hasupd)
-            {
-                if(hasdlc) tcnt += ", " + set::GetDictionaryEntry(267) + ")";
-                else tcnt += ", " + set::GetDictionaryEntry(268) + ")";
-            }
-            else
-            {
-                if(hasdlc) tcnt += ", " + set::GetDictionaryEntry(269) + ")";
-                else tcnt += ")";
-            }
+            tcnt = horizon::GetNACPName(nacp) + " (" + std::string(nacp->version) + ")";
             free(nacp);
         }
         std::string icon;

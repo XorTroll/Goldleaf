@@ -224,22 +224,18 @@ namespace gtree
                             byte[] data = new byte[size];
                             try
                             {
-                                var fs = new FileStream(path, FileMode.Open, FileAccess.Read)
+                                using(BinaryReader reader = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
                                 {
-                                    Position = (long)offset,
-                                };
-                                rbytes = (uint)fs.Read(data, 0, (int)size);
-                                fs.Close();
+                                    reader.BaseStream.Seek((long)offset, SeekOrigin.Begin);
+                                    rbytes = (ulong)reader.Read(data, 0, (int)size);
+                                }
                             }
                             catch
                             {
-                                
                             }
-                            finally
-                            {
-                                USB.Write64(rbytes);
-                                if(rbytes > 0) USB.WriteBytes(data);
-                            }
+                            // Console.WriteLine("FileRead - Offset: " + offset + ", RBytes: " + rbytes);
+                            USB.Write64(rbytes);
+                            if(rbytes > 0) USB.WriteBytes(data);
                             break;
                         }
                     case CommandId.FileWrite:

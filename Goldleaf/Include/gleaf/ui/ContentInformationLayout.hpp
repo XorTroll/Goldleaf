@@ -23,10 +23,8 @@ namespace gleaf::ui
             void options_Click();
             void LoadContent(horizon::Title &Content);
         private:
-            horizon::Title content;
-            std::vector<horizon::Title> subcnts;
+            std::vector<horizon::Title> tcontents;
             horizon::TitleContents contents;
-            pu::element::MenuItem *baseTitleItem;
             pu::element::Menu *optionsMenu;
     };
 }

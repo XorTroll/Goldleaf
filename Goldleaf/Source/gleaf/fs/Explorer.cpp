@@ -790,7 +790,7 @@ namespace gleaf::fs
             usb::Write64(Size);
             usb::WriteString(path);
             rsize = usb::Read64();
-            if(rsize > 0) usb::Read(Out, Size);
+            if(rsize > 0) usb::ReadSimple(Out, Size);
         }
         return rsize;
     }

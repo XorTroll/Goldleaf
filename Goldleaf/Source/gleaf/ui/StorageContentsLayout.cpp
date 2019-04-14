@@ -10,7 +10,9 @@ namespace gleaf::ui
     {
         this->contentsMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->contentsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->noContentsText = new pu::element::TextBlock(30, 630, set::GetDictionaryEntry(188));
+        this->noContentsText = new pu::element::TextBlock(0, 0, set::GetDictionaryEntry(188));
+        this->noContentsText->SetHorizontalAlign(pu::element::HorizontalAlign::Center);
+        this->noContentsText->SetVerticalAlign(pu::element::VerticalAlign::Center);
         this->noContentsText->SetColor(gsets.CustomScheme.Text);
         this->noContentsText->SetVisible(false);
         this->Add(this->noContentsText);
@@ -26,11 +28,8 @@ namespace gleaf::ui
     void StorageContentsLayout::contents_Click()
     {
         horizon::Title selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
-        if(selcnt.IsBaseTitle() || (selcnt.Location == Storage::NANDSystem))
-        {
-            mainapp->GetContentInformationLayout()->LoadContent(selcnt);
-            mainapp->LoadLayout(mainapp->GetContentInformationLayout());
-        }
+        mainapp->GetContentInformationLayout()->LoadContent(selcnt);
+        mainapp->LoadLayout(mainapp->GetContentInformationLayout());
     }
 
     void StorageContentsLayout::LoadFromStorage(Storage Location)
@@ -43,7 +42,25 @@ namespace gleaf::ui
         std::vector<horizon::Title> cnts = horizon::SearchTitles(ncm::ContentMetaType::Any, Location);
         if(!cnts.empty()) for(u32 i = 0; i < cnts.size(); i++)
         {
-            if(cnts[i].IsBaseTitle() || (cnts[i].Location == Storage::NANDSystem)) this->contents.push_back(cnts[i]);
+            horizon::Title cnt = cnts[i];
+            if(cnt.IsBaseTitle())
+            {
+                this->contents.push_back(cnt);
+            }
+            else
+            {
+                u64 baseid = horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type);
+                bool match = false;
+                if(!this->contents.empty()) for(u32 j = 0; j < this->contents.size(); j++)
+                {
+                    if(this->contents[i].ApplicationId == baseid)
+                    {
+                        match = true;
+                        break;
+                    }
+                }
+                if(!match) this->contents.push_back(cnts[i]);
+            }
         }
         cnts.clear();
         if(this->contents.empty())

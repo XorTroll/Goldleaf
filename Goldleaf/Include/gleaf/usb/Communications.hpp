@@ -17,7 +17,8 @@ namespace gleaf::usb
     {
         return false;
     }
-
+    size_t ReadSimple(void *Out, size_t Size, UsbCallbackFn Callback = CallbackStub);
+    size_t WriteSimple(const void *Buffer, size_t Size);
     size_t Read(void *Out, size_t Size, UsbCallbackFn Callback = CallbackStub);
     size_t Write(const void *Buffer, size_t Size);
     u8 Read8(UsbCallbackFn Callback = CallbackStub);

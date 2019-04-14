@@ -50,6 +50,15 @@ namespace gleaf::horizon
             nacp = (NacpStruct*)malloc(sizeof(NacpStruct));
             memcpy(nacp, &ctdata->nacp, sizeof(NacpStruct));
         }
+        else
+        {
+            rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
+            if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
+            {
+                nacp = (NacpStruct*)malloc(sizeof(NacpStruct));
+                memcpy(nacp, &ctdata->nacp, sizeof(NacpStruct));
+            }
+        }
         free(ctdata);
         return nacp;
     }
@@ -64,6 +73,15 @@ namespace gleaf::horizon
         {
             icon = (u8*)malloc(0x20000);
             memcpy(icon, ctdata->icon, 0x20000);
+        }
+        else
+        {
+            rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
+            if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
+            {
+                icon = (u8*)malloc(0x20000);
+                memcpy(icon, ctdata->icon, 0x20000);
+            }
         }
         free(ctdata);
         return icon;
