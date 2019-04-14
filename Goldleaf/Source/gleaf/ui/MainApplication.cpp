@@ -53,6 +53,8 @@ namespace gleaf::ui
         this->copy = new CopyLayout();
         this->exploreMenu = new ExploreMenuLayout();
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->pcExplore = new PCExploreLayout();
+        this->pcExplore->SetOnInput(std::bind(&MainApplication::pcExplore_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nspInstall = new InstallLayout();
         this->contentInformation = new ContentInformationLayout();
         this->contentInformation->SetOnInput(std::bind(&MainApplication::contentInformation_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -73,6 +75,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->baseImage);
         this->browser->Add(this->baseImage);
         this->exploreMenu->Add(this->baseImage);
+        this->pcExplore->Add(this->baseImage);
         this->fileContent->Add(this->baseImage);
         this->copy->Add(this->baseImage);
         this->nspInstall->Add(this->baseImage);
@@ -88,6 +91,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->timeText);
         this->browser->Add(this->timeText);
         this->exploreMenu->Add(this->timeText);
+        this->pcExplore->Add(this->timeText);
         this->fileContent->Add(this->timeText);
         this->copy->Add(this->timeText);
         this->nspInstall->Add(this->timeText);
@@ -103,6 +107,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->batteryText);
         this->browser->Add(this->batteryText);
         this->exploreMenu->Add(this->batteryText);
+        this->pcExplore->Add(this->batteryText);
         this->fileContent->Add(this->batteryText);
         this->copy->Add(this->batteryText);
         this->nspInstall->Add(this->batteryText);
@@ -118,6 +123,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->batteryImage);
         this->browser->Add(this->batteryImage);
         this->exploreMenu->Add(this->batteryImage);
+        this->pcExplore->Add(this->batteryImage);
         this->fileContent->Add(this->batteryImage);
         this->copy->Add(this->batteryImage);
         this->nspInstall->Add(this->batteryImage);
@@ -133,6 +139,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->batteryChargeImage);
         this->browser->Add(this->batteryChargeImage);
         this->exploreMenu->Add(this->batteryChargeImage);
+        this->pcExplore->Add(this->batteryChargeImage);
         this->fileContent->Add(this->batteryChargeImage);
         this->copy->Add(this->batteryChargeImage);
         this->nspInstall->Add(this->batteryChargeImage);
@@ -148,6 +155,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->menuImage);
         this->browser->Add(this->menuImage);
         this->exploreMenu->Add(this->menuImage);
+        this->pcExplore->Add(this->menuImage);
         this->fileContent->Add(this->menuImage);
         this->copy->Add(this->menuImage);
         this->nspInstall->Add(this->menuImage);
@@ -163,6 +171,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->usbImage);
         this->browser->Add(this->usbImage);
         this->exploreMenu->Add(this->usbImage);
+        this->pcExplore->Add(this->usbImage);
         this->fileContent->Add(this->usbImage);
         this->copy->Add(this->usbImage);
         this->nspInstall->Add(this->usbImage);
@@ -178,6 +187,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->connImage);
         this->browser->Add(this->connImage);
         this->exploreMenu->Add(this->connImage);
+        this->pcExplore->Add(this->connImage);
         this->fileContent->Add(this->connImage);
         this->copy->Add(this->connImage);
         this->nspInstall->Add(this->connImage);
@@ -194,6 +204,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->menuNameText);
         this->browser->Add(this->menuNameText);
         this->exploreMenu->Add(this->menuNameText);
+        this->pcExplore->Add(this->menuNameText);
         this->fileContent->Add(this->menuNameText);
         this->copy->Add(this->menuNameText);
         this->nspInstall->Add(this->menuNameText);
@@ -209,6 +220,7 @@ namespace gleaf::ui
         this->mainMenu->Add(this->menuHeadText);
         this->browser->Add(this->menuHeadText);
         this->exploreMenu->Add(this->menuHeadText);
+        this->pcExplore->Add(this->menuHeadText);
         this->fileContent->Add(this->menuHeadText);
         this->copy->Add(this->menuHeadText);
         this->nspInstall->Add(this->menuHeadText);
@@ -257,6 +269,7 @@ namespace gleaf::ui
         delete this->fileContent;
         delete this->copy;
         delete this->exploreMenu;
+        delete this->pcExplore;
         delete this->nspInstall;
         delete this->contentInformation;
         delete this->storageContents;
@@ -444,6 +457,15 @@ namespace gleaf::ui
         }
     }
 
+    void MainApplication::pcExplore_Input(u64 Down, u64 Up, u64 Held)
+    {
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->exploreMenu);
+        }
+    }
+
     void MainApplication::fileContent_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B) this->LoadLayout(this->fileContent->GetPreviousLayout());
@@ -544,6 +566,11 @@ namespace gleaf::ui
     ExploreMenuLayout *MainApplication::GetExploreMenuLayout()
     {
         return this->exploreMenu;
+    }
+
+    PCExploreLayout *MainApplication::GetPCExploreLayout()
+    {
+        return this->pcExplore;
     }
 
     InstallLayout *MainApplication::GetInstallLayout()

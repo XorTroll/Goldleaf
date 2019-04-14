@@ -68,27 +68,8 @@ namespace gleaf::ui
             mainapp->CreateShowDialog("PC drive browser", "USB isn't connected to a PC. Please connect it to a PC.", { "Ok" }, true);
             return;
         }
-        if(usb::WriteCommandInput(usb::CommandId::ListSystemDrives))
-        {
-            u32 drivecount = usb::Read32();
-            std::vector<std::string> drivenames;
-            std::vector<std::string> drivemounts;
-            std::vector<std::string> opts;
-            for(u32 i = 0; i < drivecount; i++)
-            {
-                std::string name = usb::ReadString();
-                std::string mount = usb::ReadString();
-                drivenames.push_back(name);
-                drivemounts.push_back(mount);
-                opts.push_back(mount + ":\\");
-            }
-            opts.push_back("Cancel");
-            int sopt = mainapp->CreateShowDialog("PC drive browser", "Which drive would you like to browse?", opts, true);
-            if(sopt < 0) return;
-            mainapp->GetBrowserLayout()->ChangePartitionPCDrive(drivemounts[sopt]);
-            mainapp->LoadMenuData("PC drive browser", "Drive", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-            mainapp->LoadLayout(mainapp->GetBrowserLayout());
-        }
+        mainapp->GetPCExploreLayout()->UpdatePaths();
+        mainapp->LoadLayout(mainapp->GetPCExploreLayout());
     }
 
     void ExploreMenuLayout::nandProdInfoF_Click()

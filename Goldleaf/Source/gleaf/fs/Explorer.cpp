@@ -907,13 +907,29 @@ namespace gleaf::fs
 
     Explorer *GetUSBPCDriveExplorer(std::string MountName)
     {
-        if(epcdrv == NULL) epcdrv = new USBPCDriveExplorer(MountName);
+        std::string mname = fs::GetPathRoot(MountName);
+        if(epcdrv == NULL)
+        {
+            epcdrv = new USBPCDriveExplorer(mname);
+            if(MountName != mname)
+            {
+                std::string pth = fs::GetPathWithoutRoot(MountName);
+                pth.erase(0, 1);
+                epcdrv->NavigateForward(pth);
+            }
+        }
         else
         {
             if(epcdrv->GetMountName() != MountName)
             {
                 delete epcdrv;
-                epcdrv = new USBPCDriveExplorer(MountName);
+                epcdrv = new USBPCDriveExplorer(mname);
+                if(MountName != mname)
+                {
+                    std::string pth = fs::GetPathWithoutRoot(MountName);
+                    pth.erase(0, 1);
+                    epcdrv->NavigateForward(pth);
+                }
             }
         }
         return epcdrv;

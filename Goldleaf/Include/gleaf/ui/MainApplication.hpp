@@ -19,6 +19,7 @@
 #include <gleaf/ui/InstallLayout.hpp>
 #include <gleaf/ui/MainMenuLayout.hpp>
 #include <gleaf/ui/PartitionBrowserLayout.hpp>
+#include <gleaf/ui/PCExploreLayout.hpp>
 #include <gleaf/ui/StorageContentsLayout.hpp>
 #include <gleaf/ui/SystemInfoLayout.hpp>
 #include <gleaf/ui/TicketManagerLayout.hpp>
@@ -39,6 +40,7 @@ namespace gleaf::ui
             void UnloadMenuData();
             void browser_Input(u64 Down, u64 Up, u64 Held);
             void exploreMenu_Input(u64 Down, u64 Up, u64 Held);
+            void pcExplore_Input(u64 Down, u64 Up, u64 Held);
             void fileContent_Input(u64 Down, u64 Up, u64 Held);
             void contentInformation_Input(u64 Down, u64 Up, u64 Held);
             void storageContents_Input(u64 Down, u64 Up, u64 Held);
@@ -53,6 +55,7 @@ namespace gleaf::ui
             FileContentLayout *GetFileContentLayout();
             CopyLayout *GetCopyLayout();
             ExploreMenuLayout *GetExploreMenuLayout();
+            PCExploreLayout *GetPCExploreLayout();
             InstallLayout *GetInstallLayout();
             ContentInformationLayout *GetContentInformationLayout();
             StorageContentsLayout *GetStorageContentsLayout();
@@ -76,6 +79,7 @@ namespace gleaf::ui
             FileContentLayout *fileContent;
             CopyLayout *copy;
             ExploreMenuLayout *exploreMenu;
+            PCExploreLayout *pcExplore;
             InstallLayout *nspInstall;
             ContentInformationLayout *contentInformation;
             StorageContentsLayout *storageContents;
