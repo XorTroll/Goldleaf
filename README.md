@@ -148,7 +148,7 @@ The main concepts of Goldleaf are and have been developed by XorTroll, but witho
 
 - Simon for his libusbK implementation for C#, which has made Goldtree client possible.
 
-- shchmue for FATFS libs and the system to get titlekeys without breaking processes, found in [Lockpick](https://github.com/shchmue/Lockpick).
+- shchmue and blawar for the system to get titlekeys without breaking processes, found in [Lockpick](https://github.com/shchmue/Lockpick).
 
 - Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou) and [FuryBaguette](https://github.com/FuryBaguette) for French, and [LoOkYe](https://github.com/lookye) for German. (Both English and Spanish were made by me)
 
