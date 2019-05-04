@@ -334,12 +334,12 @@ namespace gleaf::horizon
 
     std::string GetExportedIconPath(u64 ApplicationId)
     {
-        return fs::GetSdCardExplorer()->FullPathFor("/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".jpg");
+        return "sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".jpg";
     }
 
     std::string GetExportedNACPPath(u64 ApplicationId)
     {
-        return fs::GetSdCardExplorer()->FullPathFor("/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".nacp");
+        return "sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".nacp";
     }
 
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)

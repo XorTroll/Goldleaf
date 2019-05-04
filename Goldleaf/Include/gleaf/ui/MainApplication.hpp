@@ -25,6 +25,7 @@
 #include <gleaf/ui/TicketManagerLayout.hpp>
 #include <gleaf/ui/TitleDumperLayout.hpp>
 #include <gleaf/ui/UpdateLayout.hpp>
+#include <gleaf/ui/USBDrivesLayout.hpp>
 
 namespace gleaf::ui
 {
@@ -41,6 +42,7 @@ namespace gleaf::ui
             void browser_Input(u64 Down, u64 Up, u64 Held);
             void exploreMenu_Input(u64 Down, u64 Up, u64 Held);
             void pcExplore_Input(u64 Down, u64 Up, u64 Held);
+            void usbDrives_Input(u64 Down, u64 Up, u64 Held);
             void fileContent_Input(u64 Down, u64 Up, u64 Held);
             void contentInformation_Input(u64 Down, u64 Up, u64 Held);
             void storageContents_Input(u64 Down, u64 Up, u64 Held);
@@ -56,6 +58,7 @@ namespace gleaf::ui
             CopyLayout *GetCopyLayout();
             ExploreMenuLayout *GetExploreMenuLayout();
             PCExploreLayout *GetPCExploreLayout();
+            USBDrivesLayout *GetUSBDrivesLayout();
             InstallLayout *GetInstallLayout();
             ContentInformationLayout *GetContentInformationLayout();
             StorageContentsLayout *GetStorageContentsLayout();
@@ -80,6 +83,7 @@ namespace gleaf::ui
             CopyLayout *copy;
             ExploreMenuLayout *exploreMenu;
             PCExploreLayout *pcExplore;
+            USBDrivesLayout *usbDrives;
             InstallLayout *nspInstall;
             ContentInformationLayout *contentInformation;
             StorageContentsLayout *storageContents;
@@ -99,9 +103,12 @@ namespace gleaf::ui
             pu::element::Image *menuImage;
             pu::element::Image *usbImage;
             pu::element::Image *connImage;
+            pu::element::TextBlock *ipText;
             pu::element::TextBlock *menuNameText;
             pu::element::TextBlock *menuHeadText;
             pu::overlay::Toast *toast;
+            bool updshown;
+            std::chrono::time_point<std::chrono::steady_clock> start;
     };
 
     static const ColorScheme DefaultLight = { { 235, 235, 235, 255 }, { 220, 220, 220, 255 }, { 140, 140, 140, 255 }, { 15, 15, 15, 255 } };

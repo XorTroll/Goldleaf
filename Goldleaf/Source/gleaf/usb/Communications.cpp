@@ -90,14 +90,6 @@ namespace gleaf::usb
         return ok;
     }
 
-    bool WriteCommandNew(u32 Id)
-    {
-        Write32(0x49435547);
-        Write32(Id);
-        u32 guco = usb::Read32(); // GUCO
-        return true;
-    }
-
     bool Write8(u8 Data)
     {
         return (Write(&Data, 1) != 0);

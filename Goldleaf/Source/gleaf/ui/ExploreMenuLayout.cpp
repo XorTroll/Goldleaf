@@ -19,6 +19,10 @@ namespace gleaf::ui
         this->pcDriveMenuItem->SetIcon(gsets.PathForResource("/Common/Drive.png"));
         this->pcDriveMenuItem->SetColor(gsets.CustomScheme.Text);
         this->pcDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::pcDrive_Click, this));
+        this->usbDriveMenuItem = new pu::element::MenuItem("USB drive");
+        this->usbDriveMenuItem->SetIcon(gsets.PathForResource("/Common/USB.png"));
+        this->usbDriveMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->usbDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::usbDrive_Click, this));
         this->nandProfInfoFMenuItem = new pu::element::MenuItem("Console memory (PRODINFOF)");
         this->nandProfInfoFMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
         this->nandProfInfoFMenuItem->SetColor(gsets.CustomScheme.Text);
@@ -37,6 +41,7 @@ namespace gleaf::ui
         this->nandSystemMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandSystem_Click, this));
         this->mountsMenu->AddItem(this->sdCardMenuItem);
         this->mountsMenu->AddItem(this->pcDriveMenuItem);
+        this->mountsMenu->AddItem(this->usbDriveMenuItem);
         this->mountsMenu->AddItem(this->nandProfInfoFMenuItem);
         this->mountsMenu->AddItem(this->nandSafeMenuItem);
         this->mountsMenu->AddItem(this->nandUserMenuItem);
@@ -70,6 +75,12 @@ namespace gleaf::ui
         }
         mainapp->GetPCExploreLayout()->UpdatePaths();
         mainapp->LoadLayout(mainapp->GetPCExploreLayout());
+    }
+
+    void ExploreMenuLayout::usbDrive_Click()
+    {
+        mainapp->GetUSBDrivesLayout()->Start();
+        mainapp->LoadLayout(mainapp->GetUSBDrivesLayout());
     }
 
     void ExploreMenuLayout::nandProdInfoF_Click()
@@ -107,7 +118,7 @@ namespace gleaf::ui
 
     void ExploreMenuLayout::specialMount_Click_X()
     {
-        mainapp->CreateShowDialog("Unmount explorer", "This partition is special so cannot be unmounted.", { "Ok" }, true);
+        mainapp->CreateShowDialog("Unmount partition", "This partition is special so cannot be unmounted.", { "Ok" }, true);
     }
 
     void ExploreMenuLayout::otherMount_Click_X()

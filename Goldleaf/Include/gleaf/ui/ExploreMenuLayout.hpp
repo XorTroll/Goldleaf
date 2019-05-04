@@ -22,6 +22,7 @@ namespace gleaf::ui
             void mountsMenu_SelectionChanged();
             void sdCard_Click();
             void pcDrive_Click();
+            void usbDrive_Click();
             void nandProdInfoF_Click();
             void nandSafe_Click();
             void nandUser_Click();
@@ -33,11 +34,13 @@ namespace gleaf::ui
             pu::element::Menu *mountsMenu;
             pu::element::MenuItem *sdCardMenuItem;
             pu::element::MenuItem *pcDriveMenuItem;
+            pu::element::MenuItem *usbDriveMenuItem;
             pu::element::MenuItem *nandProfInfoFMenuItem;
             pu::element::MenuItem *nandSafeMenuItem;
             pu::element::MenuItem *nandUserMenuItem;
             pu::element::MenuItem *nandSystemMenuItem;
             std::vector<pu::element::MenuItem*> mounts;
             std::vector<fs::Explorer*> expls;
+            std::vector<drive::Drive*> drvs;
     };
 }

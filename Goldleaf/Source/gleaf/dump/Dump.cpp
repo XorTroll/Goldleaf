@@ -79,11 +79,12 @@ namespace gleaf::dump
     std::string GetTitleKeyData(u64 ApplicationId, bool ExportData)
     {
         fsOpenBisStorage(&fatfs_bin, 31);
-        fatfs::FATFS fs;
-        fatfs::FIL save;
-        fatfs::f_mount(&fs, "", 1);
-        fatfs::f_chdir("/save");
-        fatfs::f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
+        /*
+        FATFS fs;
+        FIL save;
+        f_mount(&fs, "0", 1);
+        f_chdir("/save");
+        f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
         std::string tkey = "";
         std::string orid = "";
         std::string fappid = horizon::FormatApplicationId(ApplicationId);
@@ -93,7 +94,7 @@ namespace gleaf::dump
         {
             if(tkey != "") break;
             u8 *tkdata = (u8*)malloc(0x40000);
-            fatfs::FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
+            FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
             if(fr) break;
             if(tmpsz == 0) break;
             for(u32 i = 0; i < tmpsz; i += 0x4000)
@@ -142,7 +143,8 @@ namespace gleaf::dump
             }
             free(tkdata);
         }
-        fatfs::f_close(&save);
+        f_close(&save);
+        f_mount(NULL, "0", 1);
         fsStorageClose(&fatfs_bin);
         if(ExportData && (tkey != ""))
         {
@@ -150,7 +152,8 @@ namespace gleaf::dump
             fwrite(es::CertData, 1792, 1, ceout);
             fclose(ceout);
         }
-        return tkey;
+        */
+        return "";
     }
 
     std::string GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id)

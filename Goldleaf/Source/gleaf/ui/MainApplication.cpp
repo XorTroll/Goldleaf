@@ -1,5 +1,6 @@
 #include <gleaf/ui/MainApplication.hpp>
 #include <gleaf/ui/Utils.hpp>
+#include <arpa/inet.h>
 
 extern gleaf::set::Settings gsets;
 
@@ -30,14 +31,16 @@ namespace gleaf::ui
         this->menuImage = new pu::element::Image(15, 69, gsets.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(85);
         this->menuImage->SetHeight(85);
-        this->usbImage = new pu::element::Image(890, 12, gsets.PathForResource("/Common/USB.png"));
+        this->usbImage = new pu::element::Image(710, 12, gsets.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);
-        this->connImage = new pu::element::Image(830, 12, gsets.PathForResource("/Connection/None.png"));
+        this->connImage = new pu::element::Image(755, 12, gsets.PathForResource("/Connection/None.png"));
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
+        this->ipText = new pu::element::TextBlock(800, 22, "127.0.0.1", 20);
+        this->ipText->SetColor(gsets.CustomScheme.Text);
         this->menuNameText = new pu::element::TextBlock(120, 85, "-");
         this->menuNameText->SetColor(gsets.CustomScheme.Text);
         this->menuHeadText = new pu::element::TextBlock(120, 120, "-", 20);
@@ -55,6 +58,8 @@ namespace gleaf::ui
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->pcExplore = new PCExploreLayout();
         this->pcExplore->SetOnInput(std::bind(&MainApplication::pcExplore_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->usbDrives = new USBDrivesLayout();
+        this->usbDrives->SetOnInput(std::bind(&MainApplication::usbDrives_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nspInstall = new InstallLayout();
         this->contentInformation = new ContentInformationLayout();
         this->contentInformation->SetOnInput(std::bind(&MainApplication::contentInformation_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -76,6 +81,7 @@ namespace gleaf::ui
         this->browser->Add(this->baseImage);
         this->exploreMenu->Add(this->baseImage);
         this->pcExplore->Add(this->baseImage);
+        this->usbDrives->Add(this->baseImage);
         this->fileContent->Add(this->baseImage);
         this->copy->Add(this->baseImage);
         this->nspInstall->Add(this->baseImage);
@@ -92,6 +98,7 @@ namespace gleaf::ui
         this->browser->Add(this->timeText);
         this->exploreMenu->Add(this->timeText);
         this->pcExplore->Add(this->timeText);
+        this->usbDrives->Add(this->timeText);
         this->fileContent->Add(this->timeText);
         this->copy->Add(this->timeText);
         this->nspInstall->Add(this->timeText);
@@ -108,6 +115,7 @@ namespace gleaf::ui
         this->browser->Add(this->batteryText);
         this->exploreMenu->Add(this->batteryText);
         this->pcExplore->Add(this->batteryText);
+        this->usbDrives->Add(this->batteryText);
         this->fileContent->Add(this->batteryText);
         this->copy->Add(this->batteryText);
         this->nspInstall->Add(this->batteryText);
@@ -124,6 +132,7 @@ namespace gleaf::ui
         this->browser->Add(this->batteryImage);
         this->exploreMenu->Add(this->batteryImage);
         this->pcExplore->Add(this->batteryImage);
+        this->usbDrives->Add(this->batteryImage);
         this->fileContent->Add(this->batteryImage);
         this->copy->Add(this->batteryImage);
         this->nspInstall->Add(this->batteryImage);
@@ -140,6 +149,7 @@ namespace gleaf::ui
         this->browser->Add(this->batteryChargeImage);
         this->exploreMenu->Add(this->batteryChargeImage);
         this->pcExplore->Add(this->batteryChargeImage);
+        this->usbDrives->Add(this->batteryChargeImage);
         this->fileContent->Add(this->batteryChargeImage);
         this->copy->Add(this->batteryChargeImage);
         this->nspInstall->Add(this->batteryChargeImage);
@@ -156,6 +166,7 @@ namespace gleaf::ui
         this->browser->Add(this->menuImage);
         this->exploreMenu->Add(this->menuImage);
         this->pcExplore->Add(this->menuImage);
+        this->usbDrives->Add(this->menuImage);
         this->fileContent->Add(this->menuImage);
         this->copy->Add(this->menuImage);
         this->nspInstall->Add(this->menuImage);
@@ -172,6 +183,7 @@ namespace gleaf::ui
         this->browser->Add(this->usbImage);
         this->exploreMenu->Add(this->usbImage);
         this->pcExplore->Add(this->usbImage);
+        this->usbDrives->Add(this->usbImage);
         this->fileContent->Add(this->usbImage);
         this->copy->Add(this->usbImage);
         this->nspInstall->Add(this->usbImage);
@@ -188,6 +200,7 @@ namespace gleaf::ui
         this->browser->Add(this->connImage);
         this->exploreMenu->Add(this->connImage);
         this->pcExplore->Add(this->connImage);
+        this->usbDrives->Add(this->connImage);
         this->fileContent->Add(this->connImage);
         this->copy->Add(this->connImage);
         this->nspInstall->Add(this->connImage);
@@ -200,11 +213,29 @@ namespace gleaf::ui
         this->sysInfo->Add(this->connImage);
         this->update->Add(this->connImage);
         this->about->Add(this->connImage);
+        this->mainMenu->Add(this->ipText);
+        this->browser->Add(this->ipText);
+        this->exploreMenu->Add(this->ipText);
+        this->pcExplore->Add(this->ipText);
+        this->usbDrives->Add(this->ipText);
+        this->fileContent->Add(this->ipText);
+        this->copy->Add(this->ipText);
+        this->nspInstall->Add(this->ipText);
+        this->contentInformation->Add(this->ipText);
+        this->storageContents->Add(this->ipText);
+        this->contentManager->Add(this->ipText);
+        this->titleDump->Add(this->ipText);
+        this->ticketManager->Add(this->ipText);
+        this->account->Add(this->ipText);
+        this->sysInfo->Add(this->ipText);
+        this->update->Add(this->ipText);
+        this->about->Add(this->ipText);
         this->mainMenu->Add(this->menuBanner);
         this->mainMenu->Add(this->menuNameText);
         this->browser->Add(this->menuNameText);
         this->exploreMenu->Add(this->menuNameText);
         this->pcExplore->Add(this->menuNameText);
+        this->usbDrives->Add(this->menuNameText);
         this->fileContent->Add(this->menuNameText);
         this->copy->Add(this->menuNameText);
         this->nspInstall->Add(this->menuNameText);
@@ -221,6 +252,7 @@ namespace gleaf::ui
         this->browser->Add(this->menuHeadText);
         this->exploreMenu->Add(this->menuHeadText);
         this->pcExplore->Add(this->menuHeadText);
+        this->usbDrives->Add(this->menuHeadText);
         this->fileContent->Add(this->menuHeadText);
         this->copy->Add(this->menuHeadText);
         this->nspInstall->Add(this->menuHeadText);
@@ -247,6 +279,8 @@ namespace gleaf::ui
                 this->LoadLayout(this->about);
                 break;
         }
+        this->updshown = false;
+        this->start = std::chrono::steady_clock::now();
     }
 
     MainApplication::~MainApplication()
@@ -260,16 +294,17 @@ namespace gleaf::ui
         delete this->menuImage;
         delete this->usbImage;
         delete this->connImage;
+        delete this->ipText;
         delete this->menuNameText;
         delete this->menuHeadText;
         delete this->toast;
-
         delete this->mainMenu;
         delete this->browser;
         delete this->fileContent;
         delete this->copy;
         delete this->exploreMenu;
         delete this->pcExplore;
+        delete this->usbDrives;
         delete this->nspInstall;
         delete this->contentInformation;
         delete this->storageContents;
@@ -291,11 +326,13 @@ namespace gleaf::ui
 
     void MainApplication::UpdateValues()
     {
-        /*
-        if(this->vfirst)
+        auto ct = std::chrono::steady_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(ct - this->start).count();
+        if((diff >= 500) && (!this->updshown))
         {
-            if(net::CheckVersionDiff()) mainapp->CreateShowDialog("Outdated Goldleaf", "New updates were found.\nGo to the updates section to update Goldleaf.", { "Ok" }, true);
-        }*/
+            if(net::CheckVersionDiff()) mainapp->ShowNotification("New Goldleaf updates were found. Go to the updates section to update Goldleaf.");
+            this->updshown = true;
+        }
         std::string dtime = horizon::GetCurrentTime();
         u32 blv = horizon::GetBatteryLevel();
         bool isch = horizon::IsCharging();
@@ -338,6 +375,14 @@ namespace gleaf::ui
             this->connImage->SetImage(gsets.PathForResource("/Connection/" + connimg + ".png"));
             this->connstate = connstr;
         }
+        if(connstr > 0)
+        {
+            u32 ip = gethostid();
+            char sip[256];
+            inet_ntop(AF_INET, &ip, sip, 256);
+            this->ipText->SetText(std::string(sip));
+        }
+        else this->ipText->SetText("<no connection>");
     }
 
     void MainApplication::LoadMenuData(std::string Name, std::string ImageName, std::string TempHead, bool CommonIcon)
@@ -462,6 +507,17 @@ namespace gleaf::ui
         if(Down & KEY_B)
         {
             this->UnloadMenuData();
+            this->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+            this->LoadLayout(this->exploreMenu);
+        }
+    }
+
+    void MainApplication::usbDrives_Input(u64 Down, u64 Up, u64 Held)
+    {
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
             this->LoadLayout(this->exploreMenu);
         }
     }
@@ -571,6 +627,11 @@ namespace gleaf::ui
     PCExploreLayout *MainApplication::GetPCExploreLayout()
     {
         return this->pcExplore;
+    }
+
+    USBDrivesLayout *MainApplication::GetUSBDrivesLayout()
+    {
+        return this->usbDrives;
     }
 
     InstallLayout *MainApplication::GetInstallLayout()

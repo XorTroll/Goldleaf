@@ -7,6 +7,11 @@ namespace gleaf
         buffer.resize(ReserveSize);
     }
 
+    ByteBuffer::~ByteBuffer()
+    {
+        buffer.clear();
+    }
+
     size_t ByteBuffer::GetSize()
     {
         return buffer.size();

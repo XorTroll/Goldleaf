@@ -18,6 +18,7 @@ namespace gleaf
     {
         public:
             ByteBuffer(size_t ReserveSize = 0);
+            ~ByteBuffer();
             size_t GetSize();
             u8 *GetData();
             void Resize(size_t Size);

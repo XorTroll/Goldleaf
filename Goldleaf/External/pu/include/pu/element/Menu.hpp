@@ -15,6 +15,7 @@
 #include <pu/element/Element.hpp>
 #include <vector>
 #include <functional>
+#include <chrono>
 
 namespace pu::element
 {
@@ -98,5 +99,11 @@ namespace pu::element
             bool icdown;
             std::function<void()> onselch;
             std::vector<MenuItem*> itms;
+            bool uptime;
+            bool uphold;
+            std::chrono::time_point<std::chrono::steady_clock> uptp;
+            bool downtime;
+            bool downhold;
+            std::chrono::time_point<std::chrono::steady_clock> downtp;
     };
 }

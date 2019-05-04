@@ -16,6 +16,7 @@ namespace gleaf::fs
     static Explorer *enus = NULL;
     static Explorer *enss = NULL;
     static Explorer *epcdrv = NULL;
+    static Explorer *edrv = NULL;
 
     bool InternalCaseCompare(std::string a, std::string b)
     {
@@ -56,9 +57,9 @@ namespace gleaf::fs
 
     bool Explorer::NavigateForward(std::string Path)
     {
-        std::string newdir = this->FullPathFor(Path);
-        if(this->IsDirectory(newdir)) this->ecwd = newdir;
-        return this->IsDirectory(newdir);
+        bool idir = this->IsDirectory(Path);
+        if(idir) this->ecwd = this->MakeFull(Path);
+        return idir;
     }
 
     std::vector<std::string> Explorer::GetContents()
@@ -869,6 +870,183 @@ namespace gleaf::fs
         return sz;
     }
 
+    USBDriveExplorer::USBDriveExplorer(drive::Drive *Drv)
+    {
+        this->SetDrive(Drv);
+        drive::DriveMount(this->drv, "0");
+        this->SetNames("0", "USB-Drive");
+    }
+
+    void USBDriveExplorer::SetDrive(drive::Drive *Drv)
+    {
+        this->drv = Drv;
+    }
+
+    std::vector<std::string> USBDriveExplorer::GetDirectories(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        std::vector<std::string> dirs;
+        drive::DIR dp;
+        auto rc = drive::f_opendir(&dp, path.c_str());
+        if(rc == 0)
+        {
+            drive::FILINFO info;
+            while(true)
+            {
+                rc = drive::f_readdir(&dp, &info);
+                if((info.fname == NULL) || (strlen(info.fname) == 0)) break;
+                if(info.fattrib & AM_DIR) dirs.push_back(std::string(info.fname));
+            }
+        }
+        drive::f_closedir(&dp);
+        return dirs;
+    }
+
+    std::vector<std::string> USBDriveExplorer::GetFiles(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        std::vector<std::string> files;
+        drive::DIR dp;
+        auto rc = drive::f_opendir(&dp, path.c_str());
+        if(rc == 0)
+        {
+            drive::FILINFO info;
+            while(true)
+            {
+                rc = drive::f_readdir(&dp, &info);
+                if((rc != 0) || (info.fname == NULL) || (strlen(info.fname) == 0)) break;
+                if(!(info.fattrib & AM_DIR)) files.push_back(std::string(info.fname));
+            }
+        }
+        drive::f_closedir(&dp);
+        return files;
+    }
+
+    bool USBDriveExplorer::Exists(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::FILINFO info;
+        auto rc = drive::f_stat(path.c_str(), &info);
+        return (rc == 0);
+    }
+
+    bool USBDriveExplorer::IsFile(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::FILINFO info;
+        auto rc = drive::f_stat(path.c_str(), &info);
+        bool ok = (rc == 0);
+        if(ok) ok = (!(info.fattrib & AM_DIR));
+        return ok;
+    }
+
+    bool USBDriveExplorer::IsDirectory(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::FILINFO info;
+        auto rc = drive::f_stat(path.c_str(), &info);
+        bool ok = (rc == 0);
+        if(ok) ok = (info.fattrib & AM_DIR);
+        return ok;
+    }
+
+    void USBDriveExplorer::CreateFile(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::FIL fp;
+        drive::f_open(&fp, path.c_str(), FA_CREATE_NEW);
+        drive::f_close(&fp);
+    }
+
+    void USBDriveExplorer::CreateDirectory(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::f_mkdir(path.c_str());
+    }
+
+    void USBDriveExplorer::RenameFile(std::string Path, std::string NewName)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::f_rename(path.c_str(), NewName.c_str());
+    }
+
+    void USBDriveExplorer::RenameDirectory(std::string Path, std::string NewName)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::f_rename(path.c_str(), NewName.c_str());
+    }
+
+    void USBDriveExplorer::DeleteFile(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::f_unlink(path.c_str());
+    }
+
+    void USBDriveExplorer::DeleteDirectorySingle(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        drive::f_unlink(path.c_str());
+    }
+
+    u64 USBDriveExplorer::ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out)
+    {
+        drive::UINT rsize = 0;
+        std::string path = this->MakeFull(Path);
+        drive::FIL *fp = (drive::FIL*)malloc(sizeof(drive::FIL));
+        auto rc = drive::f_open(fp, path.c_str(), (FA_READ | FA_OPEN_EXISTING));
+        if(rc == 0)
+        {
+            drive::f_lseek(fp, Offset);
+            drive::f_read(fp, Out, Size, &rsize);
+        }
+        drive::f_close(fp);
+        free(fp);
+        return (u64)rsize;
+    }
+
+    u64 USBDriveExplorer::WriteFileBlock(std::string Path, u8 *Data, u64 Size)
+    {
+        drive::UINT wsize = 0;
+        std::string path = this->MakeFull(Path);
+        drive::FIL fp;
+        auto rc = drive::f_open(&fp, path.c_str(), (FA_WRITE | FA_OPEN_EXISTING));
+        if(rc == 0)
+        {
+            drive::f_write(&fp, Data, Size, &wsize);
+        }
+        drive::f_close(&fp);
+        return (u64)wsize;
+    }
+
+    u64 USBDriveExplorer::GetFileSize(std::string Path)
+    {
+        u64 sz = 0;
+        std::string path = this->MakeFull(Path);
+        drive::FILINFO info;
+        auto rc = drive::f_stat(path.c_str(), &info);
+        if(rc == 0) sz = info.fsize;
+        return sz;
+    }
+
+    u64 USBDriveExplorer::GetTotalSpace()
+    {
+        u64 sz = 0;
+        // ...
+        return sz;
+    }
+
+    u64 USBDriveExplorer::GetFreeSpace()
+    {
+        u64 sz = 0;
+        // ...
+        return sz;
+    }
+
+    void USBDriveExplorer::Close()
+    {
+        drive::DriveUnmount(this->drv);
+    }
+
     void FileSystemExplorer::Close()
     {
         if(this->aclose) fsdevUnmountDevice(this->mntname.c_str());
@@ -935,6 +1113,13 @@ namespace gleaf::fs
         return epcdrv;
     }
 
+    Explorer *GetUSBDriveExplorer(drive::Drive *Drv)
+    {
+        if(edrv == NULL) edrv = new USBDriveExplorer(Drv);
+        ((USBDriveExplorer*)edrv)->SetDrive(Drv);
+        return edrv;
+    }
+
     Explorer *GetExplorerForMountName(std::string MountName)
     {
         Explorer *ex = NULL;
@@ -943,7 +1128,8 @@ namespace gleaf::fs
         if(ensf != NULL) if(ensf->GetMountName() == MountName) return ensf;
         if(enus != NULL) if(enus->GetMountName() == MountName) return enus;
         if(enss != NULL) if(enss->GetMountName() == MountName) return enss;
-        if(epcdrv != NULL) if(esdc->GetMountName() == MountName) return epcdrv;
+        if(epcdrv != NULL) if(epcdrv->GetMountName() == MountName) return epcdrv;
+        if(edrv != NULL) if(edrv->GetMountName() == MountName) return edrv;
         return ex;
     }
 }

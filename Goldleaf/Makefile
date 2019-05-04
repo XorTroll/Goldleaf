@@ -7,7 +7,7 @@ endif
 TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/libnx/switch_rules
 
-# Goldleaf's Makefile system, ready to build as NRO, NSP or qlaunch
+# Goldleaf's Makefile system
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
@@ -17,8 +17,8 @@ TARGET      := Goldleaf
 ICON		:= Icon.jpg
 
 BUILD       := Build
-SOURCES     := Source Source/fatfs Source/gleaf Source/gleaf/acc Source/gleaf/dump Source/gleaf/err Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/ini Source/gleaf/ncm Source/gleaf/net Source/gleaf/ns Source/gleaf/nsp Source/gleaf/set Source/gleaf/ui Source/gleaf/usb
-INCLUDES    := Include Include/fatfs Include/gleaf Include/gleaf/acc Include/gleaf/dump Include/gleaf/err Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/ini Include/gleaf/ncm Include/gleaf/net Include/gleaf/ns Include/gleaf/nsp Include/gleaf/set Include/gleaf/ui Include/gleaf/usb
+SOURCES     := Source Source/fatfs Source/gleaf Source/gleaf/acc Source/gleaf/drive Source/gleaf/dump Source/gleaf/err Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/ini Source/gleaf/ncm Source/gleaf/net Source/gleaf/ns Source/gleaf/nsp Source/gleaf/set Source/gleaf/ui Source/gleaf/usb
+INCLUDES    := Include Include/fatfs Include/gleaf Include/gleaf/acc Include/gleaf/drive Include/gleaf/dump Include/gleaf/err Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/ini Include/gleaf/ncm Include/gleaf/net Include/gleaf/ns Include/gleaf/nsp Include/gleaf/set Include/gleaf/ui Include/gleaf/usb
 ROMFS       := RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE

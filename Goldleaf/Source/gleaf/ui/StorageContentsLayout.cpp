@@ -43,24 +43,25 @@ namespace gleaf::ui
         if(!cnts.empty()) for(u32 i = 0; i < cnts.size(); i++)
         {
             horizon::Title cnt = cnts[i];
-            if(cnt.IsBaseTitle())
+            bool ok = true;
+            if(!this->contents.empty()) for(u32 j = 0; j < this->contents.size(); j++)
             {
-                this->contents.push_back(cnt);
-            }
-            else
-            {
-                u64 baseid = horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type);
-                bool match = false;
-                if(!this->contents.empty()) for(u32 j = 0; j < this->contents.size(); j++)
+                if(cnt.ApplicationId == this->contents[j].ApplicationId)
                 {
-                    if(this->contents[i].ApplicationId == baseid)
+                    ok = false;
+                    break;
+                }
+                else
+                {
+                    u64 baseid = horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type);
+                    if(baseid == this->contents[j].ApplicationId)
                     {
-                        match = true;
+                        ok = false;
                         break;
                     }
                 }
-                if(!match) this->contents.push_back(cnts[i]);
             }
+            if(ok) this->contents.push_back(cnt);
         }
         cnts.clear();
         if(this->contents.empty())
@@ -75,22 +76,19 @@ namespace gleaf::ui
             this->contentsMenu->SetVisible(true);
             for(u32 i = 0; i < this->contents.size(); i++)
             {
-                if(true)//(this->contents[i].IsBaseTitle() || (this->contents[i].Location == Storage::NANDSystem))
+                NacpStruct *nacp = this->contents[i].TryGetNACP();
+                std::string name = horizon::FormatApplicationId(this->contents[i].ApplicationId);
+                if(nacp != NULL)
                 {
-                    NacpStruct *nacp = this->contents[i].TryGetNACP();
-                    std::string name = horizon::FormatApplicationId(this->contents[i].ApplicationId);
-                    if(nacp != NULL)
-                    {
-                        name = horizon::GetNACPName(nacp);
-                        free(nacp);
-                    }
-                    pu::element::MenuItem *itm = new pu::element::MenuItem(name);
-                    itm->SetColor(gsets.CustomScheme.Text);
-                    bool hicon = this->contents[i].DumpControlData();
-                    if(hicon) itm->SetIcon(horizon::GetExportedIconPath(this->contents[i].ApplicationId));
-                    itm->AddOnClick(std::bind(&StorageContentsLayout::contents_Click, this));
-                    this->contentsMenu->AddItem(itm);
+                    name = horizon::GetNACPName(nacp);
+                    free(nacp);
                 }
+                pu::element::MenuItem *itm = new pu::element::MenuItem(name);
+                itm->SetColor(gsets.CustomScheme.Text);
+                bool hicon = this->contents[i].DumpControlData();
+                if(hicon) itm->SetIcon(horizon::GetExportedIconPath(this->contents[i].ApplicationId));
+                itm->AddOnClick(std::bind(&StorageContentsLayout::contents_Click, this));
+                this->contentsMenu->AddItem(itm);
             }
             this->contentsMenu->SetSelectedIndex(0);
         }

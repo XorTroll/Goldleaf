@@ -385,6 +385,10 @@ namespace gleaf::nsp
 
     Result Install(std::string Path, fs::Explorer *Exp, Storage Location, std::function<bool(ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs)> OnInitialProcess, std::function<void()> OnRecordProcess, std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite)
     {
+        std::ofstream ofs;
+        ofs.open("sdmc:/hddinst.log", std::fstream::app);
+        ofs << "Init" << std::endl;
+        ofs.close();
         Result rc = 0xf601;
         FsStorageId storage = static_cast<FsStorageId>(Location);
         PFS0 nsp(Exp, Path);
@@ -414,6 +418,9 @@ namespace gleaf::nsp
                     scnmtnca = nsp.GetFileSize(i);
                 }
             }
+            ofs.open("sdmc:/hddinst.log", std::fstream::app);
+            ofs << "Fount CNMTNCA" << std::endl;
+            ofs.close();
             std::string icnmtnca = fs::GetFileName(cnmtnca);
             fs::Explorer *nsys = fs::GetNANDSystemExplorer();
             nsys->CreateDirectory("Contents/temp");
@@ -424,6 +431,9 @@ namespace gleaf::nsp
             acnmtnca.reserve(FS_MAX_PATH);
             ByteBuffer bcnmt;
             FsFileSystem cnmtncafs;
+            ofs.open("sdmc:/hddinst.log", std::fstream::app);
+            ofs << "PreFSOpen" << std::endl;
+            ofs.close();
             rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.c_str());
             if(rc != 0) return rc;
             {
@@ -443,6 +453,9 @@ namespace gleaf::nsp
                 bcnmt.Resize(fcnmtsz);
                 cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, bcnmt.GetData());
             }
+            ofs.open("sdmc:/hddinst.log", std::fstream::app);
+            ofs << "PostFSOpen" << std::endl;
+            ofs.close();
             ncm::ContentRecord record = { 0 };
             record.NCAId = horizon::GetNCAIdFromString(icnmtnca);
             *(u64*)record.Size = (scnmtnca & 0xffffffffffff);
@@ -459,6 +472,9 @@ namespace gleaf::nsp
                 rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
                 return rc;
             }
+            ofs.open("sdmc:/hddinst.log", std::fstream::app);
+            ofs << "Exists" << std::endl;
+            ofs.close();
             NcmContentStorage cst;
             rc = ncmOpenContentStorage(storage, &cst);
             bool hascnmt = false;
@@ -478,6 +494,9 @@ namespace gleaf::nsp
                 nsp.SaveFile(idxtik, nsys, ptik);
                 tikd = horizon::ReadTicket(ptik);
             }
+            ofs.open("sdmc:/hddinst.log", std::fstream::app);
+            ofs << "Records & ticket" << std::endl;
+            ofs.close();
             std::string icon;
             std::string ncontrolnca;
             for(u32 i = 0; i < recs.size(); i++)
@@ -485,15 +504,30 @@ namespace gleaf::nsp
                 ncas.push_back(recs[i]);
                 if(recs[i].Type == ncm::ContentType::Control)
                 {
+                    ofs.open("sdmc:/hddinst.log", std::fstream::app);
+                    ofs << "Control process" << std::endl;
+                    ofs.close();
                     std::string controlncaid = horizon::GetStringFromNCAId(recs[i].NCAId);
                     std::string controlnca = controlncaid + ".nca";
                     u32 idxcontrolnca = nsp.GetFileIndexByName(controlnca);
                     ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
+                    ofs.open("sdmc:/hddinst.log", std::fstream::app);
+                    ofs << "PRENCASave: " << std::endl;
+                    ofs.close();
                     nsp.SaveFile(idxcontrolnca, nsys, ncontrolnca);
+                    ofs.open("sdmc:/hddinst.log", std::fstream::app);
+                    ofs << "PostSave" << std::endl;
+                    ofs.close();
                     std::string acontrolnca = "@SystemContent://temp/" + controlnca;
                     acontrolnca.reserve(FS_MAX_PATH);
                     FsFileSystem controlncafs;
+                    ofs.open("sdmc:/hddinst.log", std::fstream::app);
+                    ofs << "prefsopen" << std::endl;
+                    ofs.close();
                     rc = fsOpenFileSystemWithId(&controlncafs, baseappid, FsFileSystemType_ContentControl, acontrolnca.c_str());
+                    ofs.open("sdmc:/hddinst.log", std::fstream::app);
+                    ofs << "postfsopen" << std::endl;
+                    ofs.close();
                     if(rc == 0)
                     {
                         fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs, true);
@@ -503,16 +537,19 @@ namespace gleaf::nsp
                             std::string cnt = cnts[i];
                             if(fs::GetExtension(cnt) == "dat")
                             {
-                                icon = "sdmc:/goldleaf/meta/" + controlncaid + ".jpg";
-                                controlfs.CopyFile(cnt, icon);
+                                // icon = "sdmc:/goldleaf/meta/" + controlncaid + ".jpg";
+                                // controlfs.CopyFile(cnt, icon);
                                 break;
                             }
                         }
-                        controlfs.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)&nacp);
+                        // controlfs.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)&nacp);
                     }
                     rc = 0;
                 }
             }
+            ofs.open("sdmc:/hddinst.log", std::fstream::app);
+            ofs << "InitFin" << std::endl;
+            ofs.close();
             if(!OnInitialProcess(static_cast<ncm::ContentMetaType>(mrec.type), mrec.titleId, icon, (icon.empty() ? NULL : &nacp), ((stik > 0) ? &tikd : NULL), ncas)) return rc;
             NcmContentMetaDatabase mdb;
             rc = ncmOpenContentMetaDatabase(storage, &mdb);
@@ -614,7 +651,7 @@ namespace gleaf::nsp
                 ncm::DeletePlaceHolder(&cst, &curid);
                 serviceClose(&cst.s);
             }
-            // nsys->DeleteDirectory("Contents/temp");
+            nsys->DeleteDirectory("Contents/temp");
         }
         return rc;
     }

@@ -21,6 +21,7 @@ namespace gleaf::ncm
         public:
             ContentMeta();
             ContentMeta(u8 *Data, size_t Size);
+            ~ContentMeta();
             ContentMetaHeader GetContentMetaHeader();
             NcmMetaRecord GetContentMetaKey();
             std::vector<ContentRecord> GetContentRecords();

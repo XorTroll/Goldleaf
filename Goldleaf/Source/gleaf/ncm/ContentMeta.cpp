@@ -13,6 +13,10 @@ namespace gleaf::ncm
         memcpy(buf.GetData(), Data, Size);
     }
 
+    ContentMeta::~ContentMeta()
+    {
+    }
+
     ContentMetaHeader ContentMeta::GetContentMetaHeader()
     {
         return buf.Read<ContentMetaHeader>(0);

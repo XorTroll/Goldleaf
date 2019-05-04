@@ -68,8 +68,8 @@ namespace gleaf
     void EnsureDirectories()
     {
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        // nsys->DeleteDirectory("Contents/temp");
-        // nsys->CreateDirectory("Contents/temp");    
+        nsys->DeleteDirectory("Contents/temp");
+        nsys->CreateDirectory("Contents/temp");
         fs::CreateDirectory("sdmc:/goldleaf");
         fs::CreateDirectory("sdmc:/goldleaf/meta");
         fs::CreateDirectory("sdmc:/goldleaf/title");

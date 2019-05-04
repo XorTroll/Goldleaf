@@ -25,7 +25,7 @@ namespace gleaf::ui
         {
             std::string name = set::GetDictionaryEntry(261);
             if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
-            if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(262);
+            if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263);
             pu::element::MenuItem *subcnt = new pu::element::MenuItem(name);
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
@@ -38,7 +38,7 @@ namespace gleaf::ui
     {
         u32 idx = this->optionsMenu->GetSelectedIndex();
         std::string msg = set::GetDictionaryEntry(169) + "\n\n";
-        msg += set::GetDictionaryEntry(160) + " ";
+        msg += set::GetDictionaryEntry(170) + " ";
         std::vector<std::string> opts = { set::GetDictionaryEntry(245), set::GetDictionaryEntry(244) };
         std::string icn;
         horizon::Title cnt = this->tcontents[idx];
@@ -68,36 +68,6 @@ namespace gleaf::ui
         msg += "\n\n" + set::GetDictionaryEntry(177) + " " + this->contents.GetFormattedTotalSize();
         msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
         if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
-        else
-        {
-            if(fs::IsFile(horizon::GetExportedIconPath(horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type)))) icn = horizon::GetExportedIconPath(horizon::GetBaseApplicationId(cnt.ApplicationId, cnt.Type));
-            horizon::TitleContents subcnts = cnt.GetContents();
-            switch(cnt.Type)
-            {
-                case ncm::ContentMetaType::Application:
-                    msg += set::GetDictionaryEntry(171);
-                    break;
-                case ncm::ContentMetaType::AddOnContent:
-                    msg += set::GetDictionaryEntry(172);
-                    break;
-                case ncm::ContentMetaType::Patch:
-                    msg += set::GetDictionaryEntry(173);
-                    break;
-                case ncm::ContentMetaType::SystemProgram:
-                    msg += set::GetDictionaryEntry(174);
-                    break;
-                case ncm::ContentMetaType::SystemData:
-                    msg += set::GetDictionaryEntry(175);
-                    break;
-                default:
-                    msg += set::GetDictionaryEntry(176);
-                    break;
-            }
-            msg += "\n" + set::GetDictionaryEntry(90) + " " + horizon::FormatApplicationId(cnt.ApplicationId);
-            msg += "\n\n" + set::GetDictionaryEntry(177) + " " + subcnts.GetFormattedTotalSize();
-            msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
-            if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
-        }
         if((idx == 0) && (cnt.Location == Storage::GameCart))
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);

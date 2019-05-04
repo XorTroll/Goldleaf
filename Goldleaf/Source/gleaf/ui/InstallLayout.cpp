@@ -25,6 +25,7 @@ namespace gleaf::ui
     void InstallLayout::StartInstall(std::string Path, fs::Explorer *Exp, Storage Location, pu::Layout *Prev)
     {
         if(IsInstalledTitle()) appletBeginBlockingHomeButton(0);
+        appletSetMediaPlaybackState(true);
         Result rc = nsp::Install(Path, Exp, Location, [&](ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs) -> bool
         {
             std::string info = set::GetDictionaryEntry(82) + "\n\n";
@@ -61,16 +62,17 @@ namespace gleaf::ui
             info += "\n\n";
             if(NACP != NULL)
             {
-                NacpLanguageEntry lent;
-                for(u32 i = 0; i < 16; i++)
+                NacpLanguageEntry *lent;
+                nacpGetLanguageEntry(NACP, &lent);
+                if(lent == NULL) for(u32 i = 0; i < 16; i++)
                 {
-                    lent = NACP->lang[i];
-                    if((strlen(lent.name) != 0) && (strlen(lent.author) != 0)) break;
+                    lent = &NACP->lang[i];
+                    if((strlen(lent->name) != 0) && (strlen(lent->author) != 0)) break;
                 }
                 info += set::GetDictionaryEntry(91) + " ";
-                info += lent.name;
+                info += lent->name;
                 info += "\n" + set::GetDictionaryEntry(92) + " ";
-                info += lent.author;
+                info += lent->author;
                 info += "\n" + set::GetDictionaryEntry(109) + " ";
                 info += NACP->version;
                 info += "\n\n" + set::GetDictionaryEntry(93) + " ";
@@ -180,6 +182,7 @@ namespace gleaf::ui
             this->installBar->SetProgress(Done);
             mainapp->CallForRender();
         });
+        appletSetMediaPlaybackState(false);
         if(IsInstalledTitle()) appletEndBlockingHomeButton();
         this->installBar->SetVisible(false);
         mainapp->CallForRender();

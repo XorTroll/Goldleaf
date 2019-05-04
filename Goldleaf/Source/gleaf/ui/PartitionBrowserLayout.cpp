@@ -52,10 +52,16 @@ namespace gleaf::ui
         }
         if(Update) this->UpdateElements();
     }
-
+    
     void PartitionBrowserLayout::ChangePartitionPCDrive(std::string Mount, bool Update)
     {
         this->gexp = fs::GetUSBPCDriveExplorer(Mount);
+        if(Update) this->UpdateElements();
+    }
+
+    void PartitionBrowserLayout::ChangePartitionUSBDrive(drive::Drive *Drv, bool Update)
+    {
+        this->gexp = fs::GetUSBDriveExplorer(Drv);
         if(Update) this->UpdateElements();
     }
 
@@ -77,7 +83,7 @@ namespace gleaf::ui
             for(u32 i = 0; i < this->elems.size(); i++)
             {
                 std::string itm = this->elems[i];
-                bool isdir = this->gexp->IsDirectory(this->gexp->FullPathFor(itm));
+                bool isdir = this->gexp->IsDirectory(itm);
                 pu::element::MenuItem *mitm = new pu::element::MenuItem(itm);
                 mitm->SetColor(gsets.CustomScheme.Text);
                 if(isdir) mitm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));
@@ -119,8 +125,8 @@ namespace gleaf::ui
         std::string itm = this->browseMenu->GetSelectedItem()->GetName();
         std::string fullitm = this->gexp->FullPathFor(itm);
         std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
-        if(this->gexp->NavigateForward(itm)) this->UpdateElements();
-        else if(this->gexp->IsFile(fullitm))
+        if(this->gexp->NavigateForward(fullitm)) this->UpdateElements();
+        else
         {
             std::string ext = fs::GetExtension(itm);
             std::string msg = set::GetDictionaryEntry(52) + " ";

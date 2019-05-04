@@ -11,7 +11,5 @@
 */
 
 #pragma once
-namespace fatfs
-{
-    #include <fatfs/ff.h>
-}
+#include <fatfs/ff.h>
+#include <fatfs/diskio.h>
