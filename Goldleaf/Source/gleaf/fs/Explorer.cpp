@@ -756,7 +756,7 @@ namespace gleaf::fs
     void USBPCDriveExplorer::RenameDirectory(std::string Path, std::string NewName)
     {
         std::string path = this->MakeFull(Path);
-        if(usb::WriteCommandInput(usb::CommandId::RenameFile))
+        if(usb::WriteCommandInput(usb::CommandId::RenameDirectory))
         {
             usb::WriteString(path);
             usb::WriteString(NewName);
