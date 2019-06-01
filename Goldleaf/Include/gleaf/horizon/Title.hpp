@@ -27,6 +27,7 @@ namespace gleaf::horizon
 
     enum class TicketSignature
     {
+        Invalid,
         RSA_4096_SHA1 = 0x10000,
         RSA_2048_SHA1 = 0x10001,
         ECDSA_SHA1 = 0x10002,

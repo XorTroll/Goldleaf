@@ -41,6 +41,5 @@ namespace gleaf::ui
             pu::element::MenuItem *nandSystemMenuItem;
             std::vector<pu::element::MenuItem*> mounts;
             std::vector<fs::Explorer*> expls;
-            std::vector<drive::Drive*> drvs;
     };
 }

@@ -11,7 +11,6 @@
 #pragma once
 #include <vector>
 #include <gleaf/fs/FS.hpp>
-#include <gleaf/drive/Drive.hpp>
 
 namespace gleaf::fs
 {
@@ -143,38 +142,11 @@ namespace gleaf::fs
             FsFileSystem *fs;
     };
 
-    class USBDriveExplorer : public Explorer
-    {
-        public:
-            USBDriveExplorer(drive::Drive *Drv);
-            void SetDrive(drive::Drive *Drv);
-            virtual std::vector<std::string> GetDirectories(std::string Path) override;
-            virtual std::vector<std::string> GetFiles(std::string Path) override;
-            virtual bool Exists(std::string Path) override;
-            virtual bool IsFile(std::string Path) override;
-            virtual bool IsDirectory(std::string Path) override;
-            virtual void CreateFile(std::string Path) override;
-            virtual void CreateDirectory(std::string Path) override;
-            virtual void RenameFile(std::string Path, std::string NewName) override;
-            virtual void RenameDirectory(std::string Path, std::string NewName) override;
-            virtual void DeleteFile(std::string Path) override;
-            virtual void DeleteDirectorySingle(std::string Path) override;
-            virtual u64 ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(std::string Path, u8 *Data, u64 Size) override;
-            virtual u64 GetFileSize(std::string Path) override;
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-            virtual void Close() override;
-        private:
-            drive::Drive *drv;
-    };
-
     Explorer *GetSdCardExplorer();
     Explorer *GetPRODINFOFExplorer();
     Explorer *GetNANDSafeExplorer();
     Explorer *GetNANDUserExplorer();
     Explorer *GetNANDSystemExplorer();
     Explorer *GetUSBPCDriveExplorer(std::string MountName);
-    Explorer *GetUSBDriveExplorer(drive::Drive *Drv);
     Explorer *GetExplorerForMountName(std::string MountName);
 }

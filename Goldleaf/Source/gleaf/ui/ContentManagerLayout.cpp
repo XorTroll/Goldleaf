@@ -26,10 +26,15 @@ namespace gleaf::ui
         this->gameCartMenuItem->SetIcon(gsets.PathForResource("/Common/GameCart.png"));
         this->gameCartMenuItem->SetColor(gsets.CustomScheme.Text);
         this->gameCartMenuItem->AddOnClick(std::bind(&ContentManagerLayout::gameCartMenuItem_Click, this));
+        this->unusedTicketsMenuItem = new pu::element::MenuItem("Unused tickets");
+        this->unusedTicketsMenuItem->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
+        this->unusedTicketsMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->unusedTicketsMenuItem->AddOnClick(std::bind(&ContentManagerLayout::unusedTicketsMenuItem_Click, this));
         this->typesMenu->AddItem(this->sdCardMenuItem);
         this->typesMenu->AddItem(this->nandUserMenuItem);
         this->typesMenu->AddItem(this->nandSystemMenuItem);
         this->typesMenu->AddItem(this->gameCartMenuItem);
+        this->typesMenu->AddItem(this->unusedTicketsMenuItem);
         this->Add(this->typesMenu);
     }
 
@@ -60,5 +65,12 @@ namespace gleaf::ui
     {
         mainapp->GetStorageContentsLayout()->LoadFromStorage(Storage::GameCart);
         mainapp->LoadLayout(mainapp->GetStorageContentsLayout());
+    }
+
+    void ContentManagerLayout::unusedTicketsMenuItem_Click()
+    {
+        mainapp->LoadMenuData(set::GetDictionaryEntry(34), "Ticket", set::GetDictionaryEntry(35));
+        mainapp->GetTicketManagerLayout()->UpdateElements();
+        mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
     }
 }

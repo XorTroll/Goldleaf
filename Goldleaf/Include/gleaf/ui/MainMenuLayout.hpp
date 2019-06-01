@@ -21,7 +21,6 @@ namespace gleaf::ui
             ~MainMenuLayout();
             void exploreMenuItem_Click();
             void titleMenuItem_Click();
-            void ticketMenuItem_Click();
             void webMenuItem_Click();
             void accountMenuItem_Click();
             void sysinfoMenuItem_Click();
@@ -31,7 +30,6 @@ namespace gleaf::ui
             pu::element::Menu *optionMenu;
             pu::element::MenuItem *exploreMenuItem;
             pu::element::MenuItem *titleMenuItem;
-            pu::element::MenuItem *ticketMenuItem;
             pu::element::MenuItem *webMenuItem;
             pu::element::MenuItem *accountMenuItem;
             pu::element::MenuItem *sysinfoMenuItem;

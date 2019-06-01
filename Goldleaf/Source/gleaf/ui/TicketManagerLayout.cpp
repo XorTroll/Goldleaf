@@ -41,6 +41,9 @@ namespace gleaf::ui
             {
                 horizon::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
+                bool used = horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid);
+                if(!used) used = horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
+                if(used) continue;
                 std::string tname = horizon::FormatApplicationId(tappid);
                 pu::element::MenuItem *itm = new pu::element::MenuItem(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
@@ -60,19 +63,11 @@ namespace gleaf::ui
         info += set::GetDictionaryEntry(90) + " " + horizon::FormatApplicationId(tappid);
         info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(seltick.GetKeyGeneration() + 1);
         info += "\n\n";
-        bool used = horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid);
-        if(!used) used = horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
-        if(used) info += set::GetDictionaryEntry(202);
-        else info += set::GetDictionaryEntry(203);
+        info += set::GetDictionaryEntry(203);
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), info, { set::GetDictionaryEntry(245), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
-        if(used)
-        {
-            sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
-            if(sopt < 0) return;
-        }
         Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
         if(rc == 0)
         {

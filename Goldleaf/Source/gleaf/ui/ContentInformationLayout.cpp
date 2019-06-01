@@ -68,11 +68,25 @@ namespace gleaf::ui
         msg += "\n\n" + set::GetDictionaryEntry(177) + " " + this->contents.GetFormattedTotalSize();
         msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
         if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
+        auto tiks = horizon::GetAllTickets();
+        bool hastik = false;
+        int tikidx = -1;
+        for(u32 i = 0; i < tiks.size(); i++)
+        {
+            if(tiks[i].GetApplicationId() == cnt.ApplicationId)
+            {
+                msg += "\n\nTicket found.\nID: " + tiks[i].ToString();
+                hastik = true;
+                tikidx = i;
+                break;
+            }
+        }
         if((idx == 0) && (cnt.Location == Storage::GameCart))
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
         }
+        if(hastik) opts.push_back("Remove ticket");
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
@@ -110,6 +124,18 @@ namespace gleaf::ui
                 mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             }
+        }
+        else if(hastik && (sopt == 2))
+        {
+            sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            if(sopt < 0) return;
+            Result rc = es::DeleteTicket(&tiks[tikidx].RId, sizeof(es::RightsId));
+            if(rc == 0)
+            {
+                mainapp->ShowNotification(set::GetDictionaryEntry(206));
+                this->UpdateElements();
+            }
+            else HandleResult(rc, set::GetDictionaryEntry(207));
         }
     }
 
@@ -161,6 +187,7 @@ namespace gleaf::ui
         {
             icon = horizon::GetExportedIconPath(Content.ApplicationId);
             free(cicon);
+            cicon = NULL;
         }
         mainapp->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);
         this->UpdateElements();

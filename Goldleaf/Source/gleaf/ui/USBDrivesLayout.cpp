@@ -10,7 +10,7 @@ namespace gleaf::ui
     {
         this->drivesMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->drivesMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->noDrivesText = new pu::element::TextBlock(30, 630, set::GetDictionaryEntry(49));
+        this->noDrivesText = new pu::element::TextBlock(30, 630, "No drives were found.");
         this->noDrivesText->SetHorizontalAlign(pu::element::HorizontalAlign::Center);
         this->noDrivesText->SetVerticalAlign(pu::element::VerticalAlign::Center);
         this->noDrivesText->SetColor(gsets.CustomScheme.Text);
@@ -25,6 +25,7 @@ namespace gleaf::ui
 
     void USBDrivesLayout::Start()
     {
+        /*
         if(!this->drvs.empty()) for(u32 i = 0; i < this->drvs.size(); i++)
         {
             drive::DriveClose(this->drvs[i]);
@@ -34,6 +35,7 @@ namespace gleaf::ui
         drive::Exit();
         drive::Initialize();
         s32 count = 0;
+        drive::WaitForDrives(1000000000L);
         drive::CountDrives(&count);
         if(count > 0)
         {
@@ -53,10 +55,12 @@ namespace gleaf::ui
             this->noDrivesText->SetVisible(true);
         }
         UpdateDrives();
+        */
     }
 
     void USBDrivesLayout::UpdateDrives()
     {
+        /*
         if(!drvs.empty())
         {
             this->drivesMenu->SetCooldownEnabled(true);
@@ -76,18 +80,16 @@ namespace gleaf::ui
                 this->drivesMenu->AddItem(mitm);
             }
         }
+        */
     }
 
     void USBDrivesLayout::drive_Click()
     {
+        /*
         auto drv = this->drvs[this->drivesMenu->GetSelectedIndex()];
         mainapp->GetBrowserLayout()->ChangePartitionUSBDrive(drv);
         mainapp->LoadMenuData("USB drive explorer", "USB", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         mainapp->LoadLayout(mainapp->GetBrowserLayout());
-    }
-
-    std::vector<drive::Drive*> USBDrivesLayout::GetDrives()
-    {
-        return this->drvs;
+        */
     }
 }

@@ -22,7 +22,6 @@ namespace gleaf::ui
             void ChangePartitionSdCard(bool Update = true);
             void ChangePartitionNAND(fs::Partition Partition, bool Update = true);
             void ChangePartitionPCDrive(std::string Mount, bool Update = true);
-            void ChangePartitionUSBDrive(drive::Drive *Drv, bool Update = true);
             void UpdateElements();
             bool GoBack();
             bool WarnNANDWriteAccess();

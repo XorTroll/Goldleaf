@@ -12,10 +12,14 @@
 #include <sstream>
 #include <dirent.h>
 #include <unistd.h>
+#include <malloc.h>
 #include <sys/stat.h>
 
 namespace gleaf::fs
 {
+    static u8 *opsbuf = NULL;
+    static size_t opsbufsz = 0x400000;
+
     bool Exists(std::string Path)
     {
         std::ifstream ifs(Path);
@@ -394,5 +398,16 @@ namespace gleaf::fs
         }
         closedir(dp);
         return path;
+    }
+
+    u8 *GetFileSystemOperationsBuffer()
+    {
+        if(opsbuf == NULL) opsbuf = (u8*)memalign(0x1000, opsbufsz);
+        return opsbuf;
+    }
+
+    size_t GetFileSystemOperationsBufferSize()
+    {
+        return opsbufsz;
     }
 }

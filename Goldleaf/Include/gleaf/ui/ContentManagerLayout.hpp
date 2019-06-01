@@ -23,11 +23,13 @@ namespace gleaf::ui
             void nandUserMenuItem_Click();
             void nandSystemMenuItem_Click();
             void gameCartMenuItem_Click();
+            void unusedTicketsMenuItem_Click();
         private:
             pu::element::MenuItem *sdCardMenuItem;
             pu::element::MenuItem *nandUserMenuItem;
             pu::element::MenuItem *nandSystemMenuItem;
             pu::element::MenuItem *gameCartMenuItem;
+            pu::element::MenuItem *unusedTicketsMenuItem;
             pu::element::Menu *typesMenu;
     };
 }

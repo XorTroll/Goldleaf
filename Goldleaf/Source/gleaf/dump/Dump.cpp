@@ -18,8 +18,8 @@ namespace gleaf::dump
         u64 szrem = ncasize;
         FILE *f = fopen(Path.c_str(), "wb");
         u64 off = 0;
-        u64 rmax = 0x400000;
-        u8 *data = (u8*)malloc(rmax);
+        u64 rmax = fs::GetFileSystemOperationsBufferSize();
+        u8 *data = fs::GetFileSystemOperationsBuffer();
         while(szrem)
         {
             u64 rsize = std::min(rmax, szrem);
@@ -29,13 +29,12 @@ namespace gleaf::dump
             off += rsize;
             Callback((double)off, (double)ncasize);
         }
-        free(data);
         fclose(f);
     }
 
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out)
     {
-        size_t size = sizeof(NcmMetaRecord) * 128;
+        size_t size = sizeof(NcmMetaRecord) * 256;
         NcmMetaRecord *metas = (NcmMetaRecord*)malloc(size);
         u32 total = 0;
         u32 written = 0;
@@ -79,7 +78,6 @@ namespace gleaf::dump
     std::string GetTitleKeyData(u64 ApplicationId, bool ExportData)
     {
         fsOpenBisStorage(&fatfs_bin, 31);
-        /*
         FATFS fs;
         FIL save;
         f_mount(&fs, "0", 1);
@@ -152,7 +150,6 @@ namespace gleaf::dump
             fwrite(es::CertData, 1792, 1, ceout);
             fclose(ceout);
         }
-        */
         return "";
     }
 

@@ -59,12 +59,6 @@ namespace gleaf::ui
         if(Update) this->UpdateElements();
     }
 
-    void PartitionBrowserLayout::ChangePartitionUSBDrive(drive::Drive *Drv, bool Update)
-    {
-        this->gexp = fs::GetUSBDriveExplorer(Drv);
-        if(Update) this->UpdateElements();
-    }
-
     void PartitionBrowserLayout::UpdateElements()
     {
         if(!this->elems.empty()) this->elems.clear();

@@ -1,6 +1,8 @@
 #include <gleaf/nsp/PFS0.hpp>
 #include <malloc.h>
 
+#include <fstream>
+
 namespace gleaf::nsp
 {
     PFS0::PFS0(fs::Explorer *Exp, std::string Path)
@@ -84,8 +86,8 @@ namespace gleaf::nsp
     void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, std::string Path)
     {
         u64 fsize = this->GetFileSize(Index);
-        u64 rsize = 0x400000;
-        u8 *bdata = (u8*)memalign(0x1000, rsize);
+        u64 rsize = fs::GetFileSystemOperationsBufferSize();
+        u8 *bdata = fs::GetFileSystemOperationsBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         Exp->DeleteFile(Path);
@@ -98,7 +100,6 @@ namespace gleaf::nsp
             off += rbytes;
             szrem -= rbytes;
         }
-        free(bdata);
     }
 
     u32 PFS0::GetFileIndexByName(std::string File)

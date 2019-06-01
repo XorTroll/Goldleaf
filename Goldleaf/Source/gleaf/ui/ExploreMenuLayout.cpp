@@ -79,8 +79,10 @@ namespace gleaf::ui
 
     void ExploreMenuLayout::usbDrive_Click()
     {
+        /*
         mainapp->GetUSBDrivesLayout()->Start();
         mainapp->LoadLayout(mainapp->GetUSBDrivesLayout());
+        */
     }
 
     void ExploreMenuLayout::nandProdInfoF_Click()

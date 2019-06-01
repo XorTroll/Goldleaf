@@ -23,7 +23,7 @@
 */
 
 
-#include "ff.h"
+#include <fatfs/ff.h>
 
 #if FF_USE_LFN	/* This module will be blanked at non-LFN configuration */
 

@@ -26,7 +26,7 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES) $(CFLAGS)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID) $(QFLAG)
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
 
 CXXFLAGS	:= $(CFLAGS) -fpermissive -std=gnu++17 $(CXXFLAGS)
 

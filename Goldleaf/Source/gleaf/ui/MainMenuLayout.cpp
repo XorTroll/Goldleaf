@@ -18,10 +18,6 @@ namespace gleaf::ui
         this->titleMenuItem->SetIcon(gsets.PathForResource("/Common/Storage.png"));
         this->titleMenuItem->SetColor(gsets.CustomScheme.Text);
         this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
-        this->ticketMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(4));
-        this->ticketMenuItem->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
-        this->ticketMenuItem->SetColor(gsets.CustomScheme.Text);
-        this->ticketMenuItem->AddOnClick(std::bind(&MainMenuLayout::ticketMenuItem_Click, this));
         this->webMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(5));
         this->webMenuItem->SetIcon(gsets.PathForResource("/Common/Browser.png"));
         this->webMenuItem->SetColor(gsets.CustomScheme.Text);
@@ -44,7 +40,6 @@ namespace gleaf::ui
         this->aboutMenuItem->AddOnClick(std::bind(&MainMenuLayout::aboutMenuItem_Click, this));
         this->optionMenu->AddItem(this->exploreMenuItem);
         this->optionMenu->AddItem(this->titleMenuItem);
-        this->optionMenu->AddItem(this->ticketMenuItem);
         this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
@@ -71,16 +66,8 @@ namespace gleaf::ui
         mainapp->LoadLayout(mainapp->GetContentManagerLayout());
     }
 
-    void MainMenuLayout::ticketMenuItem_Click()
-    {
-        mainapp->LoadMenuData(set::GetDictionaryEntry(34), "Ticket", set::GetDictionaryEntry(35));
-        mainapp->GetTicketManagerLayout()->UpdateElements();
-        mainapp->LoadLayout(mainapp->GetTicketManagerLayout());
-    }
-
     void MainMenuLayout::webMenuItem_Click()
     {
-        if(!IsInstalledTitle()) mainapp->CreateShowDialog(set::GetDictionaryEntry(36), set::GetDictionaryEntry(37), { set::GetDictionaryEntry(234) }, false);
         std::string out = AskForText(set::GetDictionaryEntry(38), "https://");
         if(out == "") return;
         else
@@ -93,21 +80,10 @@ namespace gleaf::ui
                 return;
             }
         }
-        if(IsInstalledTitle())
-        {
-            WebCommonConfig web;
-            webPageCreate(&web, out.c_str());
-            WebCommonReply wout;
-            webConfigShow(&web, &wout);  
-        }
-        else
-        {
-            WebWifiConfig wwf;
-            webWifiCreate(&wwf, NULL, out.c_str(), 0, 0);
-            WebWifiReturnValue vret;
-            Result rc = webWifiShow(&wwf, &vret);
-            if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(40));
-        }
+        WebCommonConfig web;
+        webPageCreate(&web, out.c_str());
+        WebCommonReply wout;
+        webConfigShow(&web, &wout);  
     }
 
     void MainMenuLayout::accountMenuItem_Click()

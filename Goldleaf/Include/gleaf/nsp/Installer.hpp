@@ -25,37 +25,32 @@ namespace gleaf::nsp
     class Installer
     {
         public:
-            Installer(Storage Location, std::string Input, bool IgnoreVersion);
+            Installer(std::string Path, fs::Explorer *Exp, Storage Location);
             ~Installer();
-            Result ProcessRecords();
-            Result WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, int Percentage)> Callback);
-            NacpStruct *GetNACP();
+            Result PrepareInstallation();
+            Result PreProcessContents();
+            ncm::ContentMetaType GetContentMetaType();
             u64 GetApplicationId();
-            ncm::ContentMetaType GetContentType();
-            std::vector<ncm::ContentRecord> GetRecords();
             std::string GetExportedIconPath();
-            bool HasContent(ncm::ContentType Type);
+            NacpStruct *GetNACP();
             bool HasTicket();
             horizon::TicketData GetTicketData();
-            bool IsCNMTAlreadyInstalled();
-            Result GetLatestResult();
-            void Finalize();
+            std::vector<ncm::ContentRecord> GetNCAs();
+            Result WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite);
+            void FinalizeInstallation();
         private:
-            bool icnmt;
-            bool tik;
-            std::string icn;
-            NacpStruct *nacps;
-            Result rc;
-            FsStorageId stid;
-            u64 basetid;
+            PFS0 nspentry;
+            NacpStruct *entrynacp;
+            horizon::TicketData entrytik;
+            ncm::ContentMeta cnmt;
+            FsStorageId storage;
+            ByteBuffer ccnmt;
+            ncm::ContentRecord record;
+            NcmMetaRecord mrec;
+            u64 baseappid;
+            u64 stik;
+            std::string tik;
             std::vector<ncm::ContentRecord> ncas;
-            FsFileSystem idfs;
-            FsFileSystem cnmtfs;
-            ByteBuffer cnmtbuf;
-            ncm::ContentMeta cmeta;
-            std::string stik;
-            horizon::TicketData tikdata;
+            std::string icon;
     };
-
-    Result Install(std::string Path, fs::Explorer *Exp, Storage Location, std::function<bool(ncm::ContentMetaType Type, u64 ApplicationId, std::string IconPath, NacpStruct *NACP, horizon::TicketData *Tik, std::vector<ncm::ContentRecord> NCAs)> OnInitialProcess, std::function<void()> OnRecordProcess, std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite);
 }

@@ -11,5 +11,7 @@
 */
 
 #pragma once
-#include <fatfs/ff.h>
-#include <fatfs/diskio.h>
+extern "C"
+{
+    #include <fatfs/ff.h>
+}

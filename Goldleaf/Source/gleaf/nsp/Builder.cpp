@@ -1,4 +1,5 @@
 #include <gleaf/nsp/Builder.hpp>
+#include <gleaf/fs.hpp>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
@@ -100,20 +101,19 @@ namespace gleaf::nsp
                     ret = false;
                     break;
                 }
-                u64 rsize = 8388608;
+                u64 rsize = fs::GetFileSystemOperationsBufferSize();
                 u64 szread = 0;
                 u64 szrem = fsentries[pos].Size;
+                u8 *tmpbuf = fs::GetFileSystemOperationsBuffer();
                 while(szrem)
                 {
                     u64 rrsize = std::min(rsize, szrem);
-                    u8 *tmpbuf = (u8*)malloc(rrsize);
                     tmplen = fread(tmpbuf, 1, rrsize, fin);
                     szrem -= tmplen;
                     szread += tmplen;
                     fwrite(tmpbuf, 1, tmplen, fout);
                     u8 pc = (u8)((double)szread / (double)fsentries[pos].Size * 100.0);
                     Callback(pc);
-                    free(tmpbuf);
                 }
                 fclose(fin);
             }

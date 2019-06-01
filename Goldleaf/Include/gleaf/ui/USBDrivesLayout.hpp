@@ -22,10 +22,10 @@ namespace gleaf::ui
             void Start();
             void UpdateDrives();
             void drive_Click();
-            std::vector<drive::Drive*> GetDrives();
+            // std::vector<drive::Drive*> GetDrives();
         private:
             pu::element::Menu *drivesMenu;
             pu::element::TextBlock *noDrivesText;
-            std::vector<drive::Drive*> drvs;
+            // std::vector<drive::Drive*> drvs;
     };
 }

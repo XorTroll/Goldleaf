@@ -60,6 +60,7 @@ namespace gleaf::horizon
             }
         }
         free(ctdata);
+        ctdata = NULL;
         return nacp;
     }
 
@@ -84,6 +85,7 @@ namespace gleaf::horizon
             }
         }
         free(ctdata);
+        ctdata = NULL;
         return icon;
     }
 
@@ -99,6 +101,7 @@ namespace gleaf::horizon
             sdexp->DeleteFile(fnacp);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
             free(nacp);
+            nacp = NULL;
         }
         u8 *jpg = this->TryGetIcon();
         if(jpg != NULL)
@@ -107,6 +110,8 @@ namespace gleaf::horizon
             sdexp->DeleteFile(fjpg);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
             free(jpg);
+            jpg = NULL;
+            hicon = true;
         }
         return hicon;
     }
@@ -218,11 +223,12 @@ namespace gleaf::horizon
                     t.Type = static_cast<ncm::ContentMetaType>(recs[i].type);
                     t.Version = recs[i].version;
                     t.Location = Location;
-                    t.Record = recs[i];
+                    memcpy(&t.Record, &recs[i], sizeof(NcmMetaRecord));
                     titles.push_back(t);
                 }
             }
             free(recs);
+            recs = NULL;
             serviceClose(&metadb.s);
         }
         return titles;
@@ -280,6 +286,7 @@ namespace gleaf::horizon
             ex = true;
             break;
         }
+        ts.clear();
         return ex;
     }
 
@@ -328,7 +335,9 @@ namespace gleaf::horizon
         if(cc > 0) for(u32 i = 0; i < vcrids.size(); i++) tickets.push_back({ vcrids[i], gleaf::horizon::TicketType::Common });
         if(pc > 0) for(u32 i = 0; i < vprids.size(); i++) tickets.push_back({ vprids[i], gleaf::horizon::TicketType::Personalized });
         free(crids);
+        crids = NULL;
         free(prids);
+        prids = NULL;
         return tickets;
     }
 

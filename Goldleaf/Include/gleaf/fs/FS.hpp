@@ -52,4 +52,7 @@ namespace gleaf::fs
     std::string FormatSize(u64 Bytes);
     std::string SearchForFile(FsFileSystem FS, std::string Extension);
     std::string SearchForFileInPath(std::string Base, std::string Extension);
+
+    u8 *GetFileSystemOperationsBuffer();
+    size_t GetFileSystemOperationsBufferSize();
 }
