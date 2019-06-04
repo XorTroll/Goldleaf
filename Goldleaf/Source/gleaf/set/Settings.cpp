@@ -44,6 +44,9 @@ namespace gleaf::set
             case 14:
                 gset.CustomLanguage = Language::Spanish;
                 break;
+            case 15:
+                gset.CustomLanguage = Language::Brazilian Portuguese;
+                break;
             /*
             case 6:
             case 7:
@@ -51,7 +54,6 @@ namespace gleaf::set
             case 9:
             case 10:
             case 11:
-            case 15:
             case 16:    
             */
             default:
@@ -78,6 +80,7 @@ namespace gleaf::set
                 else if(lang == "de") gset.CustomLanguage = Language::German;
                 else if(lang == "fr") gset.CustomLanguage = Language::French;
                 else if(lang == "it") gset.CustomLanguage = Language::Italian;
+                else if(lang == "pt_BR") gset.CustomLanguage = Language::Brazilian Portuguese;
             }
             gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
             gset.IgnoreRequiredFirmwareVersion = inir.GetBoolean("NSP", "ignoreRequiredFwVer", true);
