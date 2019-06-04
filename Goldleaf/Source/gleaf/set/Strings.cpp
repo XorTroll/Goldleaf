@@ -24,6 +24,9 @@ namespace gleaf::set
             case Language::Italian:
                 pdict = "it";
                 break;
+            case Language::Brazilian Portuguese:
+                pdict = "pt_BR";
+                break;
         }
         pdict += ".json";
         std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));
