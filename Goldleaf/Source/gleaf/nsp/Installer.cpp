@@ -9,6 +9,15 @@
 
 extern gleaf::set::Settings gsets;
 
+
+static void Log(std::string t)
+{
+    FILE *f = fopen("sdmc:/gleaf-nsp.log", "a");
+    t += "\n";
+    fwrite(t.c_str(), t.length() + 1, 1, f);
+    fclose(f);
+}
+
 namespace gleaf::nsp
 {
     Installer::Installer(std::string Path, fs::Explorer *Exp, Storage Location) : nspentry(Exp, Path), storage(static_cast<FsStorageId>(Location))
@@ -33,8 +42,10 @@ namespace gleaf::nsp
             u32 idxtik = 0;
             stik = 0;
             auto files = nspentry.GetFiles();
+            Log("File count: " + std::to_string(files.size()));
             for(u32 i = 0; i < files.size(); i++)
             {
+                Log(" - NSP file: " + files[i]);
                 std::string file = files[i];
                 if(fs::GetExtension(file) == "tik")
                 {
@@ -56,8 +67,8 @@ namespace gleaf::nsp
             nsys->DeleteFile(ncnmtnca);
             nspentry.SaveFile(idxcnmtnca, nsys, ncnmtnca);
             std::string acnmtnca = "@SystemContent://temp/" + cnmtnca;
+            Log("CNMT NCA path: " + acnmtnca);
             acnmtnca.reserve(FS_MAX_PATH);
-            ByteBuffer bcnmt;
             FsFileSystem cnmtncafs;
             rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.c_str());
             if(rc != 0) return rc;
@@ -75,8 +86,10 @@ namespace gleaf::nsp
                     }
                 }
                 u64 fcnmtsz = cnmtfs.GetFileSize(fcnmt);
-                bcnmt.Resize(fcnmtsz);
-                cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, bcnmt.GetData());
+                u8 cnmtbuf[fcnmtsz] = {0};
+                cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, cnmtbuf);
+                cnmt = new ncm::ContentMeta(cnmtbuf, fcnmtsz);
+                cnmtfs.Close();
             }
             record = { 0 };
             record.NCAId = horizon::GetNCAIdFromString(icnmtnca);
@@ -85,8 +98,8 @@ namespace gleaf::nsp
             u64 baseappid;
 
             memset(&mrec, 0, sizeof(NcmMetaRecord));
-            cnmt = ncm::ContentMeta(bcnmt.GetData(), bcnmt.GetSize());
-            mrec = cnmt.GetContentMetaKey();
+            Log("AppId: " + horizon::FormatApplicationId(cnmt->GetContentMetaKey().titleId));
+            mrec = cnmt->GetContentMetaKey();
             if(horizon::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, mrec.titleId))
             {
                 rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
@@ -104,7 +117,7 @@ namespace gleaf::nsp
             serviceClose(&cst.s);
             if(!hascnmt) ncas.push_back(record);
             baseappid = horizon::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
-            auto recs = cnmt.GetContentRecords();
+            auto recs = cnmt->GetContentRecords();
             entrynacp = (NacpStruct*)malloc(sizeof(NacpStruct));
             std::string nstik = "Contents/temp/" + tik;
             std::string ptik = nsys->FullPathFor(nstik);
@@ -157,7 +170,7 @@ namespace gleaf::nsp
         NcmContentMetaDatabase mdb;
         Result rc = ncmOpenContentMetaDatabase(storage, &mdb);
         if(rc != 0) return rc;
-        cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
+        cnmt->GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
         rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetSize(), (NcmContentMetaRecordsHeader*)ccnmt.GetData());
         if(rc != 0)
         {
@@ -299,6 +312,7 @@ namespace gleaf::nsp
 
     void Installer::FinalizeInstallation()
     {
+        if(cnmt != nullptr) delete cnmt;
         free(entrynacp);
         entrynacp = NULL;
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();

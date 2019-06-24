@@ -42,7 +42,7 @@ namespace gleaf::nsp
             PFS0 nspentry;
             NacpStruct *entrynacp;
             horizon::TicketData entrytik;
-            ncm::ContentMeta cnmt;
+            ncm::ContentMeta *cnmt;
             FsStorageId storage;
             ByteBuffer ccnmt;
             ncm::ContentRecord record;
