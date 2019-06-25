@@ -1,63 +1,100 @@
-#include <gleaf/Goldleaf>
-extern u32 __nx_applet_type;
+#include <ui/ui_MainApplication.hpp>
+#include <sys/stat.h>
+#include <cstdlib>
+#include <ctime>
 
-extern "C"
+extern char *fake_heap_end;
+static void *ghaddr;
+
+RunMode GetRunMode()
 {
-    void __nx_win_init(void);
-    void __libnx_init_time(void);
-
-    void __appInit(void)
+    RunMode rmode = RunMode::Unknown;
+    if(envIsNso())
     {
-        Result rc = smInitialize();
-        if(R_FAILED(rc)) fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
-
-        rc = setsysInitialize();
-        if(R_SUCCEEDED(rc))
+        AppletType type = appletGetAppletType();
+        switch(type)
         {
-            SetSysFirmwareVersion fw;
-            rc = setsysGetFirmwareVersion(&fw);
-            if(R_SUCCEEDED(rc)) hosversionSet(MAKEHOSVERSION(fw.major, fw.minor, fw.micro));
-            setsysExit();
+            case AppletType_Application:
+                rmode = RunMode::Title;
+                break;
+            default:
+                rmode = RunMode::Unknown;
+                break;
         }
-
-        rc = timeInitialize();
-        if(R_FAILED(rc)) fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_Time));
-
-        __libnx_init_time();
-
-        rc = fsInitialize();
-        if(R_FAILED(rc)) fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
-
-        fsdevMountSdmc();
     }
+    else rmode = RunMode::NRO;
+    return rmode;
 }
 
-int main(int argc, char *argv[])
+bool IsNRO()
 {
-    gleaf::StartMode stmode = gleaf::StartMode::Normal;
-    if(envHasArgv() && (argc > 1))
+    return (GetRunMode() == RunMode::NRO);
+}
+
+bool IsInstalledTitle()
+{
+    return (GetRunMode() == RunMode::Title);
+}
+
+void Initialize()
+{
+    srand(time(NULL));
+    if(IsNRO())
     {
-        for(int i = 0; i < argc; i++)
-        {
-            const char *cargv = argv[i];
-            if(strcasecmp(cargv, "hbmenu") == 0)
-            {
-                stmode = gleaf::StartMode::HomebrewMenu;
-                break;
-            }
-            else if((strcasecmp(cargv, "qlaunch") == 0) || (strcasecmp(cargv, "home") == 0))
-            {
-                stmode = gleaf::StartMode::Qlaunch;
-                __nx_applet_type = AppletType_SystemApplet;
-                break;
-            }
-        }
+        if(R_SUCCEEDED(svcSetHeapSize(&ghaddr, 0x10000000))) fake_heap_end = (char*)ghaddr + 0x10000000;
     }
-    gleaf::Initialize();
-    atexit(gleaf::Finalize);
-    gleaf::ui::MainApplication *mainapp = new gleaf::ui::MainApplication(stmode);
-    gleaf::ui::SetMainApplication(mainapp);
-    mainapp->Show();
+    if(R_FAILED(ncm::Initialize())) exit(1);
+    if(R_FAILED(acc::Initialize())) exit(1);
+    if(R_FAILED(accountInitialize())) exit(1);
+    if(R_FAILED(ncmInitialize())) exit(1);
+    if(R_FAILED(ns::Initialize())) exit(1);
+    if(R_FAILED(nsInitialize())) exit(1);
+    if(R_FAILED(es::Initialize())) exit(1);
+    if(R_FAILED(psmInitialize())) exit(1);
+    if(R_FAILED(setInitialize())) exit(1);
+    if(R_FAILED(setsysInitialize())) exit(1);
+    if(R_FAILED(usbCommsInitialize())) exit(1);
+    if(R_FAILED(splInitialize())) exit(1);
+    if(R_FAILED(bpcInitialize())) exit(1);
+    if(R_FAILED(nifmInitialize())) exit(1);
+    EnsureDirectories();
+}
+
+void Finalize()
+{
+    fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+    fs::Explorer *nsfe = fs::GetNANDSafeExplorer();
+    fs::Explorer *nusr = fs::GetNANDUserExplorer();
+    fs::Explorer *prif = fs::GetPRODINFOFExplorer();
+    fs::Explorer *sdcd = fs::GetSdCardExplorer();
+    delete nsys;
+    delete nsfe;
+    delete nusr;
+    delete prif;
+    delete sdcd;
+    bpcExit();
+    splExit();
+    usbCommsExit();
+    setsysExit();
+    setExit();
+    psmExit();
+    es::Finalize();
+    ns::Finalize();
+    nsExit();
+    accountExit();
+    acc::Finalize();
+    ncm::Finalize();
+    ncmExit();
+    nifmExit();
+    if(IsNRO()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
+}
+
+int main()
+{
+    Initialize();
+    ui::MainApplication *mainapp = new ui::MainApplication();
+    mainapp->ShowWithFadeIn();
+    Finalize();
     delete mainapp;
     return 0;
 }

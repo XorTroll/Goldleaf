@@ -7,18 +7,17 @@ endif
 TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/libnx/switch_rules
 
-# Goldleaf's Makefile system
-
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 APP_VERSION := 0.6
 APP_TITLEID	:= 050032A5CF12E000
+
 TARGET      := Goldleaf
 ICON		:= Icon.jpg
 
 BUILD       := Build
-SOURCES     := Source Source/fatfs Source/gleaf Source/gleaf/acc Source/gleaf/drive Source/gleaf/dump Source/gleaf/err Source/gleaf/es Source/gleaf/fs Source/gleaf/hacpack Source/gleaf/hactool Source/gleaf/horizon Source/gleaf/ini Source/gleaf/ncm Source/gleaf/net Source/gleaf/ns Source/gleaf/nsp Source/gleaf/set Source/gleaf/ui Source/gleaf/usb
-INCLUDES    := Include Include/fatfs Include/gleaf Include/gleaf/acc Include/gleaf/drive Include/gleaf/dump Include/gleaf/err Include/gleaf/es Include/gleaf/fs Include/gleaf/hacpack Include/gleaf/hactool Include/gleaf/horizon Include/gleaf/ini Include/gleaf/ncm Include/gleaf/net Include/gleaf/ns Include/gleaf/nsp Include/gleaf/set Include/gleaf/ui Include/gleaf/usb
+SOURCES     := Source Source/fatfs Source/acc Source/dump Source/err Source/es Source/fs Source/hos Source/ncm Source/net Source/ns Source/nsp Source/set Source/ui Source/usb
+INCLUDES    := ../libnx/nx/external/bsd/include Include Include/fatfs Include/acc Include/dump Include/err Include/es Include/fs Include/hos Include/ncm Include/net Include/ns Include/nsp Include/set Include/ui Include/usb
 ROMFS       := RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
@@ -28,13 +27,13 @@ CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
 
-CXXFLAGS	:= $(CFLAGS) -fpermissive -std=gnu++17 $(CXXFLAGS)
+CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lfatdrive -lnx -lpu -lhactool -lmbedcrypto -lfreetype -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lSDL2 -lEGL -lGLESv2 -lglapi -ldrm_nouveau -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
-LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../libnx-Goldleaf/nx $(CURDIR)/../libnx-Goldleaf/nx/external/bsd $(CURDIR)/../libnx-Goldleaf/nx/fatdrive $(CURDIR)/External/pu $(CURDIR)/External/json $(CURDIR)/External/hactool
+LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lpu -lfreetype -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -lSDL2 -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../Plutonium/Plutonium/Output $(CURDIR)/../libnx/nx
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -104,6 +103,8 @@ endif
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(CURDIR)/Output ] || mkdir -p $(CURDIR)/Output
+	@$(MAKE) -C ../libnx/
+	@$(MAKE) -C ../Plutonium/Plutonium/
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 clean:
