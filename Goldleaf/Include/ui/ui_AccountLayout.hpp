@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class AccountLayout : public pu::Layout
+    class AccountLayout : public pu::ui::Layout
     {
         public:
             AccountLayout();
@@ -25,7 +25,7 @@ namespace ui
             void optsIcon_Click();
             void optsDelete_Click();
         private:
-            pu::element::Menu *optsMenu;
+            pu::ui::elm::Menu *optsMenu;
             u128 uid;
             AccountProfile prf;
             AccountProfileBase *pbase;

@@ -1,10 +1,11 @@
 
 /*
 
-    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
-    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll, emerged from Adubbz's work with Tinfoil
+
+    This project is licensed under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
 
 */
 
@@ -85,7 +86,7 @@ namespace fs
             virtual u64 GetFreeSpace() override;
     };
 
-    class SdCardExplorer : public StdExplorer
+    class SdCardExplorer final : public StdExplorer
     {
         public:
             SdCardExplorer();
@@ -93,7 +94,7 @@ namespace fs
             virtual u64 GetFreeSpace() override;
     };
 
-    class NANDExplorer : public StdExplorer
+    class NANDExplorer final : public StdExplorer
     {
         public:
             NANDExplorer(Partition Part);
@@ -107,7 +108,7 @@ namespace fs
             FsFileSystem fs;
     };
 
-    class USBPCDriveExplorer : public Explorer
+    class USBPCDriveExplorer final : public Explorer
     {
         public:
             USBPCDriveExplorer(std::string MountName);
@@ -129,7 +130,7 @@ namespace fs
             virtual u64 GetFreeSpace() override;
     };
 
-    class FileSystemExplorer : public StdExplorer
+    class FileSystemExplorer final : public StdExplorer
     {
         public:
             FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem, bool AutoClose);
@@ -142,11 +143,11 @@ namespace fs
             FsFileSystem *fs;
     };
 
-    Explorer *GetSdCardExplorer();
-    Explorer *GetPRODINFOFExplorer();
-    Explorer *GetNANDSafeExplorer();
-    Explorer *GetNANDUserExplorer();
-    Explorer *GetNANDSystemExplorer();
-    Explorer *GetUSBPCDriveExplorer(std::string MountName);
+    SdCardExplorer *GetSdCardExplorer();
+    NANDExplorer *GetPRODINFOFExplorer();
+    NANDExplorer *GetNANDSafeExplorer();
+    NANDExplorer *GetNANDUserExplorer();
+    NANDExplorer *GetNANDSystemExplorer();
+    USBPCDriveExplorer *GetUSBPCDriveExplorer(std::string MountName);
     Explorer *GetExplorerForMountName(std::string MountName);
 }

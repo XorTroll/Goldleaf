@@ -16,8 +16,8 @@ TARGET      := Goldleaf
 ICON		:= Icon.jpg
 
 BUILD       := Build
-SOURCES     := Source Source/fatfs Source/acc Source/dump Source/err Source/es Source/fs Source/hos Source/ncm Source/net Source/ns Source/nsp Source/set Source/ui Source/usb
-INCLUDES    := ../libnx/nx/external/bsd/include Include Include/fatfs Include/acc Include/dump Include/err Include/es Include/fs Include/hos Include/ncm Include/net Include/ns Include/nsp Include/set Include/ui Include/usb
+SOURCES     := Source Source/fatfs Source/acc Source/dump Source/err Source/es Source/fs Source/hos Source/ncm Source/net Source/ns Source/nsp Source/set Source/nfp Source/ui Source/usb
+INCLUDES    := ../libnx/nx/external/bsd/include Include Include/fatfs Include/acc Include/dump Include/err Include/es Include/fs Include/hos Include/ncm Include/net Include/nfp Include/ns Include/nsp Include/set Include/ui Include/usb
 ROMFS       := RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE

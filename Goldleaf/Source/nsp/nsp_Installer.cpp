@@ -9,15 +9,6 @@
 
 extern set::Settings gsets;
 
-
-static void Log(std::string t)
-{
-    FILE *f = fopen("sdmc:/gleaf-nsp.log", "a");
-    t += "\n";
-    fwrite(t.c_str(), t.length() + 1, 1, f);
-    fclose(f);
-}
-
 namespace nsp
 {
     Installer::Installer(std::string Path, fs::Explorer *Exp, Storage Location) : nspentry(Exp, Path), storage(static_cast<FsStorageId>(Location))
@@ -42,10 +33,8 @@ namespace nsp
             u32 idxtik = 0;
             stik = 0;
             auto files = nspentry.GetFiles();
-            Log("File count: " + std::to_string(files.size()));
             for(u32 i = 0; i < files.size(); i++)
             {
-                Log(" - NSP file: " + files[i]);
                 std::string file = files[i];
                 if(fs::GetExtension(file) == "tik")
                 {
@@ -60,6 +49,11 @@ namespace nsp
                     scnmtnca = nspentry.GetFileSize(i);
                 }
             }
+            if(scnmtnca == 0)
+            {
+                rc = err::Make(err::ErrorDescription::MetaNotFound);
+                return rc;
+            }
             std::string icnmtnca = fs::GetFileName(cnmtnca);
             fs::Explorer *nsys = fs::GetNANDSystemExplorer();
             nsys->CreateDirectory("Contents/temp");
@@ -67,7 +61,6 @@ namespace nsp
             nsys->DeleteFile(ncnmtnca);
             nspentry.SaveFile(idxcnmtnca, nsys, ncnmtnca);
             std::string acnmtnca = "@SystemContent://temp/" + cnmtnca;
-            Log("CNMT NCA path: " + acnmtnca);
             acnmtnca.reserve(FS_MAX_PATH);
             FsFileSystem cnmtncafs;
             rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.c_str());
@@ -85,21 +78,23 @@ namespace nsp
                         break;
                     }
                 }
+                if(fcnmt.empty())
+                {
+                    rc = err::Make(err::ErrorDescription::MetaNotFound);
+                    return rc;
+                }
                 u64 fcnmtsz = cnmtfs.GetFileSize(fcnmt);
                 u8 cnmtbuf[fcnmtsz] = {0};
                 cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, cnmtbuf);
-                cnmt = new ncm::ContentMeta(cnmtbuf, fcnmtsz);
+                cnmt = ncm::ContentMeta(cnmtbuf, fcnmtsz);
                 cnmtfs.Close();
             }
             record = { 0 };
             record.ContentId = hos::StringAsContentId(icnmtnca);
             *(u64*)record.Size = (scnmtnca & 0xffffffffffff);
             record.Type = ncm::ContentType::Meta;
-            u64 baseappid;
-
             memset(&mrec, 0, sizeof(NcmMetaRecord));
-            Log("AppId: " + hos::FormatApplicationId(cnmt->GetContentMetaKey().titleId));
-            mrec = cnmt->GetContentMetaKey();
+            mrec = cnmt.GetContentMetaKey();
             if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, mrec.titleId))
             {
                 rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
@@ -117,8 +112,8 @@ namespace nsp
             serviceClose(&cst.s);
             if(!hascnmt) ncas.push_back(record);
             baseappid = hos::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
-            auto recs = cnmt->GetContentRecords();
-            entrynacp = (NacpStruct*)malloc(sizeof(NacpStruct));
+            auto recs = cnmt.GetContentRecords();
+            entrynacp = {};
             std::string nstik = "Contents/temp/" + tik;
             std::string ptik = nsys->FullPathFor(nstik);
             if(stik > 0)
@@ -155,7 +150,7 @@ namespace nsp
                                 break;
                             }
                         }
-                        controlfs.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)entrynacp);
+                        controlfs.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)&entrynacp);
                     }
                     rc = 0;
                 }
@@ -170,7 +165,7 @@ namespace nsp
         NcmContentMetaDatabase mdb;
         Result rc = ncmOpenContentMetaDatabase(storage, &mdb);
         if(rc != 0) return rc;
-        cnmt->GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
+        cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
         rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetSize(), (NcmContentMetaRecordsHeader*)ccnmt.GetData());
         if(rc != 0)
         {
@@ -187,6 +182,7 @@ namespace nsp
         std::vector<ns::ContentStorageRecord> srecs;
         if(cmetacount > 0)
         {
+            srecs.resize(cmetacount);
             size_t csbufs = (cmetacount * sizeof(ns::ContentStorageRecord));
             ns::ContentStorageRecord *csbuf = (ns::ContentStorageRecord*)malloc(csbufs);
             u32 cmcount = 0;
@@ -196,7 +192,7 @@ namespace nsp
                 free(csbuf);
                 return rc;
             }
-            for(u32 i = 0; i < cmetacount; i++) srecs.push_back(csbuf[i]);
+            for(u32 i = 0; i < cmcount; i++) srecs.push_back(csbuf[i]);
             free(csbuf);
         }
         ns::ContentStorageRecord csrecord;
@@ -209,7 +205,7 @@ namespace nsp
         if(stik > 0)
         {
             auto tdata = nsys->ReadFile("Contents/temp/" + tik);
-            es::ImportTicket(tdata.data(), tdata.size(), es::CertData, 1792);
+            es::ImportTicket(tdata.data(), tdata.size(), es::CertData, sizeof(es::CertData));
         }
         return rc;
     }
@@ -231,7 +227,7 @@ namespace nsp
 
     NacpStruct *Installer::GetNACP()
     {
-        return entrynacp;
+        return &entrynacp;
     }
 
     bool Installer::HasTicket()
@@ -311,9 +307,6 @@ namespace nsp
 
     void Installer::FinalizeInstallation()
     {
-        if(cnmt != nullptr) delete cnmt;
-        free(entrynacp);
-        entrynacp = NULL;
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
         nsys->DeleteDirectory("Contents/temp");
     }

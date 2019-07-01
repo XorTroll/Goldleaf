@@ -9,10 +9,10 @@ namespace ui
 
     TitleDumperLayout::TitleDumperLayout()
     {
-        this->dumpText = new pu::element::TextBlock(150, 320, set::GetDictionaryEntry(151));
-        this->dumpText->SetHorizontalAlign(pu::element::HorizontalAlign::Center);
+        this->dumpText = new pu::ui::elm::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->dumpText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->dumpText->SetColor(gsets.CustomScheme.Text);
-        this->ncaBar = new pu::element::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->ncaBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
         this->ncaBar->SetVisible(false);
         this->Add(this->dumpText);
         this->Add(this->ncaBar);

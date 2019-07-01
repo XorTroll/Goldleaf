@@ -9,7 +9,7 @@ namespace ui
 
     ContentInformationLayout::ContentInformationLayout()
     {
-        this->optionsMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->optionsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->optionsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         this->Add(this->optionsMenu);
     }
@@ -27,7 +27,7 @@ namespace ui
             std::string name = set::GetDictionaryEntry(261);
             if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
             if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263);
-            pu::element::MenuItem *subcnt = new pu::element::MenuItem(name);
+            pu::ui::elm::MenuItem *subcnt = new pu::ui::elm::MenuItem(name);
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
             this->optionsMenu->AddItem(subcnt);
@@ -40,7 +40,7 @@ namespace ui
         u32 idx = this->optionsMenu->GetSelectedIndex();
         std::string msg = set::GetDictionaryEntry(169) + "\n\n";
         msg += set::GetDictionaryEntry(170) + " ";
-        std::vector<std::string> opts = { set::GetDictionaryEntry(245), set::GetDictionaryEntry(244) };
+        std::vector<pu::String> opts = { set::GetDictionaryEntry(245), set::GetDictionaryEntry(244) };
         std::string icn;
         hos::Title cnt = this->tcontents[idx];
         if(fs::IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);

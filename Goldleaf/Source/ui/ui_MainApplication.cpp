@@ -8,7 +8,7 @@ namespace ui
     MainApplication *mainapp;
     extern std::string clipboard;
 
-    MainApplication::MainApplication() : pu::Application()
+    MainApplication::MainApplication() : pu::ui::Application()
     {
         gsets = set::ProcessSettings();
         set::Initialize();
@@ -17,33 +17,33 @@ namespace ui
         this->pretime = "";
         this->vfirst = true;
         this->connstate = 0;
-        this->baseImage = new pu::element::Image(0, 0, gsets.PathForResource("/Base.png"));
-        this->timeText = new pu::element::TextBlock(1124, 20, "00:00:00");
+        this->baseImage = new pu::ui::elm::Image(0, 0, gsets.PathForResource("/Base.png"));
+        this->timeText = new pu::ui::elm::TextBlock(1124, 20, "00:00:00");
         this->timeText->SetColor(gsets.CustomScheme.Text);
-        this->batteryText = new pu::element::TextBlock(1015, 22, "0%", 20);
+        this->batteryText = new pu::ui::elm::TextBlock(1015, 22, "0%", 20);
         this->batteryText->SetColor(gsets.CustomScheme.Text);
-        this->batteryImage = new pu::element::Image(960, 8, gsets.PathForResource("/Battery/0.png"));
-        this->batteryChargeImage = new pu::element::Image(960, 8, gsets.PathForResource("/Battery/Charge.png"));
-        this->menuBanner = new pu::element::Image(10, 62, gsets.PathForResource("/MenuBanner.png"));
-        this->menuImage = new pu::element::Image(15, 69, gsets.PathForResource("/Common/SdCard.png"));
+        this->batteryImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/0.png"));
+        this->batteryChargeImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/Charge.png"));
+        this->menuBanner = new pu::ui::elm::Image(10, 62, gsets.PathForResource("/MenuBanner.png"));
+        this->menuImage = new pu::ui::elm::Image(15, 69, gsets.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(85);
         this->menuImage->SetHeight(85);
-        this->usbImage = new pu::element::Image(710, 12, gsets.PathForResource("/Common/USB.png"));
+        this->usbImage = new pu::ui::elm::Image(710, 12, gsets.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);
-        this->connImage = new pu::element::Image(755, 12, gsets.PathForResource("/Connection/None.png"));
+        this->connImage = new pu::ui::elm::Image(755, 12, gsets.PathForResource("/Connection/None.png"));
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = new pu::element::TextBlock(800, 22, "127.0.0.1", 20);
+        this->ipText = new pu::ui::elm::TextBlock(800, 22, "127.0.0.1", 20);
         this->ipText->SetColor(gsets.CustomScheme.Text);
-        this->menuNameText = new pu::element::TextBlock(120, 85, "-");
+        this->menuNameText = new pu::ui::elm::TextBlock(120, 85, "-");
         this->menuNameText->SetColor(gsets.CustomScheme.Text);
-        this->menuHeadText = new pu::element::TextBlock(120, 120, "-", 20);
+        this->menuHeadText = new pu::ui::elm::TextBlock(120, 120, "-", 20);
         this->menuHeadText->SetColor(gsets.CustomScheme.Text);
         this->UnloadMenuData();
-        this->toast = new pu::overlay::Toast(":", 20, { 225, 225, 225, 255 }, { 40, 40, 40, 255 });
+        this->toast = new pu::ui::extras::Toast(":", 20, { 225, 225, 225, 255 }, { 40, 40, 40, 255 });
         this->UpdateValues();
         this->mainMenu = new MainMenuLayout();
         this->browser = new PartitionBrowserLayout();
@@ -69,6 +69,8 @@ namespace ui
         this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->account = new AccountLayout();
         this->account->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->amiibo = new AmiiboDumpLayout();
+        this->amiibo->SetOnInput(std::bind(&MainApplication::amiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->sysInfo = new SystemInfoLayout();
         this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->update = new UpdateLayout();
@@ -88,6 +90,7 @@ namespace ui
         this->titleDump->SetBackgroundColor(gsets.CustomScheme.Background);
         this->ticketManager->SetBackgroundColor(gsets.CustomScheme.Background);
         this->account->SetBackgroundColor(gsets.CustomScheme.Background);
+        this->amiibo->SetBackgroundColor(gsets.CustomScheme.Background);
         this->sysInfo->SetBackgroundColor(gsets.CustomScheme.Background);
         this->update->SetBackgroundColor(gsets.CustomScheme.Background);
         this->about->SetBackgroundColor(gsets.CustomScheme.Background);
@@ -105,6 +108,7 @@ namespace ui
         this->titleDump->Add(this->baseImage);
         this->ticketManager->Add(this->baseImage);
         this->account->Add(this->baseImage);
+        this->amiibo->Add(this->baseImage);
         this->sysInfo->Add(this->baseImage);
         this->update->Add(this->baseImage);
         this->about->Add(this->baseImage);
@@ -122,6 +126,7 @@ namespace ui
         this->titleDump->Add(this->timeText);
         this->ticketManager->Add(this->timeText);
         this->account->Add(this->timeText);
+        this->amiibo->Add(this->timeText);
         this->sysInfo->Add(this->timeText);
         this->update->Add(this->timeText);
         this->about->Add(this->timeText);
@@ -139,6 +144,7 @@ namespace ui
         this->titleDump->Add(this->batteryText);
         this->ticketManager->Add(this->batteryText);
         this->account->Add(this->batteryText);
+        this->amiibo->Add(this->batteryText);
         this->sysInfo->Add(this->batteryText);
         this->update->Add(this->batteryText);
         this->about->Add(this->batteryText);
@@ -156,6 +162,7 @@ namespace ui
         this->titleDump->Add(this->batteryImage);
         this->ticketManager->Add(this->batteryImage);
         this->account->Add(this->batteryImage);
+        this->amiibo->Add(this->batteryImage);
         this->sysInfo->Add(this->batteryImage);
         this->update->Add(this->batteryImage);
         this->about->Add(this->batteryImage);
@@ -173,6 +180,7 @@ namespace ui
         this->titleDump->Add(this->batteryChargeImage);
         this->ticketManager->Add(this->batteryChargeImage);
         this->account->Add(this->batteryChargeImage);
+        this->amiibo->Add(this->batteryChargeImage);
         this->sysInfo->Add(this->batteryChargeImage);
         this->update->Add(this->batteryChargeImage);
         this->about->Add(this->batteryChargeImage);
@@ -190,6 +198,7 @@ namespace ui
         this->titleDump->Add(this->menuImage);
         this->ticketManager->Add(this->menuImage);
         this->account->Add(this->menuImage);
+        this->amiibo->Add(this->menuImage);
         this->sysInfo->Add(this->menuImage);
         this->update->Add(this->menuImage);
         this->about->Add(this->menuImage);
@@ -207,6 +216,7 @@ namespace ui
         this->titleDump->Add(this->usbImage);
         this->ticketManager->Add(this->usbImage);
         this->account->Add(this->usbImage);
+        this->amiibo->Add(this->usbImage);
         this->sysInfo->Add(this->usbImage);
         this->update->Add(this->usbImage);
         this->about->Add(this->usbImage);
@@ -224,6 +234,7 @@ namespace ui
         this->titleDump->Add(this->connImage);
         this->ticketManager->Add(this->connImage);
         this->account->Add(this->connImage);
+        this->amiibo->Add(this->connImage);
         this->sysInfo->Add(this->connImage);
         this->update->Add(this->connImage);
         this->about->Add(this->connImage);
@@ -241,6 +252,7 @@ namespace ui
         this->titleDump->Add(this->ipText);
         this->ticketManager->Add(this->ipText);
         this->account->Add(this->ipText);
+        this->amiibo->Add(this->ipText);
         this->sysInfo->Add(this->ipText);
         this->update->Add(this->ipText);
         this->about->Add(this->ipText);
@@ -259,6 +271,7 @@ namespace ui
         this->titleDump->Add(this->menuNameText);
         this->ticketManager->Add(this->menuNameText);
         this->account->Add(this->menuNameText);
+        this->amiibo->Add(this->menuNameText);
         this->sysInfo->Add(this->menuNameText);
         this->update->Add(this->menuNameText);
         this->about->Add(this->menuNameText);
@@ -276,6 +289,7 @@ namespace ui
         this->titleDump->Add(this->menuHeadText);
         this->ticketManager->Add(this->menuHeadText);
         this->account->Add(this->menuHeadText);
+        this->amiibo->Add(this->menuHeadText);
         this->sysInfo->Add(this->menuHeadText);
         this->update->Add(this->menuHeadText);
         this->about->Add(this->menuHeadText);
@@ -316,6 +330,7 @@ namespace ui
         delete this->titleDump;
         delete this->ticketManager;
         delete this->account;
+        delete this->amiibo;
         delete this->sysInfo;
         delete this->update;
         delete this->about;
@@ -579,6 +594,15 @@ namespace ui
         }
     }
 
+    void MainApplication::amiibo_Input(u64 Down, u64 Up, u64 Held)
+    {
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
+    }
+
     void MainApplication::sysInfo_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B)
@@ -599,7 +623,7 @@ namespace ui
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
-        if(((Down & KEY_PLUS) || (Down & KEY_MINUS)) && IsNRO()) this->Close();
+        if(((Down & KEY_PLUS) || (Down & KEY_MINUS)) && IsNRO()) this->CloseWithFadeOut();
         else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
     }
 
@@ -671,6 +695,11 @@ namespace ui
     AccountLayout *MainApplication::GetAccountLayout()
     {
         return this->account;
+    }
+
+    AmiiboDumpLayout *MainApplication::GetAmiiboDumpLayout()
+    {
+        return this->amiibo;
     }
 
     SystemInfoLayout *MainApplication::GetSystemInfoLayout()

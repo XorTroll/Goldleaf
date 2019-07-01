@@ -11,6 +11,7 @@
 #pragma once
 #include <ui/ui_AboutLayout.hpp>
 #include <ui/ui_AccountLayout.hpp>
+#include <ui/ui_AmiiboDumpLayout.hpp>
 #include <ui/ui_ContentInformationLayout.hpp>
 #include <ui/ui_ContentManagerLayout.hpp>
 #include <ui/ui_CopyLayout.hpp>
@@ -29,7 +30,7 @@
 
 namespace ui
 {
-    class MainApplication : public pu::Application
+    class MainApplication : public pu::ui::Application
     {
         public:
             MainApplication();
@@ -49,6 +50,7 @@ namespace ui
             void contentManager_Input(u64 Down, u64 Up, u64 Held);
             void ticketManager_Input(u64 Down, u64 Up, u64 Held);
             void account_Input(u64 Down, u64 Up, u64 Held);
+            void amiibo_Input(u64 Down, u64 Up, u64 Held);
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
             void OnInput(u64 Down, u64 Up, u64 Held);
@@ -66,6 +68,7 @@ namespace ui
             TitleDumperLayout *GetTitleDumperLayout();
             TicketManagerLayout *GetTicketManagerLayout();
             AccountLayout *GetAccountLayout();
+            AmiiboDumpLayout *GetAmiiboDumpLayout();
             SystemInfoLayout *GetSystemInfoLayout();
             UpdateLayout *GetUpdateLayout();
             AboutLayout *GetAboutLayout();
@@ -90,22 +93,23 @@ namespace ui
             TitleDumperLayout *titleDump;
             TicketManagerLayout *ticketManager;
             AccountLayout *account;
+            AmiiboDumpLayout *amiibo;
             SystemInfoLayout *sysInfo;
             UpdateLayout* update;
             AboutLayout *about;
-            pu::element::Image *baseImage;
-            pu::element::TextBlock *timeText;
-            pu::element::TextBlock *batteryText;
-            pu::element::Image *batteryImage;
-            pu::element::Image *batteryChargeImage;
-            pu::element::Image *menuBanner;
-            pu::element::Image *menuImage;
-            pu::element::Image *usbImage;
-            pu::element::Image *connImage;
-            pu::element::TextBlock *ipText;
-            pu::element::TextBlock *menuNameText;
-            pu::element::TextBlock *menuHeadText;
-            pu::overlay::Toast *toast;
+            pu::ui::elm::Image *baseImage;
+            pu::ui::elm::TextBlock *timeText;
+            pu::ui::elm::TextBlock *batteryText;
+            pu::ui::elm::Image *batteryImage;
+            pu::ui::elm::Image *batteryChargeImage;
+            pu::ui::elm::Image *menuBanner;
+            pu::ui::elm::Image *menuImage;
+            pu::ui::elm::Image *usbImage;
+            pu::ui::elm::Image *connImage;
+            pu::ui::elm::TextBlock *ipText;
+            pu::ui::elm::TextBlock *menuNameText;
+            pu::ui::elm::TextBlock *menuHeadText;
+            pu::ui::extras::Toast *toast;
             bool updshown;
             std::chrono::time_point<std::chrono::steady_clock> start;
     };

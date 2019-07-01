@@ -112,7 +112,7 @@ namespace es
         return rc;
     }
 
-    Result CountCommonTicket(u8 *out_Count)
+    Result CountCommonTicket(u32 *out_Count)
     {
         IpcCommand c;
         ipcInitialize(&c);
@@ -141,7 +141,7 @@ namespace es
         return rc;
     }
 
-    Result CountPersonalizedTicket(u8 *out_Count)
+    Result CountPersonalizedTicket(u32 *out_Count)
     {
         IpcCommand c;
         ipcInitialize(&c);

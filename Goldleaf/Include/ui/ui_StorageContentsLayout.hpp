@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class StorageContentsLayout : public pu::Layout
+    class StorageContentsLayout : public pu::ui::Layout
     {
         public:
             StorageContentsLayout();
@@ -24,7 +24,7 @@ namespace ui
             std::vector<hos::Title> GetContents();
         private:
             std::vector<hos::Title> contents;
-            pu::element::TextBlock *noContentsText;
-            pu::element::Menu *contentsMenu;
+            pu::ui::elm::TextBlock *noContentsText;
+            pu::ui::elm::Menu *contentsMenu;
     };
 }

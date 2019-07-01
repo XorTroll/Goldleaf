@@ -14,14 +14,14 @@
 
 namespace ui
 {
-    class UpdateLayout : public pu::Layout
+    class UpdateLayout : public pu::ui::Layout
     {
         public:
             UpdateLayout();
             ~UpdateLayout();
             void StartUpdateSearch();
         private:
-            pu::element::TextBlock *infoText;
-            pu::element::ProgressBar *downloadBar;
+            pu::ui::elm::TextBlock *infoText;
+            pu::ui::elm::ProgressBar *downloadBar;
     };
 }

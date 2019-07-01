@@ -10,12 +10,12 @@
 
 namespace fs
 {
-    static Explorer *esdc = NULL;
-    static Explorer *eprd = NULL;
-    static Explorer *ensf = NULL;
-    static Explorer *enus = NULL;
-    static Explorer *enss = NULL;
-    static Explorer *epcdrv = NULL;
+    static SdCardExplorer *esdc = NULL;
+    static NANDExplorer *eprd = NULL;
+    static NANDExplorer *ensf = NULL;
+    static NANDExplorer *enus = NULL;
+    static NANDExplorer *enss = NULL;
+    static USBPCDriveExplorer *epcdrv = NULL;
 
     bool InternalCaseCompare(std::string a, std::string b)
     {
@@ -876,37 +876,37 @@ namespace fs
         else fsdevDeleteDevice(this->mntname.c_str());
     }
 
-    Explorer *GetSdCardExplorer()
+    SdCardExplorer *GetSdCardExplorer()
     {
         if(esdc == NULL) esdc = new SdCardExplorer();
         return esdc;
     }
 
-    Explorer *GetPRODINFOFExplorer()
+    NANDExplorer *GetPRODINFOFExplorer()
     {
         if(eprd == NULL) eprd = new NANDExplorer(Partition::PRODINFOF);
         return eprd;
     }
 
-    Explorer *GetNANDSafeExplorer()
+    NANDExplorer *GetNANDSafeExplorer()
     {
         if(ensf == NULL) ensf = new NANDExplorer(Partition::NANDSafe);
         return ensf;
     }
 
-    Explorer *GetNANDUserExplorer()
+    NANDExplorer *GetNANDUserExplorer()
     {
         if(enus == NULL) enus = new NANDExplorer(Partition::NANDUser);
         return enus;
     }
 
-    Explorer *GetNANDSystemExplorer()
+    NANDExplorer *GetNANDSystemExplorer()
     {
         if(enss == NULL) enss = new NANDExplorer(Partition::NANDSystem);
         return enss;
     }
 
-    Explorer *GetUSBPCDriveExplorer(std::string MountName)
+    USBPCDriveExplorer *GetUSBPCDriveExplorer(std::string MountName)
     {
         std::string mname = fs::GetPathRoot(MountName);
         if(epcdrv == NULL)

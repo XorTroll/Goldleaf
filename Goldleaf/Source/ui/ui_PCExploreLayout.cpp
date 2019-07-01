@@ -7,9 +7,9 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    PCExploreLayout::PCExploreLayout() : pu::Layout()
+    PCExploreLayout::PCExploreLayout() : pu::ui::Layout()
     {
-        this->pathsMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->pathsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->pathsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         this->Add(this->pathsMenu);
     }
@@ -50,7 +50,7 @@ namespace ui
         }
         for(u32 i = 0; i < this->names.size(); i++)
         {
-            pu::element::MenuItem *itm = new pu::element::MenuItem(this->names[i]);
+            pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(this->names[i]);
             itm->SetColor(gsets.CustomScheme.Text);
             if(i < drivecount) itm->SetIcon(gsets.PathForResource("/Common/Drive.png"));
             else itm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));

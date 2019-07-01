@@ -14,14 +14,14 @@
 
 namespace ui
 {
-    class InstallLayout : public pu::Layout
+    class InstallLayout : public pu::ui::Layout
     {
         public:
             InstallLayout();
             ~InstallLayout();
-            void StartInstall(std::string Path, fs::Explorer *Exp, Storage Location, pu::Layout *Prev);
+            void StartInstall(std::string Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev);
         private:
-            pu::element::TextBlock *installText;
-            pu::element::ProgressBar *installBar;
+            pu::ui::elm::TextBlock *installText;
+            pu::ui::elm::ProgressBar *installBar;
     };
 }

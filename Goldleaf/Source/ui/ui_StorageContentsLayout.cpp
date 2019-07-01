@@ -9,11 +9,11 @@ namespace ui
 
     StorageContentsLayout::StorageContentsLayout()
     {
-        this->contentsMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->contentsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->contentsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->noContentsText = new pu::element::TextBlock(0, 0, set::GetDictionaryEntry(188));
-        this->noContentsText->SetHorizontalAlign(pu::element::HorizontalAlign::Center);
-        this->noContentsText->SetVerticalAlign(pu::element::VerticalAlign::Center);
+        this->noContentsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(188));
+        this->noContentsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->noContentsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->noContentsText->SetColor(gsets.CustomScheme.Text);
         this->noContentsText->SetVisible(false);
         this->Add(this->noContentsText);
@@ -84,7 +84,7 @@ namespace ui
                     name = hos::GetNACPName(nacp);
                     free(nacp);
                 }
-                pu::element::MenuItem *itm = new pu::element::MenuItem(name);
+                pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(name);
                 itm->SetColor(gsets.CustomScheme.Text);
                 bool hicon = this->contents[i].DumpControlData();
                 if(hicon) itm->SetIcon(hos::GetExportedIconPath(this->contents[i].ApplicationId));

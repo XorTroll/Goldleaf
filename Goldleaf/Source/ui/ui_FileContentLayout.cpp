@@ -9,9 +9,9 @@ namespace ui
 
     FileContentLayout::FileContentLayout()
     {
-        this->cntText = new pu::element::TextBlock(40, 180, "");
+        this->cntText = new pu::ui::elm::TextBlock(40, 180, "");
         this->cntText->SetColor(gsets.CustomScheme.Text);
-        this->cntText->SetFont(pu::render::LoadFont(gsets.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
+        this->cntText->SetFont(pu::ui::render::LoadFont(gsets.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
         this->Add(this->cntText);
         this->loffset = 0;
     }
@@ -21,7 +21,7 @@ namespace ui
         delete this->cntText;
     }
 
-    void FileContentLayout::LoadFile(std::string Path,  pu::Layout *Prev, fs::Explorer *Exp, bool Hex)
+    void FileContentLayout::LoadFile(std::string Path,  pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex)
     {
         this->prev = Prev;
         this->pth = Path;
@@ -67,7 +67,7 @@ namespace ui
         this->Update();
     }
 
-    pu::Layout *FileContentLayout::GetPreviousLayout()
+    pu::ui::Layout *FileContentLayout::GetPreviousLayout()
     {
         return this->prev;
     }

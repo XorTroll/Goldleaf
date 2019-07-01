@@ -14,12 +14,12 @@
 
 namespace ui
 {
-    class AboutLayout : public pu::Layout
+    class AboutLayout : public pu::ui::Layout
     {
         public:
             AboutLayout();
             ~AboutLayout();
         private:
-            pu::element::Image *logoImage;
+            pu::ui::elm::Image *logoImage;
     };
 }

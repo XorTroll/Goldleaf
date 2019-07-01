@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class PartitionBrowserLayout : public pu::Layout
+    class PartitionBrowserLayout : public pu::ui::Layout
     {
         public:
             PartitionBrowserLayout();
@@ -31,7 +31,7 @@ namespace ui
         private:
             fs::Explorer *gexp;
             std::vector<std::string> elems;
-            pu::element::Menu *browseMenu;
-            pu::element::TextBlock *dirEmptyText;
+            pu::ui::elm::Menu *browseMenu;
+            pu::ui::elm::TextBlock *dirEmptyText;
     };
 }

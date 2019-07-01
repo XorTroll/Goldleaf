@@ -1,10 +1,11 @@
 
 /*
 
-    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
-    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll, emerged from Adubbz's work with Tinfoil
+
+    This project is licensed under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
 
 */
 
@@ -23,7 +24,7 @@ enum class RunMode
     Unknown,
     NRO,
     Title,
-    Qlaunch,
+    LibraryApplet,
 };
 
 enum class Storage
@@ -73,10 +74,10 @@ struct InstallerResult
 
 struct ColorScheme
 {
-    pu::draw::Color Background;
-    pu::draw::Color Base;
-    pu::draw::Color BaseFocus;
-    pu::draw::Color Text;
+    pu::ui::Color Background;
+    pu::ui::Color Base;
+    pu::ui::Color BaseFocus;
+    pu::ui::Color Text;
 };
 
 struct Version
@@ -94,7 +95,7 @@ struct Version
 
 bool IsNRO();
 bool IsInstalledTitle();
-bool IsQlaunch();
+bool IsLibraryApplet();
 std::string GetVersion();
 u64 GetApplicationId();
 bool HasKeyFile();

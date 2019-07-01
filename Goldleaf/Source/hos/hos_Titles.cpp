@@ -322,24 +322,28 @@ namespace hos
         std::vector<Ticket> tickets;
         u32 wrt = 0;
 
-        u8 cc = 0;
+        u32 cc = 0;
         es::CountCommonTicket(&cc);
         if(cc > 0)
         {
-            
-            es::RightsId ids[cc] = {0};
-            es::ListCommonTicket(&wrt, ids, cc * sizeof(es::RightsId));
+            auto sz = cc * sizeof(es::RightsId);
+            es::RightsId *ids = (es::RightsId*)malloc(sz);
+            memset(ids, 0, sz);
+            es::ListCommonTicket(&wrt, ids, sz);
             for(u32 i = 0; i < cc; i++) tickets.push_back({ ids[i], hos::TicketType::Common });
+            free(ids);
         }
 
-        u8 pc = 0;
+        u32 pc = 0;
         es::CountPersonalizedTicket(&pc);
         if(cc > 0)
         {
-            
-            es::RightsId ids[pc] = {0};
-            es::ListPersonalizedTicket(&wrt, ids, pc * sizeof(es::RightsId));
+            auto sz = pc * sizeof(es::RightsId);
+            es::RightsId *ids = (es::RightsId*)malloc(sz);
+            memset(ids, 0, sz);
+            es::ListPersonalizedTicket(&wrt, ids, sz);
             for(u32 i = 0; i < pc; i++) tickets.push_back({ ids[i], hos::TicketType::Personalized });
+            free(ids);
         }
 
         return tickets;

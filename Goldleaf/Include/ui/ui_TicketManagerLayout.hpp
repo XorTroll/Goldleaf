@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class TicketManagerLayout : public pu::Layout
+    class TicketManagerLayout : public pu::ui::Layout
     {
         public:
             TicketManagerLayout();
@@ -23,7 +23,7 @@ namespace ui
             void tickets_Click();
         private:
             std::vector<hos::Ticket> tickets;
-            pu::element::TextBlock *notTicketsText;
-            pu::element::Menu *ticketsMenu;
+            pu::ui::elm::TextBlock *notTicketsText;
+            pu::ui::elm::Menu *ticketsMenu;
     };
 }

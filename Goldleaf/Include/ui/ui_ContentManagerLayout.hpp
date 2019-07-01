@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class ContentManagerLayout : public pu::Layout
+    class ContentManagerLayout : public pu::ui::Layout
     {
         public:
             ContentManagerLayout();
@@ -25,11 +25,11 @@ namespace ui
             void gameCartMenuItem_Click();
             void unusedTicketsMenuItem_Click();
         private:
-            pu::element::MenuItem *sdCardMenuItem;
-            pu::element::MenuItem *nandUserMenuItem;
-            pu::element::MenuItem *nandSystemMenuItem;
-            pu::element::MenuItem *gameCartMenuItem;
-            pu::element::MenuItem *unusedTicketsMenuItem;
-            pu::element::Menu *typesMenu;
+            pu::ui::elm::MenuItem *sdCardMenuItem;
+            pu::ui::elm::MenuItem *nandUserMenuItem;
+            pu::ui::elm::MenuItem *nandSystemMenuItem;
+            pu::ui::elm::MenuItem *gameCartMenuItem;
+            pu::ui::elm::MenuItem *unusedTicketsMenuItem;
+            pu::ui::elm::Menu *typesMenu;
     };
 }

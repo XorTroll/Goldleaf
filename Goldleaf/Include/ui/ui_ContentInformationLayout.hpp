@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class ContentInformationLayout : public pu::Layout
+    class ContentInformationLayout : public pu::ui::Layout
     {
         public:
             ContentInformationLayout();
@@ -25,6 +25,6 @@ namespace ui
         private:
             std::vector<hos::Title> tcontents;
             hos::TitleContents contents;
-            pu::element::Menu *optionsMenu;
+            pu::ui::elm::Menu *optionsMenu;
     };
 }

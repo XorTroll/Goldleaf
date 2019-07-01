@@ -14,23 +14,23 @@
 
 namespace ui
 {
-    class FileContentLayout : public pu::Layout
+    class FileContentLayout : public pu::ui::Layout
     {
         public:
             FileContentLayout();
             ~FileContentLayout();
-            void LoadFile(std::string Path, pu::Layout *Prev, fs::Explorer *Exp, bool Hex);
+            void LoadFile(std::string Path, pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex);
             void Update();
             void ScrollUp();
             void ScrollDown();
-            pu::Layout *GetPreviousLayout();
+            pu::ui::Layout *GetPreviousLayout();
         private:
             u32 loffset;
             u32 rlines;
             bool mode;
             std::string pth;
-            pu::element::TextBlock *cntText;
+            pu::ui::elm::TextBlock *cntText;
             fs::Explorer *gexp;
-            pu::Layout *prev;
+            pu::ui::Layout *prev;
     };
 }

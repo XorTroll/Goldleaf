@@ -7,14 +7,14 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    PartitionBrowserLayout::PartitionBrowserLayout() : pu::Layout()
+    PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout()
     {
         this->gexp = fs::GetSdCardExplorer();
-        this->browseMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->browseMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->browseMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->dirEmptyText = new pu::element::TextBlock(30, 630, set::GetDictionaryEntry(49));
-        this->dirEmptyText->SetHorizontalAlign(pu::element::HorizontalAlign::Center);
-        this->dirEmptyText->SetVerticalAlign(pu::element::VerticalAlign::Center);
+        this->dirEmptyText = new pu::ui::elm::TextBlock(30, 630, set::GetDictionaryEntry(49));
+        this->dirEmptyText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->dirEmptyText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->dirEmptyText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->browseMenu);
         this->Add(this->dirEmptyText);
@@ -79,7 +79,7 @@ namespace ui
             {
                 std::string itm = this->elems[i];
                 bool isdir = this->gexp->IsDirectory(itm);
-                pu::element::MenuItem *mitm = new pu::element::MenuItem(itm);
+                pu::ui::elm::MenuItem *mitm = new pu::ui::elm::MenuItem(itm);
                 mitm->SetColor(gsets.CustomScheme.Text);
                 if(isdir) mitm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));
                 else
@@ -117,7 +117,7 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click()
     {
-        std::string itm = this->browseMenu->GetSelectedItem()->GetName();
+        std::string itm = this->browseMenu->GetSelectedItem()->GetName().Str();
         std::string fullitm = this->gexp->FullPathFor(itm);
         std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->NavigateForward(fullitm)) this->UpdateElements();
@@ -134,7 +134,7 @@ namespace ui
             else if((ext == "jpg") || (ext == "jpeg")) msg += set::GetDictionaryEntry(59);
             else msg += set::GetDictionaryEntry(270);
             msg += "\n\n" + set::GetDictionaryEntry(64) + " " + fs::FormatSize(this->gexp->GetFileSize(fullitm));
-            std::vector<std::string> vopts;
+            std::vector<pu::String> vopts;
             u32 copt = 5;
             bool ibin = this->gexp->IsFileBinary(fullitm);
             if(ext == "nsp")
@@ -220,7 +220,7 @@ namespace ui
                             sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(98), set::GetDictionaryEntry(99), { set::GetDictionaryEntry(66), set::GetDictionaryEntry(18) }, true);
                             if(sopt < 0) return;
                             envSetNextLoad(fullitm.c_str(), fullitm.c_str());
-                            mainapp->Close();
+                            mainapp->CloseWithFadeOut();
                             return;
                         }
                         else
@@ -268,7 +268,7 @@ namespace ui
                         char args[ntnro.size() + arg.size() + 8];
                         sprintf(args, "%s %s", ntnro.c_str(), arg.c_str());
                         envSetNextLoad(ntnro.c_str(), args);
-                        mainapp->Close();
+                        mainapp->CloseWithFadeOut();
                         return;
                         break;
                 }
@@ -337,14 +337,14 @@ namespace ui
                         acc::ProfileEditor pedit;
                         rc = acc::GetProfileEditor(uid, &pedit);
                         std::vector<u8> vdata = this->gexp->ReadFile(fullitm);
-                        pu::render::NativeTexture icon = pu::render::LoadImage(fullitm);
+                        pu::ui::render::NativeTexture icon = pu::ui::render::LoadImage(fullitm);
                         if(!icon)
                         {
                             mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(259), { set::GetDictionaryEntry(234) }, true);
                             return;
                         }
-                        u32 icw = pu::render::GetTextureWidth(icon);
-                        u32 ich = pu::render::GetTextureHeight(icon);
+                        u32 icw = pu::ui::render::GetTextureWidth(icon);
+                        u32 ich = pu::ui::render::GetTextureHeight(icon);
                         if((icw != 256) || (ich != 256))
                         {
                             mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(260), { set::GetDictionaryEntry(234) }, true);
@@ -428,7 +428,7 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click_Y()
     {
-        std::string itm = this->browseMenu->GetSelectedItem()->GetName();
+        std::string itm = this->browseMenu->GetSelectedItem()->GetName().Str();
         std::string fullitm = this->gexp->FullPathFor(itm);
         std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->IsDirectory(fullitm))

@@ -14,15 +14,15 @@
 
 namespace ui
 {
-    class CopyLayout : public pu::Layout
+    class CopyLayout : public pu::ui::Layout
     {
         public:
             CopyLayout();
             ~CopyLayout();
-            void StartCopy(std::string Path, std::string NewPath, bool Directory, fs::Explorer *Exp, pu::Layout *Prev);
+            void StartCopy(std::string Path, std::string NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev);
         private:
             fs::Explorer *gexp;
-            pu::element::TextBlock *infoText;
-            pu::element::ProgressBar *copyBar;
+            pu::ui::elm::TextBlock *infoText;
+            pu::ui::elm::ProgressBar *copyBar;
     };
 }

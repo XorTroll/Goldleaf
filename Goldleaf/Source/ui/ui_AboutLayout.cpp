@@ -9,7 +9,7 @@ namespace ui
 
     AboutLayout::AboutLayout()
     {
-        this->logoImage = new pu::element::Image(85, 150, gsets.PathForResource("/Logo.png"));
+        this->logoImage = new pu::ui::elm::Image(85, 150, gsets.PathForResource("/Logo.png"));
         this->Add(this->logoImage);
     }
 

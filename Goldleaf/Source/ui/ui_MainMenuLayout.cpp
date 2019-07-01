@@ -7,35 +7,39 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    MainMenuLayout::MainMenuLayout() : pu::Layout()
+    MainMenuLayout::MainMenuLayout() : pu::ui::Layout()
     {
-        this->optionMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->optionMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->optionMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->exploreMenuItem = new pu::element::MenuItem("Explore content");
+        this->exploreMenuItem = new pu::ui::elm::MenuItem("Explore content");
         this->exploreMenuItem->SetIcon(gsets.PathForResource("/Common/SdCard.png"));
         this->exploreMenuItem->SetColor(gsets.CustomScheme.Text);
         this->exploreMenuItem->AddOnClick(std::bind(&MainMenuLayout::exploreMenuItem_Click, this));
-        this->titleMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(3));
+        this->titleMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(3));
         this->titleMenuItem->SetIcon(gsets.PathForResource("/Common/Storage.png"));
         this->titleMenuItem->SetColor(gsets.CustomScheme.Text);
         this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
-        this->webMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(5));
+        this->webMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(5));
         this->webMenuItem->SetIcon(gsets.PathForResource("/Common/Browser.png"));
         this->webMenuItem->SetColor(gsets.CustomScheme.Text);
         this->webMenuItem->AddOnClick(std::bind(&MainMenuLayout::webMenuItem_Click, this));
-        this->accountMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(6));
+        this->accountMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(6));
         this->accountMenuItem->SetIcon(gsets.PathForResource("/Common/Accounts.png"));
         this->accountMenuItem->SetColor(gsets.CustomScheme.Text);
         this->accountMenuItem->AddOnClick(std::bind(&MainMenuLayout::accountMenuItem_Click, this));
-        this->sysinfoMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(7));
+        this->amiiboMenuItem = new pu::ui::elm::MenuItem("Amiibo dump");
+        this->amiiboMenuItem->SetIcon(gsets.PathForResource("/Common/Amiibo.png"));
+        this->amiiboMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
+        this->sysinfoMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(7));
         this->sysinfoMenuItem->SetIcon(gsets.PathForResource("/Common/Settings.png"));
         this->sysinfoMenuItem->SetColor(gsets.CustomScheme.Text);
         this->sysinfoMenuItem->AddOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
-        this->updateMenuItem = new pu::element::MenuItem("Update");
+        this->updateMenuItem = new pu::ui::elm::MenuItem("Update");
         this->updateMenuItem->SetIcon(gsets.PathForResource("/Common/Update.png"));
         this->updateMenuItem->SetColor(gsets.CustomScheme.Text);
         this->updateMenuItem->AddOnClick(std::bind(&MainMenuLayout::updateMenuItem_Click, this));
-        this->aboutMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(8));
+        this->aboutMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(8));
         this->aboutMenuItem->SetIcon(gsets.PathForResource("/Common/Info.png"));
         this->aboutMenuItem->SetColor(gsets.CustomScheme.Text);
         this->aboutMenuItem->AddOnClick(std::bind(&MainMenuLayout::aboutMenuItem_Click, this));
@@ -43,6 +47,7 @@ namespace ui
         this->optionMenu->AddItem(this->titleMenuItem);
         this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
+        this->optionMenu->AddItem(this->amiiboMenuItem);
         this->optionMenu->AddItem(this->sysinfoMenuItem);
         this->optionMenu->AddItem(this->updateMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
@@ -96,6 +101,15 @@ namespace ui
         mainapp->LoadLayout(mainapp->GetAccountLayout());
     }
 
+    void MainMenuLayout::amiiboMenuItem_Click()
+    {
+        mainapp->LoadMenuData("Amiibo dump", "Amiibo", "Ready to dump?");
+        mainapp->LoadLayout(mainapp->GetAmiiboDumpLayout());
+        mainapp->GetAmiiboDumpLayout()->StartDump();
+        mainapp->UnloadMenuData();
+        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+    }
+
     void MainMenuLayout::sysinfoMenuItem_Click()
     {
         mainapp->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
@@ -115,6 +129,7 @@ namespace ui
         std::string rmode = set::GetDictionaryEntry(45);
         if(IsNRO()) rmode = set::GetDictionaryEntry(46);
         else if(IsInstalledTitle()) rmode = set::GetDictionaryEntry(47);
+        else if(IsLibraryApplet()) rmode = set::GetDictionaryEntry(48);
         mainapp->LoadMenuData("Goldleaf v" + GetVersion(), "Info", rmode);
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }

@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class ExploreMenuLayout : public pu::Layout
+    class ExploreMenuLayout : public pu::ui::Layout
     {
         public:
             ExploreMenuLayout();
@@ -31,15 +31,15 @@ namespace ui
             void specialMount_Click_X();
             void otherMount_Click_X();
         private:
-            pu::element::Menu *mountsMenu;
-            pu::element::MenuItem *sdCardMenuItem;
-            pu::element::MenuItem *pcDriveMenuItem;
-            pu::element::MenuItem *usbDriveMenuItem;
-            pu::element::MenuItem *nandProfInfoFMenuItem;
-            pu::element::MenuItem *nandSafeMenuItem;
-            pu::element::MenuItem *nandUserMenuItem;
-            pu::element::MenuItem *nandSystemMenuItem;
-            std::vector<pu::element::MenuItem*> mounts;
+            pu::ui::elm::Menu *mountsMenu;
+            pu::ui::elm::MenuItem *sdCardMenuItem;
+            pu::ui::elm::MenuItem *pcDriveMenuItem;
+            pu::ui::elm::MenuItem *usbDriveMenuItem;
+            pu::ui::elm::MenuItem *nandProfInfoFMenuItem;
+            pu::ui::elm::MenuItem *nandSafeMenuItem;
+            pu::ui::elm::MenuItem *nandUserMenuItem;
+            pu::ui::elm::MenuItem *nandSystemMenuItem;
+            std::vector<pu::ui::elm::MenuItem*> mounts;
             std::vector<fs::Explorer*> expls;
     };
 }

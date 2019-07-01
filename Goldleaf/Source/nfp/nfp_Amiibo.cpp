@@ -85,7 +85,7 @@ namespace nfp
         auto rinfo = GetRegisterInfo();
         auto minfo = GetModelInfo();
         auto cinfo = GetCommonInfo();
-        json jdata;
+        JSON jdata;
         jdata["name"] = rinfo.amiibo_name;
         jdata["applicationAreaSize"] = (int)cinfo.application_area_size;
         jdata["firstWriteDate"] = { (int)rinfo.first_write_year, (int)rinfo.first_write_month, (int)rinfo.first_write_day };

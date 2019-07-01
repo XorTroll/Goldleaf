@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class PCExploreLayout : public pu::Layout
+    class PCExploreLayout : public pu::ui::Layout
     {
         public:
             PCExploreLayout();
@@ -24,7 +24,7 @@ namespace ui
         private:
             std::vector<std::string> names;
             std::vector<std::string> paths;
-            pu::element::Menu *pathsMenu;
-            std::vector<pu::element::MenuItem*> pathItems;
+            pu::ui::elm::Menu *pathsMenu;
+            std::vector<pu::ui::elm::MenuItem*> pathItems;
     };
 }

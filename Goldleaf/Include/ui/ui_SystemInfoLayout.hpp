@@ -14,25 +14,25 @@
 
 namespace ui
 {
-    class SystemInfoLayout : public pu::Layout
+    class SystemInfoLayout : public pu::ui::Layout
     {
         public:
             SystemInfoLayout();
             ~SystemInfoLayout();
             void UpdateElements();
         private:
-            pu::element::TextBlock *fwText;
-            pu::element::TextBlock *sdText;
-            pu::element::ProgressBar *sdBar;
-            pu::element::TextBlock *sdFreeText;
-            pu::element::TextBlock *nandText;
-            pu::element::ProgressBar *nandBar;
-            pu::element::TextBlock *nandFreeText;
-            pu::element::TextBlock *safeText;
-            pu::element::ProgressBar *safeBar;
-            pu::element::TextBlock *systemText;
-            pu::element::ProgressBar *systemBar;
-            pu::element::TextBlock *userText;
-            pu::element::ProgressBar *userBar;
+            pu::ui::elm::TextBlock *fwText;
+            pu::ui::elm::TextBlock *sdText;
+            pu::ui::elm::ProgressBar *sdBar;
+            pu::ui::elm::TextBlock *sdFreeText;
+            pu::ui::elm::TextBlock *nandText;
+            pu::ui::elm::ProgressBar *nandBar;
+            pu::ui::elm::TextBlock *nandFreeText;
+            pu::ui::elm::TextBlock *safeText;
+            pu::ui::elm::ProgressBar *safeBar;
+            pu::ui::elm::TextBlock *systemText;
+            pu::ui::elm::ProgressBar *systemBar;
+            pu::ui::elm::TextBlock *userText;
+            pu::ui::elm::ProgressBar *userBar;
     };
 }

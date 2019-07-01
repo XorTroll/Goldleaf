@@ -9,10 +9,10 @@ namespace ui
 
     UpdateLayout::UpdateLayout()
     {
-        this->infoText = new pu::element::TextBlock(150, 320, "Utest");
-        this->infoText->SetHorizontalAlign(pu::element::HorizontalAlign::Center);
+        this->infoText = new pu::ui::elm::TextBlock(150, 320, "Utest");
+        this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
-        this->downloadBar = new pu::element::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->downloadBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
         this->Add(this->infoText);
         this->Add(this->downloadBar);
     }

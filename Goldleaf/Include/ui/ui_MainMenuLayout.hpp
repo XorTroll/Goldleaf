@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class MainMenuLayout : public pu::Layout
+    class MainMenuLayout : public pu::ui::Layout
     {
         public:
             MainMenuLayout();
@@ -23,17 +23,19 @@ namespace ui
             void titleMenuItem_Click();
             void webMenuItem_Click();
             void accountMenuItem_Click();
+            void amiiboMenuItem_Click();
             void sysinfoMenuItem_Click();
             void updateMenuItem_Click();
             void aboutMenuItem_Click();
         private:
-            pu::element::Menu *optionMenu;
-            pu::element::MenuItem *exploreMenuItem;
-            pu::element::MenuItem *titleMenuItem;
-            pu::element::MenuItem *webMenuItem;
-            pu::element::MenuItem *accountMenuItem;
-            pu::element::MenuItem *sysinfoMenuItem;
-            pu::element::MenuItem *updateMenuItem;
-            pu::element::MenuItem *aboutMenuItem;
+            pu::ui::elm::Menu *optionMenu;
+            pu::ui::elm::MenuItem *exploreMenuItem;
+            pu::ui::elm::MenuItem *titleMenuItem;
+            pu::ui::elm::MenuItem *webMenuItem;
+            pu::ui::elm::MenuItem *accountMenuItem;
+            pu::ui::elm::MenuItem *amiiboMenuItem;
+            pu::ui::elm::MenuItem *sysinfoMenuItem;
+            pu::ui::elm::MenuItem *updateMenuItem;
+            pu::ui::elm::MenuItem *aboutMenuItem;
     };
 }

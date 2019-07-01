@@ -7,30 +7,30 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    SystemInfoLayout::SystemInfoLayout() : pu::Layout()
+    SystemInfoLayout::SystemInfoLayout() : pu::ui::Layout()
     {
         hos::FwVersion fwv = hos::GetFwVersion();
-        this->fwText = new pu::element::TextBlock(30, 630, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
+        this->fwText = new pu::ui::elm::TextBlock(30, 630, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
         this->fwText->SetColor(gsets.CustomScheme.Text);
-        this->sdText = new pu::element::TextBlock(280, 300, set::GetDictionaryEntry(19), 35);
+        this->sdText = new pu::ui::elm::TextBlock(280, 300, set::GetDictionaryEntry(19), 35);
         this->sdText->SetColor(gsets.CustomScheme.Text);
-        this->sdBar = new pu::element::ProgressBar(220, 345, 300, 30, 100.0f);
-        this->sdFreeText = new pu::element::TextBlock(225, 385, "0 bytes " + set::GetDictionaryEntry(221));
+        this->sdBar = new pu::ui::elm::ProgressBar(220, 345, 300, 30, 100.0f);
+        this->sdFreeText = new pu::ui::elm::TextBlock(225, 385, "0 bytes " + set::GetDictionaryEntry(221));
         this->sdFreeText->SetColor(gsets.CustomScheme.Text);
-        this->nandText = new pu::element::TextBlock(600, 300, set::GetDictionaryEntry(79), 35);
+        this->nandText = new pu::ui::elm::TextBlock(600, 300, set::GetDictionaryEntry(79), 35);
         this->nandText->SetColor(gsets.CustomScheme.Text);
-        this->nandBar = new pu::element::ProgressBar(660, 345, 300, 30, 100.0f);
-        this->nandFreeText = new pu::element::TextBlock(655, 385, "0 bytes " + set::GetDictionaryEntry(221));
+        this->nandBar = new pu::ui::elm::ProgressBar(660, 345, 300, 30, 100.0f);
+        this->nandFreeText = new pu::ui::elm::TextBlock(655, 385, "0 bytes " + set::GetDictionaryEntry(221));
         this->nandFreeText->SetColor(gsets.CustomScheme.Text);
-        this->safeText = new pu::element::TextBlock(105, 480, set::GetDictionaryEntry(27));
+        this->safeText = new pu::ui::elm::TextBlock(105, 480, set::GetDictionaryEntry(27));
         this->safeText->SetColor(gsets.CustomScheme.Text);
-        this->safeBar = new pu::element::ProgressBar(100, 515, 300, 30, 100.0f);
-        this->userText = new pu::element::TextBlock(455, 480, set::GetDictionaryEntry(28));
+        this->safeBar = new pu::ui::elm::ProgressBar(100, 515, 300, 30, 100.0f);
+        this->userText = new pu::ui::elm::TextBlock(455, 480, set::GetDictionaryEntry(28));
         this->userText->SetColor(gsets.CustomScheme.Text);
-        this->userBar = new pu::element::ProgressBar(450, 515, 300, 30, 100.0f);
-        this->systemText = new pu::element::TextBlock(805, 480, set::GetDictionaryEntry(29));
+        this->userBar = new pu::ui::elm::ProgressBar(450, 515, 300, 30, 100.0f);
+        this->systemText = new pu::ui::elm::TextBlock(805, 480, set::GetDictionaryEntry(29));
         this->systemText->SetColor(gsets.CustomScheme.Text);
-        this->systemBar = new pu::element::ProgressBar(800, 515, 300, 30, 100.0f);
+        this->systemBar = new pu::ui::elm::ProgressBar(800, 515, 300, 30, 100.0f);
         this->Add(this->fwText);
         this->Add(this->sdText);
         this->Add(this->sdBar);

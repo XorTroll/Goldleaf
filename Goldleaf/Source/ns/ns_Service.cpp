@@ -136,8 +136,8 @@ namespace ns
         raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
         raw->Magic = SFCI_MAGIC;
         raw->CmdId = 17;
-        raw->ApplicationId = ApplicationId;
         raw->Offset = Offset;
+        raw->ApplicationId = ApplicationId;
         Result rc = serviceIpcDispatch(&nsamsrv);
         if(R_SUCCEEDED(rc))
         {

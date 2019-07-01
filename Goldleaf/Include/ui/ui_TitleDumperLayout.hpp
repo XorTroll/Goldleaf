@@ -14,14 +14,14 @@
 
 namespace ui
 {
-    class TitleDumperLayout : public pu::Layout
+    class TitleDumperLayout : public pu::ui::Layout
     {
         public:
             TitleDumperLayout();
             ~TitleDumperLayout();
             void StartDump(hos::Title &Target);
         private:
-            pu::element::TextBlock *dumpText;
-            pu::element::ProgressBar *ncaBar;
+            pu::ui::elm::TextBlock *dumpText;
+            pu::ui::elm::ProgressBar *ncaBar;
     };
 }

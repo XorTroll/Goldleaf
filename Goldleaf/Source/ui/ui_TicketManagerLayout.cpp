@@ -7,11 +7,11 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    TicketManagerLayout::TicketManagerLayout() : pu::Layout()
+    TicketManagerLayout::TicketManagerLayout() : pu::ui::Layout()
     {
-        this->ticketsMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->ticketsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->ticketsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->notTicketsText = new pu::element::TextBlock(450, 400, set::GetDictionaryEntry(199));
+        this->notTicketsText = new pu::ui::elm::TextBlock(450, 400, set::GetDictionaryEntry(199));
         this->notTicketsText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->notTicketsText);
         this->Add(this->ticketsMenu);
@@ -46,7 +46,7 @@ namespace ui
                 if(!used) used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
                 if(used) continue;
                 std::string tname = hos::FormatApplicationId(tappid);
-                pu::element::MenuItem *itm = new pu::element::MenuItem(tname);
+                pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
                 itm->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
                 itm->AddOnClick(std::bind(&TicketManagerLayout::tickets_Click, this));

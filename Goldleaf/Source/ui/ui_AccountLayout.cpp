@@ -7,19 +7,19 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    AccountLayout::AccountLayout() : pu::Layout()
+    AccountLayout::AccountLayout() : pu::ui::Layout()
     {
-        this->optsMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->optsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->optsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        pu::element::MenuItem *itm = new pu::element::MenuItem(set::GetDictionaryEntry(208));
+        pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(208));
         itm->SetColor(gsets.CustomScheme.Text);
         itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
         this->optsMenu->AddItem(itm);
-        pu::element::MenuItem *itm2 = new pu::element::MenuItem(set::GetDictionaryEntry(209));
+        pu::ui::elm::MenuItem *itm2 = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(209));
         itm2->SetColor(gsets.CustomScheme.Text);
         itm2->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
         this->optsMenu->AddItem(itm2);
-        pu::element::MenuItem *itm3 = new pu::element::MenuItem(set::GetDictionaryEntry(210));
+        pu::ui::elm::MenuItem *itm3 = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(210));
         itm3->SetColor(gsets.CustomScheme.Text);
         itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
         this->optsMenu->AddItem(itm3);

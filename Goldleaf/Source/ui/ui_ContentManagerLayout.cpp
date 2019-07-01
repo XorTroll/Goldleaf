@@ -7,27 +7,27 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    ContentManagerLayout::ContentManagerLayout() : pu::Layout()
+    ContentManagerLayout::ContentManagerLayout() : pu::ui::Layout()
     {
-        this->typesMenu = new pu::element::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->typesMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->typesMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->sdCardMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(19));
+        this->sdCardMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(19));
         this->sdCardMenuItem->SetIcon(gsets.PathForResource("/Common/SdCard.png"));
         this->sdCardMenuItem->SetColor(gsets.CustomScheme.Text);
         this->sdCardMenuItem->AddOnClick(std::bind(&ContentManagerLayout::sdCardMenuItem_Click, this));
-        this->nandUserMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(28));
+        this->nandUserMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(28));
         this->nandUserMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
         this->nandUserMenuItem->SetColor(gsets.CustomScheme.Text);
         this->nandUserMenuItem->AddOnClick(std::bind(&ContentManagerLayout::nandUserMenuItem_Click, this));
-        this->nandSystemMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(29));
+        this->nandSystemMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(29));
         this->nandSystemMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
         this->nandSystemMenuItem->SetColor(gsets.CustomScheme.Text);
         this->nandSystemMenuItem->AddOnClick(std::bind(&ContentManagerLayout::nandSystemMenuItem_Click, this));
-        this->gameCartMenuItem = new pu::element::MenuItem(set::GetDictionaryEntry(190));
+        this->gameCartMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(190));
         this->gameCartMenuItem->SetIcon(gsets.PathForResource("/Common/GameCart.png"));
         this->gameCartMenuItem->SetColor(gsets.CustomScheme.Text);
         this->gameCartMenuItem->AddOnClick(std::bind(&ContentManagerLayout::gameCartMenuItem_Click, this));
-        this->unusedTicketsMenuItem = new pu::element::MenuItem("Unused tickets");
+        this->unusedTicketsMenuItem = new pu::ui::elm::MenuItem("Unused tickets");
         this->unusedTicketsMenuItem->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
         this->unusedTicketsMenuItem->SetColor(gsets.CustomScheme.Text);
         this->unusedTicketsMenuItem->AddOnClick(std::bind(&ContentManagerLayout::unusedTicketsMenuItem_Click, this));

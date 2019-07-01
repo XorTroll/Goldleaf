@@ -14,7 +14,7 @@
 
 namespace ui
 {
-    class USBDrivesLayout : public pu::Layout
+    class USBDrivesLayout : public pu::ui::Layout
     {
         public:
             USBDrivesLayout();
@@ -24,8 +24,8 @@ namespace ui
             void drive_Click();
             // std::vector<drive::Drive*> GetDrives();
         private:
-            pu::element::Menu *drivesMenu;
-            pu::element::TextBlock *noDrivesText;
+            pu::ui::elm::Menu *drivesMenu;
+            pu::ui::elm::TextBlock *noDrivesText;
             // std::vector<drive::Drive*> drvs;
     };
 }

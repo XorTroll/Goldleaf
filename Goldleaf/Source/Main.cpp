@@ -14,11 +14,13 @@ RunMode GetRunMode()
         AppletType type = appletGetAppletType();
         switch(type)
         {
+            case AppletType_SystemApplication:
             case AppletType_Application:
                 rmode = RunMode::Title;
                 break;
+            case AppletType_LibraryApplet:
+                rmode = RunMode::LibraryApplet;
             default:
-                rmode = RunMode::Unknown;
                 break;
         }
     }
@@ -34,6 +36,11 @@ bool IsNRO()
 bool IsInstalledTitle()
 {
     return (GetRunMode() == RunMode::Title);
+}
+
+bool IsLibraryApplet()
+{
+    return (GetRunMode() == RunMode::LibraryApplet);
 }
 
 void Initialize()
@@ -62,11 +69,11 @@ void Initialize()
 
 void Finalize()
 {
-    fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-    fs::Explorer *nsfe = fs::GetNANDSafeExplorer();
-    fs::Explorer *nusr = fs::GetNANDUserExplorer();
-    fs::Explorer *prif = fs::GetPRODINFOFExplorer();
-    fs::Explorer *sdcd = fs::GetSdCardExplorer();
+    fs::NANDExplorer *nsys = fs::GetNANDSystemExplorer();
+    fs::NANDExplorer *nsfe = fs::GetNANDSafeExplorer();
+    fs::NANDExplorer *nusr = fs::GetNANDUserExplorer();
+    fs::NANDExplorer *prif = fs::GetPRODINFOFExplorer();
+    fs::SdCardExplorer *sdcd = fs::GetSdCardExplorer();
     delete nsys;
     delete nsfe;
     delete nusr;
