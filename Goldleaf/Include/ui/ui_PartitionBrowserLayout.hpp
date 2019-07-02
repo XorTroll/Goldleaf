@@ -22,7 +22,7 @@ namespace ui
             void ChangePartitionSdCard(bool Update = true);
             void ChangePartitionNAND(fs::Partition Partition, bool Update = true);
             void ChangePartitionPCDrive(std::string Mount, bool Update = true);
-            void UpdateElements();
+            void UpdateElements(u32 Idx = 0);
             bool GoBack();
             bool WarnNANDWriteAccess();
             void fsItems_Click();

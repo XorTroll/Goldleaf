@@ -60,7 +60,7 @@ namespace ui
         if(Update) this->UpdateElements();
     }
 
-    void PartitionBrowserLayout::UpdateElements()
+    void PartitionBrowserLayout::UpdateElements(u32 Idx)
     {
         if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
@@ -100,6 +100,7 @@ namespace ui
                 this->browseMenu->AddItem(mitm);
             }
             this->browseMenu->SetSelectedIndex(0);
+            if(this->elems.size() > Idx) this->browseMenu->SetSelectedIndex(Idx);
         }
     }
 
@@ -115,9 +116,14 @@ namespace ui
         return (sopt == 0);
     }
 
+    static void HandleNSPInstall()
+    {
+        
+    }
+
     void PartitionBrowserLayout::fsItems_Click()
     {
-        std::string itm = this->browseMenu->GetSelectedItem()->GetName().Str();
+        std::string itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8();
         std::string fullitm = this->gexp->FullPathFor(itm);
         std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->NavigateForward(fullitm)) this->UpdateElements();
@@ -206,7 +212,7 @@ namespace ui
                         }
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst, this);
-                        this->UpdateElements();
+                        this->UpdateElements(this->browseMenu->GetSelectedIndex());
                         break;
                 }
             }
@@ -399,7 +405,9 @@ namespace ui
                     this->gexp->DeleteFile(fullitm);
                     if(rc == 0) mainapp->ShowNotification(set::GetDictionaryEntry(129));
                     else HandleResult(rc, set::GetDictionaryEntry(253));
-                    this->UpdateElements();
+                    u32 tmpidx = this->browseMenu->GetSelectedIndex();
+                    if(tmpidx > 0) tmpidx--;
+                    this->UpdateElements(tmpidx);
                 }
             }
             else if(sopt == renopt)
@@ -418,7 +426,7 @@ namespace ui
                         else
                         {
                             mainapp->ShowNotification(set::GetDictionaryEntry(133));
-                            this->UpdateElements();
+                            this->UpdateElements(this->browseMenu->GetSelectedIndex());
                         }
                     }
                 }
@@ -428,14 +436,24 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click_Y()
     {
-        std::string itm = this->browseMenu->GetSelectedItem()->GetName().Str();
+        std::string itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8();
         std::string fullitm = this->gexp->FullPathFor(itm);
         std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->IsDirectory(fullitm))
         {
+            auto files = this->gexp->GetFiles(fullitm);
+            std::vector<std::string> nsps;
+            for(u32 i = 0; i < files.size(); i++)
+            {
+                auto path = fullitm + "/" + files[i];
+                if(fs::GetExtension(path) == "nsp") nsps.push_back(path);
+            }
+            std::vector<pu::String> extraopts = { "Set archive bit" };
+            if(!nsps.empty()) extraopts.push_back("Install all NSPs");
+            extraopts.push_back(set::GetDictionaryEntry(18));
             std::string msg = set::GetDictionaryEntry(134);
             msg += "\n\n" + set::GetDictionaryEntry(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
-            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(136), set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), set::GetDictionaryEntry(18) }, true);
+            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(136), set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), "Special options", set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             switch(sopt)
             {
@@ -453,20 +471,54 @@ namespace ui
                     }
                     break;
                 case 3:
-                    std::string kbdt = AskForText(set::GetDictionaryEntry(238), itm);
-                    if(kbdt != "")
                     {
-                        if(kbdt == itm) return;
-                        std::string newren = this->gexp->FullPathFor(kbdt);
-                        if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(254));
-                        else if(this->WarnNANDWriteAccess())
+                        std::string kbdt = AskForText(set::GetDictionaryEntry(238), itm);
+                        if(kbdt != "")
                         {
-                            int rc = 0;
-                            this->gexp->RenameDirectory(fullitm, newren);
-                            if(rc) HandleResult(rc, set::GetDictionaryEntry(254));
-                            else mainapp->ShowNotification(set::GetDictionaryEntry(139));
-                            this->UpdateElements();
+                            if(kbdt == itm) return;
+                            std::string newren = this->gexp->FullPathFor(kbdt);
+                            if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(254));
+                            else if(this->WarnNANDWriteAccess())
+                            {
+                                int rc = 0;
+                                this->gexp->RenameDirectory(fullitm, newren);
+                                if(rc) HandleResult(rc, set::GetDictionaryEntry(254));
+                                else mainapp->ShowNotification(set::GetDictionaryEntry(139));
+                                this->UpdateElements();
+                            }
                         }
+                    }
+                    break;
+                case 4:
+                    int sopt2 = mainapp->CreateShowDialog("Special options", "Special directory options", extraopts, true);
+                    switch(sopt2)
+                    {
+                        case 0:
+                            this->gexp->SetArchiveBit(fullitm);
+                            this->UpdateElements(this->browseMenu->GetSelectedIndex());
+                            mainapp->ShowNotification("Archive bit was set to the selected directory.");
+                            break;
+                        case 1:
+                            for(u32 i = 0; i < nsps.size(); i++)
+                            {
+                                auto nsp = nsps[i];
+                                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
+                                if(sopt < 0) return;
+                                Storage dst = Storage::SdCard;
+                                if(sopt == 0) dst = Storage::SdCard;
+                                else if(sopt == 1) dst = Storage::NANDUser;
+                                u64 fsize = this->gexp->GetFileSize(nsp);
+                                u64 rsize = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
+                                if(rsize < fsize)
+                                {
+                                    HandleResult(err::Make(err::ErrorDescription::NotEnoughSize), set::GetDictionaryEntry(251));
+                                    return;
+                                }
+                                mainapp->LoadLayout(mainapp->GetInstallLayout());
+                                mainapp->GetInstallLayout()->StartInstall(nsp, this->gexp, dst, this);
+                            }
+                            this->UpdateElements(this->browseMenu->GetSelectedIndex());
+                            break;
                     }
                     break;
             }

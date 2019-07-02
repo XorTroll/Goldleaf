@@ -24,15 +24,6 @@ namespace fs
         return (a < b);
     }
 
-    Explorer::~Explorer()
-    {
-        this->Close();
-    }
-
-    void Explorer::Close()
-    {
-    }
-
     bool Explorer::ShouldWarnOnWriteAccess()
     {
         return false;
@@ -543,6 +534,12 @@ namespace fs
         return 0;
     }
 
+    void StdExplorer::SetArchiveBit(std::string Path)
+    {
+        std::string path = this->MakeFull(Path);
+        fsdevSetArchiveBit(path.c_str());
+    }
+
     SdCardExplorer::SdCardExplorer()
     {
         this->SetNames("sdmc", "SdCard");
@@ -600,31 +597,7 @@ namespace fs
         }
     }
 
-    Partition NANDExplorer::GetPartition()
-    {
-        return this->part;
-    }
-
-    bool NANDExplorer::ShouldWarnOnWriteAccess()
-    {
-        return true;
-    }
-
-    u64 NANDExplorer::GetTotalSpace()
-    {
-        u64 sz = 0;
-        fsFsGetTotalSpace(&this->fs, "/", &sz);
-        return sz;
-    }
-
-    u64 NANDExplorer::GetFreeSpace()
-    {
-        u64 sz = 0;
-        fsFsGetFreeSpace(&this->fs, "/", &sz);
-        return sz;
-    }
-
-    void NANDExplorer::Close()
+    NANDExplorer::~NANDExplorer()
     {
         switch(this->part)
         {
@@ -651,6 +624,30 @@ namespace fs
             default:
                 break;
         }
+    }
+
+    Partition NANDExplorer::GetPartition()
+    {
+        return this->part;
+    }
+
+    bool NANDExplorer::ShouldWarnOnWriteAccess()
+    {
+        return true;
+    }
+
+    u64 NANDExplorer::GetTotalSpace()
+    {
+        u64 sz = 0;
+        fsFsGetTotalSpace(&this->fs, "/", &sz);
+        return sz;
+    }
+
+    u64 NANDExplorer::GetFreeSpace()
+    {
+        u64 sz = 0;
+        fsFsGetFreeSpace(&this->fs, "/", &sz);
+        return sz;
     }
 
     USBPCDriveExplorer::USBPCDriveExplorer(std::string MountName)
@@ -843,12 +840,23 @@ namespace fs
         return sz;
     }
 
+    void USBPCDriveExplorer::SetArchiveBit(std::string Path)
+    {
+        // TODO!
+    }
+
     FileSystemExplorer::FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem, bool AutoClose)
     {
         this->fs = FileSystem;
         this->aclose = AutoClose;
         this->SetNames(MountName, DisplayName);
         fsdevMountDevice(MountName.c_str(), *this->fs);
+    }
+
+    FileSystemExplorer::~FileSystemExplorer()
+    {
+        if(this->aclose) fsdevUnmountDevice(this->mntname.c_str());
+        else fsdevDeleteDevice(this->mntname.c_str());
     }
 
     FsFileSystem *FileSystemExplorer::GetFileSystem()
@@ -868,12 +876,6 @@ namespace fs
         u64 sz = 0;
         fsFsGetFreeSpace(this->fs, "/", &sz);
         return sz;
-    }
-
-    void FileSystemExplorer::Close()
-    {
-        if(this->aclose) fsdevUnmountDevice(this->mntname.c_str());
-        else fsdevDeleteDevice(this->mntname.c_str());
     }
 
     SdCardExplorer *GetSdCardExplorer()

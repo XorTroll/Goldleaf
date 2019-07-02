@@ -18,8 +18,6 @@ namespace fs
     class Explorer
     {
         public:
-            ~Explorer();
-            virtual void Close();
             virtual bool ShouldWarnOnWriteAccess();
             void SetNames(std::string MountName, std::string DisplayName);
             bool NavigateBack();
@@ -59,6 +57,7 @@ namespace fs
             virtual u64 GetFileSize(std::string Path) = 0;
             virtual u64 GetTotalSpace() = 0;
             virtual u64 GetFreeSpace() = 0;
+            virtual void SetArchiveBit(std::string Path) = 0;
         protected:
             std::string dspname;
             std::string mntname;
@@ -84,6 +83,7 @@ namespace fs
             virtual u64 GetFileSize(std::string Path) override;
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
+            virtual void SetArchiveBit(std::string Path) override;
     };
 
     class SdCardExplorer final : public StdExplorer
@@ -98,11 +98,11 @@ namespace fs
     {
         public:
             NANDExplorer(Partition Part);
+            ~NANDExplorer();
             Partition GetPartition();
             virtual bool ShouldWarnOnWriteAccess() override;
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
-            virtual void Close() override;
         private:
             Partition part;
             FsFileSystem fs;
@@ -128,16 +128,17 @@ namespace fs
             virtual u64 GetFileSize(std::string Path) override;
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
+            virtual void SetArchiveBit(std::string Path) override;
     };
 
     class FileSystemExplorer final : public StdExplorer
     {
         public:
             FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem, bool AutoClose);
+            ~FileSystemExplorer();
             FsFileSystem *GetFileSystem();
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
-            virtual void Close() override;
         private:
             bool aclose;
             FsFileSystem *fs;

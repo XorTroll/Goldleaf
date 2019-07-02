@@ -112,10 +112,10 @@ namespace ui
             pu::ui::extras::Toast *toast;
             bool updshown;
             std::chrono::time_point<std::chrono::steady_clock> start;
-    };
+    }; // { 50, 138, 188, 255 }
 
-    static const ColorScheme DefaultLight = { { 235, 235, 235, 255 }, { 220, 220, 220, 255 }, { 140, 140, 140, 255 }, { 15, 15, 15, 255 } };
-    static const ColorScheme DefaultDark = { { 45, 45, 45, 255 }, { 70, 70, 70, 255 }, { 110, 110, 110, 255 }, { 225, 225, 225, 255 } };
+    static const ColorScheme DefaultLight = { { 124, 199, 239, 255 }, { 196, 224, 239, 255 }, { 168, 214, 237, 255 }, { 15, 15, 15, 255 } };
+    static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
 
     void UpdateClipboard(std::string Path);
 }

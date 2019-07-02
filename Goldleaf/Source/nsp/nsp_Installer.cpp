@@ -87,9 +87,8 @@ namespace nsp
                 u8 cnmtbuf[fcnmtsz] = {0};
                 cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, cnmtbuf);
                 cnmt = ncm::ContentMeta(cnmtbuf, fcnmtsz);
-                cnmtfs.Close();
             }
-            record = { 0 };
+            memset(&record, 0, sizeof(record));
             record.ContentId = hos::StringAsContentId(icnmtnca);
             *(u64*)record.Size = (scnmtnca & 0xffffffffffff);
             record.Type = ncm::ContentType::Meta;
@@ -113,7 +112,7 @@ namespace nsp
             if(!hascnmt) ncas.push_back(record);
             baseappid = hos::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
             auto recs = cnmt.GetContentRecords();
-            entrynacp = {};
+            memset(&entrynacp, 0, sizeof(entrynacp));
             std::string nstik = "Contents/temp/" + tik;
             std::string ptik = nsys->FullPathFor(nstik);
             if(stik > 0)
