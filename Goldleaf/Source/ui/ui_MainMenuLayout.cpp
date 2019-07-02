@@ -126,11 +126,14 @@ namespace ui
 
     void MainMenuLayout::aboutMenuItem_Click()
     {
-        std::string rmode = set::GetDictionaryEntry(45);
-        if(IsNRO()) rmode = set::GetDictionaryEntry(46);
-        else if(IsInstalledTitle()) rmode = set::GetDictionaryEntry(47);
-        else if(IsLibraryApplet()) rmode = set::GetDictionaryEntry(48);
-        mainapp->LoadMenuData("Goldleaf v" + GetVersion(), "Info", rmode);
+        std::string exmode = "NRO";
+        if(GetExecutableMode() == ExecutableMode::NSO) exmode = "NSO";
+
+        std::string lmode = "<unknown>";
+        if(GetLaunchMode() == LaunchMode::Applet) lmode = "applet";
+        if(GetLaunchMode() == LaunchMode::Application) lmode = "application";
+
+        mainapp->LoadMenuData("Goldleaf v" + GetVersion(), "Info", "Goldleaf is a " + exmode + ", launched as a(n) " + lmode);
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 }

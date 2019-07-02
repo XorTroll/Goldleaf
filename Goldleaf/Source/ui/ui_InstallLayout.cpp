@@ -188,7 +188,7 @@ namespace ui
                 mainapp->LoadLayout(Prev);
                 return;
             }
-            if(IsInstalledTitle()) appletBeginBlockingHomeButton(0);
+            if(GetLaunchMode() == LaunchMode::Application) appletBeginBlockingHomeButton(0);
             appletSetMediaPlaybackState(true);
             this->installText->SetText(set::GetDictionaryEntry(146));
             mainapp->CallForRender();
@@ -207,7 +207,7 @@ namespace ui
         }
 
         appletSetMediaPlaybackState(false);
-        if(IsInstalledTitle()) appletEndBlockingHomeButton();
+        if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
         this->installBar->SetVisible(false);
         mainapp->CallForRender();
         if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));

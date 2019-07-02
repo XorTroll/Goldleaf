@@ -157,7 +157,7 @@ $(BUILD):
 	@rm -rf $(CURDIR)/Control
 	mkdir -p $(CURDIR)/Control
 	@cp $(OUTPUT).nacp $(CURDIR)/Output/control/control.nacp
-	@cp $(CURDIR)/../Goldleaf/Icon.jpg $(CURDIR)/Output/control/icon_AmericanEnglish.dat
+	@cp $(CURDIR)/Icon.jpg $(CURDIR)/Output/control/icon_AmericanEnglish.dat
 	@$(CURDIR)/BuildTools/hacbrewpack -k $(CURDIR)/BuildTools/keys.dat --exefsdir $(BUILD)/exefs --noromfs --logodir $(CURDIR)/Logo --controldir $(CURDIR)/Output/control --htmldocdir $(CURDIR)/HtmlDoc --nspdir $(CURDIR)/build
 	@rm -rf $(CURDIR)/Output/control
 	@rm -rf $(CURDIR)/Output/temp

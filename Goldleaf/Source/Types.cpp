@@ -59,6 +59,30 @@ bool Version::IsEqual(Version Other)
     return ((this->Major == Other.Major) && (this->Minor == Other.Minor) && (this->BugFix == Other.BugFix));
 }
 
+ExecutableMode GetExecutableMode()
+{
+    return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;
+}
+
+LaunchMode GetLaunchMode()
+{
+    LaunchMode mode = LaunchMode::Unknown;
+    AppletType type = appletGetAppletType();
+    switch(type)
+    {
+        case AppletType_SystemApplication:
+        case AppletType_Application:
+            mode = LaunchMode::Application;
+            break;
+        // Shall I add other applet types? Don't think this will run over qlaunch or overlay...
+        case AppletType_LibraryApplet:
+            mode = LaunchMode::Applet;
+        default:
+            break;
+    }
+    return mode;
+}
+
 std::string GetVersion()
 {
     return std::string(GOLDLEAF_VERSION);

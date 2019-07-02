@@ -6,41 +6,9 @@
 extern char *fake_heap_end;
 static void *ghaddr;
 
-RunMode GetRunMode()
-{
-    RunMode rmode = RunMode::Unknown;
-    if(envIsNso())
-    {
-        AppletType type = appletGetAppletType();
-        switch(type)
-        {
-            case AppletType_SystemApplication:
-            case AppletType_Application:
-                rmode = RunMode::Title;
-                break;
-            case AppletType_LibraryApplet:
-                rmode = RunMode::LibraryApplet;
-            default:
-                break;
-        }
-    }
-    else rmode = RunMode::NRO;
-    return rmode;
-}
-
 bool IsNRO()
 {
-    return (GetRunMode() == RunMode::NRO);
-}
-
-bool IsInstalledTitle()
-{
-    return (GetRunMode() == RunMode::Title);
-}
-
-bool IsLibraryApplet()
-{
-    return (GetRunMode() == RunMode::LibraryApplet);
+    return (GetExecutableMode() == ExecutableMode::NRO);
 }
 
 void Initialize()

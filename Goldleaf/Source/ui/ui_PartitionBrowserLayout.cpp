@@ -116,11 +116,6 @@ namespace ui
         return (sopt == 0);
     }
 
-    static void HandleNSPInstall()
-    {
-        
-    }
-
     void PartitionBrowserLayout::fsItems_Click()
     {
         std::string itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8();
@@ -221,7 +216,7 @@ namespace ui
                 switch(sopt)
                 {
                     case 0:
-                        if(IsNRO())
+                        if(GetExecutableMode() == ExecutableMode::NRO)
                         {
                             sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(98), set::GetDictionaryEntry(99), { set::GetDictionaryEntry(66), set::GetDictionaryEntry(18) }, true);
                             if(sopt < 0) return;

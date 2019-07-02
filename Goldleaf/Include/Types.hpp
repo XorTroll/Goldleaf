@@ -19,12 +19,17 @@
 
 using JSON = nlohmann::json;
 
-enum class RunMode
+enum class ExecutableMode
+{
+    NSO,
+    NRO
+};
+
+enum class LaunchMode
 {
     Unknown,
-    NRO,
-    Title,
-    LibraryApplet,
+    Applet,
+    Application
 };
 
 enum class Storage
@@ -93,9 +98,8 @@ struct Version
     bool IsEqual(Version Other);
 };
 
-bool IsNRO();
-bool IsInstalledTitle();
-bool IsLibraryApplet();
+ExecutableMode GetExecutableMode();
+LaunchMode GetLaunchMode();
 std::string GetVersion();
 u64 GetApplicationId();
 bool HasKeyFile();
