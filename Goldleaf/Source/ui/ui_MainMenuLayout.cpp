@@ -74,8 +74,13 @@ namespace ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
+        if(GetLaunchMode() != LaunchMode::Application)
+        {
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(5), set::GetDictionaryEntry(37), { set::GetDictionaryEntry(234) }, true);
+            return;
+        }
         std::string out = AskForText(set::GetDictionaryEntry(38), "https://");
-        if(out == "") return;
+        if(out.empty()) return;
         else
         {
             bool nothttp = (out.substr(0, 6) != "http:/");

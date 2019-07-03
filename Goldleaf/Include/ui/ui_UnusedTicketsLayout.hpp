@@ -14,11 +14,11 @@
 
 namespace ui
 {
-    class TicketManagerLayout : public pu::ui::Layout
+    class UnusedTicketsLayout : public pu::ui::Layout
     {
         public:
-            TicketManagerLayout();
-            ~TicketManagerLayout();
+            UnusedTicketsLayout();
+            ~UnusedTicketsLayout();
             void UpdateElements();
             void tickets_Click();
         private:

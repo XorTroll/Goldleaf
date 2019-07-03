@@ -97,7 +97,7 @@ namespace hos
         auto sdexp = fs::GetSdCardExplorer();
         if(nacp != NULL)
         {
-            std::string fnacp = "goldleaf/title/" + fappid + ".nacp";
+            std::string fnacp = GoldleafDir + "/title/" + fappid + ".nacp";
             sdexp->DeleteFile(fnacp);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
             free(nacp);
@@ -106,7 +106,7 @@ namespace hos
         u8 *jpg = this->TryGetIcon();
         if(jpg != NULL)
         {
-            std::string fjpg = "goldleaf/title/" + fappid + ".jpg";
+            std::string fjpg = GoldleafDir + "/title/" + fappid + ".jpg";
             sdexp->DeleteFile(fjpg);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
             free(jpg);
@@ -317,6 +317,11 @@ namespace hos
         return rc;
     }
 
+    Result RemoveTicket(Ticket &ToRemove)
+    {
+        return es::DeleteTicket(&ToRemove.RId, sizeof(es::RightsId));
+    }
+
     std::vector<Ticket> GetAllTickets()
     {
         std::vector<Ticket> tickets;
@@ -351,12 +356,12 @@ namespace hos
 
     std::string GetExportedIconPath(u64 ApplicationId)
     {
-        return "sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".jpg";
+        return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".jpg";
     }
 
     std::string GetExportedNACPPath(u64 ApplicationId)
     {
-        return "sdmc:/goldleaf/title/" + FormatApplicationId(ApplicationId) + ".nacp";
+        return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".nacp";
     }
 
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)

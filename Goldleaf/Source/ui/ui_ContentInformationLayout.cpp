@@ -100,12 +100,27 @@ namespace ui
             }
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
+            bool remtik = false;
+            if(hastik)
+            {
+                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), "Would you also like to remove the ticket?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
+                if(sopt < 0) return;
+                remtik = (sopt == 0);
+            }
             Result rc = hos::RemoveTitle(cnt);
             if(rc == 0)
             {
-                mainapp->ShowNotification(set::GetDictionaryEntry(246));
-                mainapp->UnloadMenuData();
-                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                if(remtik)
+                {
+                    rc = hos::RemoveTicket(tiks[tikidx]);
+                }
+                if(rc == 0)
+                {
+                    mainapp->ShowNotification(set::GetDictionaryEntry(246));
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                }
+                else HandleResult(rc, set::GetDictionaryEntry(247));
             }
             else HandleResult(rc, set::GetDictionaryEntry(247));
         }
@@ -147,33 +162,11 @@ namespace ui
         this->contents = Content.GetContents();
         if(Content.IsBaseTitle())
         {
-            std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::GameCart);
-            if(!tts.empty())
+            std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Content.Location);
+            for(u32 i = 0; i < tts.size(); i++)
             {
-                for(u32 i = 0; i < tts.size(); i++)
-                {
-                    if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
-                }
+                if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
             }
-            tts.clear();
-            tts = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
-            if(!tts.empty())
-            {
-                for(u32 i = 0; i < tts.size(); i++)
-                {
-                    if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
-                }
-            }
-            tts.clear();
-            tts = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
-            if(!tts.empty())
-            {
-                for(u32 i = 0; i < tts.size(); i++)
-                {
-                    if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
-                }
-            }
-            tts.clear();
         }
         NacpStruct *nacp = Content.TryGetNACP();
         std::string tcnt = hos::FormatApplicationId(Content.ApplicationId);

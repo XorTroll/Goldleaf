@@ -65,8 +65,8 @@ namespace ui
         this->contentManager = new ContentManagerLayout();
         this->contentManager->SetOnInput(std::bind(&MainApplication::contentManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->titleDump = new TitleDumperLayout();
-        this->ticketManager = new TicketManagerLayout();
-        this->ticketManager->SetOnInput(std::bind(&MainApplication::ticketManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->unusedTickets = new UnusedTicketsLayout();
+        this->unusedTickets->SetOnInput(std::bind(&MainApplication::unusedTickets_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->account = new AccountLayout();
         this->account->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->amiibo = new AmiiboDumpLayout();
@@ -88,7 +88,7 @@ namespace ui
         this->storageContents->SetBackgroundColor(gsets.CustomScheme.Background);
         this->contentManager->SetBackgroundColor(gsets.CustomScheme.Background);
         this->titleDump->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->ticketManager->SetBackgroundColor(gsets.CustomScheme.Background);
+        this->unusedTickets->SetBackgroundColor(gsets.CustomScheme.Background);
         this->account->SetBackgroundColor(gsets.CustomScheme.Background);
         this->amiibo->SetBackgroundColor(gsets.CustomScheme.Background);
         this->sysInfo->SetBackgroundColor(gsets.CustomScheme.Background);
@@ -106,7 +106,7 @@ namespace ui
         this->storageContents->Add(this->baseImage);
         this->contentManager->Add(this->baseImage);
         this->titleDump->Add(this->baseImage);
-        this->ticketManager->Add(this->baseImage);
+        this->unusedTickets->Add(this->baseImage);
         this->account->Add(this->baseImage);
         this->amiibo->Add(this->baseImage);
         this->sysInfo->Add(this->baseImage);
@@ -124,7 +124,7 @@ namespace ui
         this->storageContents->Add(this->timeText);
         this->contentManager->Add(this->timeText);
         this->titleDump->Add(this->timeText);
-        this->ticketManager->Add(this->timeText);
+        this->unusedTickets->Add(this->timeText);
         this->account->Add(this->timeText);
         this->amiibo->Add(this->timeText);
         this->sysInfo->Add(this->timeText);
@@ -142,7 +142,7 @@ namespace ui
         this->storageContents->Add(this->batteryText);
         this->contentManager->Add(this->batteryText);
         this->titleDump->Add(this->batteryText);
-        this->ticketManager->Add(this->batteryText);
+        this->unusedTickets->Add(this->batteryText);
         this->account->Add(this->batteryText);
         this->amiibo->Add(this->batteryText);
         this->sysInfo->Add(this->batteryText);
@@ -160,7 +160,7 @@ namespace ui
         this->storageContents->Add(this->batteryImage);
         this->contentManager->Add(this->batteryImage);
         this->titleDump->Add(this->batteryImage);
-        this->ticketManager->Add(this->batteryImage);
+        this->unusedTickets->Add(this->batteryImage);
         this->account->Add(this->batteryImage);
         this->amiibo->Add(this->batteryImage);
         this->sysInfo->Add(this->batteryImage);
@@ -178,7 +178,7 @@ namespace ui
         this->storageContents->Add(this->batteryChargeImage);
         this->contentManager->Add(this->batteryChargeImage);
         this->titleDump->Add(this->batteryChargeImage);
-        this->ticketManager->Add(this->batteryChargeImage);
+        this->unusedTickets->Add(this->batteryChargeImage);
         this->account->Add(this->batteryChargeImage);
         this->amiibo->Add(this->batteryChargeImage);
         this->sysInfo->Add(this->batteryChargeImage);
@@ -196,7 +196,7 @@ namespace ui
         this->storageContents->Add(this->menuImage);
         this->contentManager->Add(this->menuImage);
         this->titleDump->Add(this->menuImage);
-        this->ticketManager->Add(this->menuImage);
+        this->unusedTickets->Add(this->menuImage);
         this->account->Add(this->menuImage);
         this->amiibo->Add(this->menuImage);
         this->sysInfo->Add(this->menuImage);
@@ -214,7 +214,7 @@ namespace ui
         this->storageContents->Add(this->usbImage);
         this->contentManager->Add(this->usbImage);
         this->titleDump->Add(this->usbImage);
-        this->ticketManager->Add(this->usbImage);
+        this->unusedTickets->Add(this->usbImage);
         this->account->Add(this->usbImage);
         this->amiibo->Add(this->usbImage);
         this->sysInfo->Add(this->usbImage);
@@ -232,7 +232,7 @@ namespace ui
         this->storageContents->Add(this->connImage);
         this->contentManager->Add(this->connImage);
         this->titleDump->Add(this->connImage);
-        this->ticketManager->Add(this->connImage);
+        this->unusedTickets->Add(this->connImage);
         this->account->Add(this->connImage);
         this->amiibo->Add(this->connImage);
         this->sysInfo->Add(this->connImage);
@@ -250,7 +250,7 @@ namespace ui
         this->storageContents->Add(this->ipText);
         this->contentManager->Add(this->ipText);
         this->titleDump->Add(this->ipText);
-        this->ticketManager->Add(this->ipText);
+        this->unusedTickets->Add(this->ipText);
         this->account->Add(this->ipText);
         this->amiibo->Add(this->ipText);
         this->sysInfo->Add(this->ipText);
@@ -269,7 +269,7 @@ namespace ui
         this->storageContents->Add(this->menuNameText);
         this->contentManager->Add(this->menuNameText);
         this->titleDump->Add(this->menuNameText);
-        this->ticketManager->Add(this->menuNameText);
+        this->unusedTickets->Add(this->menuNameText);
         this->account->Add(this->menuNameText);
         this->amiibo->Add(this->menuNameText);
         this->sysInfo->Add(this->menuNameText);
@@ -287,7 +287,7 @@ namespace ui
         this->storageContents->Add(this->menuHeadText);
         this->contentManager->Add(this->menuHeadText);
         this->titleDump->Add(this->menuHeadText);
-        this->ticketManager->Add(this->menuHeadText);
+        this->unusedTickets->Add(this->menuHeadText);
         this->account->Add(this->menuHeadText);
         this->amiibo->Add(this->menuHeadText);
         this->sysInfo->Add(this->menuHeadText);
@@ -328,7 +328,7 @@ namespace ui
         delete this->storageContents;
         delete this->contentManager;
         delete this->titleDump;
-        delete this->ticketManager;
+        delete this->unusedTickets;
         delete this->account;
         delete this->amiibo;
         delete this->sysInfo;
@@ -440,7 +440,7 @@ namespace ui
     {
         if(Down & KEY_B)
         {
-            if(this->browser->GoBack()) this->browser->UpdateElements();
+            if(this->browser->GoBack()) this->browser->UpdateElements(-1);
             else
             {
                 this->UnloadMenuData();
@@ -575,7 +575,7 @@ namespace ui
         }
     }
 
-    void MainApplication::ticketManager_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::unusedTickets_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B)
         {
@@ -687,9 +687,9 @@ namespace ui
         return this->titleDump;
     }
 
-    TicketManagerLayout *MainApplication::GetTicketManagerLayout()
+    UnusedTicketsLayout *MainApplication::GetUnusedTicketsLayout()
     {
-        return this->ticketManager;
+        return this->unusedTickets;
     }
 
     AccountLayout *MainApplication::GetAccountLayout()

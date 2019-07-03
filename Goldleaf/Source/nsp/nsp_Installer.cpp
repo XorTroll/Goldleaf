@@ -144,7 +144,7 @@ namespace nsp
                             std::string cnt = cnts[i];
                             if(fs::GetExtension(cnt) == "dat")
                             {
-                                icon = "sdmc:/goldleaf/meta/" + controlncaid + ".jpg";
+                                icon = "sdmc:/" + GoldleafDir + "/meta/" + controlncaid + ".jpg";
                                 controlfs.CopyFile(cnt, icon);
                                 break;
                             }

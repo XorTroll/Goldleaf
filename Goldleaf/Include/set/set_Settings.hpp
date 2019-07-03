@@ -14,17 +14,26 @@
 
 namespace set
 {
+    struct WebBookmark
+    {
+        std::string Name;
+        std::string URL;
+    };
+
     struct Settings
     {
         Language CustomLanguage;
         std::string KeysPath;
-        std::string RomFsReplacePath;
+        std::string ExternalRomFs;
         ColorScheme CustomScheme;
         u32 MenuItemSize;
         bool IgnoreRequiredFirmwareVersion;
+        std::vector<WebBookmark> Bookmarks;
 
         std::string PathForResource(std::string Path);
     };
+
+    static const std::string SettingsFile = "sdmc:/" + GoldleafDir + "/settings.json";
 
     Settings ProcessSettings();
     bool Exists();

@@ -23,7 +23,7 @@
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_StorageContentsLayout.hpp>
 #include <ui/ui_SystemInfoLayout.hpp>
-#include <ui/ui_TicketManagerLayout.hpp>
+#include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
 #include <ui/ui_USBDrivesLayout.hpp>
@@ -48,7 +48,7 @@ namespace ui
             void contentInformation_Input(u64 Down, u64 Up, u64 Held);
             void storageContents_Input(u64 Down, u64 Up, u64 Held);
             void contentManager_Input(u64 Down, u64 Up, u64 Held);
-            void ticketManager_Input(u64 Down, u64 Up, u64 Held);
+            void unusedTickets_Input(u64 Down, u64 Up, u64 Held);
             void account_Input(u64 Down, u64 Up, u64 Held);
             void amiibo_Input(u64 Down, u64 Up, u64 Held);
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
@@ -66,7 +66,7 @@ namespace ui
             StorageContentsLayout *GetStorageContentsLayout();
             ContentManagerLayout *GetContentManagerLayout();
             TitleDumperLayout *GetTitleDumperLayout();
-            TicketManagerLayout *GetTicketManagerLayout();
+            UnusedTicketsLayout *GetUnusedTicketsLayout();
             AccountLayout *GetAccountLayout();
             AmiiboDumpLayout *GetAmiiboDumpLayout();
             SystemInfoLayout *GetSystemInfoLayout();
@@ -91,7 +91,7 @@ namespace ui
             StorageContentsLayout *storageContents;
             ContentManagerLayout *contentManager;
             TitleDumperLayout *titleDump;
-            TicketManagerLayout *ticketManager;
+            UnusedTicketsLayout *unusedTickets;
             AccountLayout *account;
             AmiiboDumpLayout *amiibo;
             SystemInfoLayout *sysInfo;

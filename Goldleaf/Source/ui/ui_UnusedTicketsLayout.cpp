@@ -1,4 +1,4 @@
-#include <ui/ui_TicketManagerLayout.hpp>
+#include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
 extern set::Settings gsets;
@@ -7,7 +7,7 @@ namespace ui
 {
     extern MainApplication *mainapp;
 
-    TicketManagerLayout::TicketManagerLayout() : pu::ui::Layout()
+    UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout()
     {
         this->ticketsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->ticketsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
@@ -17,13 +17,13 @@ namespace ui
         this->Add(this->ticketsMenu);
     }
 
-    TicketManagerLayout::~TicketManagerLayout()
+    UnusedTicketsLayout::~UnusedTicketsLayout()
     {
         delete this->notTicketsText;
         delete this->ticketsMenu;
     }
 
-    void TicketManagerLayout::UpdateElements()
+    void UnusedTicketsLayout::UpdateElements()
     {
         if(!this->tickets.empty()) this->tickets.clear();
         this->tickets = hos::GetAllTickets();
@@ -49,14 +49,14 @@ namespace ui
                 pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
                 itm->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
-                itm->AddOnClick(std::bind(&TicketManagerLayout::tickets_Click, this));
+                itm->AddOnClick(std::bind(&UnusedTicketsLayout::tickets_Click, this));
                 this->ticketsMenu->AddItem(itm);
             }
             this->ticketsMenu->SetSelectedIndex(0);
         }
     }
 
-    void TicketManagerLayout::tickets_Click()
+    void UnusedTicketsLayout::tickets_Click()
     {
         hos::Ticket seltick = this->tickets[this->ticketsMenu->GetSelectedIndex()];
         std::string info = set::GetDictionaryEntry(201) + "\n\n\n";
@@ -69,7 +69,7 @@ namespace ui
         if(sopt < 0) return;
         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
-        Result rc = es::DeleteTicket(&seltick.RId, sizeof(es::RightsId));
+        Result rc = hos::RemoveTicket(seltick);
         if(rc == 0)
         {
             mainapp->ShowNotification(set::GetDictionaryEntry(206));

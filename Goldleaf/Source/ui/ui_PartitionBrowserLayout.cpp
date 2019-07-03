@@ -6,6 +6,7 @@ extern set::Settings gsets;
 namespace ui
 {
     extern MainApplication *mainapp;
+    std::vector<u32> expidxstack;
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout()
     {
@@ -60,7 +61,7 @@ namespace ui
         if(Update) this->UpdateElements();
     }
 
-    void PartitionBrowserLayout::UpdateElements(u32 Idx)
+    void PartitionBrowserLayout::UpdateElements(int Idx)
     {
         if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
@@ -99,8 +100,20 @@ namespace ui
                 mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click_Y, this), KEY_Y);
                 this->browseMenu->AddItem(mitm);
             }
-            this->browseMenu->SetSelectedIndex(0);
-            if(this->elems.size() > Idx) this->browseMenu->SetSelectedIndex(Idx);
+            u32 tmpidx = 0;
+            if(Idx < 0)
+            {
+                if(!expidxstack.empty())
+                {
+                    tmpidx = expidxstack[expidxstack.size() - 1];
+                    expidxstack.pop_back();
+                }
+            }
+            else
+            {
+                if(this->elems.size() > Idx) tmpidx = Idx;
+            }
+            this->browseMenu->SetSelectedIndex(tmpidx);
         }
     }
 
@@ -121,7 +134,11 @@ namespace ui
         std::string itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8();
         std::string fullitm = this->gexp->FullPathFor(itm);
         std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
-        if(this->gexp->NavigateForward(fullitm)) this->UpdateElements();
+        if(this->gexp->NavigateForward(fullitm))
+        {
+            expidxstack.push_back(this->browseMenu->GetSelectedIndex());
+            this->UpdateElements();
+        }
         else
         {
             std::string ext = fs::GetExtension(itm);

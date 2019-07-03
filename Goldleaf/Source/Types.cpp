@@ -129,11 +129,11 @@ void EnsureDirectories()
     fs::Explorer *nsys = fs::GetNANDSystemExplorer();
     nsys->DeleteDirectory("Contents/temp");
     nsys->CreateDirectory("Contents/temp");
-    fs::CreateDirectory("sdmc:/goldleaf");
-    fs::CreateDirectory("sdmc:/goldleaf/meta");
-    fs::CreateDirectory("sdmc:/goldleaf/title");
-    fs::CreateDirectory("sdmc:/goldleaf/dump");
-    fs::CreateDirectory("sdmc:/goldleaf/userdata");
-    fs::CreateDirectory("sdmc:/goldleaf/dump/temp");
-    fs::CreateDirectory("sdmc:/goldleaf/dump/out");
+    fs::CreateDirectory("sdmc:/" + GoldleafDir);
+    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/meta");
+    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/title");
+    fs::CreateDirectory("sdmc:/gold" + GoldleafDir + "leaf/dump");
+    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/userdata");
+    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
+    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/out");
 }

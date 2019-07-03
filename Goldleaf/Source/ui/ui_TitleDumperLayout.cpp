@@ -30,7 +30,7 @@ namespace ui
         mainapp->CallForRender();
         FsStorageId stid = static_cast<FsStorageId>(Target.Location);
         std::string fappid = hos::FormatApplicationId(Target.ApplicationId);
-        std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
+        std::string outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
         fs::CreateDirectory(outdir);
         this->dumpText->SetText(set::GetDictionaryEntry(192));
         mainapp->CallForRender();
@@ -271,7 +271,7 @@ namespace ui
                 xdata = txdata;
             }
         }
-        std::string fout = "sdmc:/goldleaf/dump/" + fappid + ".nsp";
+        std::string fout = "sdmc:/" + GoldleafDir + "/dump/" + fappid + ".nsp";
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
         int qi = nsp::Build(outdir, fout, [&](u8 p)
@@ -280,13 +280,13 @@ namespace ui
             mainapp->CallForRender();
         });
         ok = (qi == 0);
-        fs::DeleteDirectory("sdmc:/goldleaf/dump/temp");
+        fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
         fs::DeleteDirectory(outdir);
         if(ok) mainapp->ShowNotification(set::GetDictionaryEntry(197) + " '" + fout + "'");
         else
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotBuildNSP), set::GetDictionaryEntry(198));
-            fs::DeleteDirectory("sdmc:/goldleaf/dump");
+            fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump");
             EnsureDirectories();
         }
         serviceClose(&cst.s);

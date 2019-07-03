@@ -7,9 +7,9 @@ namespace set
     std::string Settings::PathForResource(std::string Path)
     {
         std::string outres = "romfs:" + Path;
-        if(!this->RomFsReplacePath.empty())
+        if(!this->ExternalRomFs.empty())
         {
-            std::string tmpres = this->RomFsReplacePath + "/" + Path;
+            std::string tmpres = this->ExternalRomFs + "/" + Path;
             if(fs::IsFile(tmpres)) outres = tmpres;
         }
         return outres;
@@ -57,102 +57,80 @@ namespace set
                 gset.CustomLanguage = Language::English;
                 break;
         }
-        gset.KeysPath = "sdmc:/switch/prod.keys";
-        gset.RomFsReplacePath = "";
         gset.MenuItemSize = 80;
         ColorSetId csid = ColorSetId_Light;
         setsysGetColorSetId(&csid);
         if(csid == ColorSetId_Dark) gset.CustomScheme = ui::DefaultDark;
         else gset.CustomScheme = ui::DefaultLight;
-        std::string pini = "sdmc:/goldleaf/goldleaf.ini";
-        if(fs::IsFile(pini))
+        std::ifstream ifs(SettingsFile);
+        if(ifs.good())
         {
-            /*
-            INIReader inir(pini);
-            bool usecl = inir.GetBoolean("General", "useCustomLanguage", false);
-            if(usecl)
+            JSON settings = JSON::parse(ifs);
+            if(settings.count("general"))
             {
-                std::string lang = inir.Get("General", "customLanguage", "en");
-                if(lang == "en") gset.CustomLanguage = Language::English;
-                else if(lang == "es") gset.CustomLanguage = Language::Spanish;
-                else if(lang == "de") gset.CustomLanguage = Language::German;
-                else if(lang == "fr") gset.CustomLanguage = Language::French;
-                else if(lang == "it") gset.CustomLanguage = Language::Italian;
-            }
-            gset.KeysPath = "sdmc:/" + inir.Get("General", "keysPath", "switch/prod.keys");
-            gset.IgnoreRequiredFirmwareVersion = inir.GetBoolean("NSP", "ignoreRequiredFwVer", true);
-            bool rrom = inir.GetBoolean("UI", "romfsReplace", false);
-            if(rrom)
-            {
-                std::string prom = inir.Get("UI", "romFsReplacePath", "");
-                if(!prom.empty()) gset.RomFsReplacePath = "sdmc:/" + prom;
-                else gset.RomFsReplacePath = prom;
-            }
-            bool usecc = inir.GetBoolean("UI", "useCustomColors", false);
-            if(usecc)
-            {
-                std::string rawcbg = inir.Get("UI", "colorBackground", "");
-                std::string rawcbs = inir.Get("UI", "colorBase", "");
-                std::string rawcbf = inir.Get("UI", "colorBaseFocus", "");
-                std::string rawctx = inir.Get("UI", "colorText", "");
-                size_t ipos = 0;
-                u8 step = 0;
-                if(!rawcbg.empty()) while((ipos = rawcbg.find(",")) != std::string::npos)
+                std::string lang = settings["general"].value("customLanguage", "");
+                if(!lang.empty())
                 {
-                    std::string clr = rawcbg.substr(0, ipos);
-                    if(step == 0) gset.CustomScheme.Background.R = (u8)atoi(clr.c_str());
-                    else if(step == 1) gset.CustomScheme.Background.G = (u8)atoi(clr.c_str());
-                    else if(step == 2) gset.CustomScheme.Background.B = (u8)atoi(clr.c_str());
-                    else if(step == 3) gset.CustomScheme.Background.A = (u8)atoi(clr.c_str());
-                    step++;
-                    rawcbg.erase(0, ipos + 1);
+                    if(lang == "en") gset.CustomLanguage = Language::English;
+                    else if(lang == "es") gset.CustomLanguage = Language::Spanish;
+                    else if(lang == "de") gset.CustomLanguage = Language::German;
+                    else if(lang == "fr") gset.CustomLanguage = Language::French;
+                    else if(lang == "it") gset.CustomLanguage = Language::Italian;
                 }
-                step = 0;
-                if(!rawcbs.empty()) while((ipos = rawcbs.find(",")) != std::string::npos)
+                std::string keys = settings["general"].value("keysPath", "");
+                if(!keys.empty())
                 {
-                    std::string clr = rawcbs.substr(0, ipos);
-                    if(step == 0) gset.CustomScheme.Base.R = (u8)atoi(clr.c_str());
-                    else if(step == 1) gset.CustomScheme.Base.G = (u8)atoi(clr.c_str());
-                    else if(step == 2) gset.CustomScheme.Base.B = (u8)atoi(clr.c_str());
-                    else if(step == 3) gset.CustomScheme.Base.A = (u8)atoi(clr.c_str());
-                    step++;
-                    rawcbs.erase(0, ipos + 1);
+                    gset.KeysPath = "sdmc:";
+                    if(keys[0] != '/') gset.KeysPath += "/";
+                    gset.KeysPath += keys;
                 }
-                step = 0;
-                if(!rawcbf.empty()) while((ipos = rawcbf.find(",")) != std::string::npos)
+                std::string extrom = settings["general"].value("externalRomFs", "");
+                if(!extrom.empty())
                 {
-                    std::string clr = rawcbf.substr(0, ipos);
-                    if(step == 0) gset.CustomScheme.BaseFocus.R = (u8)atoi(clr.c_str());
-                    else if(step == 1) gset.CustomScheme.BaseFocus.G = (u8)atoi(clr.c_str());
-                    else if(step == 2) gset.CustomScheme.BaseFocus.B = (u8)atoi(clr.c_str());
-                    else if(step == 3) gset.CustomScheme.BaseFocus.A = (u8)atoi(clr.c_str());
-                    step++;
-                    rawcbf.erase(0, ipos + 1);
-                }
-                step = 0;
-                if(!rawctx.empty()) while((ipos = rawctx.find(",")) != std::string::npos)
-                {
-                    std::string clr = rawctx.substr(0, ipos);
-                    if(step == 0) gset.CustomScheme.Text.R = (u8)atoi(clr.c_str());
-                    else if(step == 1) gset.CustomScheme.Text.G = (u8)atoi(clr.c_str());
-                    else if(step == 2) gset.CustomScheme.Text.B = (u8)atoi(clr.c_str());
-                    else if(step == 3) gset.CustomScheme.Text.A = (u8)atoi(clr.c_str());
-                    step++;
-                    rawctx.erase(0, ipos + 1);
+                    gset.ExternalRomFs = "sdmc:";
+                    if(extrom[0] != '/') gset.ExternalRomFs += "/";
+                    gset.ExternalRomFs += extrom;
                 }
             }
-            bool usecsz = inir.GetBoolean("UI", "useCustomSizes", false);
-            if(usecsz)
+            if(settings.count("ui"))
             {
-                gset.MenuItemSize = inir.GetInteger("UI", "menuItemSize", 80);
+                std::string clr = settings["ui"].value("background", "");
+                if(!clr.empty()) gset.CustomScheme.Background = pu::ui::Color::FromHex(clr);
+                clr = settings["ui"].value("base", "");
+                if(!clr.empty()) gset.CustomScheme.Base = pu::ui::Color::FromHex(clr);
+                clr = settings["ui"].value("baseFocus", "");
+                if(!clr.empty()) gset.CustomScheme.BaseFocus = pu::ui::Color::FromHex(clr);
+                clr = settings["ui"].value("text", "");
+                if(!clr.empty()) gset.CustomScheme.Text = pu::ui::Color::FromHex(clr);
             }
-            */
+            if(settings.count("installs"))
+            {
+                gset.IgnoreRequiredFirmwareVersion = settings["installs"].value("ignoreRequiredFwVersion", false);
+                // More!
+            }
+            if(settings.count("web"))
+            {
+                if(settings["web"].count("bookmarks"))
+                {
+                    for(u32 i = 0; i < settings["web"]["bookmarks"].size(); i++)
+                    {
+                        WebBookmark bmk;
+                        bmk.Name = settings["web"]["bookmarks"][i].value("name", "");
+                        bmk.URL = settings["web"]["bookmarks"][i].value("url", "");
+                        if(!bmk.URL.empty() && !bmk.Name.empty())
+                        {
+                            gset.Bookmarks.push_back(bmk);
+                        }
+                    }
+                }
+            }
+            ifs.close();
         }
         return gset;
     }
 
     bool Exists()
     {
-        return fs::IsFile("sdmc:/goldleaf/goldleaf.ini");
+        return fs::IsFile(SettingsFile);
     }
 }

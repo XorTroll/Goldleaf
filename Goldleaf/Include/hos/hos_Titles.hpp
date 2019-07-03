@@ -110,6 +110,7 @@ namespace hos
     bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId);
     std::vector<Ticket> GetAllTickets();
     Result RemoveTitle(Title &ToRemove);
+    Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
     std::string GetExportedNACPPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);

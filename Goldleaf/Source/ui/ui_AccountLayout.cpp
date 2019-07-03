@@ -64,7 +64,7 @@ namespace ui
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             return;
         }
-        std::string iconpth = "sdmc:/goldleaf/userdata/" + hos::FormatHex128(UserId) + ".jpg";
+        std::string iconpth = "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(UserId) + ".jpg";
         fs::DeleteFile(iconpth);
         size_t imgsz = 0;
         size_t pimgsz = 0;
@@ -111,7 +111,7 @@ namespace ui
 
     void AccountLayout::optsIcon_Click()
     {
-        std::string iconpth = "/goldleaf/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
+        std::string iconpth = "/" + GoldleafDir + "/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
         mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(217) + "\n\'SdCard:" + iconpth + "\'", { set::GetDictionaryEntry(234) }, false, "sdmc:" + iconpth);
     }
 

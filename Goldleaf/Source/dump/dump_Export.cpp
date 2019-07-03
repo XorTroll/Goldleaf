@@ -84,7 +84,7 @@ namespace dump
         std::string tkey = "";
         std::string orid = "";
         std::string fappid = hos::FormatApplicationId(ApplicationId);
-        std::string outdir = "sdmc:/goldleaf/dump/" + fappid;
+        std::string outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
         u32 tmpsz = 0;
         while(true)
         {
@@ -193,9 +193,9 @@ namespace dump
         /*
         int outfd = dup(STDOUT_FILENO);
         int errfd = dup(STDERR_FILENO);
-        freopen("sdmc:/goldleaf/dump/temp/hactool_stdout.log", "w", stdout);
-        freopen("sdmc:/goldleaf/dump/temp/hactool_stderr.log", "w", stderr);
-        hactool::ProcessResult pr = hactool::Process(NCAPath, hactool::Extraction::MakeExeFs("sdmc:/goldleaf/dump/temp/tfs"), hactool::ExtractionFormat::NCA, GetKeyFilePath());
+        freopen("sdmc:/" + GoldleafDir + "/dump/temp/hactool_stdout.log", "w", stdout);
+        freopen("sdmc:/" + GoldleafDir + "/dump/temp/hactool_stderr.log", "w", stderr);
+        hactool::ProcessResult pr = hactool::Process(NCAPath, hactool::Extraction::MakeExeFs("sdmc:/" + GoldleafDir + "/dump/temp/tfs"), hactool::ExtractionFormat::NCA, GetKeyFilePath());
         fclose(stdout);
         fclose(stderr);
         dup2(outfd, STDOUT_FILENO);
@@ -205,8 +205,8 @@ namespace dump
         close(outfd);
         close(errfd);
         if(!pr.Ok) return true;
-        bool ex = fs::IsDirectory("sdmc:/goldleaf/dump/temp/tfs");
-        if(ex) fs::DeleteDirectory("sdmc:/goldleaf/dump/temp/tfs");
+        bool ex = fs::IsDirectory("sdmc:/" + GoldleafDir + "/dump/temp/tfs");
+        if(ex) fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump/temp/tfs");
         return !ex;
         */
         return false;

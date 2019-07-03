@@ -85,12 +85,13 @@ namespace nfp
         auto rinfo = GetRegisterInfo();
         auto minfo = GetModelInfo();
         auto cinfo = GetCommonInfo();
-        JSON jdata;
+        JSON jdata = JSON::object();
         jdata["name"] = rinfo.amiibo_name;
         jdata["applicationAreaSize"] = (int)cinfo.application_area_size;
         jdata["firstWriteDate"] = { (int)rinfo.first_write_year, (int)rinfo.first_write_month, (int)rinfo.first_write_day };
         jdata["lastWriteDate"] = { (int)cinfo.last_write_year, (int)cinfo.last_write_month, (int)cinfo.last_write_day };
-        fs::CreateDirectory(("sdmc:/emuiibo/" + std::string(rinfo.amiibo_name)).c_str());
+        fs::CreateDirectory("sdmc:/emuiibo");
+        fs::CreateDirectory("sdmc:/emuiibo/" + std::string(rinfo.amiibo_name));
         std::ofstream ofs("sdmc:/emuiibo/" + std::string(rinfo.amiibo_name) + "/amiibo.json");
         ofs << jdata.dump(4);
         FILE *f = fopen(("sdmc:/emuiibo/" + std::string(rinfo.amiibo_name) + "/mii.dat").c_str(), "wb");

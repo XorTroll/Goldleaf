@@ -98,6 +98,8 @@ struct Version
     bool IsEqual(Version Other);
 };
 
+static const std::string GoldleafDir = "switch/Goldleaf";
+
 ExecutableMode GetExecutableMode();
 LaunchMode GetLaunchMode();
 std::string GetVersion();

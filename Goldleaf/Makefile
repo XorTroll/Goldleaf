@@ -32,7 +32,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lpu -lfreetype -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -lSDL2 -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lSDL2 -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../Plutonium/Plutonium/Output $(CURDIR)/../libnx/nx
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
