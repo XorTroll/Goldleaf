@@ -132,7 +132,7 @@ void EnsureDirectories()
     fs::CreateDirectory("sdmc:/" + GoldleafDir);
     fs::CreateDirectory("sdmc:/" + GoldleafDir + "/meta");
     fs::CreateDirectory("sdmc:/" + GoldleafDir + "/title");
-    fs::CreateDirectory("sdmc:/gold" + GoldleafDir + "leaf/dump");
+    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump");
     fs::CreateDirectory("sdmc:/" + GoldleafDir + "/userdata");
     fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
     fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/out");
