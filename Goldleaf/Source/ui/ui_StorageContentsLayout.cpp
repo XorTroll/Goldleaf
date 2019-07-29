@@ -82,7 +82,7 @@ namespace ui
                 if(nacp != NULL)
                 {
                     name = hos::GetNACPName(nacp);
-                    free(nacp);
+                    delete nacp;
                 }
                 pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(name);
                 itm->SetColor(gsets.CustomScheme.Text);

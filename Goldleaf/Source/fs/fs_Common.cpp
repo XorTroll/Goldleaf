@@ -402,7 +402,7 @@ namespace fs
 
     u8 *GetFileSystemOperationsBuffer()
     {
-        if(opsbuf == NULL) opsbuf = (u8*)memalign(0x1000, opsbufsz);
+        if(opsbuf == NULL) opsbuf = new u8[opsbufsz];
         return opsbuf;
     }
 

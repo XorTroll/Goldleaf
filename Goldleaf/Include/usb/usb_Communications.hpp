@@ -23,10 +23,10 @@ namespace usb
     size_t WriteSimple(const void *Buffer, size_t Size);
     size_t Read(void *Out, size_t Size, UsbCallbackFn Callback = CallbackStub);
     size_t Write(const void *Buffer, size_t Size);
-    u8 Read8(UsbCallbackFn Callback = CallbackStub);
-    u32 Read32(UsbCallbackFn Callback = CallbackStub);
-    u64 Read64(UsbCallbackFn Callback = CallbackStub);
-    std::string ReadString(UsbCallbackFn Callback = CallbackStub);
+    bool Read8(u8 &Out, UsbCallbackFn Callback = CallbackStub);
+    bool Read32(u32 &Out, UsbCallbackFn Callback = CallbackStub);
+    bool Read64(u64 &Out, UsbCallbackFn Callback = CallbackStub);
+    bool ReadString(std::string &Out, UsbCallbackFn Callback = CallbackStub);
     bool WriteCommand(CommandId Id);
     bool Write8(u8 Data);
     bool Write32(u32 Data);

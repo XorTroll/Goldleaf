@@ -183,16 +183,16 @@ namespace nsp
         {
             srecs.resize(cmetacount);
             size_t csbufs = (cmetacount * sizeof(ns::ContentStorageRecord));
-            ns::ContentStorageRecord *csbuf = (ns::ContentStorageRecord*)malloc(csbufs);
+            ns::ContentStorageRecord *csbuf = new ns::ContentStorageRecord[cmetacount];
             u32 cmcount = 0;
             rc = ns::ListApplicationRecordContentMeta(0, baseappid, csbuf, csbufs, &cmcount);
             if(rc != 0)
             {
-                free(csbuf);
+                delete[] csbuf;
                 return rc;
             }
             for(u32 i = 0; i < cmcount; i++) srecs.push_back(csbuf[i]);
-            free(csbuf);
+            delete[] csbuf;
         }
         ns::ContentStorageRecord csrecord;
         csrecord.Record = mrec;

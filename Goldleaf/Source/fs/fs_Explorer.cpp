@@ -219,15 +219,15 @@ namespace fs
         std::string path = this->MakeFull(Path);
         u64 fsize = this->GetFileSize(path);
         if(fsize == 0) return std::vector<u8>();
-        u8 *data = (u8*)memalign(0x1000, fsize);
+        u8 *data = new u8[fsize];
         u64 rsize = this->ReadFileBlock(path, 0, fsize, data);
         if(rsize == 0)
         {
-            free(data);
+            delete[] data;
             return std::vector<u8>();
         }
         std::vector<u8> vc(data, data + rsize);
-        free(data);
+        delete[] data;
         return vc;
     }
 
@@ -662,11 +662,11 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::ListDirectories))
         {
             usb::WriteString(path);
-            u32 count = usb::Read32();
-            if(count > 0) for(u32 i = 0; i < count; i++)
+            u32 count = 0;
+            if(usb::Read32(count)) if(count > 0) for(u32 i = 0; i < count; i++)
             {
-                std::string dir = usb::ReadString();
-                dirs.push_back(dir);
+                std::string dir;
+                if(usb::ReadString(dir)) dirs.push_back(dir);
             }
         }
         return dirs;
@@ -679,11 +679,11 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::ListFiles))
         {
             usb::WriteString(path);
-            u32 count = usb::Read32();
-            if(count > 0) for(u32 i = 0; i < count; i++)
+            u32 count = 0;
+            if(usb::Read32(count)) if(count > 0) for(u32 i = 0; i < count; i++)
             {
-                std::string file = usb::ReadString();
-                files.push_back(file);
+                std::string file;
+                if(usb::ReadString(file)) files.push_back(file);
             }
         }
         return files;
@@ -696,8 +696,8 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::GetPathType))
         {
             usb::WriteString(path);
-            u32 type = usb::Read32();
-            ex = (type != 0);
+            u32 type = 0;
+            if(usb::Read32(type)) ex = (type != 0);
         }
         return ex;
     }
@@ -709,8 +709,8 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::GetPathType))
         {
             usb::WriteString(path);
-            u32 type = usb::Read32();
-            ex = (type == 1);
+            u32 type = 0;
+            if(usb::Read32(type)) ex = (type == 1);
         }
         return ex;
     }
@@ -722,8 +722,8 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::GetPathType))
         {
             usb::WriteString(path);
-            u32 type = usb::Read32();
-            ex = (type == 2);
+            u32 type = 0;
+            if(usb::Read32(type)) ex = (type == 2);
         }
         return ex;
     }
@@ -787,8 +787,7 @@ namespace fs
             usb::Write64(Offset);
             usb::Write64(Size);
             usb::WriteString(path);
-            rsize = usb::Read64();
-            if(rsize > 0) usb::ReadSimple(Out, Size);
+            if(usb::Read64(rsize)) if(rsize > 0) usb::ReadSimple(Out, Size);
         }
         return rsize;
     }
@@ -813,7 +812,7 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::GetFileSize))
         {
             usb::WriteString(path);
-            sz = usb::Read64();
+            if(!usb::Read64(sz)){}
         }
         return sz;
     }
@@ -824,7 +823,7 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::GetDriveTotalSpace))
         {
             usb::WriteString(this->mntname);
-            sz = usb::Read64();
+            if(!usb::Read64(sz)){}
         }
         return sz;
     }
@@ -835,14 +834,15 @@ namespace fs
         if(usb::WriteCommandInput(usb::CommandId::GetDriveFreeSpace))
         {
             usb::WriteString(this->mntname);
-            sz = usb::Read64();
+            if(!usb::Read64(sz)){}
         }
         return sz;
     }
 
     void USBPCDriveExplorer::SetArchiveBit(std::string Path)
     {
-        // TODO!
+        std::string path = this->MakeFull(Path);
+        if(usb::WriteCommandInput(usb::CommandId::SetArchiveBit)) usb::WriteString(path);
     }
 
     FileSystemExplorer::FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem, bool AutoClose)

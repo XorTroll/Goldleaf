@@ -29,5 +29,4 @@ namespace dump
     std::string GetTitleKeyData(u64 ApplicationId, bool ExportData);
     std::string GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id);
     bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmMetaRecord *rec, u64 ApplicationId, NCAType Type, NcmNcaId *out);
-    bool HasTitleKeyCrypto(std::string NCAPath);
 }

@@ -32,7 +32,7 @@ namespace usb
         RenameDirectory,
         GetDriveTotalSpace,
         GetDriveFreeSpace,
-        GetNSPContents,
+        SetArchiveBit,
         Max,
     };
 

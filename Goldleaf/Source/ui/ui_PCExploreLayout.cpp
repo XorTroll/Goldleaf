@@ -28,22 +28,62 @@ namespace ui
         u32 pathcount = 0;
         if(usb::WriteCommandInput(usb::CommandId::ListSystemDrives))
         {
-            drivecount = usb::Read32();
+            if(!usb::Read32(drivecount))
+            {
+                mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
+                mainapp->UnloadMenuData();
+                mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+            }
             for(u32 i = 0; i < drivecount; i++)
             {
-                std::string name = usb::ReadString();
-                std::string path = usb::ReadString();
+                std::string name;
+                std::string path;
+                if(!usb::ReadString(name))
+                {
+                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+                }
+                if(!usb::ReadString(path))
+                {
+                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+                }
                 this->names.push_back(name + " (" + path + ":\\)");
                 this->paths.push_back(path);
             }
         }
         if(usb::WriteCommandInput(usb::CommandId::GetEnvironmentPaths))
         {
-            pathcount = usb::Read32();
+            if(!usb::Read32(pathcount))
+            {
+                mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
+                mainapp->UnloadMenuData();
+                mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+            }
             for(u32 i = 0; i < pathcount; i++)
             {
-                std::string name = usb::ReadString();
-                std::string path = usb::ReadString();
+                std::string name;
+                std::string path;
+                if(!usb::ReadString(name))
+                {
+                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+                }
+                if(!usb::ReadString(path))
+                {
+                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
+                    mainapp->UnloadMenuData();
+                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+                }
                 this->names.push_back(name);
                 this->paths.push_back(path);
             }

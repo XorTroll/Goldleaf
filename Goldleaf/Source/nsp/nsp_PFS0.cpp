@@ -14,7 +14,7 @@ namespace nsp
         {
             this->ok = true;
             u64 strtoff = sizeof(PFS0Header) + (sizeof(PFS0FileEntry) * this->header.FileCount);
-            this->stringtable = (u8*)malloc(this->header.StringTableSize);
+            this->stringtable = new u8[this->header.StringTableSize];
             this->headersize = strtoff + this->header.StringTableSize;
             Exp->ReadFileBlock(this->path, strtoff, this->header.StringTableSize, this->stringtable);
             this->files.reserve(this->header.FileCount);
@@ -41,7 +41,7 @@ namespace nsp
 
     PFS0::~PFS0()
     {
-        free(this->stringtable);
+        delete[] this->stringtable;
     }
 
     u32 PFS0::GetCount()

@@ -32,8 +32,8 @@ namespace dump
 
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out)
     {
-        size_t size = sizeof(NcmMetaRecord) * 256;
-        NcmMetaRecord *metas = (NcmMetaRecord*)malloc(size);
+        size_t size = sizeof(NcmMetaRecord) * hos::MaxTitleCount;
+        NcmMetaRecord *metas = new NcmMetaRecord[hos::MaxTitleCount];
         u32 total = 0;
         u32 written = 0;
         bool got = false;
@@ -44,12 +44,13 @@ namespace dump
             {
                 if(metas[i].titleId == ApplicationId)
                 {
-                    *out = metas[i];
+                    memcpy(out, &metas[i], sizeof(NcmMetaRecord));
                     got = true;
                     break;
                 }
             }
         }
+        delete[] metas;
         return got;
     }
 
@@ -89,7 +90,7 @@ namespace dump
         while(true)
         {
             if(tkey != "") break;
-            u8 *tkdata = (u8*)malloc(0x40000);
+            u8 *tkdata = new u8[0x40000];
             FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
             if(fr) break;
             if(tmpsz == 0) break;
@@ -137,7 +138,7 @@ namespace dump
                     }
                 }
             }
-            free(tkdata);
+            delete[] tkdata;
         }
         f_close(&save);
         f_mount(NULL, "0", 1);
@@ -186,29 +187,5 @@ namespace dump
         }
         Result rc = ncmContentMetaDatabaseGetContentIdByType(cmdb, ctype, rec, out);
         return (rc == 0);
-    }
-
-    bool HasTitleKeyCrypto(std::string NCAPath)
-    {
-        /*
-        int outfd = dup(STDOUT_FILENO);
-        int errfd = dup(STDERR_FILENO);
-        freopen("sdmc:/" + GoldleafDir + "/dump/temp/hactool_stdout.log", "w", stdout);
-        freopen("sdmc:/" + GoldleafDir + "/dump/temp/hactool_stderr.log", "w", stderr);
-        hactool::ProcessResult pr = hactool::Process(NCAPath, hactool::Extraction::MakeExeFs("sdmc:/" + GoldleafDir + "/dump/temp/tfs"), hactool::ExtractionFormat::NCA, GetKeyFilePath());
-        fclose(stdout);
-        fclose(stderr);
-        dup2(outfd, STDOUT_FILENO);
-        dup2(errfd, STDERR_FILENO);
-        stdout = fdopen(STDOUT_FILENO, "w");
-        stderr = fdopen(STDERR_FILENO, "w");
-        close(outfd);
-        close(errfd);
-        if(!pr.Ok) return true;
-        bool ex = fs::IsDirectory("sdmc:/" + GoldleafDir + "/dump/temp/tfs");
-        if(ex) fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump/temp/tfs");
-        return !ex;
-        */
-        return false;
     }
 }

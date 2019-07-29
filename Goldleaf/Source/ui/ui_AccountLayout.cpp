@@ -43,8 +43,8 @@ namespace ui
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             return;
         }
-        this->pbase = (AccountProfileBase*)malloc(sizeof(AccountProfileBase));
-        this->udata = (AccountUserData*)malloc(sizeof(AccountUserData));
+        this->pbase = new AccountProfileBase;
+        this->udata = new AccountUserData;
         rc = accountProfileGet(&this->prf, this->udata, this->pbase);
         if(rc != 0)
         {
@@ -69,12 +69,12 @@ namespace ui
         size_t imgsz = 0;
         size_t pimgsz = 0;
         rc = accountProfileGetImageSize(&this->prf, &pimgsz);
-        u8 *img = (u8*)malloc(pimgsz);
+        u8 *img = new u8[pimgsz];
         rc = accountProfileLoadImage(&this->prf, img, pimgsz, &imgsz);
         FILE *f = fopen(iconpth.c_str(), "wb");
         if((rc == 0) && f) fwrite(img, pimgsz, 1, f);
         fclose(f);
-        free(img);
+        delete[] img;
     }
 
     void AccountLayout::CleanData()
@@ -83,8 +83,8 @@ namespace ui
         {
             this->uid = 0;
             serviceClose(&this->prf.s);
-            free(this->pbase);
-            free(this->udata);
+            delete this->pbase;
+            delete this->udata;
             this->pred.Close();
         }
     }

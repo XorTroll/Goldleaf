@@ -173,14 +173,14 @@ namespace ui
         if(nacp != NULL)
         {
             tcnt = hos::GetNACPName(nacp) + " (" + std::string(nacp->version) + ")";
-            free(nacp);
+            delete nacp;
         }
         std::string icon;
         u8 *cicon = Content.TryGetIcon();
         if(cicon != NULL)
         {
             icon = hos::GetExportedIconPath(Content.ApplicationId);
-            free(cicon);
+            delete cicon;
             cicon = NULL;
         }
         mainapp->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);

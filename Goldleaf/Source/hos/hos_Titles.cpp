@@ -42,12 +42,12 @@ namespace hos
     NacpStruct *Title::TryGetNACP()
     {
         NacpStruct *nacp = NULL;
-        NsApplicationControlData *ctdata = (NsApplicationControlData*)malloc(sizeof(NsApplicationControlData));
+        NsApplicationControlData *ctdata = new NsApplicationControlData;
         size_t acsz = 0;
         Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
-            nacp = (NacpStruct*)malloc(sizeof(NacpStruct));
+            nacp = new NacpStruct;
             memcpy(nacp, &ctdata->nacp, sizeof(NacpStruct));
         }
         else
@@ -55,24 +55,23 @@ namespace hos
             rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
-                nacp = (NacpStruct*)malloc(sizeof(NacpStruct));
+                nacp = new NacpStruct;
                 memcpy(nacp, &ctdata->nacp, sizeof(NacpStruct));
             }
         }
-        free(ctdata);
-        ctdata = NULL;
+        delete ctdata;
         return nacp;
     }
 
     u8 *Title::TryGetIcon()
     {
         u8 *icon = NULL;
-        NsApplicationControlData *ctdata = (NsApplicationControlData*)malloc(sizeof(NsApplicationControlData));
+        NsApplicationControlData *ctdata = new NsApplicationControlData;
         size_t acsz = 0;
         Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
-            icon = (u8*)malloc(0x20000);
+            icon = new u8[0x20000];
             memcpy(icon, ctdata->icon, 0x20000);
         }
         else
@@ -80,12 +79,11 @@ namespace hos
             rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
-                icon = (u8*)malloc(0x20000);
+                icon = new u8[0x20000];
                 memcpy(icon, ctdata->icon, 0x20000);
             }
         }
-        free(ctdata);
-        ctdata = NULL;
+        delete ctdata;
         return icon;
     }
 
@@ -100,8 +98,7 @@ namespace hos
             std::string fnacp = GoldleafDir + "/title/" + fappid + ".nacp";
             sdexp->DeleteFile(fnacp);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
-            free(nacp);
-            nacp = NULL;
+            delete nacp;
         }
         u8 *jpg = this->TryGetIcon();
         if(jpg != NULL)
@@ -109,8 +106,7 @@ namespace hos
             std::string fjpg = GoldleafDir + "/title/" + fappid + ".jpg";
             sdexp->DeleteFile(fjpg);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
-            free(jpg);
-            jpg = NULL;
+            delete jpg;
             hicon = true;
         }
         return hicon;
@@ -207,8 +203,8 @@ namespace hos
         Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(Location), &metadb);
         if(rc == 0)
         {
-            u32 srecs = 128 * sizeof(NcmMetaRecord);
-            NcmMetaRecord *recs = (NcmMetaRecord*)malloc(srecs);
+            u32 srecs = MaxTitleCount * sizeof(NcmMetaRecord);
+            NcmMetaRecord *recs = new NcmMetaRecord[MaxTitleCount];
             u32 wrt = 0;
             u32 total = 0;
             rc = ncmContentMetaDatabaseList(&metadb, static_cast<u32>(Type), 0, 0, UINT64_MAX, recs, srecs, &wrt, &total);
@@ -227,8 +223,7 @@ namespace hos
                     titles.push_back(t);
                 }
             }
-            free(recs);
-            recs = NULL;
+            delete[] recs;
             serviceClose(&metadb.s);
         }
         return titles;
@@ -332,11 +327,11 @@ namespace hos
         if(cc > 0)
         {
             auto sz = cc * sizeof(es::RightsId);
-            es::RightsId *ids = (es::RightsId*)malloc(sz);
+            es::RightsId *ids = new es::RightsId[cc];
             memset(ids, 0, sz);
             es::ListCommonTicket(&wrt, ids, sz);
             for(u32 i = 0; i < cc; i++) tickets.push_back({ ids[i], hos::TicketType::Common });
-            free(ids);
+            delete[] ids;
         }
 
         u32 pc = 0;
@@ -344,11 +339,11 @@ namespace hos
         if(cc > 0)
         {
             auto sz = pc * sizeof(es::RightsId);
-            es::RightsId *ids = (es::RightsId*)malloc(sz);
+            es::RightsId *ids = new es::RightsId[pc];
             memset(ids, 0, sz);
             es::ListPersonalizedTicket(&wrt, ids, sz);
             for(u32 i = 0; i < pc; i++) tickets.push_back({ ids[i], hos::TicketType::Personalized });
-            free(ids);
+            delete[] ids;
         }
 
         return tickets;

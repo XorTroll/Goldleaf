@@ -104,6 +104,8 @@ namespace hos
         u8 KeyGeneration;
     };
 
+    static constexpr u32 MaxTitleCount = 64000;
+
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
     Title Locate(u64 ApplicationId);

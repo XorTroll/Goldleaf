@@ -47,36 +47,40 @@ namespace usb
         return Size;
     }
 
-    u8 Read8(UsbCallbackFn Callback)
+    bool Read8(u8 &Out, UsbCallbackFn Callback)
     {
         u8 num = 0;
-        Read(&num, sizeof(u8), Callback);
-        return num;
+        bool ok = (Read(&num, sizeof(u8), Callback) > 0);
+        Out = num;
+        return ok;
     }
 
-    u32 Read32(UsbCallbackFn Callback)
+    bool Read32(u32 &Out, UsbCallbackFn Callback)
     {
         u32 num = 0;
-        Read(&num, sizeof(u32), Callback);
-        return num;
+        bool ok = (Read(&num, sizeof(u32), Callback) > 0);
+        Out = num;
+        return ok;
     }
 
-    u64 Read64(UsbCallbackFn Callback)
+    bool Read64(u64 &Out, UsbCallbackFn Callback)
     {
         u64 num = 0;
-        Read(&num, sizeof(u64), Callback);
-        return num;
+        bool ok = (Read(&num, sizeof(u64), Callback) > 0);
+        Out = num;
+        return ok;
     }
 
-    std::string ReadString(UsbCallbackFn Callback)
+    bool ReadString(std::string &Out, UsbCallbackFn Callback)
     {
-        u32 len = Read32(Callback);
-        if(len == 0) return "";
-        char *data = (char*)memalign(0x1000, len + 1);
-        if(Read(data, len, Callback) == 0) return "";
-        data[len] = '\0';
-        std::string str = std::string(data);
-        return str;
+        u32 strlen = 0;
+        if(!Read32(strlen, Callback)) return false;
+
+        char *raw = new char[strlen + 1]();
+        if(Read(raw, strlen, Callback) == 0) return false;
+        Out = std::string(raw);
+
+        return true;
     }
 
     bool WriteCommand(CommandId Id)
@@ -109,10 +113,11 @@ namespace usb
     {
         u32 strl = Str.length();
         Write32(strl);
-        char *ch = (char*)memalign(0x1000, strl + 1);
-        memset(ch, '\0', strl + 1);
+        char *ch = new char[strl + 1]();
         strcpy(ch, Str.c_str());
-        return Write(ch, strl + 1);
+        bool ok = Write(ch, strl + 1);
+        delete[] ch;
+        return ok;
     }
 
     u32 GetState()
