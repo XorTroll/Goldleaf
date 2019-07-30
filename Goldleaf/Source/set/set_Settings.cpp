@@ -106,8 +106,9 @@ namespace set
             if(settings.count("installs"))
             {
                 gset.IgnoreRequiredFirmwareVersion = settings["installs"].value("ignoreRequiredFwVersion", false);
-                // More!
+                // More for 0.7!
             }
+            /* 0.7
             if(settings.count("web"))
             {
                 if(settings["web"].count("bookmarks"))
@@ -124,6 +125,7 @@ namespace set
                     }
                 }
             }
+            */
             ifs.close();
         }
         return gset;
