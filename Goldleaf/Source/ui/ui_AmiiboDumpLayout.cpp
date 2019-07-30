@@ -22,11 +22,11 @@ namespace ui
 
     void AmiiboDumpLayout::StartDump()
     {
-        this->infoText->SetText("Starting amiibo detection...");
+        this->infoText->SetText(set::GetDictionaryEntry(294));
         auto rc = nfp::Initialize();
         if(rc == 0)
         {
-            this->infoText->SetText("Waiting for amiibo input... Press B to cancel.");
+            this->infoText->SetText(set::GetDictionaryEntry(295));
             while(!nfp::IsReady())
             {
                 mainapp->CallForRender();
@@ -35,9 +35,9 @@ namespace ui
             if(rc == 0)
             {
                 auto info = nfp::GetRegisterInfo();
-                this->infoText->SetText("Amiibo detected: Dumping '" + std::string(info.amiibo_name) + "' to emuiibo directory...");
+                this->infoText->SetText(set::GetDictionaryEntry(296) + " '" + std::string(info.amiibo_name) + "' " + set::GetDictionaryEntry(297));
                 nfp::DumpToEmuiibo();
-                mainapp->ShowNotification("'" + std::string(info.amiibo_name) + "' amiibo's dump finished. Check whether it was successfully dumped.");
+                mainapp->ShowNotification("'" + std::string(info.amiibo_name) + "' " + set::GetDictionaryEntry(298));
                 nfp::Close();
             }
         }

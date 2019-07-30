@@ -31,7 +31,7 @@ namespace gtree
         RenameDirectory,
         GetDriveTotalSpace,
         GetDriveFreeSpace,
-        GetNSPContents,
+        SetArchiveBit,
         Max,
     }
 
@@ -68,12 +68,18 @@ namespace gtree
         public static void WriteString(this UsbK USB, string Data)
         {
             USB.Write32((uint)Data.Length);
-            USB.WriteBytes(Encoding.ASCII.GetBytes(Data));
+            USB.WriteBytes(Encoding.UTF8.GetBytes(Data));
         }
     }
 
     public static class UsbKReadExtras
     {
+        private static BinaryReader LastReadFile = null;
+        private static string LastRFile = null;
+
+        private static FileStream LastWriteFile = null;
+        private static string LastWFile = null;
+
         public static byte[] ReadBytes(this UsbK USB, int Length)
         {
             byte[] b = new byte[Length];
@@ -99,7 +105,7 @@ namespace gtree
         public static string ReadString(this UsbK USB)
         {
             uint strlen = USB.Read32();
-            return Encoding.ASCII.GetString(USB.ReadBytes((int)strlen));
+            return Encoding.UTF8.GetString(USB.ReadBytes((int)strlen));
         }
 
         public static CommandReadResult ReadCommandInput(this UsbK USB, out CommandId Type)
@@ -109,7 +115,7 @@ namespace gtree
             do
             {
                 magic = USB.Read32();
-            } while(magic != Command.GLUC);
+            } while (magic != Command.GLUC);
             uint cmdid = USB.Read32();
             Type = (CommandId)cmdid;
             if(magic != Command.GLUC) res = CommandReadResult.InvalidMagic;
@@ -124,25 +130,42 @@ namespace gtree
             if(rres == CommandReadResult.Success)
             {
                 Program.Command.LogL("Received request (Command: " + cmdid + ")");
-                switch(cmdid)
+                if(cmdid != CommandId.FileRead)
+                {
+                    if(LastReadFile != null)
+                    {
+                        LastReadFile.Close();
+                        LastReadFile = null;
+                    }
+                    LastRFile = null;
+                }
+                if(cmdid != CommandId.FileWrite)
+                {
+                    if(LastWriteFile != null)
+                    {
+                        LastWriteFile.Close();
+                        LastWriteFile = null;
+                    }
+                    LastWFile = null;
+                }
+                switch (cmdid)
                 {
                     case CommandId.ListSystemDrives:
                         {
                             var drives = DriveInfo.GetDrives();
                             List<DriveInfo> adrives = new List<DriveInfo>();
-                            uint count = (uint)drives.Length;
-                            if(drives.Length > 0) foreach(var drive in drives)
-                            {
-                                if(drive.IsReady) adrives.Add(drive);
-                            }
+                            if(drives.Length > 0) foreach (var drive in drives)
+                                {
+                                    if(drive.IsReady) adrives.Add(drive);
+                                }
                             USB.Write32((uint)adrives.Count);
-                            if(adrives.Count > 0) foreach(var drive in adrives)
-                            {
-                                string label = drive.VolumeLabel;
-                                string prefix = drive.Name.Substring(0, 1);
-                                USB.WriteString(label);
-                                USB.WriteString(prefix);
-                            }
+                            if(adrives.Count > 0) foreach (var drive in adrives)
+                                {
+                                    string label = drive.VolumeLabel;
+                                    string prefix = drive.Name.Substring(0, 1);
+                                    USB.WriteString(label);
+                                    USB.WriteString(prefix);
+                                }
                             break;
                         }
                     case CommandId.GetEnvironmentPaths:
@@ -153,7 +176,7 @@ namespace gtree
                                 { "Documents", Environment.SpecialFolder.MyDocuments },
                             };
                             USB.Write32((uint)envpaths.Count);
-                            foreach(var path in envpaths)
+                            foreach (var path in envpaths)
                             {
                                 string pth = Environment.GetFolderPath(path.Value);
                                 string spth = pth.NormalizeAsGoldleafPath();
@@ -178,11 +201,11 @@ namespace gtree
                             string path = spath.NormalizeAsPath();
                             var ents = Directory.GetDirectories(path);
                             USB.Write32((uint)ents.Length);
-                            if(ents.Length > 0) foreach(var ent in ents)
-                            {
-                                string name = Path.GetFileName(ent);
-                                USB.WriteString(name);
-                            }
+                            if(ents.Length > 0) foreach (var ent in ents)
+                                {
+                                    string name = Path.GetFileName(ent);
+                                    USB.WriteString(name);
+                                }
                             break;
                         }
                     case CommandId.ListFiles:
@@ -191,11 +214,11 @@ namespace gtree
                             string path = spath.NormalizeAsPath();
                             var ents = Directory.GetFiles(path);
                             USB.Write32((uint)ents.Length);
-                            if(ents.Length > 0) foreach(var ent in ents)
-                            {
-                                string name = Path.GetFileName(ent);
-                                USB.WriteString(name);
-                            }
+                            if(ents.Length > 0) foreach (var ent in ents)
+                                {
+                                    string name = Path.GetFileName(ent);
+                                    USB.WriteString(name);
+                                }
                             break;
                         }
                     case CommandId.GetFileSize:
@@ -224,16 +247,22 @@ namespace gtree
                             byte[] data = new byte[size];
                             try
                             {
-                                using(BinaryReader reader = new BinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+                                if(string.IsNullOrEmpty(LastRFile) || (LastRFile != path))
                                 {
-                                    reader.BaseStream.Seek((long)offset, SeekOrigin.Begin);
-                                    rbytes = (ulong)reader.Read(data, 0, (int)size);
+                                    if(LastReadFile != null)
+                                    {
+                                        LastReadFile.Close();
+                                        LastReadFile = null;
+                                    }
+                                    LastRFile = path;
+                                    LastReadFile = new BinaryReader(new FileStream(LastRFile, FileMode.Open, FileAccess.Read));
                                 }
+                                LastReadFile.BaseStream.Seek((long)offset, SeekOrigin.Begin);
+                                rbytes = (ulong)LastReadFile.Read(data, 0, (int)size);
                             }
                             catch
                             {
                             }
-                            // Console.WriteLine("FileRead - Offset: " + offset + ", RBytes: " + rbytes);
                             USB.Write64(rbytes);
                             if(rbytes > 0) USB.WriteBytes(data);
                             break;
@@ -247,12 +276,18 @@ namespace gtree
                             string path = spath.NormalizeAsPath();
                             try
                             {
-                                var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write)
+                                if(string.IsNullOrEmpty(LastWFile) || (LastWFile != path))
                                 {
-                                    Position = (long)offset,
-                                };
-                                fs.Write(data, 0, (int)size);
-                                fs.Close();
+                                    if(LastWriteFile != null)
+                                    {
+                                        LastWriteFile.Close();
+                                        LastWriteFile = null;
+                                    }
+                                    LastWFile = path;
+                                    LastWriteFile = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write);
+                                }
+                                LastWriteFile.Position = (long)offset;
+                                LastWriteFile.Write(data, 0, (int)size);
                             }
                             catch
                             {
@@ -310,14 +345,14 @@ namespace gtree
                             string sdrive = USB.ReadString();
                             var drives = DriveInfo.GetDrives();
                             ulong space = 0;
-                            if(drives.Length > 0) foreach(var drive in drives)
-                            {
-                                if(drive.IsReady && (drive.Name == sdrive))
+                            if(drives.Length > 0) foreach (var drive in drives)
                                 {
-                                    space = (ulong)drive.TotalSize;
-                                    break;
+                                    if(drive.IsReady && (drive.Name == sdrive))
+                                    {
+                                        space = (ulong)drive.TotalSize;
+                                        break;
+                                    }
                                 }
-                            }
                             USB.Write64(space);
                             break;
                         }
@@ -326,15 +361,23 @@ namespace gtree
                             string sdrive = USB.ReadString();
                             var drives = DriveInfo.GetDrives();
                             ulong space = 0;
-                            if(drives.Length > 0) foreach(var drive in drives)
-                            {
-                                if(drive.IsReady && (drive.Name == sdrive))
+                            if(drives.Length > 0) foreach (var drive in drives)
                                 {
-                                    space = (ulong)drive.TotalFreeSpace;
-                                    break;
+                                    if(drive.IsReady && (drive.Name == sdrive))
+                                    {
+                                        space = (ulong)drive.TotalFreeSpace;
+                                        break;
+                                    }
                                 }
-                            }
                             USB.Write64(space);
+                            break;
+                        }
+                    case CommandId.SetArchiveBit:
+                        {
+                            string spath = USB.ReadString();
+                            string path = spath.NormalizeAsPath();
+                            var dinfo = new DirectoryInfo(path);
+                            dinfo.Attributes |= FileAttributes.Archive;
                             break;
                         }
                 }

@@ -9,7 +9,7 @@ namespace ui
 
     UpdateLayout::UpdateLayout()
     {
-        this->infoText = new pu::ui::elm::TextBlock(150, 320, "Utest");
+        this->infoText = new pu::ui::elm::TextBlock(150, 320, "(...)");
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
         this->downloadBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
@@ -27,34 +27,34 @@ namespace ui
     {
         if(!net::HasConnection())
         {
-            mainapp->CreateShowDialog("Connection", "No internet connection was found.", { "Ok" }, true);
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(304), { set::GetDictionaryEntry(234) }, true);
             mainapp->UnloadMenuData();
             mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             return;
         }
         this->downloadBar->SetVisible(false);
-        this->infoText->SetText("Accessing GitHub metadata for releases' information...");
+        this->infoText->SetText(set::GetDictionaryEntry(305));
         mainapp->CallForRender();
         std::string js = net::RetrieveContent("https://api.github.com/repos/xortroll/goldleaf/releases", "application/json");
         JSON j = JSON::parse(js);
         std::string latestid = j[0]["tag_name"].get<std::string>();
-        this->infoText->SetText("Access completed (latest release version: v" + latestid);
+        this->infoText->SetText(set::GetDictionaryEntry(306));
         mainapp->CallForRender();
         Version latestv = Version::FromString(latestid);
-        Version currentv = Version::FromString("0.3");
+        Version currentv = Version::FromString(GOLDLEAF_VERSION); // Defined in Makefile
         if(latestv.IsEqual(currentv))
         {
-            mainapp->CreateShowDialog("Update search", "Goldleaf's version matches latest release's one.", { "Ok" }, true);
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(307), { set::GetDictionaryEntry(234) }, true);
         }
         else if(latestv.IsLower(currentv))
         {
-            int sopt = mainapp->CreateShowDialog("Update search (hardcoded low value for testing)", "Latest release is v" + latestid + "\nWould you like to update Goldleaf to this version?\n(don't select it, testing only)", { "Yes", "Cancel" }, true);
+            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(308), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt == 0)
             {
                 std::string baseurl = "https://github.com/XorTroll/Goldleaf/releases/download/" + latestid + "/Goldleaf";
                 fs::CreateDirectory("sdmc:/switch/Goldleaf");
                 fs::DeleteFile("sdmc:/switch/Goldleaf/Goldleaf.nro");
-                this->infoText->SetText("Downloading latest release NRO...");
+                this->infoText->SetText(set::GetDictionaryEntry(309));
                 mainapp->CallForRender();
                 this->downloadBar->SetVisible(true);
                 net::RetrieveToFile(baseurl + ".nro", "sdmc:/switch/Goldleaf/Goldleaf.nro", [&](double Done, double Total)
@@ -64,14 +64,13 @@ namespace ui
                     mainapp->CallForRender();
                 });
                 this->downloadBar->SetVisible(false);
-                this->infoText->SetText("NRO downloaded fine.");
                 mainapp->CallForRender();
-                sopt = mainapp->CreateShowDialog("Update search", "Would you like to download and install the NSP too?", { "Yes", "Cancel" }, true);
+                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(310), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
                 if(sopt == 0)
                 {
                     std::string nspfile = "sdmc:/switch/Goldleaf/Goldleaf.nsp";
                     fs::DeleteFile(nspfile);
-                    this->infoText->SetText("Downloading latest release NSP...");
+                    this->infoText->SetText(set::GetDictionaryEntry(311));
                     mainapp->CallForRender();
                     this->downloadBar->SetVisible(true);
                     net::RetrieveToFile(baseurl + ".nsp", nspfile, [&](double Done, double Total)
@@ -81,11 +80,11 @@ namespace ui
                         mainapp->CallForRender();
                     });
                     this->downloadBar->SetVisible(false);
-                    this->infoText->SetText("NSP downloaded fine. Preparing to install it...");
+                    this->infoText->SetText(set::GetDictionaryEntry(312));
                     mainapp->CallForRender();
                     if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, GOLDLEAF_APPID))
                     {
-                        this->infoText->SetText("Removing old installation...");
+                        this->infoText->SetText(set::GetDictionaryEntry(313));
                         mainapp->CallForRender();
                         auto titles = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
                         for(u32 i = 0; i < titles.size(); i++)
@@ -99,7 +98,7 @@ namespace ui
                     }
                     else if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, GOLDLEAF_APPID))
                     {
-                        this->infoText->SetText("Removing old installation...");
+                        this->infoText->SetText(set::GetDictionaryEntry(313));
                         mainapp->CallForRender();
                         auto titles = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
                         for(u32 i = 0; i < titles.size(); i++)
@@ -111,7 +110,7 @@ namespace ui
                             }
                         }
                     }
-                    this->infoText->SetText("Starting installation...");
+                    this->infoText->SetText(set::GetDictionaryEntry(312));
                     mainapp->CallForRender();
                     sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
                     if(sopt < 0) return;
@@ -127,15 +126,12 @@ namespace ui
                     }
                     mainapp->LoadLayout(mainapp->GetInstallLayout());
                     mainapp->GetInstallLayout()->StartInstall(nspfile, fs::GetSdCardExplorer(), dst, mainapp->GetMainMenuLayout());
-                    mainapp->ShowNotification("Goldleaf has been updated and reinstalled. Please restart it to use the new one.");
+                    mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
                 }
-                else mainapp->ShowNotification("Goldleaf has been updated. Please restart it to use the new one.");
+                else mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
             }
         }
-        else if(latestv.IsHigher(currentv))
-        {
-            mainapp->CreateShowDialog("Update search", "Weird version mismatch (Goldleaf's version is higher than the latest release's one)\nAre you sure this Goldleaf is the official one?", { "Ok" }, true);
-        }
+        else if(latestv.IsHigher(currentv)) mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(316), { set::GetDictionaryEntry(234) }, true);
         mainapp->UnloadMenuData();
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }

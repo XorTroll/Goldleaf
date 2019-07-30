@@ -32,7 +32,7 @@ namespace ui
             {
                 mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
                 mainapp->UnloadMenuData();
-                mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                 mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
             }
             for(u32 i = 0; i < drivecount; i++)
@@ -43,14 +43,14 @@ namespace ui
                 {
                     mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
                     mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                     mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
                 }
                 if(!usb::ReadString(path))
                 {
                     mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
                     mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                     mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
                 }
                 this->names.push_back(name + " (" + path + ":\\)");
@@ -63,7 +63,7 @@ namespace ui
             {
                 mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
                 mainapp->UnloadMenuData();
-                mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                 mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
             }
             for(u32 i = 0; i < pathcount; i++)
@@ -74,14 +74,14 @@ namespace ui
                 {
                     mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
                     mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                     mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
                 }
                 if(!usb::ReadString(path))
                 {
                     mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
                     mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                     mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
                 }
                 this->names.push_back(name);

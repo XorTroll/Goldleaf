@@ -76,7 +76,7 @@ namespace ui
         {
             if(tiks[i].GetApplicationId() == cnt.ApplicationId)
             {
-                msg += "\n\nTicket found.\nID: " + tiks[i].ToString();
+                msg += "\n\n" + set::GetDictionaryEntry(285) + "\nID: " + tiks[i].ToString();
                 hastik = true;
                 tikidx = i;
                 break;
@@ -87,7 +87,7 @@ namespace ui
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
         }
-        if(hastik) opts.push_back("Remove ticket");
+        if(hastik) opts.push_back(set::GetDictionaryEntry(245));
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
@@ -103,7 +103,7 @@ namespace ui
             bool remtik = false;
             if(hastik)
             {
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), "Would you also like to remove the ticket?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
+                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
                 if(sopt < 0) return;
                 remtik = (sopt == 0);
             }

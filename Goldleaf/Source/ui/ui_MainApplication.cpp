@@ -36,7 +36,7 @@ namespace ui
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = new pu::ui::elm::TextBlock(800, 22, "127.0.0.1", 20);
+        this->ipText = new pu::ui::elm::TextBlock(800, 22, "(...)", 20);
         this->ipText->SetColor(gsets.CustomScheme.Text);
         this->menuNameText = new pu::ui::elm::TextBlock(120, 85, "-");
         this->menuNameText->SetColor(gsets.CustomScheme.Text);
@@ -526,7 +526,7 @@ namespace ui
         if(Down & KEY_B)
         {
             this->UnloadMenuData();
-            this->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+            this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
             this->LoadLayout(this->exploreMenu);
         }
     }
@@ -536,7 +536,7 @@ namespace ui
         if(Down & KEY_B)
         {
             this->UnloadMenuData();
-            this->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+            this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
             this->LoadLayout(this->exploreMenu);
         }
     }

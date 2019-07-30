@@ -460,8 +460,8 @@ namespace ui
                 auto path = fullitm + "/" + files[i];
                 if(fs::GetExtension(path) == "nsp") nsps.push_back(path);
             }
-            std::vector<pu::String> extraopts = { "Set archive bit" };
-            if(!nsps.empty()) extraopts.push_back("Install all NSPs");
+            std::vector<pu::String> extraopts = { set::GetDictionaryEntry(281) };
+            if(!nsps.empty()) extraopts.push_back(set::GetDictionaryEntry(282));
             extraopts.push_back(set::GetDictionaryEntry(18));
             std::string msg = set::GetDictionaryEntry(134);
             msg += "\n\n" + set::GetDictionaryEntry(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
@@ -502,13 +502,13 @@ namespace ui
                     }
                     break;
                 case 4:
-                    int sopt2 = mainapp->CreateShowDialog("Special options", "Special directory options", extraopts, true);
+                    int sopt2 = mainapp->CreateShowDialog(set::GetDictionaryEntry(280), set::GetDictionaryEntry(134), extraopts, true);
                     switch(sopt2)
                     {
                         case 0:
                             this->gexp->SetArchiveBit(fullitm);
                             this->UpdateElements(this->browseMenu->GetSelectedIndex());
-                            mainapp->ShowNotification("Archive bit was set to the selected directory.");
+                            mainapp->ShowNotification(set::GetDictionaryEntry(303));
                             break;
                         case 1:
                             for(u32 i = 0; i < nsps.size(); i++)

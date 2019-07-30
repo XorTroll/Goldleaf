@@ -27,7 +27,7 @@ namespace ui
         this->gameCartMenuItem->SetIcon(gsets.PathForResource("/Common/GameCart.png"));
         this->gameCartMenuItem->SetColor(gsets.CustomScheme.Text);
         this->gameCartMenuItem->AddOnClick(std::bind(&ContentManagerLayout::gameCartMenuItem_Click, this));
-        this->unusedTicketsMenuItem = new pu::ui::elm::MenuItem("Unused tickets");
+        this->unusedTicketsMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(287));
         this->unusedTicketsMenuItem->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
         this->unusedTicketsMenuItem->SetColor(gsets.CustomScheme.Text);
         this->unusedTicketsMenuItem->AddOnClick(std::bind(&ContentManagerLayout::unusedTicketsMenuItem_Click, this));

@@ -169,7 +169,10 @@ namespace ui
                     info += "(6.2.0)";
                     break;
                 case 7:
-                    info += "(7.0.0 - 7.1.0)";
+                    info += "(7.0.0 - 8.0.1)";
+                    break;
+                case 8:
+                    info += "(8.1.0 -)";
                     break;
                 default:
                     info += set::GetDictionaryEntry(96);
@@ -198,7 +201,6 @@ namespace ui
                 this->installBar->SetMaxValue(Total);
                 std::string name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
                 if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
-                // name += ".nca\'... (NCA " + std::to_string(Content + 1) + " " + set::GetDictionaryEntry(149) + " " + std::to_string(ContentCount) + ")";
                 name += ".nca\'... (" + fs::FormatSize(BytesSec) + "/s)";
                 this->installText->SetText(name);
                 this->installBar->SetProgress(Done);
