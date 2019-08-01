@@ -9,9 +9,10 @@
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
 3. [Forwarding](#forwarding)
-4. [Configuration](#configuration)
+4. [Settings](#settings)
 5. [Known bugs](#known-bugs)
-6. [Credits and support](#credits-and-support)
+6. [Contributing](#contributing)
+7. [Credits and support](#credits-and-support)
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
@@ -75,7 +76,7 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 **TL;DR:** **Always** try to avoid untrusted NSPs, and if you go ahead and install CDN NSPs with tickets, avoid going online, or use special tools such as 90DNS, or you'll be banned for sure.
 
-## Goldleaf's forwarder
+## Forwarding
 
 Goldleaf is released along with a NSP, in order to launch Goldleaf as an installed title, and take advantage of extra RAM and features such as web browsing.
 
@@ -125,7 +126,7 @@ So, via this configurations, UI's images, resources, element sizes and even tran
 
 - Remote PC browsing in general seems to have several bugs, most of them related to the UI system.
 
-## Contribution
+## Contributing
 
 If you would like to contribute with new features, you are free to fork Goldleaf and open pull requests showcasing your additions.
 

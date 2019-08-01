@@ -345,13 +345,6 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
-        auto ct = std::chrono::steady_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(ct - this->start).count();
-        if((diff >= 500) && (!this->updshown))
-        {
-            if(net::CheckVersionDiff()) mainapp->ShowNotification("New Goldleaf updates were found. Go to the updates section to update Goldleaf.");
-            this->updshown = true;
-        }
         std::string dtime = hos::GetCurrentTime();
         u32 blv = hos::GetBatteryLevel();
         bool isch = hos::IsCharging();

@@ -203,8 +203,10 @@ namespace nsp
         if(rc != 0) return rc;
         if(stik > 0)
         {
-            auto tdata = nsys->ReadFile("Contents/temp/" + tik);
-            es::ImportTicket(tdata.data(), tdata.size(), es::CertData, sizeof(es::CertData));
+            u8 *tikbuf = new u8[stik]();
+            nsys->ReadFileBlock("Contents/temp/" + tik, 0, stik, tikbuf);
+            es::ImportTicket(tikbuf, stik, es::CertData, sizeof(es::CertData));
+            delete[] tikbuf;
         }
         return rc;
     }

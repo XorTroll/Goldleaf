@@ -83,17 +83,6 @@ namespace usb
         return true;
     }
 
-    bool WriteCommand(CommandId Id)
-    {
-        bool ok = (Write(&GLUC, sizeof(u32)) != 0);
-        if(ok)
-        {
-            u32 cmdid = static_cast<u32>(Id);
-            ok = (Write(&cmdid, sizeof(u32)) != 0);
-        }
-        return ok;
-    }
-
     bool Write8(u8 Data)
     {
         return (Write(&Data, 1) != 0);

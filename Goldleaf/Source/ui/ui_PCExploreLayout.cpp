@@ -26,66 +26,35 @@ namespace ui
         this->pathsMenu->ClearItems();
         u32 drivecount = 0;
         u32 pathcount = 0;
-        if(usb::WriteCommandInput(usb::CommandId::ListSystemDrives))
+        Result rc = usb::ProcessCommand<usb::CommandId::GetDriveCount>(usb::Out32(drivecount));
+        if(R_SUCCEEDED(rc))
         {
-            if(!usb::Read32(drivecount))
-            {
-                mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
-                mainapp->UnloadMenuData();
-                mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-                mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
-            }
             for(u32 i = 0; i < drivecount; i++)
             {
-                std::string name;
+                std::string label;
                 std::string path;
-                if(!usb::ReadString(name))
+                u32 sztmp = 0;
+                rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(sztmp), usb::Out32(sztmp));
+                if(R_SUCCEEDED(rc))
                 {
-                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+                    this->names.push_back(label + " (" + path + ":\\)");
+                    this->paths.push_back(path);
                 }
-                if(!usb::ReadString(path))
-                {
-                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
-                }
-                this->names.push_back(name + " (" + path + ":\\)");
-                this->paths.push_back(path);
             }
         }
-        if(usb::WriteCommandInput(usb::CommandId::GetEnvironmentPaths))
+        rc = usb::ProcessCommand<usb::CommandId::GetSpecialPathCount>(usb::Out32(pathcount));
+        if(R_SUCCEEDED(rc))
         {
-            if(!usb::Read32(pathcount))
-            {
-                mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
-                mainapp->UnloadMenuData();
-                mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-                mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
-            }
             for(u32 i = 0; i < pathcount; i++)
             {
                 std::string name;
                 std::string path;
-                if(!usb::ReadString(name))
+                rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::In32(i), usb::OutString(name), usb::OutString(path));
+                if(R_SUCCEEDED(rc))
                 {
-                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
+                    this->names.push_back(name);
+                    this->paths.push_back(path);    
                 }
-                if(!usb::ReadString(path))
-                {
-                    mainapp->CreateShowDialog("USB", "TIMEOUT", {"OK"}, true);
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-                    mainapp->LoadLayout(mainapp->GetExploreMenuLayout());
-                }
-                this->names.push_back(name);
-                this->paths.push_back(path);
             }
         }
         for(u32 i = 0; i < this->names.size(); i++)

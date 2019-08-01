@@ -10,7 +10,7 @@
 */
 
 #pragma once
-#include <usb/usb_Commands.hpp>
+#include <Types.hpp>
 
 namespace usb
 {
@@ -27,7 +27,6 @@ namespace usb
     bool Read32(u32 &Out, UsbCallbackFn Callback = CallbackStub);
     bool Read64(u64 &Out, UsbCallbackFn Callback = CallbackStub);
     bool ReadString(std::string &Out, UsbCallbackFn Callback = CallbackStub);
-    bool WriteCommand(CommandId Id);
     bool Write8(u8 Data);
     bool Write32(u32 Data);
     bool Write64(u64 Data);

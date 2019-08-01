@@ -18,7 +18,7 @@
 namespace fs
 {
     static u8 *opsbuf = NULL;
-    static size_t opsbufsz = 0x800000;
+    static size_t opsbufsz = 0x1000000;
 
     bool Exists(std::string Path)
     {

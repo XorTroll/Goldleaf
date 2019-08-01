@@ -26,4 +26,4 @@
 #include <nsp/nsp_Builder.hpp>
 #include <set/set_Strings.hpp>
 #include <ui/ui_Utils.hpp>
-#include <usb/usb_Communications.hpp>
+#include <usb/usb_Commands.hpp>

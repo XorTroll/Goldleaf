@@ -116,7 +116,10 @@ namespace gtree
                 Error.LLogL("Unable to find USB communication. Are you sure Goldleaf is open and plugged in?");
             }
             Console.WriteLine();
-            while(USB.HandleNextCommand());
+            while(true)
+            {
+                USB.CommandHandleLoop();
+            }
             Error.LLogL("An error ocurred handling Goldleaf's latest command request.");
         }
     }

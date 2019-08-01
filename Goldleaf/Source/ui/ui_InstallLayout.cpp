@@ -27,12 +27,38 @@ namespace ui
     {
         nsp::Installer inst(Path, Exp, Location);
 
-        Result rc = inst.PrepareInstallation();
+        auto rc = inst.PrepareInstallation();
         if(rc != 0)
         {
-            HandleResult(rc, set::GetDictionaryEntry(251));
-            mainapp->LoadLayout(Prev);
-            return;
+            if(rc == err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+            {
+                auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(272) + "\n" + set::GetDictionaryEntry(273) + "\n" + set::GetDictionaryEntry(274), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+                if(sopt == 0)
+                {
+                    auto title = hos::Locate(inst.GetApplicationId());
+                    if(title.ApplicationId == inst.GetApplicationId())
+                    {
+                        inst.FinalizeInstallation();
+                        hos::RemoveTitle(title);
+
+                        inst = nsp::Installer(Path, Exp, Location);
+
+                        auto rc = inst.PrepareInstallation();
+                        if(rc != 0)
+                        {
+                            HandleResult(rc, set::GetDictionaryEntry(251));
+                            mainapp->LoadLayout(Prev);
+                            return;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                HandleResult(rc, set::GetDictionaryEntry(251));
+                mainapp->LoadLayout(Prev);
+                return;
+            }
         }
 
         std::string info = set::GetDictionaryEntry(82) + "\n\n";
