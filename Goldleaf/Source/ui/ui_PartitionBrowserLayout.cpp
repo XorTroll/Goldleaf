@@ -224,7 +224,6 @@ namespace ui
                         }
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst, this);
-                        // this->UpdateElements(this->browseMenu->GetSelectedIndex());
                         break;
                 }
             }
@@ -465,7 +464,7 @@ namespace ui
             extraopts.push_back(set::GetDictionaryEntry(18));
             std::string msg = set::GetDictionaryEntry(134);
             msg += "\n\n" + set::GetDictionaryEntry(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
-            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(136), set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), "Special options", set::GetDictionaryEntry(18) }, true);
+            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(136), set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), set::GetDictionaryEntry(280), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             switch(sopt)
             {

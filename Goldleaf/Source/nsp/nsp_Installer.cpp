@@ -305,6 +305,6 @@ namespace nsp
     void Installer::FinalizeInstallation()
     {
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
-        // nsys->DeleteDirectory("Contents/temp");
+        nsys->DeleteDirectory("Contents/temp");
     }
 }
