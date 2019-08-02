@@ -34,10 +34,19 @@ namespace ui
             auto rc = nfp::Open();
             if(rc == 0)
             {
-                auto info = nfp::GetRegisterInfo();
-                this->infoText->SetText(set::GetDictionaryEntry(296) + " '" + std::string(info.amiibo_name) + "' " + set::GetDictionaryEntry(297));
-                nfp::DumpToEmuiibo();
-                mainapp->ShowNotification("'" + std::string(info.amiibo_name) + "' " + set::GetDictionaryEntry(298));
+                auto tag = nfp::GetTagInfo();
+                auto model = nfp::GetModelInfo();
+                auto common = nfp::GetCommonInfo();
+                auto reg = nfp::GetRegisterInfo();
+
+                auto name = std::string(reg.amiibo_name);
+                auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(283), set::GetDictionaryEntry(317) + " '" + name + "'?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112) }, true);
+                if(sopt == 0)
+                {
+                    this->infoText->SetText(set::GetDictionaryEntry(296) + " '" + name + "' " + set::GetDictionaryEntry(297));
+                    nfp::DumpToEmuiibo(tag, reg, common, model);
+                    mainapp->ShowNotification("'" + name + "' " + set::GetDictionaryEntry(298));
+                }
                 nfp::Close();
             }
         }

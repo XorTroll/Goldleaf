@@ -52,8 +52,8 @@
     "Advertencia: acceso a la memoria de la consola",
     "¿Seguro que quiere editar o borrar contenido en la memoria de la consola?",
     "Tipo de archivo:",
-    "instalable NSP",
-    "ejecutable NRO",
+    "NSP (instalable)",
+    "NRO (ejecutable)",
     "ticket de contenidos",
     "tema NxTheme",
     "Contenidos (NCA)",
@@ -315,5 +315,6 @@
     "Desinstalando anterior instalación de Goldleaf...",
     "Goldleaf ha sido actualizado.",
     "Por favor, reinicia para utilizar la última versión.",
-    "No se pudo obtener la última versión de GitHub."
+    "No se pudo obtener la última versión de GitHub.",
+    "¿Le gustaría exportar el amiibo"
 ]

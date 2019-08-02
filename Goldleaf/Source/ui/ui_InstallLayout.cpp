@@ -38,11 +38,8 @@ namespace ui
                     auto title = hos::Locate(inst.GetApplicationId());
                     if(title.ApplicationId == inst.GetApplicationId())
                     {
-                        inst.FinalizeInstallation();
                         hos::RemoveTitle(title);
-
-                        inst = nsp::Installer(Path, Exp, Location);
-
+                        inst.FinalizeInstallation();
                         auto rc = inst.PrepareInstallation();
                         if(rc != 0)
                         {
@@ -51,6 +48,11 @@ namespace ui
                             return;
                         }
                     }
+                }
+                else
+                {
+                    mainapp->LoadLayout(Prev);
+                    return;
                 }
             }
             else

@@ -19,7 +19,7 @@ namespace ui
         public:
             UnusedTicketsLayout();
             ~UnusedTicketsLayout();
-            void UpdateElements();
+            void UpdateElements(bool Cooldown);
             void tickets_Click();
         private:
             std::vector<hos::Ticket> tickets;

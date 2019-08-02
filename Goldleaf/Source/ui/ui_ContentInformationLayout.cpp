@@ -87,7 +87,7 @@ namespace ui
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
         }
-        if(hastik) opts.push_back(set::GetDictionaryEntry(245));
+        if(hastik) opts.push_back(set::GetDictionaryEntry(293));
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;

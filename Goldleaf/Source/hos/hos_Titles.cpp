@@ -330,7 +330,7 @@ namespace hos
             es::RightsId *ids = new es::RightsId[cc];
             memset(ids, 0, sz);
             es::ListCommonTicket(&wrt, ids, sz);
-            for(u32 i = 0; i < cc; i++) tickets.push_back({ ids[i], hos::TicketType::Common });
+            for(u32 i = 0; i < wrt; i++) tickets.push_back({ ids[i], hos::TicketType::Common });
             delete[] ids;
         }
 
@@ -342,7 +342,7 @@ namespace hos
             es::RightsId *ids = new es::RightsId[pc];
             memset(ids, 0, sz);
             es::ListPersonalizedTicket(&wrt, ids, sz);
-            for(u32 i = 0; i < pc; i++) tickets.push_back({ ids[i], hos::TicketType::Personalized });
+            for(u32 i = 0; i < wrt; i++) tickets.push_back({ ids[i], hos::TicketType::Personalized });
             delete[] ids;
         }
 

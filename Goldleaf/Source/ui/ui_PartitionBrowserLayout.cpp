@@ -224,7 +224,7 @@ namespace ui
                         }
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst, this);
-                        this->UpdateElements(this->browseMenu->GetSelectedIndex());
+                        // this->UpdateElements(this->browseMenu->GetSelectedIndex());
                         break;
                 }
             }

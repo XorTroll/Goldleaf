@@ -15,16 +15,6 @@
 
 namespace nfp
 {
-    struct AmiiboData
-    {
-        u8 uuid[10];
-        u8 pad1[0x4a];
-        u8 amiibo_id[0x8];
-        u8 pad2[0x1c0];
-    } PACKED;
-
-    static_assert(sizeof(AmiiboData) == 0x21c, "AmiiboData has an invalid size");
-
     Result Initialize();
     bool IsReady();
     Result Open();
@@ -32,7 +22,7 @@ namespace nfp
     NfpuRegisterInfo GetRegisterInfo();
     NfpuCommonInfo GetCommonInfo();
     NfpuModelInfo GetModelInfo();
-    Result DumpToEmuiibo();
+    Result DumpToEmuiibo(NfpuTagInfo &tag, NfpuRegisterInfo &reg, NfpuCommonInfo &common, NfpuModelInfo &model);
     void Close();
     void Finalize();
 }

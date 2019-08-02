@@ -11,7 +11,9 @@ namespace ui
     {
         this->ticketsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->ticketsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        this->notTicketsText = new pu::ui::elm::TextBlock(450, 400, set::GetDictionaryEntry(199));
+        this->notTicketsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(199));
+        this->notTicketsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->notTicketsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->notTicketsText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->notTicketsText);
         this->Add(this->ticketsMenu);
@@ -23,13 +25,20 @@ namespace ui
         delete this->ticketsMenu;
     }
 
-    void UnusedTicketsLayout::UpdateElements()
+    void UnusedTicketsLayout::UpdateElements(bool Cooldown)
     {
         if(!this->tickets.empty()) this->tickets.clear();
-        this->tickets = hos::GetAllTickets();
+        auto alltiks = hos::GetAllTickets();
+        for(u32 i = 0; i < alltiks.size(); i++)
+        {
+            hos::Ticket ticket = alltiks[i];
+            u64 tappid = ticket.GetApplicationId();
+            bool used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid);
+            if(!used) this->tickets.push_back(alltiks[i]);
+        }
         mainapp->LoadMenuHead(set::GetDictionaryEntry(248));
         this->ticketsMenu->ClearItems();
-        this->ticketsMenu->SetCooldownEnabled(true);
+        if(Cooldown) this->ticketsMenu->SetCooldownEnabled(true);
         if(this->tickets.empty())
         {
             this->notTicketsText->SetVisible(true);
@@ -38,13 +47,11 @@ namespace ui
         else
         {
             this->notTicketsText->SetVisible(false);
+            std::vector<u32> usedidxs;
             for(u32 i = 0; i < this->tickets.size(); i++)
             {
                 hos::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
-                bool used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid);
-                if(!used) used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
-                if(used) continue;
                 std::string tname = hos::FormatApplicationId(tappid);
                 pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
@@ -73,7 +80,7 @@ namespace ui
         if(rc == 0)
         {
             mainapp->ShowNotification(set::GetDictionaryEntry(206));
-            this->UpdateElements();
+            this->UpdateElements(false);
         }
         else HandleResult(rc, set::GetDictionaryEntry(207));
     }

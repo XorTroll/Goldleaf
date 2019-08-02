@@ -315,5 +315,6 @@
     "Removing previous Goldleaf installation...",
     "Goldleaf has been updated.",
     "Please restart in order to use the updated version.",
-    "Unable to obtain latest release from GitHub."
+    "Unable to obtain latest release from GitHub.",
+    "Would you like to dump"
 ]

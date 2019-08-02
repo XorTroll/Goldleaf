@@ -71,7 +71,7 @@ namespace ui
     void ContentManagerLayout::unusedTicketsMenuItem_Click()
     {
         mainapp->LoadMenuData(set::GetDictionaryEntry(34), "Ticket", set::GetDictionaryEntry(35));
-        mainapp->GetUnusedTicketsLayout()->UpdateElements();
+        mainapp->GetUnusedTicketsLayout()->UpdateElements(true);
         mainapp->LoadLayout(mainapp->GetUnusedTicketsLayout());
     }
 }

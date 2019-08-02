@@ -485,7 +485,7 @@ namespace fs
     void StdExplorer::DeleteDirectorySingle(std::string Path)
     {
         std::string path = this->MakeFull(Path);
-        rmdir(path.c_str());
+        fsdevDeleteDirectoryRecursively(path.c_str());
     }
 
     u64 StdExplorer::ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out)

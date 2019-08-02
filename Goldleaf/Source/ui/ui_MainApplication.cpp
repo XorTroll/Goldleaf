@@ -437,7 +437,7 @@ namespace ui
             else
             {
                 this->UnloadMenuData();
-                this->LoadMenuData("Mounted content", "Storage", "Explore mounted contents");
+                this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
                 this->LoadLayout(this->exploreMenu);
             }
         }
