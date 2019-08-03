@@ -1,0 +1,15 @@
+[
+    "Errore sconosciuto o non documentato",
+    "Percorso non valido",
+    "NCA non valido (potrebbe essere per un firmware più recente o non hai abilitato le sigpatches)",
+    "PFS0 (NSP) non valido",
+    "Errore standard C/C++ (errno)",
+    "Non c'è abbastanza spazio libero per completare l'azione",
+    "NCA di metadati non trovato nel NSP",
+    "Metadati non trovati nel NCA",
+    "Questo titolo è già installato nella console",
+    "Comando USB non valido",
+    "Esiste già una cartella o un file con lo stesso nome",
+    "Impossibile trovare i contenuti del titolo",
+    "Impossibile costruire il PFS0 (NSP)"
+]

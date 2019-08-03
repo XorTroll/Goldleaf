@@ -1,3 +1,6 @@
-[submodule "libnx-Goldleaf"]
-	path = libnx-Goldleaf
-	url = https://github.com/XorTroll/libnx-Goldleaf
+[submodule "Plutonium"]
+	path = Plutonium
+	url = https://github.com/XorTroll/Plutonium
+[submodule "libnx"]
+	path = libnx
+	url = https://github.com/XorTroll/libnx
