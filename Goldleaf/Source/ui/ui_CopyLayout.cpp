@@ -38,7 +38,7 @@ namespace ui
         {
             if(Exp->IsFile(NewPath))
             {
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(142), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
+                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
                 if(sopt < 0)
                 {
                     mainapp->LoadLayout(Prev);
