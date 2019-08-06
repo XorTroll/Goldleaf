@@ -696,8 +696,8 @@ namespace fs
         bool ex = false;
         std::string path = this->MakeFull(Path);
         u32 type = 0;
-        u32 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out32(tmpfsz));
+        u64 tmpfsz = 0;
+        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
         ex = ((type == 1) || (type == 2));
         return ex;
     }
@@ -707,8 +707,8 @@ namespace fs
         bool ex = false;
         std::string path = this->MakeFull(Path);
         u32 type = 0;
-        u32 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out32(tmpfsz));
+        u64 tmpfsz = 0;
+        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
         ex = (type == 1);
         return ex;
     }
@@ -718,8 +718,8 @@ namespace fs
         bool ex = false;
         std::string path = this->MakeFull(Path);
         u32 type = 0;
-        u32 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out32(tmpfsz));
+        u64 tmpfsz = 0;
+        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
         ex = (type == 2);
         return ex;
     }
@@ -762,26 +762,26 @@ namespace fs
 
     u64 USBPCDriveExplorer::ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out)
     {
-        u32 rsize = 0;
+        u64 rsize = 0;
         std::string path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(path), usb::In32((u32)Offset), usb::In32((u32)Size), usb::Out32(rsize), usb::OutBuffer(Out, Size));
-        return (u64)rsize;
+        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(path), usb::In64(Offset), usb::In64(Size), usb::Out64(rsize), usb::OutBuffer(Out, Size));
+        return rsize;
     }
 
     u64 USBPCDriveExplorer::WriteFileBlock(std::string Path, u8 *Data, u64 Size)
     {
         std::string path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(path), usb::In32((u32)Size), usb::InBuffer(Data, Size));
+        usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(path), usb::In64(Size), usb::InBuffer(Data, Size));
         return Size;
     }
 
     u64 USBPCDriveExplorer::GetFileSize(std::string Path)
     {
-        u32 sz = 0;
+        u64 sz = 0;
         std::string path = this->MakeFull(Path);
         u32 tmptype = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(tmptype), usb::Out32(sz));
-        return (u64)sz;
+        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(tmptype), usb::Out64(sz));
+        return sz;
     }
 
     u64 USBPCDriveExplorer::GetTotalSpace()

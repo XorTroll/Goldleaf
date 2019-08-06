@@ -6,14 +6,14 @@
     <OutputType>Exe</OutputType>
     <StartupObject>gtree.Program</StartupObject>
     <Product>Goldleaf project</Product>
-    <Description>Goldleaf's PC client</Description>
+    <Description>Goldleaf's USB client for PC</Description>
     <Authors>XorTroll</Authors>
     <Copyright>Copyright 2018 - 2019 Goldleaf project, by XorTroll</Copyright>
     <AssemblyVersion>0.6.0.0</AssemblyVersion>
     <FileVersion>0.6.0.0</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-    <Version>0.6</Version>
+    <Version>0.6.1</Version>
     <RepositoryUrl>https://github.com/XorTroll/Goldleaf</RepositoryUrl>
     <PackageLicenseExpression>GPLv3</PackageLicenseExpression>
   </PropertyGroup>

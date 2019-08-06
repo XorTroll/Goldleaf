@@ -16,6 +16,11 @@ namespace usb
         WriteBuffer(&Value, sizeof(u32));
     }
 
+    void InCommandBlock::Write64(u64 Value)
+    {
+        WriteBuffer(&Value, sizeof(u64));
+    }
+
     void InCommandBlock::WriteString(std::string Value)
     {
         Write32(Value.length());
@@ -58,6 +63,13 @@ namespace usb
     {
         u32 val = 0;
         ReadBuffer(&val, sizeof(u32));
+        return val;
+    }
+
+    u64 OutCommandBlock::Read64()
+    {
+        u64 val = 0;
+        ReadBuffer(&val, sizeof(u64));
         return val;
     }
 
@@ -116,6 +128,48 @@ namespace usb
     }
 
     void Out32::ProcessAfterOut()
+    {
+    }
+
+    In64::In64(u64 Value) : val(Value)
+    {
+    }
+
+    void In64::ProcessIn(InCommandBlock &block)
+    {
+        block.Write64(val);
+    }
+
+    void In64::ProcessAfterIn()
+    {
+    }
+
+    void In64::ProcessOut(OutCommandBlock &block)
+    {
+    }
+
+    void In64::ProcessAfterOut()
+    {
+    }
+
+    Out64::Out64(u64 &Value) : val(Value)
+    {
+    }
+
+    void Out64::ProcessIn(InCommandBlock &block)
+    {
+    }
+
+    void Out64::ProcessAfterIn()
+    {
+    }
+
+    void Out64::ProcessOut(OutCommandBlock &block)
+    {
+        val = block.Read64();
+    }
+
+    void Out64::ProcessAfterOut()
     {
     }
 

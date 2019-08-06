@@ -66,7 +66,7 @@ namespace gtree
     public class Program
     {
         public static readonly string Name = "Goldtree";
-        public static readonly string Description = "Goldleaf's USB PC client";
+        public static readonly string Description = "Goldleaf's USB client for PC";
 
         public static readonly LogMode Log = new LogMode("Log", ConsoleColor.Cyan);
         public static readonly LogMode Warn = new LogMode("Warn", ConsoleColor.Yellow);
@@ -113,7 +113,7 @@ namespace gtree
             }
             catch
             {
-                Error.LLogL("Unable to find USB communication. Are you sure Goldleaf is open and plugged in?");
+                Error.LLogL("Unable to find connection. Have you installed libusbK drivers? Are you sure Goldleaf is open and ready?");
             }
             Console.WriteLine();
             while(true)

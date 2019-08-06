@@ -264,21 +264,11 @@ namespace nsp
             ncm::CreatePlaceHolder(&cst, &curid, &curid, ncasize);
             u64 noff = 0;
             u64 szrem = ncasize;
-            u64 tmpwritten = 0;
-            u64 bsec = 0;
-            auto t1 = std::chrono::steady_clock::now();
             while(szrem)
             {
-                auto t2 = std::chrono::steady_clock::now();
-                u64 diff = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count();
-                if(diff >= 1)
-                {
-                    t1 = t2;
-                    bsec = tmpwritten;
-                    tmpwritten = 0;
-                }
                 u64 rbytes = 0;
                 u64 rsize = std::min(szrem, reads);
+                auto t1 = std::chrono::steady_clock::now();
                 switch(rnca.Type)
                 {
                     case ncm::ContentType::Meta:
@@ -287,13 +277,15 @@ namespace nsp
                         break;
                     default:
                         rbytes = nspentry.ReadFromFile(idxncaname, noff, rsize, rdata);
-                        break;   
+                        break;
                 }
                 ncm::WritePlaceHolder(&cst, &curid, noff, rdata, rbytes);
                 noff += rbytes;
-                tmpwritten += (double)rbytes;
                 szrem -= rbytes;
-                OnContentWrite(rnca, i, ncas.size(), (double)noff, (double)ncasize, bsec);
+                auto t2 = std::chrono::steady_clock::now();
+                u64 diff = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+                double bsec = (1000.0f / (double)diff) * rbytes; // By elapsed time and written bytes, compute how much data has been written in 1sec.
+                OnContentWrite(rnca, i, ncas.size(), (double)noff, (double)ncasize, (u64)bsec);
             }
             ncmContentStorageRegister(&cst, &curid, &curid);
             ncm::DeletePlaceHolder(&cst, &curid);

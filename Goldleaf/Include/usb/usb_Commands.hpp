@@ -37,7 +37,7 @@ namespace usb
     static constexpr u32 InputMagic = 0x49434C47; // GLCI
     static constexpr u32 OutputMagic = 0x4F434C47; // GLCO
 
-    static constexpr size_t BlockSize = 0x2000;
+    static constexpr size_t BlockSize = 0x1000;
 
     struct BlockBase
     {
@@ -51,6 +51,7 @@ namespace usb
 
         InCommandBlock(CommandId CmdId);
         void Write32(u32 Value);
+        void Write64(u64 Value);
         void WriteString(std::string Value);
         void WriteBuffer(void *Buf, size_t Size);
         void Send();
@@ -66,6 +67,7 @@ namespace usb
         void Cleanup();
         bool IsValid();
         u32 Read32();
+        u64 Read64();
         std::string ReadString();
         void ReadBuffer(void *Buf, size_t Size);
     };
@@ -101,6 +103,30 @@ namespace usb
             void ProcessAfterOut();
         private:
             u32 &val;
+    };
+
+    class In64 : public CommandArgument
+    {
+        public:
+            In64(u64 Value);
+            void ProcessIn(InCommandBlock &block);
+            void ProcessAfterIn();
+            void ProcessOut(OutCommandBlock &block);
+            void ProcessAfterOut();
+        private:
+            u64 val;
+    };
+
+    class Out64 : public CommandArgument
+    {
+        public:
+            Out64(u64 &Value);
+            void ProcessIn(InCommandBlock &block);
+            void ProcessAfterIn();
+            void ProcessOut(OutCommandBlock &block);
+            void ProcessAfterOut();
+        private:
+            u64 &val;
     };
 
     class InString : public CommandArgument

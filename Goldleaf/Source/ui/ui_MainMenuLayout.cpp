@@ -74,9 +74,9 @@ namespace ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
-        if(GetLaunchMode() != LaunchMode::Application)
+        if(GetCurrentApplicationId() != GOLDLEAF_APPID)
         {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(5), set::GetDictionaryEntry(37), { set::GetDictionaryEntry(234) }, true);
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(5), set::GetDictionaryEntry(292), { set::GetDictionaryEntry(234) }, true);
             return;
         }
         std::string out = AskForText(set::GetDictionaryEntry(38), "https://");

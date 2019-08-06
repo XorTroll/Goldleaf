@@ -117,6 +117,13 @@ bool IsSXOS()
     return false;
 }
 
+u64 GetCurrentApplicationId()
+{
+    u64 appid = 0;
+    svcGetInfo(&appid, InfoType_TitleId, CUR_PROCESS_HANDLE, 0);
+    return appid;
+}
+
 u32 RandomFromRange(u32 Min, u32 Max)
 {
     u32 diff = Max - Min;

@@ -43,7 +43,7 @@ namespace gtree
 
     public static class USBCommands
     {
-        private const int CommandBlockLength = 0x2000;
+        private const int CommandBlockLength = 0x1000;
         private static byte[] CommandBlockBuf = new byte[CommandBlockLength];
 
         private static readonly byte ReadPipeId = 0x81;
@@ -82,7 +82,7 @@ namespace gtree
             Writer.Write(Encoding.UTF8.GetBytes(Str));
         }
 
-        public static byte[] ReadBuffer(this UsbK USB, uint Size)
+        public static byte[] ReadBuffer(this UsbK USB, ulong Size)
         {
             var data = new byte[Size];
             USB.ReadPipe(ReadPipeId, data, (int)Size, out int _, IntPtr.Zero);
@@ -178,11 +178,11 @@ namespace gtree
                                     {
                                         var path = inblock.ReadStringEx().NormalizeAsPath();
                                         uint type = 0;
-                                        uint filesize = 0;
+                                        ulong filesize = 0;
                                         if(File.Exists(path))
                                         {
                                             type = 1;
-                                            filesize = (uint)new FileInfo(path).Length;
+                                            filesize = (ulong)new FileInfo(path).Length;
                                         }
                                         else if(Directory.Exists(path)) type = 2;
                                         else
@@ -280,8 +280,8 @@ namespace gtree
                                 case CommandId.ReadFile:
                                     {
                                         var path = inblock.ReadStringEx().NormalizeAsPath();
-                                        var offset = inblock.ReadUInt32();
-                                        var size = inblock.ReadUInt32();
+                                        var offset = inblock.ReadUInt64();
+                                        var size = inblock.ReadUInt64();
                                         try
                                         {
                                             if(string.IsNullOrEmpty(LastRFile) || (LastRFile != path))
@@ -294,13 +294,13 @@ namespace gtree
                                                 LastRFile = path;
                                                 LastReadFile = new BinaryReader(new FileStream(LastRFile, FileMode.Open, FileAccess.Read));
                                             }
-                                            LastReadFile.BaseStream.Seek(offset, SeekOrigin.Begin);
+                                            LastReadFile.BaseStream.Seek((long)offset, SeekOrigin.Begin);
                                             byte[] data = new byte[size];
                                             var rbytes = LastReadFile.Read(data, 0, (int)size);
                                             if(rbytes > 0)
                                             {
                                                 WriteOutBlockBase(Command.ResultSuccess);
-                                                outblock.Write((uint)rbytes);
+                                                outblock.Write((ulong)rbytes);
                                                 bufs.Add(data);
                                             }
                                         }
@@ -314,7 +314,7 @@ namespace gtree
                                 case CommandId.WriteFile:
                                     {
                                         var path = inblock.ReadStringEx().NormalizeAsPath();
-                                        var size = inblock.ReadUInt32();
+                                        var size = inblock.ReadUInt64();
                                         var data = USB.ReadBuffer(size);
                                         try
                                         {
