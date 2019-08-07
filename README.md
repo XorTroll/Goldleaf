@@ -8,11 +8,12 @@
 
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
-3. [Forwarding](#forwarding)
-4. [Settings](#settings)
-5. [Known bugs](#known-bugs)
-6. [Contributing](#contributing)
-7. [Credits and support](#credits-and-support)
+3. [Remote PC system](#remote-pc-system)
+4. [Forwarding](#forwarding)
+5. [Settings](#settings)
+6. [Known bugs](#known-bugs)
+7. [Contributing](#contributing)
+8. [Credits and support](#credits-and-support)
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
@@ -75,6 +76,30 @@ NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Standar
 Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access titles' content which require a ticket. Otherwise, they are undecryptable, hence unlaunchable by the system.
 
 **TL;DR:** **Always** try to avoid untrusted NSPs, and if you go ahead and install CDN NSPs with tickets, avoid going online, or use special tools such as 90DNS, or you'll be banned for sure.
+
+## Remote PC system
+
+Goldleaf supports browsing your PC and installing NSP files from it directly to your Switch. Follow these simple steps to set up the remote PC system:
+
+One time setup:
+
+1. Download [Zadig](https://zadig.akeo.ie/)
+
+2. Open Goldleaf and connect your Switch via USB with your PC
+
+3. Open Zadig
+
+4. Click "Options" and select "List all devices"
+
+5. Select the Switch from the drop-down menu
+
+6. Change the driver (right next to the green arrow) to "libusbK (v3.0.7.0)"
+
+7. Click on the button below "Install WCID Driver" or "Replace Driver"
+
+8. Done. Now you can use Goldleaf and Goldtree together.
+
+**Note:** To use it correctly, open Goldleaf and connect the Switch with your PC before you open Goldtree.
 
 ## Forwarding
 

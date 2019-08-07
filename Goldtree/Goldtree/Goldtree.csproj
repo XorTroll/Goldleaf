@@ -9,8 +9,8 @@
     <Description>Goldleaf's USB client for PC</Description>
     <Authors>XorTroll</Authors>
     <Copyright>Copyright 2018 - 2019 Goldleaf project, by XorTroll</Copyright>
-    <AssemblyVersion>0.6.0.0</AssemblyVersion>
-    <FileVersion>0.6.0.0</FileVersion>
+    <AssemblyVersion>0.6.1.0</AssemblyVersion>
+    <FileVersion>0.6.1.0</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <Version>0.6.1</Version>
