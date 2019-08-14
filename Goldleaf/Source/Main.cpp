@@ -3,21 +3,10 @@
 #include <cstdlib>
 #include <ctime>
 
-extern char *fake_heap_end;
-static void *ghaddr;
-
-bool IsNRO()
-{
-    return (GetExecutableMode() == ExecutableMode::NRO);
-}
-
 void Initialize()
 {
-    srand(time(NULL));
-    if(IsNRO())
-    {
-        if(R_SUCCEEDED(svcSetHeapSize(&ghaddr, 0x10000000))) fake_heap_end = (char*)ghaddr + 0x10000000;
-    }
+    // TODO: Better way to handle this than exiting? User won't know what happened
+
     if(R_FAILED(ncm::Initialize())) exit(1);
     if(R_FAILED(acc::Initialize())) exit(1);
     if(R_FAILED(accountInitialize())) exit(1);
@@ -28,20 +17,23 @@ void Initialize()
     if(R_FAILED(psmInitialize())) exit(1);
     if(R_FAILED(setInitialize())) exit(1);
     if(R_FAILED(setsysInitialize())) exit(1);
-    if(R_FAILED(usbCommsInitialize())) exit(1);
+    if(R_FAILED(usb::comms::Initialize())) exit(1);
     if(R_FAILED(splInitialize())) exit(1);
     if(R_FAILED(bpcInitialize())) exit(1);
     if(R_FAILED(nifmInitialize())) exit(1);
+    srand(time(NULL));
     EnsureDirectories();
 }
 
 void Finalize()
 {
-    fs::NANDExplorer *nsys = fs::GetNANDSystemExplorer();
-    fs::NANDExplorer *nsfe = fs::GetNANDSafeExplorer();
-    fs::NANDExplorer *nusr = fs::GetNANDUserExplorer();
-    fs::NANDExplorer *prif = fs::GetPRODINFOFExplorer();
-    fs::SdCardExplorer *sdcd = fs::GetSdCardExplorer();
+    auto fsopsbuf = fs::GetFileSystemOperationsBuffer();
+    operator delete[](fsopsbuf, std::align_val_t(0x1000));
+    auto nsys = fs::GetNANDSystemExplorer();
+    auto nsfe = fs::GetNANDSafeExplorer();
+    auto nusr = fs::GetNANDUserExplorer();
+    auto prif = fs::GetPRODINFOFExplorer();
+    auto sdcd = fs::GetSdCardExplorer();
     delete nsys;
     delete nsfe;
     delete nusr;
@@ -49,7 +41,7 @@ void Finalize()
     delete sdcd;
     bpcExit();
     splExit();
-    usbCommsExit();
+    usb::comms::Exit();
     setsysExit();
     setExit();
     psmExit();
@@ -61,15 +53,17 @@ void Finalize()
     ncm::Finalize();
     ncmExit();
     nifmExit();
-    if(IsNRO()) svcSetHeapSize(&ghaddr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)ghaddr);
 }
 
 int main()
 {
     Initialize();
+
     ui::MainApplication *mainapp = new ui::MainApplication();
     mainapp->ShowWithFadeIn();
+    // Plutonium Application logic will handle closing render loop when user selects so
     Finalize();
+
     delete mainapp;
     return 0;
 }

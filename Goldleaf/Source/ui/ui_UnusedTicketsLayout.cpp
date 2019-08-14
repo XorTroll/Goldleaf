@@ -34,6 +34,7 @@ namespace ui
             hos::Ticket ticket = alltiks[i];
             u64 tappid = ticket.GetApplicationId();
             bool used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid);
+            if(!used) used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
             if(!used) this->tickets.push_back(alltiks[i]);
         }
         mainapp->LoadMenuHead(set::GetDictionaryEntry(248));

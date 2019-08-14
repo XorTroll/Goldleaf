@@ -34,9 +34,13 @@ namespace hos
     std::string FormatHex(u32 Number);
     std::string FormatHex128(u128 Number);
     std::string DoubleToString(double Number);
+    std::string FormatTime(u64 Seconds);
     u64 GetSdCardFreeSpaceForInstalls();
     u64 GetNANDFreeSpaceForInstalls();
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
     void IRAMClear();
     void PayloadProcess(std::string Path);
+
+    static constexpr size_t MaxPayloadSize = 0x2F000;
+    static constexpr size_t IRAMPayloadBaseAddress = 0x40010000;
 }

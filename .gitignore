@@ -1,0 +1,16 @@
+build/
+Build/
+Output/
+*.nso
+*.nro
+*.nsp
+*.elf
+keys.dat
+hacbrewpack_backup/
+hacbrewpack_nca/
+hacbrewpack_nsp/
+hacbrewpack_temp/
+.vscode/
+.vs/
+bin/
+obj/

@@ -3,19 +3,19 @@
 
 namespace usb
 {
-    size_t ReadSimple(void *Out, size_t Size, UsbCallbackFn LoopCallback)
+    size_t ReadSimple(void *Out, size_t Size, comms::CallbackFunction LoopCallback)
     {
         size_t sz = 0;
-        usbCommsRead(Out, Size, &sz, LoopCallback);
+        comms::Read(Out, Size, &sz, LoopCallback);
         return sz;
     }
 
     size_t WriteSimple(const void *Buffer, size_t Size)
     {
-        return usbCommsWrite(Buffer, Size);
+        return comms::Write(Buffer, Size);
     }
 
-    size_t Read(void *Out, size_t Size, UsbCallbackFn LoopCallback)
+    size_t Read(void *Out, size_t Size, comms::CallbackFunction LoopCallback)
     {
         u8 *bufptr = (u8*)Out;
         size_t sz = Size;
@@ -23,7 +23,7 @@ namespace usb
         Result rc = 0;
         while(sz)
         {
-            rc = usbCommsRead(bufptr, sz, &tsz, LoopCallback);
+            rc = comms::Read(bufptr, sz, &tsz, LoopCallback);
             if(rc != 0) return 0;
             if(tsz == 0) return 0;
             bufptr += tsz;
@@ -39,7 +39,7 @@ namespace usb
         size_t tsz = 0;
         while(sz)
         {
-            tsz = usbCommsWrite(bufptr, sz);
+            tsz = comms::Write(bufptr, sz);
             if(tsz == 0) return 0;
             bufptr += tsz;
             sz -= tsz;
@@ -47,7 +47,7 @@ namespace usb
         return Size;
     }
 
-    bool Read8(u8 &Out, UsbCallbackFn Callback)
+    bool Read8(u8 &Out, comms::CallbackFunction Callback)
     {
         u8 num = 0;
         bool ok = (Read(&num, sizeof(u8), Callback) > 0);
@@ -55,7 +55,7 @@ namespace usb
         return ok;
     }
 
-    bool Read32(u32 &Out, UsbCallbackFn Callback)
+    bool Read32(u32 &Out, comms::CallbackFunction Callback)
     {
         u32 num = 0;
         bool ok = (Read(&num, sizeof(u32), Callback) > 0);
@@ -63,7 +63,7 @@ namespace usb
         return ok;
     }
 
-    bool Read64(u64 &Out, UsbCallbackFn Callback)
+    bool Read64(u64 &Out, comms::CallbackFunction Callback)
     {
         u64 num = 0;
         bool ok = (Read(&num, sizeof(u64), Callback) > 0);
@@ -71,7 +71,7 @@ namespace usb
         return ok;
     }
 
-    bool ReadString(std::string &Out, UsbCallbackFn Callback)
+    bool ReadString(std::string &Out, comms::CallbackFunction Callback)
     {
         u32 strlen = 0;
         if(!Read32(strlen, Callback)) return false;

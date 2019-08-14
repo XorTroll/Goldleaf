@@ -8,8 +8,8 @@
 
 static std::vector<std::string> GoldleafPaths =
 {
-    "switch/Goldleaf.nro",
     "switch/Goldleaf/Goldleaf.nro",
+    "switch/Goldleaf.nro",
 };
 
 inline std::string GetGoldleaf()
@@ -36,11 +36,4 @@ inline void FatalError(std::string Err, std::string MoreInfo)
     std::cout << std::endl << "FATAL - An error ocurred attempting to " << Err << "." << std::endl << MoreInfo;
     consoleUpdate(NULL);
     while(true);
-}
-
-inline void ForwarderProcess(std::string Arg)
-{
-    std::string gnro = GetGoldleaf();
-    if(gnro.empty()) FatalError("find Goldleaf NRO", "Place it on '/switch' folder.");
-    targetNro(gnro.c_str(), (gnro + " " + Arg).c_str());
 }

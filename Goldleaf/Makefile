@@ -17,7 +17,7 @@ ICON		:= Icon.jpg
 
 BUILD       := Build
 SOURCES     := Source Source/fatfs Source/acc Source/dump Source/err Source/es Source/fs Source/hos Source/ncm Source/net Source/ns Source/nsp Source/set Source/nfp Source/ui Source/usb
-INCLUDES    := ../libnx/nx/external/bsd/include Include Include/fatfs Include/acc Include/dump Include/err Include/es Include/fs Include/hos Include/ncm Include/net Include/nfp Include/ns Include/nsp Include/set Include/ui Include/usb
+INCLUDES    := Include Include/fatfs Include/acc Include/dump Include/err Include/es Include/fs Include/hos Include/ncm Include/net Include/nfp Include/ns Include/nsp Include/set Include/ui Include/usb
 ROMFS       := RomFs
 
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
@@ -33,7 +33,7 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:=  -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lSDL2 -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
-LIBDIRS	:= $(PORTLIBS) $(CURDIR)/../Plutonium/Plutonium/Output $(CURDIR)/../libnx/nx
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/Output
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -103,7 +103,6 @@ endif
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(CURDIR)/Output ] || mkdir -p $(CURDIR)/Output
-	@$(MAKE) -C ../libnx/
 	@$(MAKE) -C ../Plutonium/Plutonium/
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 

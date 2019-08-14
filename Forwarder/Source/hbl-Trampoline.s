@@ -21,8 +21,7 @@ nroEntrypointTrampoline:
 
     // Save retval
     adrp x1, g_lastRet
-    add  x1, x1, #:lo12:g_lastRet
-    str  x0, [x1]
+    str  w0, [x1, #:lo12:g_lastRet]
 
     // Reset stack pointer and load next NRO.
     adrp x8, __stack_top

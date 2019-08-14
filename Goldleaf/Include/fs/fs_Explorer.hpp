@@ -134,13 +134,12 @@ namespace fs
     class FileSystemExplorer final : public StdExplorer
     {
         public:
-            FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem, bool AutoClose);
+            FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem);
             ~FileSystemExplorer();
             FsFileSystem *GetFileSystem();
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
         private:
-            bool aclose;
             FsFileSystem *fs;
     };
 

@@ -18,7 +18,7 @@
 namespace fs
 {
     static u8 *opsbuf = NULL;
-    static size_t opsbufsz = 0x1000000;
+    static size_t opsbufsz = 0x800000;
 
     bool Exists(std::string Path)
     {
@@ -402,7 +402,7 @@ namespace fs
 
     u8 *GetFileSystemOperationsBuffer()
     {
-        if(opsbuf == NULL) opsbuf = new u8[opsbufsz];
+        if(opsbuf == NULL) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
         return opsbuf;
     }
 

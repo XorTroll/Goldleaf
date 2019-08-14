@@ -222,8 +222,10 @@ namespace ui
                             HandleResult(err::Make(err::ErrorDescription::NotEnoughSize), set::GetDictionaryEntry(251));
                             return;
                         }
+                        mainapp->LoadMenuHead("Installing NSP: " + pfullitm);
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst, this);
+                        mainapp->LoadMenuHead(this->gexp->GetPresentableCwd());
                         break;
                 }
             }
@@ -457,7 +459,7 @@ namespace ui
             for(u32 i = 0; i < files.size(); i++)
             {
                 auto path = fullitm + "/" + files[i];
-                if(fs::GetExtension(path) == "nsp") nsps.push_back(path);
+                if(fs::GetExtension(path) == "nsp") nsps.push_back(files[i]);
             }
             std::vector<pu::String> extraopts = { set::GetDictionaryEntry(281) };
             if(!nsps.empty()) extraopts.push_back(set::GetDictionaryEntry(282));
@@ -510,14 +512,16 @@ namespace ui
                             mainapp->ShowNotification(set::GetDictionaryEntry(303));
                             break;
                         case 1:
+                            sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
+                            if(sopt < 0) return;
+                            Storage dst = Storage::SdCard;
+                            if(sopt == 0) dst = Storage::SdCard;
+                            else if(sopt == 1) dst = Storage::NANDUser;
                             for(u32 i = 0; i < nsps.size(); i++)
                             {
-                                auto nsp = nsps[i];
-                                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
-                                if(sopt < 0) return;
-                                Storage dst = Storage::SdCard;
-                                if(sopt == 0) dst = Storage::SdCard;
-                                else if(sopt == 1) dst = Storage::NANDUser;
+                                auto nsp = fullitm + "/" + nsps[i];
+                                auto pnsp = pfullitm + "/" + nsps[i];
+                                
                                 u64 fsize = this->gexp->GetFileSize(nsp);
                                 u64 rsize = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
                                 if(rsize < fsize)
@@ -525,10 +529,11 @@ namespace ui
                                     HandleResult(err::Make(err::ErrorDescription::NotEnoughSize), set::GetDictionaryEntry(251));
                                     return;
                                 }
+                                mainapp->LoadMenuHead("Installing NSP: " + pnsp);
                                 mainapp->LoadLayout(mainapp->GetInstallLayout());
-                                mainapp->GetInstallLayout()->StartInstall(nsp, this->gexp, dst, this);
+                                mainapp->GetInstallLayout()->StartInstall(nsp, this->gexp, dst, this, true);
                             }
-                            this->UpdateElements(this->browseMenu->GetSelectedIndex());
+                            mainapp->LoadMenuHead(this->gexp->GetPresentableCwd());
                             break;
                     }
                     break;

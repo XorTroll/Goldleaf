@@ -815,18 +815,16 @@ namespace fs
         // Non-HOS operating systems don't handle archive bit for what we want, so :P
     }
 
-    FileSystemExplorer::FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem, bool AutoClose)
+    FileSystemExplorer::FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem)
     {
         this->fs = FileSystem;
-        this->aclose = AutoClose;
         this->SetNames(MountName, DisplayName);
         fsdevMountDevice(MountName.c_str(), *this->fs);
     }
 
     FileSystemExplorer::~FileSystemExplorer()
     {
-        if(this->aclose) fsdevUnmountDevice(this->mntname.c_str());
-        else fsdevDeleteDevice(this->mntname.c_str());
+        fsdevUnmountDevice(this->mntname.c_str());
     }
 
     FsFileSystem *FileSystemExplorer::GetFileSystem()

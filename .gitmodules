@@ -1,6 +1,3 @@
 [submodule "Plutonium"]
 	path = Plutonium
 	url = https://github.com/XorTroll/Plutonium
-[submodule "libnx"]
-	path = libnx
-	url = https://github.com/XorTroll/libnx

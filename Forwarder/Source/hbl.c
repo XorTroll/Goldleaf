@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include "hbl.h"
 
-#define MODULE_HBL 347
-
-const char* g_easterEgg = "Do you mean to tell me that you're thinking seriously of building that way, when and if you are an architect?";
+const char g_noticeText[] =
+    "nx-hbloader (modded for Goldleaf forwarder)\0"
+    "Do you mean to tell me that you're thinking seriously of building that way, when and if you are an architect?";
 
 static char g_basePath[2048];
 static char g_baseArgv[2048];
@@ -21,6 +21,11 @@ static bool g_isApplication = 0;
 static NsApplicationControlData g_applicationControlData;
 static bool g_isAutomaticGameplayRecording = 0;
 static bool g_smCloseWorkaround = false;
+
+static u64 g_appletHeapSize = 0;
+static u64 g_appletHeapReservationSize = 0;
+
+static u128 g_userIdStorage;
 
 static u8 g_savedTls[0x100];
 
@@ -41,15 +46,26 @@ void __libnx_initheap(void)
     fake_heap_end   = &g_innerheap[sizeof g_innerheap];
 }
 
+static Result readSetting(const char* key, void* buf, size_t size)
+{
+    Result rc;
+    u64 actual_size;
+    const char* const section_name = "hbloader";
+    rc = setsysGetSettingsItemValueSize(section_name, key, &actual_size);
+    if (R_SUCCEEDED(rc) && actual_size != size)
+        rc = MAKERESULT(Module_Libnx, LibnxError_BadInput);
+    if (R_SUCCEEDED(rc))
+        rc = setsysGetSettingsItemValue(section_name, key, buf, size);
+    return rc;
+}
+
 void __appInit(void)
 {
-    (void) g_easterEgg[0];
-
     Result rc;
 
     rc = smInitialize();
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 1));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 1));
 
     rc = setsysInitialize();
     if (R_SUCCEEDED(rc)) {
@@ -57,88 +73,102 @@ void __appInit(void)
         rc = setsysGetFirmwareVersion(&fw);
         if (R_SUCCEEDED(rc))
             hosversionSet(MAKEHOSVERSION(fw.major, fw.minor, fw.micro));
+        readSetting("applet_heap_size", &g_appletHeapSize, sizeof(g_appletHeapSize));
+        readSetting("applet_heap_reservation_size", &g_appletHeapReservationSize, sizeof(g_appletHeapReservationSize));
         setsysExit();
     }
 
     rc = fsInitialize();
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 2));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 2));
 
     fsdevMountSdmc();
 }
 
-void __appExit(void)
+void __wrap_exit(void)
 {
-    fsdevUnmountAll();
-    fsExit();
-    smExit();
+    // exit() effectively never gets called, so let's stub it out.
+    fatalSimple(MAKERESULT(Module_HomebrewLoader, 39));
 }
 
 static void*  g_heapAddr;
 static size_t g_heapSize;
 
-void setupHbHeap(void)
+static u64 calculateMaxHeapSize(void)
 {
     u64 size = 0;
-    void* addr = NULL;
     u64 mem_available = 0, mem_used = 0;
-    Result rc=0;
 
-    svcGetInfo(&mem_available, 6, CUR_PROCESS_HANDLE, 0);
-    svcGetInfo(&mem_used, 7, CUR_PROCESS_HANDLE, 0);
+    svcGetInfo(&mem_available, InfoType_TotalMemorySize, CUR_PROCESS_HANDLE, 0);
+    svcGetInfo(&mem_used, InfoType_UsedMemorySize, CUR_PROCESS_HANDLE, 0);
+
     if (mem_available > mem_used+0x200000)
         size = (mem_available - mem_used - 0x200000) & ~0x1FFFFF;
-    if (size==0)
+    if (size == 0)
         size = 0x2000000*16;
-
-    if (size > 0x6000000 && g_isAutomaticGameplayRecording) {
+    if (size > 0x6000000 && g_isAutomaticGameplayRecording)
         size -= 0x6000000;
+
+    return size;
+}
+
+static void setupHbHeap(void)
+{
+    void* addr = NULL;
+    u64 size = calculateMaxHeapSize();
+
+    if (!g_isApplication) {
+        if (g_appletHeapSize) {
+            u64 requested_size = (g_appletHeapSize + 0x1FFFFF) &~ 0x1FFFFF;
+            if (requested_size < size)
+                size = requested_size;
+        }
+        else if (g_appletHeapReservationSize) {
+            u64 reserved_size = (g_appletHeapReservationSize + 0x1FFFFF) &~ 0x1FFFFF;
+            if (reserved_size < size)
+                size -= reserved_size;
+        }
     }
 
-    rc = svcSetHeapSize(&addr, size);
+    Result rc = svcSetHeapSize(&addr, size);
 
     if (R_FAILED(rc) || addr==NULL)
-        fatalSimple(MAKERESULT(MODULE_HBL, 9));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 9));
 
     g_heapAddr = addr;
     g_heapSize = size;
 }
 
-static Handle g_port;
 static Handle g_procHandle;
 
-void threadFunc(void* ctx)
+static void procHandleReceiveThread(void* arg)
 {
-    Handle session;
+    Handle session = (Handle)(uintptr_t)arg;
     Result rc;
 
-    rc = svcWaitSynchronizationSingle(g_port, -1);
-    if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 22));
-
-    rc = svcAcceptSession(&session, g_port);
-    if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 14));
+    u32* tls = (u32*)armGetTls();
+    tls[0] = 0;
+    tls[1] = 0;
 
     s32 idx = 0;
-    rc = svcReplyAndReceive(&idx, &session, 1, 0, -1);
+    rc = svcReplyAndReceive(&idx, &session, 1, INVALID_HANDLE, UINT64_MAX);
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 15));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 15));
 
     IpcParsedCommand ipc;
     rc = ipcParse(&ipc);
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 16));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 16));
 
     if (ipc.NumHandles != 1)
-        fatalSimple(MAKERESULT(MODULE_HBL, 17));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 17));
 
     g_procHandle = ipc.Handles[0];
     svcCloseHandle(session);
 }
 
 //Gets the PID of the process with application_type==APPLICATION in the NPDM, then sets g_isApplication if it matches the current PID.
-void getIsApplication(void) {
+static void getIsApplication(void) {
     Result rc=0;
     u64 cur_pid=0, app_pid=0;
 
@@ -158,12 +188,12 @@ void getIsApplication(void) {
 }
 
 //Gets the control.nacp for the current title id, and then sets g_isAutomaticGameplayRecording if less memory should be allocated.
-void getIsAutomaticGameplayRecording(void) {
-    if (kernelAbove500() && g_isApplication) {
+static void getIsAutomaticGameplayRecording(void) {
+    if (hosversionAtLeast(5,0,0) && g_isApplication) {
         Result rc=0;
         u64 cur_tid=0;
 
-        rc = svcGetInfo(&cur_tid, 18, CUR_PROCESS_HANDLE, 0);
+        rc = svcGetInfo(&cur_tid, InfoType_TitleId, CUR_PROCESS_HANDLE, 0);
         if (R_FAILED(rc)) return;
 
         g_isAutomaticGameplayRecording = 0;
@@ -180,55 +210,37 @@ void getIsAutomaticGameplayRecording(void) {
     }
 }
 
-void getOwnProcessHandle(void)
+static void getOwnProcessHandle(void)
 {
     static Thread t;
     Result rc;
 
-    rc = threadCreate(&t, &threadFunc, NULL, 0x1000, 0x20, 0);
+    Handle server_handle, client_handle;
+    rc = svcCreateSession(&server_handle, &client_handle, 0, 0);
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 10));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 12));
 
-    rc = smRegisterService(&g_port, "hb:ldr", false, 1);
+    rc = threadCreate(&t, &procHandleReceiveThread, (void*)(uintptr_t)server_handle, 0x1000, 0x20, 0);
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 12));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 10));
 
     rc = threadStart(&t);
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 13));
-
-    Service srv;
-    rc = smGetService(&srv, "hb:ldr");
-    if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 23));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 13));
 
     IpcCommand ipc;
     ipcInitialize(&ipc);
-    ipcSendHandleCopy(&ipc, 0xffff8001);
+    ipcSendHandleCopy(&ipc, CUR_PROCESS_HANDLE);
+    ipcPrepareHeader(&ipc, 0);
 
-    struct {
-        int x, y;
-    }* raw;
-
-    raw = ipcPrepareHeader(&ipc, sizeof(*raw));
-    raw->x = raw->y = 0;
-
-    rc = serviceIpcDispatch(&srv);
+    ipcDispatch(client_handle);
+    svcCloseHandle(client_handle);
 
     threadWaitForExit(&t);
     threadClose(&t);
-
-    serviceClose(&srv);
-    svcCloseHandle(g_port);
-
-    rc = smUnregisterService("hb:ldr");
-    if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 11));
-
-    smExit();
 }
 
-void loadNro()
+void loadNro(void)
 {
     NroHeader* header = NULL;
     size_t rw_size=0;
@@ -256,21 +268,21 @@ void loadNro()
             g_procHandle, g_nroAddr + header->segments[0].file_off, ((u64) g_heapAddr) + header->segments[0].file_off, header->segments[0].size);
 
         if (R_FAILED(rc))
-            fatalSimple(MAKERESULT(MODULE_HBL, 24));
+            fatalSimple(MAKERESULT(Module_HomebrewLoader, 24));
 
         // .rodata
         rc = svcUnmapProcessCodeMemory(
             g_procHandle, g_nroAddr + header->segments[1].file_off, ((u64) g_heapAddr) + header->segments[1].file_off, header->segments[1].size);
 
         if (R_FAILED(rc))
-            fatalSimple(MAKERESULT(MODULE_HBL, 25));
+            fatalSimple(MAKERESULT(Module_HomebrewLoader, 25));
 
        // .data + .bss
         rc = svcUnmapProcessCodeMemory(
             g_procHandle, g_nroAddr + header->segments[2].file_off, ((u64) g_heapAddr) + header->segments[2].file_off, rw_size);
 
         if (R_FAILED(rc))
-            fatalSimple(MAKERESULT(MODULE_HBL, 26));
+            fatalSimple(MAKERESULT(Module_HomebrewLoader, 26));
 
         g_nroAddr = g_nroSize = 0;
     }
@@ -280,7 +292,7 @@ void loadNro()
         strcpy(g_nextNroPath, g_basePath);
         strcpy(g_nextArgv, g_baseArgv);
     }
-
+    
     memcpy(g_argv, g_nextArgv, sizeof g_argv);
 
     uint8_t *nrobuf = (uint8_t*) g_heapAddr;
@@ -291,23 +303,23 @@ void loadNro()
 
     FILE* f = fopen(g_nextNroPath, "rb");
     if (f == NULL)
-        fatalSimple(MAKERESULT(MODULE_HBL, 3));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 3));
 
     // Reset NRO path to load hbmenu by default next time.
     g_nextNroPath[0] = '\0';
 
     if (fread(start, sizeof(*start), 1, f) != 1)
-        fatalSimple(MAKERESULT(MODULE_HBL, 4));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 4));
 
     if (fread(header, sizeof(*header), 1, f) != 1)
-        fatalSimple(MAKERESULT(MODULE_HBL, 4));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 4));
 
     if(header->magic != NROHEADER_MAGIC)
-        fatalSimple(MAKERESULT(MODULE_HBL, 5));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 5));
 
     size_t rest_size = header->size - (sizeof(NroStart) + sizeof(NroHeader));
     if (fread(rest, rest_size, 1, f) != 1)
-        fatalSimple(MAKERESULT(MODULE_HBL, 7));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 7));
 
     fclose(f);
 
@@ -327,7 +339,7 @@ void loadNro()
         if (header->segments[i].file_off >= header->size || header->segments[i].size > header->size ||
             (header->segments[i].file_off + header->segments[i].size) > header->size)
         {
-            fatalSimple(MAKERESULT(MODULE_HBL, 6));
+            fatalSimple(MAKERESULT(Module_HomebrewLoader, 6));
         }
     }
 
@@ -346,28 +358,28 @@ void loadNro()
     } while (rc == 0xDC01 || rc == 0xD401);
 
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 18));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 18));
 
     // .text
     rc = svcSetProcessMemoryPermission(
         g_procHandle, map_addr + header->segments[0].file_off, header->segments[0].size, Perm_R | Perm_X);
 
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 19));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 19));
 
     // .rodata
     rc = svcSetProcessMemoryPermission(
         g_procHandle, map_addr + header->segments[1].file_off, header->segments[1].size, Perm_R);
 
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 20));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 20));
 
     // .data + .bss
     rc = svcSetProcessMemoryPermission(
         g_procHandle, map_addr + header->segments[2].file_off, rw_size, Perm_Rw);
 
     if (R_FAILED(rc))
-        fatalSimple(MAKERESULT(MODULE_HBL, 21));
+        fatalSimple(MAKERESULT(Module_HomebrewLoader, 21));
 
     u64 nro_size = header->segments[2].file_off + rw_size;
     u64 nro_heap_start = ((u64) g_heapAddr) + nro_size;
@@ -385,7 +397,9 @@ void loadNro()
         { EntryType_LastLoadResult,       0, {0, 0} },
         { EntryType_SyscallAvailableHint, 0, {0xffffffffffffffff, 0x9fc1fff0007ffff} },
         { EntryType_RandomSeed,           0, {0, 0} },
-        { EntryType_EndOfList,            0, {0, 0} }
+        { EntryType_UserIdStorage,        0, {(u64)(uintptr_t)&g_userIdStorage, 0} },
+        { EntryType_HosVersion,           0, {0, 0} },
+        { EntryType_EndOfList,            0, {(u64)(uintptr_t)g_noticeText, sizeof(g_noticeText)} }
     };
 
     ConfigEntry *entry_AppletType = &entries[2];
@@ -412,6 +426,8 @@ void loadNro()
     // RandomSeed
     entries[8].Value[0] = randomGet64();
     entries[8].Value[1] = randomGet64();
+    // HosVersion
+    entries[10].Value[0] = hosversionGet();
 
     u64 entrypoint = map_addr;
 
@@ -437,11 +453,12 @@ void targetNro(const char *path, const char *argv)
 
     getIsApplication();
     getIsAutomaticGameplayRecording();
+    smExit();
     setupHbHeap();
     getOwnProcessHandle();
     strcpy(g_basePath, path);
     strcpy(g_baseArgv, argv);
     loadNro();
 
-    fatalSimple(MAKERESULT(MODULE_HBL, 8));
+    fatalSimple(MAKERESULT(Module_HomebrewLoader, 8));
 }

@@ -5,9 +5,6 @@
 
 namespace hos
 {
-    alignas(0x1000) u8 workpage[0x1000];
-    alignas(0x1000) u8 clearblock[0x1000];
-
     u32 GetBatteryLevel()
     {
         u32 bat = 0;
@@ -79,6 +76,30 @@ namespace hos
         return strm.str();
     }
 
+    std::string FormatTime(u64 Seconds)
+    {
+        u64 secs = Seconds;
+        std::string base = std::to_string(secs) + "s";
+        if(Seconds > 60)
+        {
+            auto divt = div(Seconds, 60);
+            u64 mins = divt.quot;
+            secs = divt.rem;
+            base = std::to_string(mins) + "min";
+            if(secs > 0) base += (" " + std::to_string(secs) + "s");
+            if(mins > 60)
+            {
+                auto divt2 = div(mins, 60);
+                u64 hrs = divt2.quot;
+                mins = divt2.rem;
+                base = std::to_string(hrs) + "h";
+                if(mins > 0) base += (" " + std::to_string(mins) + "min");
+                if(secs > 0) base += (" " + std::to_string(secs) + "s");
+            }
+        }
+        return base;
+    }
+
     u64 GetSdCardFreeSpaceForInstalls()
     {
         return fs::GetFreeSpaceForPartition(fs::Partition::SdCard);
@@ -91,34 +112,40 @@ namespace hos
 
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size)
     {
-        memcpy(workpage, Data, Size);
-        SecmonArgs args = { 0 };
-        args.X[0] = 0xf0000201;
-        args.X[1] = (uintptr_t)workpage;
+        u8 *block = new (std::align_val_t(0x1000)) u8[0x1000]();
+        memcpy(block, Data, Size);
+        SecmonArgs args = {};
+        args.X[0] = 0xF0000201;
+        args.X[1] = (uintptr_t)block;
         args.X[2] = IRAMAddress;
         args.X[3] = Size;
         args.X[4] = 1;
         svcCallSecureMonitor(&args);
-        memcpy(Data, workpage, Size);
+        memcpy(Data, block, Size);
+        operator delete[](block, std::align_val_t(0x1000));
     }
 
     void IRAMClear()
     {
-        memset(clearblock, 0xff, 0x1000);
-        for(u32 i = 0; i < 0x2f000; i += 0x1000) IRAMWrite(clearblock, (0x40010000 + i), 0x1000);
+        u8 *block = new (std::align_val_t(0x1000)) u8[0x1000]();
+        memset(block, 0xFF, 0x1000);
+        for(u32 i = 0; i < MaxPayloadSize; i += 0x1000) IRAMWrite(block, (IRAMPayloadBaseAddress + i), 0x1000);
+        operator delete[](block, std::align_val_t(0x1000));
     }
 
     void PayloadProcess(std::string Path)
     {
-        alignas(0x1000) u8 payload[0x2f000];
+        u8 *block = new (std::align_val_t(0x1000)) u8[MaxPayloadSize]();
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
         std::vector<u8> data = fexp->ReadFile(Path);
-        if(!data.empty())
-        {
-            memcpy(payload, data.data(), std::min(0x2f000, (int)data.size()));
-            IRAMClear();
-            for(u32 i = 0; i < 0x2f000; i += 0x1000) IRAMWrite(&payload[i], (0x40010000 + i), 0x1000);
-            splSetConfig((SplConfigItem)65001, 2);
-        }
+        auto size = fexp->GetFileSize(Path);
+        if((size == 0) || (size > MaxPayloadSize)) return;
+        fexp->ReadFileBlock(Path, 0, size, block);
+
+        IRAMClear();
+        for(u32 i = 0; i < MaxPayloadSize; i += 0x1000) IRAMWrite(&block[i], (IRAMPayloadBaseAddress + i), 0x1000);
+        operator delete[](block, std::align_val_t(0x1000));
+
+        splSetConfig((SplConfigItem)65001, 2);
     }
 }

@@ -65,7 +65,7 @@ namespace nsp
             rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.c_str());
             if(rc != 0) return rc;
             {
-                fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs, true);
+                fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs);
                 auto cnts = cnmtfs.GetContents();
                 std::string fcnmt;
                 for(u32 i = 0; i < cnts.size(); i++)
@@ -135,7 +135,7 @@ namespace nsp
                     rc = fsOpenFileSystemWithId(&controlncafs, baseappid, FsFileSystemType_ContentControl, acontrolnca.c_str());
                     if(rc == 0)
                     {
-                        fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs, true);
+                        fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs);
                         auto cnts = controlfs.GetContents();
                         for(u32 i = 0; i < cnts.size(); i++)
                         {
@@ -249,6 +249,11 @@ namespace nsp
         Result rc = 0;
         u64 reads = fs::GetFileSystemOperationsBufferSize();
         u8 *rdata = fs::GetFileSystemOperationsBuffer();
+        u64 totalsize = 0;
+        u64 twrittensize = 0;
+        std::vector<std::string> ncanames;
+        std::vector<u64> ncasizes;
+        std::vector<u32> ncaidxs;
         for(u32 i = 0; i < ncas.size(); i++)
         {
             ncm::ContentRecord rnca = ncas[i];
@@ -257,7 +262,20 @@ namespace nsp
             if(rnca.Type == ncm::ContentType::Meta) ncaname += ".cnmt";
             ncaname += ".nca";
             u32 idxncaname = nspentry.GetFileIndexByName(ncaname);
-            u64 ncasize = nspentry.GetFileSize(idxncaname);
+            auto cursize =  nspentry.GetFileSize(idxncaname);
+            totalsize += cursize;
+            ncaidxs.push_back(idxncaname);
+            ncanames.push_back(ncaname);
+            ncasizes.push_back(cursize);
+        }
+        for(u32 i = 0; i < ncas.size(); i++)
+        {
+            ncm::ContentRecord rnca = ncas[i];
+            NcmNcaId curid = rnca.ContentId;
+            std::string ncaname = ncanames[i];
+            u64 ncasize = ncasizes[i];
+            u32 idxncaname = ncaidxs[i];
+
             NcmContentStorage cst;
             ncmOpenContentStorage(storage, &cst);
             ncm::DeletePlaceHolder(&cst, &curid);
@@ -285,8 +303,9 @@ namespace nsp
                 auto t2 = std::chrono::steady_clock::now();
                 u64 diff = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
                 double bsec = (1000.0f / (double)diff) * rbytes; // By elapsed time and written bytes, compute how much data has been written in 1sec.
-                OnContentWrite(rnca, i, ncas.size(), (double)noff, (double)ncasize, (u64)bsec);
+                OnContentWrite(rnca, i, ncas.size(), (double)(noff + twrittensize), (double)totalsize, (u64)bsec);
             }
+            twrittensize += noff;
             ncmContentStorageRegister(&cst, &curid, &curid);
             ncm::DeletePlaceHolder(&cst, &curid);
             serviceClose(&cst.s);
