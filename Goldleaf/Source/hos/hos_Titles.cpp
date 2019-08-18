@@ -382,12 +382,6 @@ namespace hos
         TicketData tik;
         u64 off = 0;
         u32 tiksig = 0;
-        FILE *f = fopen("sdmc:/ticket.log", "a");
-        if(f)
-        {
-            fprintf(f, "Explorer: %p, Path: %s", fexp, Path.AsUTF8().c_str());
-            fclose(f);
-        }
         fexp->ReadFileBlock(Path, off, sizeof(u32), (u8*)&tiksig);
         tik.Signature = static_cast<TicketSignature>(tiksig);
         u32 sigsz = 0;

@@ -41,7 +41,7 @@ EXEFS_SRC	:=	exefs_src
 
 APP_TITLE := Goldleaf
 APP_AUTHOR := XorTroll
-APP_VERSION := 0.1 (forwarder)
+APP_VERSION := 0.2 (forwarder)
 APP_TITLEID := 050032A5CF12E000
 
 #---------------------------------------------------------------------------------
