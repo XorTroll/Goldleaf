@@ -71,14 +71,14 @@ namespace usb
         return ok;
     }
 
-    bool ReadString(std::string &Out, comms::CallbackFunction Callback)
+    bool ReadString(pu::String &Out, comms::CallbackFunction Callback)
     {
         u32 strlen = 0;
         if(!Read32(strlen, Callback)) return false;
 
         char *raw = new char[strlen + 1]();
         if(Read(raw, strlen, Callback) == 0) return false;
-        Out = std::string(raw);
+        Out = pu::String(raw);
 
         return true;
     }
@@ -98,12 +98,12 @@ namespace usb
         return (Write((u8*)&Data, sizeof(u64)) != 0);
     }
 
-    bool WriteString(std::string Str)
+    bool WriteString(pu::String Str)
     {
         u32 strl = Str.length();
         Write32(strl);
         char *ch = new char[strl + 1]();
-        strcpy(ch, Str.c_str());
+        strcpy(ch, Str.AsUTF8().c_str());
         bool ok = Write(ch, strl + 1);
         delete[] ch;
         return ok;

@@ -52,7 +52,7 @@ namespace usb
         InCommandBlock(CommandId CmdId);
         void Write32(u32 Value);
         void Write64(u64 Value);
-        void WriteString(std::string Value);
+        void WriteString(pu::String Value);
         void WriteBuffer(void *Buf, size_t Size);
         void Send();
     };
@@ -68,7 +68,7 @@ namespace usb
         bool IsValid();
         u32 Read32();
         u64 Read64();
-        std::string ReadString();
+        pu::String ReadString();
         void ReadBuffer(void *Buf, size_t Size);
     };
 
@@ -132,25 +132,25 @@ namespace usb
     class InString : public CommandArgument
     {
         public:
-            InString(std::string Value);
+            InString(pu::String Value);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
         private:
-            std::string val;
+            pu::String val;
     };
 
     class OutString : public CommandArgument
     {
         public:
-            OutString(std::string &Value);
+            OutString(pu::String &Value);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
         private:
-            std::string &val;
+            pu::String &val;
     };
 
     class InBuffer : public CommandArgument

@@ -28,7 +28,7 @@ namespace nsp
     class Installer
     {
         public:
-            Installer(std::string Path, fs::Explorer *Exp, Storage Location);
+            Installer(pu::String Path, fs::Explorer *Exp, Storage Location);
             ~Installer();
             Result PrepareInstallation();
             Result PreProcessContents();
@@ -52,8 +52,8 @@ namespace nsp
             NcmMetaRecord mrec;
             u64 baseappid;
             u64 stik;
-            std::string tik;
+            pu::String tik;
             std::vector<ncm::ContentRecord> ncas;
-            std::string icon;
+            pu::String icon;
     };
 }

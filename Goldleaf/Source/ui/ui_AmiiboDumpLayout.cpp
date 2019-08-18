@@ -39,7 +39,7 @@ namespace ui
                 auto common = nfp::GetCommonInfo();
                 auto reg = nfp::GetRegisterInfo();
 
-                auto name = std::string(reg.amiibo_name);
+                auto name = pu::String(reg.amiibo_name);
                 auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(283), set::GetDictionaryEntry(317) + " '" + name + "'?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112) }, true);
                 if(sopt == 0)
                 {

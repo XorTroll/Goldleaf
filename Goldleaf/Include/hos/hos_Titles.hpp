@@ -52,8 +52,8 @@ namespace hos
         bool Empty;
         u64 Size;
 
-        std::string GetFileName();
-        std::string GetFullPath();
+        pu::String GetFileName();
+        pu::String GetFullPath();
     };
 
     struct TitleContents
@@ -66,7 +66,7 @@ namespace hos
         ContentId LegalInfo;
 
         u64 GetTotalSize();
-        std::string GetFormattedTotalSize();
+        pu::String GetFormattedTotalSize();
     };
 
     struct Title
@@ -94,7 +94,7 @@ namespace hos
 
         u64 GetApplicationId();
         u64 GetKeyGeneration();
-        std::string ToString();
+        pu::String ToString();
     };
 
     struct TicketData
@@ -114,11 +114,11 @@ namespace hos
     Result RemoveTitle(Title &ToRemove);
     Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
-    std::string GetExportedNACPPath(u64 ApplicationId);
+    pu::String GetExportedNACPPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
-    TicketData ReadTicket(std::string Path);
-    std::string GetNACPName(NacpStruct *NACP);
-    std::string GetNACPAuthor(NacpStruct *NACP);
-    std::string GetNACPVersion(NacpStruct *NACP);
+    TicketData ReadTicket(pu::String Path);
+    pu::String GetNACPName(NacpStruct *NACP);
+    pu::String GetNACPAuthor(NacpStruct *NACP);
+    pu::String GetNACPVersion(NacpStruct *NACP);
 }

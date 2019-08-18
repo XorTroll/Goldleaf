@@ -18,19 +18,19 @@ namespace nsp
     class PFS0
     {
         public:
-            PFS0(fs::Explorer *Exp, std::string Path);
+            PFS0(fs::Explorer *Exp, pu::String Path);
             ~PFS0();
             u32 GetCount();
-            std::string GetFile(u32 Index);
+            pu::String GetFile(u32 Index);
             u64 ReadFromFile(u32 Index, u64 Offset, u64 Size, u8 *Out);
-            std::vector<std::string> GetFiles();
+            std::vector<pu::String> GetFiles();
             bool IsOk();
             fs::Explorer *GetExplorer();
             u64 GetFileSize(u32 Index);
-            void SaveFile(u32 Index, fs::Explorer *Exp, std::string Path);
-            u32 GetFileIndexByName(std::string File);
+            void SaveFile(u32 Index, fs::Explorer *Exp, pu::String Path);
+            u32 GetFileIndexByName(pu::String File);
         private:
-            std::string path;
+            pu::String path;
             fs::Explorer *gexp;
             u8 *stringtable;
             u32 headersize;

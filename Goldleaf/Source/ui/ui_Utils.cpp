@@ -6,9 +6,9 @@ set::Settings gsets;
 namespace ui
 {
     extern MainApplication *mainapp;
-    std::string clipboard;
+    pu::String clipboard;
 
-    void SetClipboard(std::string Path)
+    void SetClipboard(pu::String Path)
     {
         clipboard = Path;
     }
@@ -28,7 +28,7 @@ namespace ui
         return !clipboard.empty();
     }
 
-    void ShowPowerTasksDialog(std::string Title, std::string Message)
+    void ShowPowerTasksDialog(pu::String Title, pu::String Message)
     {
         int sopt = mainapp->CreateShowDialog(Title, Message, { set::GetDictionaryEntry(233), set::GetDictionaryEntry(232), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
@@ -43,19 +43,20 @@ namespace ui
         }
     }
 
-    std::string AskForText(std::string Guide, std::string Initial)
+    pu::String AskForText(pu::String Guide, pu::String Initial, int MaxSize)
     {
-        std::string out = "";
+        pu::String out = "";
         char tmpout[FS_MAX_PATH] = { 0 };
         SwkbdConfig kbd;
         Result rc = swkbdCreate(&kbd, 0);
         if(rc == 0)
         {
             swkbdConfigMakePresetDefault(&kbd);
-            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.c_str());
-            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.c_str());
+            if(MaxSize > 0) swkbdConfigSetStringLenMax(&kbd, (u32)MaxSize);
+            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.AsUTF8().c_str());
+            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.AsUTF8().c_str());
             rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
-            if(rc == 0) out = std::string(tmpout);
+            if(rc == 0) out = pu::String(tmpout);
         }
         swkbdClose(&kbd);
         return out;
@@ -67,7 +68,7 @@ namespace ui
         AppletStorage hast1;
         LibAppletArgs args;
         appletCreateLibraryApplet(&aph, AppletId_playerSelect, LibAppletMode_AllForeground);
-        libappletArgsCreate(&args, 0);
+        libappletArgsCreate(&args, 0x10000);
         libappletArgsPush(&args, &aph);
         appletCreateStorage(&hast1, 0xa0);
         u8 indata[0xa0] = { 0 };
@@ -87,13 +88,13 @@ namespace ui
         return *(u128*)&out[8];
     }
 
-    void HandleResult(Result OSError, std::string Context)
+    void HandleResult(Result OSError, pu::String Context)
     {
         if(OSError != 0)
         {
             err::Error err = err::DetermineError(OSError);
-            std::string emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
-            std::string edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
+            pu::String emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
+            pu::String edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
             mainapp->CreateShowDialog(set::GetDictionaryEntry(266), Context + "\n\n" + set::GetDictionaryEntry(266) + ": " + hos::FormatHex(err.OSError) + "\n" + set::GetDictionaryEntry(264) + ": " + emod + "\n" + set::GetDictionaryEntry(265) + ": " + edesc + "", { set::GetDictionaryEntry(234) }, false);
         }
     }

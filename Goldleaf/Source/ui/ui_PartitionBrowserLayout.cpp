@@ -55,7 +55,7 @@ namespace ui
         if(Update) this->UpdateElements();
     }
     
-    void PartitionBrowserLayout::ChangePartitionPCDrive(std::string Mount, bool Update)
+    void PartitionBrowserLayout::ChangePartitionPCDrive(pu::String Mount, bool Update)
     {
         this->gexp = fs::GetUSBPCDriveExplorer(Mount);
         if(Update) this->UpdateElements();
@@ -78,14 +78,14 @@ namespace ui
             this->dirEmptyText->SetVisible(false);
             for(u32 i = 0; i < this->elems.size(); i++)
             {
-                std::string itm = this->elems[i];
+                pu::String itm = this->elems[i];
                 bool isdir = this->gexp->IsDirectory(itm);
                 pu::ui::elm::MenuItem *mitm = new pu::ui::elm::MenuItem(itm);
                 mitm->SetColor(gsets.CustomScheme.Text);
                 if(isdir) mitm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));
                 else
                 {
-                    std::string ext = fs::GetExtension(itm);
+                    pu::String ext = fs::GetExtension(itm);
                     if(ext == "nsp") mitm->SetIcon(gsets.PathForResource("/FileSystem/NSP.png"));
                     else if(ext == "nro") mitm->SetIcon(gsets.PathForResource("/FileSystem/NRO.png"));
                     else if(ext == "tik") mitm->SetIcon(gsets.PathForResource("/FileSystem/TIK.png"));
@@ -111,7 +111,7 @@ namespace ui
             }
             else
             {
-                if(this->elems.size() > Idx) tmpidx = Idx;
+                if(this->elems.size() > (u32)Idx) tmpidx = Idx;
             }
             this->browseMenu->SetSelectedIndex(tmpidx);
         }
@@ -131,9 +131,9 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click()
     {
-        std::string itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8();
-        std::string fullitm = this->gexp->FullPathFor(itm);
-        std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
+        pu::String itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8().c_str();
+        pu::String fullitm = this->gexp->FullPathFor(itm);
+        pu::String pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->NavigateForward(fullitm))
         {
             expidxstack.push_back(this->browseMenu->GetSelectedIndex());
@@ -141,8 +141,8 @@ namespace ui
         }
         else
         {
-            std::string ext = fs::GetExtension(itm);
-            std::string msg = set::GetDictionaryEntry(52) + " ";
+            pu::String ext = fs::GetExtension(itm);
+            pu::String msg = set::GetDictionaryEntry(52) + " ";
             if(ext == "nsp") msg += set::GetDictionaryEntry(53);
             else if(ext == "nro") msg += set::GetDictionaryEntry(54);
             else if(ext == "tik") msg += set::GetDictionaryEntry(55);
@@ -238,7 +238,7 @@ namespace ui
                         {
                             sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(98), set::GetDictionaryEntry(99), { set::GetDictionaryEntry(66), set::GetDictionaryEntry(18) }, true);
                             if(sopt < 0) return;
-                            envSetNextLoad(fullitm.c_str(), fullitm.c_str());
+                            envSetNextLoad(fullitm.AsUTF8().c_str(), fullitm.AsUTF8().c_str());
                             mainapp->CloseWithFadeOut();
                             return;
                         }
@@ -276,17 +276,15 @@ namespace ui
                             mainapp->CreateShowDialog(set::GetDictionaryEntry(104), set::GetDictionaryEntry(105), { set::GetDictionaryEntry(234) }, false);
                             return;
                         }
-                        std::string arg = "installtheme=" + fullitm;
+                        std::string arg = ntnro + " installtheme=" + fullitm.AsUTF8();
                         size_t index = 0;
                         while(true)
                         {
                             index = arg.find(" ", index);
-                            if(index == std::string::npos) break;
+                            if(index == pu::String::npos) break;
                             arg.replace(index, 1, "(_)");
                         }
-                        char args[ntnro.size() + arg.size() + 8];
-                        sprintf(args, "%s %s", ntnro.c_str(), arg.c_str());
-                        envSetNextLoad(ntnro.c_str(), args);
+                        envSetNextLoad(ntnro.c_str(), arg.c_str());
                         mainapp->CloseWithFadeOut();
                         return;
                         break;
@@ -301,15 +299,15 @@ namespace ui
                         NacpStruct *snacp = (NacpStruct*)rnacp;
                         NacpLanguageEntry *lent = NULL;
                         nacpGetLanguageEntry(snacp, &lent);
-                        std::string name = set::GetDictionaryEntry(106);
-                        std::string author = set::GetDictionaryEntry(107);
-                        std::string version = std::string(snacp->version);
+                        pu::String name = set::GetDictionaryEntry(106);
+                        pu::String author = set::GetDictionaryEntry(107);
+                        pu::String version = pu::String(snacp->version);
                         if(lent != NULL)
                         {
-                            name = std::string(lent->name);
-                            author = std::string(lent->author);
+                            name = pu::String(lent->name);
+                            author = pu::String(lent->author);
                         }
-                        std::string msg = set::GetDictionaryEntry(108) + "\n\n";
+                        pu::String msg = set::GetDictionaryEntry(108) + "\n\n";
                         msg += set::GetDictionaryEntry(91) + " " + name;
                         msg += "\n" + set::GetDictionaryEntry(92) + " " + author;
                         msg += "\n" + set::GetDictionaryEntry(109) + " " + version;
@@ -344,18 +342,12 @@ namespace ui
                 switch(sopt)
                 {
                     case 0:
-                        u128 uid = AskForUser();
+                        u128 uid = acc::GetSelectedUser();
                         if(uid == 0) return;
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(122), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0) return;
-                        AccountProfile prf;
-                        AccountProfileBase pbase;
-                        AccountUserData udata;
-                        Result rc = accountGetProfile(&prf, uid);
-                        rc = accountProfileGet(&prf, &udata, &pbase);
-                        acc::ProfileEditor pedit;
-                        rc = acc::GetProfileEditor(uid, &pedit);
-                        std::vector<u8> vdata = this->gexp->ReadFile(fullitm);
+
+                        /*
                         pu::ui::render::NativeTexture icon = pu::ui::render::LoadImage(fullitm);
                         if(!icon)
                         {
@@ -369,11 +361,17 @@ namespace ui
                             mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(260), { set::GetDictionaryEntry(234) }, true);
                             return;
                         }
-                        rc = pedit.StoreWithImage(&pbase, &udata, vdata.data(), vdata.size());
+                        pu::ui::render::DeleteTexture(icon);
+                        */
+
+                        size_t fsize = this->gexp->GetFileSize(fullitm);
+                        u8 *iconbuf = new u8[fsize]();
+                        this->gexp->ReadFileBlock(fullitm, 0, fsize, iconbuf);
+
+                        auto rc = acc::EditUserIcon(iconbuf, fsize);
                         if(rc == 0) mainapp->ShowNotification(set::GetDictionaryEntry(123));
                         else HandleResult(rc, set::GetDictionaryEntry(124));
-                        pedit.Close();
-                        serviceClose(&prf.s);
+                        delete[] iconbuf;
                         break;
                 }
             }
@@ -425,11 +423,11 @@ namespace ui
             }
             else if(sopt == renopt)
             {
-                std::string kbdt = AskForText(set::GetDictionaryEntry(130), itm);
+                pu::String kbdt = AskForText(set::GetDictionaryEntry(130), itm);
                 if(kbdt != "")
                 {
                     if(kbdt == itm) return;
-                    std::string newren = kbdt;
+                    pu::String newren = kbdt;
                     if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(254));
                     else if(this->WarnNANDWriteAccess())
                     {
@@ -449,13 +447,13 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click_Y()
     {
-        std::string itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8();
-        std::string fullitm = this->gexp->FullPathFor(itm);
-        std::string pfullitm = this->gexp->FullPresentablePathFor(itm);
+        pu::String itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8().c_str();
+        pu::String fullitm = this->gexp->FullPathFor(itm);
+        pu::String pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->IsDirectory(fullitm))
         {
             auto files = this->gexp->GetFiles(fullitm);
-            std::vector<std::string> nsps;
+            std::vector<pu::String> nsps;
             for(u32 i = 0; i < files.size(); i++)
             {
                 auto path = fullitm + "/" + files[i];
@@ -464,7 +462,7 @@ namespace ui
             std::vector<pu::String> extraopts = { set::GetDictionaryEntry(281) };
             if(!nsps.empty()) extraopts.push_back(set::GetDictionaryEntry(282));
             extraopts.push_back(set::GetDictionaryEntry(18));
-            std::string msg = set::GetDictionaryEntry(134);
+            pu::String msg = set::GetDictionaryEntry(134);
             msg += "\n\n" + set::GetDictionaryEntry(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(136), set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), set::GetDictionaryEntry(280), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
@@ -485,11 +483,11 @@ namespace ui
                     break;
                 case 3:
                     {
-                        std::string kbdt = AskForText(set::GetDictionaryEntry(238), itm);
+                        pu::String kbdt = AskForText(set::GetDictionaryEntry(238), itm);
                         if(kbdt != "")
                         {
                             if(kbdt == itm) return;
-                            std::string newren = this->gexp->FullPathFor(kbdt);
+                            pu::String newren = this->gexp->FullPathFor(kbdt);
                             if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(254));
                             else if(this->WarnNANDWriteAccess())
                             {

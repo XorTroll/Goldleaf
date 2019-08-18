@@ -214,4 +214,35 @@ namespace ns
         }
         return rc;
     }
+
+    Result PushLaunchVersion(u64 ApplicationId, u64 LaunchVersion)
+    {
+        IpcCommand c;
+        ipcInitialize(&c);
+        struct Raw
+        {
+            u64 Magic;
+            u64 CmdId;
+            u64 Version;
+            u64 ApplicationId;
+        } *raw;
+        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
+        raw->Magic = SFCI_MAGIC;
+        raw->CmdId = 36;
+        raw->Version = LaunchVersion;
+        raw->ApplicationId = ApplicationId;
+        Result rc = serviceIpcDispatch(&nsamsrv);
+        if(R_SUCCEEDED(rc))
+        {
+            IpcParsedCommand r;
+            ipcParse(&r);
+            struct Parsed
+            {
+                u64 Magic;
+                u64 Result;
+            } *resp = (struct Parsed*)r.Raw;
+            rc = resp->Result;
+        }
+        return rc;
+    }
 }

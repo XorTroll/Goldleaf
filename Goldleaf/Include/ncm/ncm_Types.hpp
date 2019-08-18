@@ -81,7 +81,7 @@ namespace ncm
         NcmNcaId ContentId;
         u8 Size[0x6];
         ContentType Type;
-        u8 Unknown;
+        u8 IdOffset;
     } PACKED;
 
     struct HashedContentRecord

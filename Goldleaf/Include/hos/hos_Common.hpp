@@ -15,6 +15,7 @@
 #include <ctime>
 #include <functional>
 #include <cstdio>
+#include <Types.hpp>
 
 namespace hos
 {
@@ -39,7 +40,7 @@ namespace hos
     u64 GetNANDFreeSpaceForInstalls();
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
     void IRAMClear();
-    void PayloadProcess(std::string Path);
+    void PayloadProcess(pu::String Path);
 
     static constexpr size_t MaxPayloadSize = 0x2F000;
     static constexpr size_t IRAMPayloadBaseAddress = 0x40010000;

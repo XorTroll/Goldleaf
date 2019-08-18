@@ -23,10 +23,10 @@ namespace dump
         Data,
     };
 
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, std::string Path, std::function<void(double Done, double Total)> Callback);
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, pu::String Path, std::function<void(double Done, double Total)> Callback);
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out);
     FsStorageId GetApplicationLocation(u64 ApplicationId);
-    std::string GetTitleKeyData(u64 ApplicationId, bool ExportData);
-    std::string GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id);
+    pu::String GetTitleKeyData(u64 ApplicationId, bool ExportData);
+    pu::String GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id);
     bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmMetaRecord *rec, u64 ApplicationId, NCAType Type, NcmNcaId *out);
 }

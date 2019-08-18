@@ -19,7 +19,7 @@ namespace ui
         public:
             FileContentLayout();
             ~FileContentLayout();
-            void LoadFile(std::string Path, pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex);
+            void LoadFile(pu::String Path, pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex);
             void Update();
             void ScrollUp();
             void ScrollDown();
@@ -28,7 +28,7 @@ namespace ui
             u32 loffset;
             u32 rlines;
             bool mode;
-            std::string pth;
+            pu::String pth;
             pu::ui::elm::TextBlock *cntText;
             fs::Explorer *gexp;
             pu::ui::Layout *prev;

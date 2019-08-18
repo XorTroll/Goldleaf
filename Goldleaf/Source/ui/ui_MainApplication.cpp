@@ -6,12 +6,13 @@ extern set::Settings gsets;
 namespace ui
 {
     MainApplication *mainapp;
-    extern std::string clipboard;
+    extern pu::String clipboard;
 
     MainApplication::MainApplication() : pu::ui::Application()
     {
         gsets = set::ProcessSettings();
         set::Initialize();
+        pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
         this->preisch = false;
         this->pretime = "";
@@ -336,7 +337,7 @@ namespace ui
         delete this->about;
     }
 
-    void MainApplication::ShowNotification(std::string Text)
+    void MainApplication::ShowNotification(pu::String Text)
     {
         mainapp->EndOverlay();
         this->toast->SetText(Text);
@@ -345,7 +346,7 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
-        std::string dtime = hos::GetCurrentTime();
+        pu::String dtime = hos::GetCurrentTime();
         u32 blv = hos::GetBatteryLevel();
         bool isch = hos::IsCharging();
         if((this->preblv != blv) || this->vfirst)
@@ -361,6 +362,8 @@ namespace ui
             else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/80.png"));
             else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/90.png"));
             else if(blv == 100) this->batteryImage->SetImage(gsets.PathForResource("/Battery/100.png"));
+            this->batteryImage->SetWidth(85);
+            this->batteryImage->SetHeight(85);
             this->batteryText->SetText(std::to_string(blv) + "%");
             this->preblv = blv;
         }
@@ -385,6 +388,8 @@ namespace ui
         if(connstr != this->connstate)
         {
             this->connImage->SetImage(gsets.PathForResource("/Connection/" + connimg + ".png"));
+            this->connImage->SetWidth(40);
+            this->connImage->SetHeight(40);
             this->connstate = connstr;
         }
         if(connstr > 0)
@@ -392,18 +397,20 @@ namespace ui
             u32 ip = gethostid();
             char sip[256];
             inet_ntop(AF_INET, &ip, sip, 256);
-            this->ipText->SetText(std::string(sip));
+            this->ipText->SetText(pu::String(sip));
         }
         else this->ipText->SetText("<no connection>");
     }
 
-    void MainApplication::LoadMenuData(std::string Name, std::string ImageName, std::string TempHead, bool CommonIcon)
+    void MainApplication::LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon)
     {
         if(this->menuImage != NULL)
         {
             this->menuImage->SetVisible(true);
             if(CommonIcon) this->menuImage->SetImage(gsets.PathForResource("/Common/" + ImageName + ".png"));
             else this->menuImage->SetImage(ImageName);
+            this->menuImage->SetWidth(85);
+            this->menuImage->SetHeight(85);
         }
         if(this->menuNameText != NULL)
         {
@@ -417,7 +424,7 @@ namespace ui
         }
     }
 
-    void MainApplication::LoadMenuHead(std::string Head)
+    void MainApplication::LoadMenuHead(pu::String Head)
     {
         if(this->menuHeadText != NULL) this->menuHeadText->SetText(Head);
     }
@@ -450,7 +457,7 @@ namespace ui
                 if(cdir) fsicon = gsets.PathForResource("/FileSystem/Directory.png");
                 else
                 {
-                    std::string ext = fs::GetExtension(clipboard);
+                    pu::String ext = fs::GetExtension(clipboard);
                     if(ext == "nsp") fsicon = gsets.PathForResource("/FileSystem/NSP.png");
                     else if(ext == "nro") fsicon = gsets.PathForResource("/FileSystem/NRO.png");
                     else if(ext == "tik") fsicon = gsets.PathForResource("/FileSystem/TIK.png");
@@ -462,7 +469,7 @@ namespace ui
                 int sopt = this->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
                 if(sopt == 0)
                 {
-                    std::string cname = fs::GetFileName(clipboard);
+                    pu::String cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
                     this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer(), this->browser);
                     this->browser->UpdateElements();
@@ -473,11 +480,11 @@ namespace ui
         }
         else if(Down & KEY_L)
         {
-            std::string cfile = AskForText(set::GetDictionaryEntry(225), "");
+            pu::String cfile = AskForText(set::GetDictionaryEntry(225), "");
             if(cfile != "")
             {
-                std::string ffile = this->browser->GetExplorer()->FullPathFor(cfile);
-                std::string pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
+                pu::String ffile = this->browser->GetExplorer()->FullPathFor(cfile);
+                pu::String pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
                 if(this->browser->GetExplorer()->IsFile(ffile) || this->browser->GetExplorer()->IsDirectory(ffile)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
                 else
                 {
@@ -489,11 +496,11 @@ namespace ui
         }
         else if(Down & KEY_R)
         {
-            std::string cdir = AskForText(set::GetDictionaryEntry(250), "");
+            pu::String cdir = AskForText(set::GetDictionaryEntry(250), "");
             if(cdir != "")
             {
-                std::string fdir = this->browser->GetExplorer()->FullPathFor(cdir);
-                std::string pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
+                pu::String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
+                pu::String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
                 if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
                 else
                 {
@@ -582,7 +589,6 @@ namespace ui
         if(Down & KEY_B)
         {
             this->UnloadMenuData();
-            this->account->CleanData();
             this->LoadLayout(this->mainMenu);
         }
     }
@@ -710,10 +716,10 @@ namespace ui
         return this->about;
     }
 
-    void UpdateClipboard(std::string Path)
+    void UpdateClipboard(pu::String Path)
     {
         SetClipboard(Path);
-        std::string copymsg;
+        pu::String copymsg;
         if(mainapp->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
         else copymsg = set::GetDictionaryEntry(258);
         mainapp->ShowNotification(copymsg);

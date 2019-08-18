@@ -26,10 +26,26 @@ namespace acc
             Service srv;
     };
 
+    class BaasAdministrator
+    {
+        public:
+            BaasAdministrator();
+            BaasAdministrator(Service Srv);
+            Result IsLinkedWithNintendoAccount(bool *out);
+            Result DeleteRegistrationInfoLocally();
+            Result GetAccountId(u64 *out_AId);
+            Result GetNintendoAccountId(u64 *out_NAId);
+            Result Demo_GetNintendoAccountUserResourceCache(u64 *out_NAId, void *out_NASUser, size_t out_NASUser_Size);
+            void Close();
+        private:
+            Service srv;
+    };
+
     Result Initialize();
     void Finalize();
     bool HasInitialized();
 
     Result DeleteUser(u128 UserId);
     Result GetProfileEditor(u128 UserId, ProfileEditor *out_Editor);
+    Result GetBaasAccountAdministrator(u128 UserId, BaasAdministrator *out_Admin);
 }

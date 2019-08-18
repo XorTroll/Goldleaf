@@ -31,8 +31,8 @@ namespace ui
         {
             for(u32 i = 0; i < drivecount; i++)
             {
-                std::string label;
-                std::string path;
+                pu::String label;
+                pu::String path;
                 u32 sztmp = 0;
                 rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(sztmp), usb::Out32(sztmp));
                 if(R_SUCCEEDED(rc))
@@ -47,8 +47,8 @@ namespace ui
         {
             for(u32 i = 0; i < pathcount; i++)
             {
-                std::string name;
-                std::string path;
+                pu::String name;
+                pu::String path;
                 rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::In32(i), usb::OutString(name), usb::OutString(path));
                 if(R_SUCCEEDED(rc))
                 {

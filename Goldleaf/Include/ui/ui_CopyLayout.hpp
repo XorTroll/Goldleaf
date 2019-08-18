@@ -19,7 +19,7 @@ namespace ui
         public:
             CopyLayout();
             ~CopyLayout();
-            void StartCopy(std::string Path, std::string NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev);
+            void StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev);
         private:
             fs::Explorer *gexp;
             pu::ui::elm::TextBlock *infoText;

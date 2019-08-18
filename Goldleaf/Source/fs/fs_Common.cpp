@@ -20,80 +20,77 @@ namespace fs
     static u8 *opsbuf = NULL;
     static size_t opsbufsz = 0x800000;
 
-    bool Exists(std::string Path)
+    bool Exists(pu::String Path)
     {
-        std::ifstream ifs(Path);
-        bool ex = ifs.good();
-        ifs.close();
-        return ex;
+        struct stat st;
+        return (stat(Path.AsUTF8().c_str(), &st) == 0);
     }
 
-    bool IsFile(std::string Path)
+    bool IsFile(pu::String Path)
     {
         bool is = false;
         struct stat st;
-        if(stat(Path.c_str(), &st) == 0) if(st.st_mode & S_IFREG) is = true;
+        if(stat(Path.AsUTF8().c_str(), &st) == 0) if(st.st_mode & S_IFREG) is = true;
         return is;
     }
 
-    bool IsDirectory(std::string Path)
+    bool IsDirectory(pu::String Path)
     {
         bool is = false;
         struct stat st;
-        if(stat(Path.c_str(), &st) == 0) if(st.st_mode & S_IFDIR) is = true;
+        if(stat(Path.AsUTF8().c_str(), &st) == 0) if(st.st_mode & S_IFDIR) is = true;
         return is;
     }
 
-    void CreateFile(std::string Path)
+    void CreateFile(pu::String Path)
     {
-        std::ofstream ofs(Path);
-        ofs.close();
+        fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
     }
 
-    Result CreateDirectory(std::string Path)
+    Result CreateDirectory(pu::String Path)
     {
-        int res = mkdir(Path.c_str(), 777);
+        int res = mkdir(Path.AsUTF8().c_str(), 777);
         Result rc = 0;
         if(res != 0) rc = err::MakeErrno(res);
         return rc;
     }
 
-    void CopyFile(std::string Path, std::string NewPath)
+    void CopyFile(pu::String Path, pu::String NewPath)
     {
         Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
         gexp->CopyFile(Path, NewPath);
     }
 
-    void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback)
+    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback)
     {
         Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
         gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 
-    void CopyDirectory(std::string Dir, std::string NewDir)
+    void CopyDirectory(pu::String Dir, pu::String NewDir)
     {
         Explorer *gexp = GetExplorerForMountName(GetPathRoot(Dir));
         gexp->CopyDirectory(Dir, NewDir);
     }
 
-    void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback)
+    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback)
     {
         Explorer *gexp = GetExplorerForMountName(GetPathRoot(Dir));
         gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
     }
 
-    Result DeleteFile(std::string Path)
+    Result DeleteFile(pu::String Path)
     {
-        int res = remove(Path.c_str());
+        int res = remove(Path.AsUTF8().c_str());
         Result rc = 0;
         if(res != 0) rc = err::MakeErrno(res);
         return rc;
     }
 
-    Result DeleteDirectory(std::string Path)
+    Result DeleteDirectory(pu::String Path)
     {
         Result rc = 0;
-        DIR *d = opendir(Path.c_str());
+        DIR *d = opendir(Path.AsUTF8().c_str());
         if(d)
         {
             struct dirent *dent;
@@ -101,24 +98,24 @@ namespace fs
             {
                 dent = readdir(d);
                 if(dent == NULL) break;
-                std::string nd = dent->d_name;
-                std::string pd = Path + "/" + nd;
+                pu::String nd = dent->d_name;
+                pu::String pd = Path + "/" + nd;
                 if(fs::IsFile(pd)) rc = DeleteFile(pd);
                 else rc = DeleteDirectory(pd);
                 if(rc != 0) return rc;
             }
         }
         closedir(d);
-        int res = rmdir(Path.c_str());
+        int res = rmdir(Path.AsUTF8().c_str());
         if(res != 0) rc = err::MakeErrno(res);
         return rc;
     }
 
-    bool IsFileBinary(std::string Path)
+    bool IsFileBinary(pu::String Path)
     {
         if(GetFileSize(Path) == 0) return true;
         bool bin = false;
-        FILE *f = fopen(Path.c_str(), "r");
+        FILE *f = fopen(Path.AsUTF8().c_str(), "r");
         if(f)
         {
             int ch = 0;
@@ -135,10 +132,10 @@ namespace fs
         return bin;
     }
 
-    std::vector<u8> ReadFile(std::string Path)
+    std::vector<u8> ReadFile(pu::String Path)
     {
         std::vector<u8> file;
-        FILE *fle = fopen(Path.c_str(), "rb");
+        FILE *fle = fopen(Path.AsUTF8().c_str(), "rb");
         if(fle)
         {
             fseek(fle, 0, SEEK_END);
@@ -151,28 +148,28 @@ namespace fs
         return file;
     }
 
-    std::vector<std::string> ReadFileLines(std::string Path, u32 LineOffset, u32 LineCount)
+    std::vector<pu::String> ReadFileLines(pu::String Path, u32 LineOffset, u32 LineCount)
     {
-        std::vector<std::string> data;
-        std::ifstream ifs(Path);
+        std::vector<pu::String> data;
+        ifstream ifs(Path.AsUTF8());
         if(ifs.good())
         {
-            std::string tmpline;
+            std::u16string tmpline;
             u32 tmpc = 0;
             u32 tmpo = 0;
-            while((tmpc < LineCount) && getline(ifs, tmpline))
+            while((tmpc < LineCount) && std::getline(ifs, tmpline))
             {
                 if((tmpo < LineOffset) && (LineOffset != 0))
                 {
                     tmpo++;
                     continue;
                 }
-                std::string tab = "\t";
+                std::u16string tab = u"\t";
                 while(true)
                 {
                     size_t spos = tmpline.find(tab);
-                    if(spos == std::string::npos) break;
-                    tmpline.replace(spos, tab.length(), "    ");
+                    if(spos == pu::String::npos) break;
+                    tmpline.replace(spos, tab.length(), u"    ");
                 }
                 data.push_back(tmpline);
                 tmpc++;
@@ -182,10 +179,10 @@ namespace fs
         return data;
     }
 
-    std::vector<std::string> ReadFileFormatHex(std::string Path, u32 LineOffset, u32 LineCount)
+    std::vector<pu::String> ReadFileFormatHex(pu::String Path, u32 LineOffset, u32 LineCount)
     {
-        std::vector<std::string> sdata;
-        FILE *f = fopen(Path.c_str(), "rb");
+        std::vector<pu::String> sdata;
+        FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
         if(f)
         {
             fseek(f, 0, SEEK_END);
@@ -200,8 +197,8 @@ namespace fs
             std::vector<u8> bdata(rrsz);
             fread(bdata.data(), 1, rrsz, f);
             u32 count = 0;
-            std::string tmpline;
-            std::string tmpchr;
+            pu::String tmpline;
+            pu::String tmpchr;
             u32 toff = 0;
             for(u32 i = 0; i < (rrsz + 1); i++)
             {
@@ -209,7 +206,7 @@ namespace fs
                 {
                     std::stringstream ostrm;
                     ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
-                    std::string def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
+                    pu::String def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
                     sdata.push_back(def);
                     toff += 16;
                     count = 0;
@@ -229,7 +226,7 @@ namespace fs
                     }
                     std::stringstream ostrm;
                     ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
-                    std::string def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
+                    pu::String def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
                     sdata.push_back(def);
                     break;
                 }
@@ -247,11 +244,11 @@ namespace fs
         return sdata;
     }
 
-    Result WriteFile(std::string Path, std::vector<u8> Data)
+    Result WriteFile(pu::String Path, std::vector<u8> Data)
     {
         Result rc = DeleteFile(Path);
         if(rc != 0) return rc;
-        FILE *fle = fopen(Path.c_str(), "wb");
+        FILE *fle = fopen(Path.AsUTF8().c_str(), "wb");
         if(fle)
         {
             fwrite(Data.data(), 1, Data.size(), fle);
@@ -262,19 +259,24 @@ namespace fs
         return rc;
     }
 
-    u64 GetFileSize(std::string Path)
+    u64 GetFileSize(pu::String Path)
     {
         u64 sz = 0;
-        std::ifstream ifs(Path, std::ios::binary | std::ios::ate);
-        if(ifs.good()) sz = ifs.tellg();
-        ifs.close();
+        FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
+        if(f)
+        {
+            fseek(f, 0, SEEK_END);
+            sz = ftell(f);
+            rewind(f);
+            fclose(f);
+        }
         return sz;
     }
 
-    u64 GetDirectorySize(std::string Path)
+    u64 GetDirectorySize(pu::String Path)
     {
         u64 sz = 0;
-        DIR *d = opendir(Path.c_str());
+        DIR *d = opendir(Path.AsUTF8().c_str());
         if(d)
         {
             struct dirent *dent;
@@ -282,8 +284,8 @@ namespace fs
             {
                 dent = readdir(d);
                 if(dent == NULL) break;
-                std::string nd = dent->d_name;
-                std::string pd = Path + "/" + nd;
+                pu::String nd = dent->d_name;
+                pu::String pd = Path + "/" + nd;
                 if(fs::IsFile(pd)) sz += GetFileSize(pd);
                 else sz += GetDirectorySize(pd);
             }
@@ -292,22 +294,22 @@ namespace fs
         return sz;
     }
 
-    std::string GetFileName(std::string Path)
+    pu::String GetFileName(pu::String Path)
     {
         return Path.substr(Path.find_last_of("/\\") + 1);
     }
 
-    std::string GetExtension(std::string Path)
+    pu::String GetExtension(pu::String Path)
     {
         return Path.substr(Path.find_last_of(".") + 1);
     }
 
-    std::string GetPathRoot(std::string Path)
+    pu::String GetPathRoot(pu::String Path)
     {
         return Path.substr(0, Path.find_first_of(":"));
     }
 
-    std::string GetPathWithoutRoot(std::string Path)
+    pu::String GetPathWithoutRoot(pu::String Path)
     {
         return Path.substr(Path.find_first_of(":") + 1);
     }
@@ -364,9 +366,9 @@ namespace fs
         return space;
     }
 
-    std::string FormatSize(u64 Bytes)
+    pu::String FormatSize(u64 Bytes)
     {
-        std::string sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
+        pu::String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
         if(Bytes == 0) return "0" + sufs[0];
         u32 plc = floor((log(Bytes) / log(1024)));
         double btnum = (double)(Bytes / pow(1024, plc));
@@ -376,10 +378,10 @@ namespace fs
         return (strm.str() + sufs[plc]);
     }
 
-    std::string SearchForFileInPath(std::string Base, std::string Extension)
+    pu::String SearchForFileInPath(pu::String Base, pu::String Extension)
     {
-        std::string path;
-        DIR *dp = opendir(Base.c_str());
+        pu::String path;
+        DIR *dp = opendir(Base.AsUTF8().c_str());
         if(dp)
         {
             dirent *dt;
@@ -387,8 +389,8 @@ namespace fs
             {
                 dt = readdir(dp);
                 if(dt == NULL) break;
-                std::string pth = std::string(dt->d_name);
-                std::string seq = pth.substr(pth.length() - Extension.length());
+                pu::String pth = pu::String(dt->d_name);
+                pu::String seq = pth.substr(pth.length() - Extension.length());
                 if(seq == Extension)
                 {
                     path = pth;

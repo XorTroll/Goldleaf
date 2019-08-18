@@ -11,6 +11,7 @@
 
 #pragma once
 #include <switch.h>
+#include <Types.hpp>
 
 namespace nsp
 {
@@ -33,7 +34,7 @@ namespace nsp
     struct PFS0File
     {
         PFS0FileEntry Entry;
-        std::string Name;
+        pu::String Name;
     };
 
     static constexpr u32 Magic = 0x30534650;

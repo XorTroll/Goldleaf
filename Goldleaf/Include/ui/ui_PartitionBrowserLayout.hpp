@@ -21,7 +21,7 @@ namespace ui
             ~PartitionBrowserLayout();
             void ChangePartitionSdCard(bool Update = true);
             void ChangePartitionNAND(fs::Partition Partition, bool Update = true);
-            void ChangePartitionPCDrive(std::string Mount, bool Update = true);
+            void ChangePartitionPCDrive(pu::String Mount, bool Update = true);
             void UpdateElements(int Idx = 0);
             bool GoBack();
             bool WarnNANDWriteAccess();
@@ -30,7 +30,7 @@ namespace ui
             fs::Explorer *GetExplorer();
         private:
             fs::Explorer *gexp;
-            std::vector<std::string> elems;
+            std::vector<pu::String> elems;
             pu::ui::elm::Menu *browseMenu;
             pu::ui::elm::TextBlock *dirEmptyText;
     };

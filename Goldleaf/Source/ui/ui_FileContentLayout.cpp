@@ -21,7 +21,7 @@ namespace ui
         delete this->cntText;
     }
 
-    void FileContentLayout::LoadFile(std::string Path,  pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex)
+    void FileContentLayout::LoadFile(pu::String Path,  pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex)
     {
         this->prev = Prev;
         this->pth = Path;
@@ -33,7 +33,7 @@ namespace ui
 
     void FileContentLayout::Update()
     {
-        std::vector<std::string> lines;
+        std::vector<pu::String> lines;
         if(this->mode) lines = this->gexp->ReadFileFormatHex(this->pth, this->loffset, 19);
         else lines = this->gexp->ReadFileLines(this->pth, this->loffset, 19);
         if(lines.empty())
@@ -42,7 +42,7 @@ namespace ui
             return;
         }
         this->rlines = lines.size();
-        std::string alines;
+        pu::String alines;
         if(this->rlines > 0) for(u32 i = 0; i < this->rlines; i++)
         {
             if(i > 0) alines += "\n";

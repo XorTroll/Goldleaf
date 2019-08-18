@@ -24,7 +24,7 @@ namespace ui
         this->optionsMenu->ClearItems();
         if(!this->tcontents.empty()) for(u32 i = 0; i < this->tcontents.size(); i++)
         {
-            std::string name = set::GetDictionaryEntry(261);
+            pu::String name = set::GetDictionaryEntry(261);
             if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
             if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263);
             pu::ui::elm::MenuItem *subcnt = new pu::ui::elm::MenuItem(name);
@@ -38,7 +38,7 @@ namespace ui
     void ContentInformationLayout::options_Click()
     {
         u32 idx = this->optionsMenu->GetSelectedIndex();
-        std::string msg = set::GetDictionaryEntry(169) + "\n\n";
+        pu::String msg = set::GetDictionaryEntry(169) + "\n\n";
         msg += set::GetDictionaryEntry(170) + " ";
         std::vector<pu::String> opts = { set::GetDictionaryEntry(245), set::GetDictionaryEntry(244) };
         std::string icn;
@@ -71,23 +71,26 @@ namespace ui
         if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
         auto tiks = hos::GetAllTickets();
         bool hastik = false;
-        int tikidx = -1;
-        for(u32 i = 0; i < tiks.size(); i++)
+        hos::Ticket stik;
+
+        auto it = std::find_if(tiks.begin(), tiks.end(), [&](hos::Ticket &tik) -> bool
         {
-            if(tiks[i].GetApplicationId() == cnt.ApplicationId)
-            {
-                msg += "\n\n" + set::GetDictionaryEntry(285) + "\nID: " + tiks[i].ToString();
-                hastik = true;
-                tikidx = i;
-                break;
-            }
+            return (tik.GetApplicationId() == cnt.ApplicationId);
+        });
+
+        if(it != tiks.end())
+        {
+            hastik = true;
+            stik = *it;
         }
+
         if((idx == 0) && (cnt.Location == Storage::GameCart))
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
         }
         if(hastik) opts.push_back(set::GetDictionaryEntry(293));
+        opts.push_back("Reset expected title version");
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
@@ -110,10 +113,7 @@ namespace ui
             Result rc = hos::RemoveTitle(cnt);
             if(rc == 0)
             {
-                if(remtik)
-                {
-                    rc = hos::RemoveTicket(tiks[tikidx]);
-                }
+                if(remtik) rc = hos::RemoveTicket(stik);
                 if(rc == 0)
                 {
                     mainapp->ShowNotification(set::GetDictionaryEntry(246));
@@ -145,13 +145,23 @@ namespace ui
         {
             sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
-            Result rc = es::DeleteTicket(&tiks[tikidx].RId, sizeof(es::RightsId));
+            Result rc = es::DeleteTicket(&stik.RId, sizeof(es::RightsId));
             if(rc == 0)
             {
                 mainapp->ShowNotification(set::GetDictionaryEntry(206));
                 this->UpdateElements();
             }
             else HandleResult(rc, set::GetDictionaryEntry(207));
+        }
+        else if((hastik && sopt == 3) || (!hastik && sopt == 2))
+        {
+            auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
+            if(rc == 0)
+            {
+                mainapp->ShowNotification("Yeet!");
+                this->UpdateElements();
+            }
+            else HandleResult(rc, "Boop...");
         }
     }
 
@@ -169,10 +179,10 @@ namespace ui
             }
         }
         NacpStruct *nacp = Content.TryGetNACP();
-        std::string tcnt = hos::FormatApplicationId(Content.ApplicationId);
+        pu::String tcnt = hos::FormatApplicationId(Content.ApplicationId);
         if(nacp != NULL)
         {
-            tcnt = hos::GetNACPName(nacp) + " (" + std::string(nacp->version) + ")";
+            tcnt = hos::GetNACPName(nacp) + " (" + pu::String(nacp->version) + ")";
             delete nacp;
         }
         std::string icon;
@@ -180,7 +190,7 @@ namespace ui
         if(cicon != NULL)
         {
             icon = hos::GetExportedIconPath(Content.ApplicationId);
-            delete cicon;
+            delete[] cicon;
             cicon = NULL;
         }
         mainapp->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);

@@ -133,11 +133,10 @@ namespace hos
         operator delete[](block, std::align_val_t(0x1000));
     }
 
-    void PayloadProcess(std::string Path)
+    void PayloadProcess(pu::String Path)
     {
         u8 *block = new (std::align_val_t(0x1000)) u8[MaxPayloadSize]();
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
-        std::vector<u8> data = fexp->ReadFile(Path);
         auto size = fexp->GetFileSize(Path);
         if((size == 0) || (size > MaxPayloadSize)) return;
         fexp->ReadFileBlock(Path, 0, size, block);

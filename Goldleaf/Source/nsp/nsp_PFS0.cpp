@@ -3,7 +3,7 @@
 
 namespace nsp
 {
-    PFS0::PFS0(fs::Explorer *Exp, std::string Path)
+    PFS0::PFS0(fs::Explorer *Exp, pu::String Path)
     {
         this->path = Path;
         this->gexp = Exp;
@@ -24,7 +24,7 @@ namespace nsp
                 PFS0FileEntry ent;
                 memset(&ent, 0, sizeof(ent));
                 Exp->ReadFileBlock(this->path, offset, sizeof(ent), (u8*)&ent);
-                std::string name;
+                pu::String name;
                 for(u32 i = ent.StringTableOffset; i < this->header.StringTableSize; i++)
                 {
                     char ch = (char)this->stringtable[i];
@@ -49,7 +49,7 @@ namespace nsp
         return this->header.FileCount;
     }
 
-    std::string PFS0::GetFile(u32 Index)
+    pu::String PFS0::GetFile(u32 Index)
     {
         return this->files[Index].Name;
     }
@@ -59,9 +59,9 @@ namespace nsp
         return this->gexp->ReadFileBlock(this->path, (this->headersize + this->files[Index].Entry.Offset + Offset), Size, Out);
     }
 
-    std::vector<std::string> PFS0::GetFiles()
+    std::vector<pu::String> PFS0::GetFiles()
     {
-        std::vector<std::string> pfiles;
+        std::vector<pu::String> pfiles;
         for(u32 i = 0; i < this->files.size(); i++) pfiles.push_back(this->files[i].Name);
         return pfiles;
     }
@@ -81,7 +81,7 @@ namespace nsp
         return this->files[Index].Entry.Size;
     }
 
-    void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, std::string Path)
+    void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, pu::String Path)
     {
         u64 fsize = this->GetFileSize(Index);
         u64 rsize = fs::GetFileSystemOperationsBufferSize();
@@ -100,12 +100,12 @@ namespace nsp
         }
     }
 
-    u32 PFS0::GetFileIndexByName(std::string File)
+    u32 PFS0::GetFileIndexByName(pu::String File)
     {
         u32 idx = 0;
         for(u32 i = 0; i < this->files.size(); i++)
         {
-            if(strcasecmp(this->files[i].Name.c_str(), File.c_str()) == 0)
+            if(strcasecmp(this->files[i].Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0)
             {
                 idx = i;
                 break;

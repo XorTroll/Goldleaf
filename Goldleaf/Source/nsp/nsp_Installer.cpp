@@ -11,7 +11,7 @@ extern set::Settings gsets;
 
 namespace nsp
 {
-    Installer::Installer(std::string Path, fs::Explorer *Exp, Storage Location) : nspentry(Exp, Path), storage(static_cast<FsStorageId>(Location))
+    Installer::Installer(pu::String Path, fs::Explorer *Exp, Storage Location) : nspentry(Exp, Path), storage(static_cast<FsStorageId>(Location))
     {
     }
 
@@ -26,7 +26,7 @@ namespace nsp
         if(nspentry.IsOk())
         {
             rc = 0;
-            std::string cnmtnca;
+            pu::String cnmtnca;
             u32 idxcnmtnca = 0;
             u64 scnmtnca = 0;
             u32 idxtik = 0;
@@ -34,7 +34,7 @@ namespace nsp
             auto files = nspentry.GetFiles();
             for(u32 i = 0; i < files.size(); i++)
             {
-                std::string file = files[i];
+                pu::String file = files[i];
                 if(fs::GetExtension(file) == "tik")
                 {
                     tik = file;
@@ -53,24 +53,24 @@ namespace nsp
                 rc = err::Make(err::ErrorDescription::MetaNotFound);
                 return rc;
             }
-            std::string icnmtnca = fs::GetFileName(cnmtnca);
+            pu::String icnmtnca = fs::GetFileName(cnmtnca);
             fs::Explorer *nsys = fs::GetNANDSystemExplorer();
             nsys->CreateDirectory("Contents/temp");
-            std::string ncnmtnca = nsys->FullPathFor("Contents/temp/" + cnmtnca);
+            pu::String ncnmtnca = nsys->FullPathFor("Contents/temp/" + cnmtnca);
             nsys->DeleteFile(ncnmtnca);
             nspentry.SaveFile(idxcnmtnca, nsys, ncnmtnca);
-            std::string acnmtnca = "@SystemContent://temp/" + cnmtnca;
+            pu::String acnmtnca = "@SystemContent://temp/" + cnmtnca;
             acnmtnca.reserve(FS_MAX_PATH);
             FsFileSystem cnmtncafs;
-            rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.c_str());
+            rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.AsUTF8().c_str());
             if(rc != 0) return rc;
             {
                 fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs);
                 auto cnts = cnmtfs.GetContents();
-                std::string fcnmt;
+                pu::String fcnmt;
                 for(u32 i = 0; i < cnts.size(); i++)
                 {
-                    std::string cnt = cnts[i];
+                    pu::String cnt = cnts[i];
                     if(fs::GetExtension(cnt) == "cnmt")
                     {
                         fcnmt = cnt;
@@ -113,7 +113,7 @@ namespace nsp
             baseappid = hos::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
             auto recs = cnmt.GetContentRecords();
             memset(&entrynacp, 0, sizeof(entrynacp));
-            std::string ptik = nsys->FullPathFor("Contents/temp/" + tik);
+            pu::String ptik = nsys->FullPathFor("Contents/temp/" + tik);
             if(stik > 0)
             {
                 nspentry.SaveFile(idxtik, nsys, ptik);
@@ -124,22 +124,22 @@ namespace nsp
                 ncas.push_back(recs[i]);
                 if(recs[i].Type == ncm::ContentType::Control)
                 {
-                    std::string controlncaid = hos::ContentIdAsString(recs[i].ContentId);
-                    std::string controlnca = controlncaid + ".nca";
+                    pu::String controlncaid = hos::ContentIdAsString(recs[i].ContentId);
+                    pu::String controlnca = controlncaid + ".nca";
                     u32 idxcontrolnca = nspentry.GetFileIndexByName(controlnca);
                     auto ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
                     nspentry.SaveFile(idxcontrolnca, nsys, ncontrolnca);
-                    std::string acontrolnca = "@SystemContent://temp/" + controlnca;
+                    pu::String acontrolnca = "@SystemContent://temp/" + controlnca;
                     acontrolnca.reserve(FS_MAX_PATH);
                     FsFileSystem controlncafs;
-                    rc = fsOpenFileSystemWithId(&controlncafs, baseappid, FsFileSystemType_ContentControl, acontrolnca.c_str());
+                    rc = fsOpenFileSystemWithId(&controlncafs, baseappid, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
                     if(rc == 0)
                     {
                         fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs);
                         auto cnts = controlfs.GetContents();
                         for(u32 i = 0; i < cnts.size(); i++)
                         {
-                            std::string cnt = cnts[i];
+                            pu::String cnt = cnts[i];
                             if(fs::GetExtension(cnt) == "dat")
                             {
                                 icon = "sdmc:/" + GoldleafDir + "/meta/" + controlncaid + ".jpg";
@@ -220,7 +220,7 @@ namespace nsp
 
     std::string Installer::GetExportedIconPath()
     {
-        return icon;
+        return icon.AsUTF8();
     }
 
     NacpStruct *Installer::GetNACP()
@@ -251,14 +251,14 @@ namespace nsp
         u8 *rdata = fs::GetFileSystemOperationsBuffer();
         u64 totalsize = 0;
         u64 twrittensize = 0;
-        std::vector<std::string> ncanames;
+        std::vector<pu::String> ncanames;
         std::vector<u64> ncasizes;
         std::vector<u32> ncaidxs;
         for(u32 i = 0; i < ncas.size(); i++)
         {
             ncm::ContentRecord rnca = ncas[i];
             NcmNcaId curid = rnca.ContentId;
-            std::string ncaname = hos::ContentIdAsString(curid);
+            pu::String ncaname = hos::ContentIdAsString(curid);
             if(rnca.Type == ncm::ContentType::Meta) ncaname += ".cnmt";
             ncaname += ".nca";
             u32 idxncaname = nspentry.GetFileIndexByName(ncaname);
@@ -272,7 +272,7 @@ namespace nsp
         {
             ncm::ContentRecord rnca = ncas[i];
             NcmNcaId curid = rnca.ContentId;
-            std::string ncaname = ncanames[i];
+            pu::String ncaname = ncanames[i];
             u64 ncasize = ncasizes[i];
             u32 idxncaname = ncaidxs[i];
 

@@ -40,26 +40,6 @@ enum class Storage
     SdCard,
 };
 
-enum class InstallerError
-{
-    Success,
-    BadNSP,
-    NSPOpen,
-    BadCNMTNCA,
-    CNMTMCAOpen,
-    BadCNMT,
-    CNMTOpen,
-    BadControlNCA,
-    MetaDatabaseOpen,
-    MetaDatabaseSet,
-    MetaDatabaseCommit,
-    ContentMetaCount,
-    ContentMetaList,
-    RecordPush,
-    InstallBadNCA,
-    TitleFound,
-};
-
 enum class Language
 {
     English,
@@ -67,14 +47,6 @@ enum class Language
     German,
     French,
     Italian,
-};
-
-struct InstallerResult
-{
-    Result Error;
-    InstallerError Type;
-
-    bool IsSuccess();
 };
 
 struct ColorScheme
@@ -91,8 +63,8 @@ struct Version
     u32 Minor;
     s32 BugFix;
 
-    std::string AsString();
-    static Version FromString(std::string StrVersion);
+    pu::String AsString();
+    static Version FromString(pu::String StrVersion);
     bool IsLower(Version Other);
     bool IsHigher(Version Other);
     bool IsEqual(Version Other);
@@ -102,7 +74,7 @@ static const std::string GoldleafDir = "switch/Goldleaf";
 
 ExecutableMode GetExecutableMode();
 LaunchMode GetLaunchMode();
-std::string GetVersion();
+pu::String GetVersion();
 u64 GetApplicationId();
 bool HasKeyFile();
 bool IsAtmosphere();

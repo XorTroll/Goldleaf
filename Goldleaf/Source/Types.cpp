@@ -1,14 +1,9 @@
 #include <Types.hpp>
 #include <fs/fs_Explorer.hpp>
 
-bool InstallerResult::IsSuccess()
+pu::String Version::AsString()
 {
-    return (this->Type == InstallerError::Success);
-}
-
-std::string Version::AsString()
-{
-    std::string txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
+    pu::String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
     if(this->BugFix > 0)
     {
         txt += "." + std::to_string(this->BugFix);
@@ -16,16 +11,16 @@ std::string Version::AsString()
     return txt;
 }
 
-Version Version::FromString(std::string StrVersion)
+Version Version::FromString(pu::String StrVersion)
 {
-    std::string strv = StrVersion;
+    pu::String strv = StrVersion;
     Version v;
     memset(&v, 0, sizeof(v));
     size_t pos = 0;
-    std::string token;
+    pu::String token;
     u32 c = 0;
-    std::string delimiter = ".";
-    while((pos = strv.find(delimiter)) != std::string::npos)
+    pu::String delimiter = ".";
+    while((pos = strv.find(delimiter)) != pu::String::npos)
     {
         token = strv.substr(0, pos);
         if(c == 0) v.Major = std::stoi(token);
@@ -83,9 +78,9 @@ LaunchMode GetLaunchMode()
     return mode;
 }
 
-std::string GetVersion()
+pu::String GetVersion()
 {
-    return std::string(GOLDLEAF_VERSION);
+    return pu::String(GOLDLEAF_VERSION);
 }
 
 u64 GetApplicationId()

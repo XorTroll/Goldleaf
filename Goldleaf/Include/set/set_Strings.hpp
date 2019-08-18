@@ -23,6 +23,6 @@ namespace set
     static Dictionary Errors;
     
     void Initialize();
-    std::string GetDictionaryEntry(u32 Index);
-    std::string GetErrorEntry(u32 Index);
+    pu::String GetDictionaryEntry(u32 Index);
+    pu::String GetErrorEntry(u32 Index);
 }

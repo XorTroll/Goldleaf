@@ -15,7 +15,7 @@ namespace net
         return (size * num);
     }
 
-    std::function<void(double, double)> tmpcb = [&](double a, double b){};
+    std::function<void(double, double)> tmpcb = [&](double, double){};
 
     int CurlProgress(void* ptr, double TotalToDownload, double NowDownloaded, double TotalToUpload, double NowUploaded)
     {

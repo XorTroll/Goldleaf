@@ -22,8 +22,8 @@ namespace ui
             void UpdatePaths();
             void path_Click();
         private:
-            std::vector<std::string> names;
-            std::vector<std::string> paths;
+            std::vector<pu::String> names;
+            std::vector<pu::String> paths;
             pu::ui::elm::Menu *pathsMenu;
             std::vector<pu::ui::elm::MenuItem*> pathItems;
     };

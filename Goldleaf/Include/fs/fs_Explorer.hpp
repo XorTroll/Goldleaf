@@ -19,71 +19,71 @@ namespace fs
     {
         public:
             virtual bool ShouldWarnOnWriteAccess();
-            void SetNames(std::string MountName, std::string DisplayName);
+            void SetNames(pu::String MountName, pu::String DisplayName);
             bool NavigateBack();
-            bool NavigateForward(std::string Path);
-            std::vector<std::string> GetContents();
-            std::string GetMountName();
-            std::string GetCwd();
-            std::string GetPresentableCwd();
-            std::string FullPathFor(std::string Path);
-            std::string FullPresentablePathFor(std::string Path);
-            std::string MakeFull(std::string Path);
-            bool IsFullPath(std::string Path);
-            void CopyFile(std::string Path, std::string NewPath);
-            void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback);
-            void CopyDirectory(std::string Dir, std::string NewDir);
-            void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback);
-            bool IsFileBinary(std::string Path);
-            std::vector<u8> ReadFile(std::string Path);
-            std::vector<std::string> ReadFileLines(std::string Path, u32 LineOffset, u32 LineCount);
-            std::vector<std::string> ReadFileFormatHex(std::string Path, u32 LineOffset, u32 LineCount);
-            u64 GetDirectorySize(std::string Path);
-            void DeleteDirectory(std::string Path);
+            bool NavigateForward(pu::String Path);
+            std::vector<pu::String> GetContents();
+            pu::String GetMountName();
+            pu::String GetCwd();
+            pu::String GetPresentableCwd();
+            pu::String FullPathFor(pu::String Path);
+            pu::String FullPresentablePathFor(pu::String Path);
+            pu::String MakeFull(pu::String Path);
+            bool IsFullPath(pu::String Path);
+            void CopyFile(pu::String Path, pu::String NewPath);
+            void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback);
+            void CopyDirectory(pu::String Dir, pu::String NewDir);
+            void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback);
+            bool IsFileBinary(pu::String Path);
+            std::vector<u8> ReadFile(pu::String Path);
+            std::vector<pu::String> ReadFileLines(pu::String Path, u32 LineOffset, u32 LineCount);
+            std::vector<pu::String> ReadFileFormatHex(pu::String Path, u32 LineOffset, u32 LineCount);
+            u64 GetDirectorySize(pu::String Path);
+            void DeleteDirectory(pu::String Path);
 
-            virtual std::vector<std::string> GetDirectories(std::string Path) = 0;
-            virtual std::vector<std::string> GetFiles(std::string Path) = 0;
-            virtual bool Exists(std::string Path) = 0;
-            virtual bool IsFile(std::string Path) = 0;
-            virtual bool IsDirectory(std::string Path) = 0;
-            virtual void CreateFile(std::string Path) = 0;
-            virtual void CreateDirectory(std::string Path) = 0;
-            virtual void RenameFile(std::string Path, std::string NewName) = 0;
-            virtual void RenameDirectory(std::string Path, std::string NewName) = 0;
-            virtual void DeleteFile(std::string Path) = 0;
-            virtual void DeleteDirectorySingle(std::string Path) = 0;
-            virtual u64 ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out) = 0;
-            virtual u64 WriteFileBlock(std::string Path, u8 *Data, u64 Size) = 0;
-            virtual u64 GetFileSize(std::string Path) = 0;
+            virtual std::vector<pu::String> GetDirectories(pu::String Path) = 0;
+            virtual std::vector<pu::String> GetFiles(pu::String Path) = 0;
+            virtual bool Exists(pu::String Path) = 0;
+            virtual bool IsFile(pu::String Path) = 0;
+            virtual bool IsDirectory(pu::String Path) = 0;
+            virtual void CreateFile(pu::String Path) = 0;
+            virtual void CreateDirectory(pu::String Path) = 0;
+            virtual void RenameFile(pu::String Path, pu::String NewName) = 0;
+            virtual void RenameDirectory(pu::String Path, pu::String NewName) = 0;
+            virtual void DeleteFile(pu::String Path) = 0;
+            virtual void DeleteDirectorySingle(pu::String Path) = 0;
+            virtual u64 ReadFileBlock(pu::String Path, u64 Offset, u64 Size, u8 *Out) = 0;
+            virtual u64 WriteFileBlock(pu::String Path, u8 *Data, u64 Size) = 0;
+            virtual u64 GetFileSize(pu::String Path) = 0;
             virtual u64 GetTotalSpace() = 0;
             virtual u64 GetFreeSpace() = 0;
-            virtual void SetArchiveBit(std::string Path) = 0;
+            virtual void SetArchiveBit(pu::String Path) = 0;
         protected:
-            std::string dspname;
-            std::string mntname;
-            std::string ecwd;
+            pu::String dspname;
+            pu::String mntname;
+            pu::String ecwd;
     };
 
     class StdExplorer : public Explorer
     {
         public:
-            virtual std::vector<std::string> GetDirectories(std::string Path) override;
-            virtual std::vector<std::string> GetFiles(std::string Path) override;
-            virtual bool Exists(std::string Path) override;
-            virtual bool IsFile(std::string Path) override;
-            virtual bool IsDirectory(std::string Path) override;
-            virtual void CreateFile(std::string Path) override;
-            virtual void CreateDirectory(std::string Path) override;
-            virtual void RenameFile(std::string Path, std::string NewName) override;
-            virtual void RenameDirectory(std::string Path, std::string NewName) override;
-            virtual void DeleteFile(std::string Path) override;
-            virtual void DeleteDirectorySingle(std::string Path) override;
-            virtual u64 ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(std::string Path, u8 *Data, u64 Size) override;
-            virtual u64 GetFileSize(std::string Path) override;
+            virtual std::vector<pu::String> GetDirectories(pu::String Path) override;
+            virtual std::vector<pu::String> GetFiles(pu::String Path) override;
+            virtual bool Exists(pu::String Path) override;
+            virtual bool IsFile(pu::String Path) override;
+            virtual bool IsDirectory(pu::String Path) override;
+            virtual void CreateFile(pu::String Path) override;
+            virtual void CreateDirectory(pu::String Path) override;
+            virtual void RenameFile(pu::String Path, pu::String NewName) override;
+            virtual void RenameDirectory(pu::String Path, pu::String NewName) override;
+            virtual void DeleteFile(pu::String Path) override;
+            virtual void DeleteDirectorySingle(pu::String Path) override;
+            virtual u64 ReadFileBlock(pu::String Path, u64 Offset, u64 Size, u8 *Out) override;
+            virtual u64 WriteFileBlock(pu::String Path, u8 *Data, u64 Size) override;
+            virtual u64 GetFileSize(pu::String Path) override;
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
-            virtual void SetArchiveBit(std::string Path) override;
+            virtual void SetArchiveBit(pu::String Path) override;
     };
 
     class SdCardExplorer final : public StdExplorer
@@ -111,30 +111,30 @@ namespace fs
     class USBPCDriveExplorer final : public Explorer
     {
         public:
-            USBPCDriveExplorer(std::string MountName);
-            virtual std::vector<std::string> GetDirectories(std::string Path) override;
-            virtual std::vector<std::string> GetFiles(std::string Path) override;
-            virtual bool Exists(std::string Path) override;
-            virtual bool IsFile(std::string Path) override;
-            virtual bool IsDirectory(std::string Path) override;
-            virtual void CreateFile(std::string Path) override;
-            virtual void CreateDirectory(std::string Path) override;
-            virtual void RenameFile(std::string Path, std::string NewName) override;
-            virtual void RenameDirectory(std::string Path, std::string NewName) override;
-            virtual void DeleteFile(std::string Path) override;
-            virtual void DeleteDirectorySingle(std::string Path) override;
-            virtual u64 ReadFileBlock(std::string Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(std::string Path, u8 *Data, u64 Size) override;
-            virtual u64 GetFileSize(std::string Path) override;
+            USBPCDriveExplorer(pu::String MountName);
+            virtual std::vector<pu::String> GetDirectories(pu::String Path) override;
+            virtual std::vector<pu::String> GetFiles(pu::String Path) override;
+            virtual bool Exists(pu::String Path) override;
+            virtual bool IsFile(pu::String Path) override;
+            virtual bool IsDirectory(pu::String Path) override;
+            virtual void CreateFile(pu::String Path) override;
+            virtual void CreateDirectory(pu::String Path) override;
+            virtual void RenameFile(pu::String Path, pu::String NewName) override;
+            virtual void RenameDirectory(pu::String Path, pu::String NewName) override;
+            virtual void DeleteFile(pu::String Path) override;
+            virtual void DeleteDirectorySingle(pu::String Path) override;
+            virtual u64 ReadFileBlock(pu::String Path, u64 Offset, u64 Size, u8 *Out) override;
+            virtual u64 WriteFileBlock(pu::String Path, u8 *Data, u64 Size) override;
+            virtual u64 GetFileSize(pu::String Path) override;
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
-            virtual void SetArchiveBit(std::string Path) override;
+            virtual void SetArchiveBit(pu::String Path) override;
     };
 
     class FileSystemExplorer final : public StdExplorer
     {
         public:
-            FileSystemExplorer(std::string MountName, std::string DisplayName, FsFileSystem *FileSystem);
+            FileSystemExplorer(pu::String MountName, pu::String DisplayName, FsFileSystem *FileSystem);
             ~FileSystemExplorer();
             FsFileSystem *GetFileSystem();
             virtual u64 GetTotalSpace() override;
@@ -148,6 +148,6 @@ namespace fs
     NANDExplorer *GetNANDSafeExplorer();
     NANDExplorer *GetNANDUserExplorer();
     NANDExplorer *GetNANDSystemExplorer();
-    USBPCDriveExplorer *GetUSBPCDriveExplorer(std::string MountName);
-    Explorer *GetExplorerForMountName(std::string MountName);
+    USBPCDriveExplorer *GetUSBPCDriveExplorer(pu::String MountName);
+    Explorer *GetExplorerForMountName(pu::String MountName);
 }

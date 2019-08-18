@@ -20,16 +20,11 @@ namespace ui
             AccountLayout();
             ~AccountLayout();
             void Load(u128 UserId);
-            void CleanData();
             void optsRename_Click();
             void optsIcon_Click();
             void optsDelete_Click();
         private:
             pu::ui::elm::Menu *optsMenu;
             u128 uid;
-            AccountProfile prf;
-            AccountProfileBase *pbase;
-            AccountUserData *udata;
-            acc::ProfileEditor pred;
     };
 }

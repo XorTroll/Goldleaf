@@ -9,7 +9,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.6.1
+APP_VERSION := 0.6.X-dev
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
@@ -108,6 +108,7 @@ $(BUILD):
 
 clean:
 	@echo Goldleaf: Cleaning...
+	@$(MAKE) clean -C ../Plutonium/Plutonium/
 	@rm -fr $(BUILD)
 	@rm -fr $(CURDIR)/Output
 

@@ -9,21 +9,21 @@
 
 namespace hos
 {
-    std::string ContentId::GetFileName()
+    pu::String ContentId::GetFileName()
     {
         return hos::ContentIdAsString(this->NCAId) + ".nca";
     }
 
-    std::string ContentId::GetFullPath()
+    pu::String ContentId::GetFullPath()
     {
-        std::string path;
+        pu::String path;
         NcmContentStorage cst;
         Result rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
         if(rc == 0)
         {
             char pout[FS_MAX_PATH] = { 0 };
             rc = ncmContentStorageGetPath(&cst, &this->NCAId, pout, FS_MAX_PATH);
-            if(rc == 0) path = std::string(pout);
+            if(rc == 0) path = pu::String(pout);
         }
         serviceClose(&cst.s);
         return path;
@@ -34,7 +34,7 @@ namespace hos
         return (this->Meta.Size + this->Program.Size + this->Data.Size + this->Control.Size + this->HtmlDocument.Size + this->LegalInfo.Size);
     }
 
-    std::string TitleContents::GetFormattedTotalSize()
+    pu::String TitleContents::GetFormattedTotalSize()
     {
         return fs::FormatSize(this->GetTotalSize());
     }
@@ -47,7 +47,7 @@ namespace hos
         Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
-            nacp = new NacpStruct;
+            nacp = new NacpStruct();
             memcpy(nacp, &ctdata->nacp, sizeof(NacpStruct));
         }
         else
@@ -55,7 +55,7 @@ namespace hos
             rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
-                nacp = new NacpStruct;
+                nacp = new NacpStruct();
                 memcpy(nacp, &ctdata->nacp, sizeof(NacpStruct));
             }
         }
@@ -66,7 +66,7 @@ namespace hos
     u8 *Title::TryGetIcon()
     {
         u8 *icon = NULL;
-        NsApplicationControlData *ctdata = new NsApplicationControlData;
+        NsApplicationControlData *ctdata = new NsApplicationControlData();
         size_t acsz = 0;
         Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
@@ -90,12 +90,12 @@ namespace hos
     bool Title::DumpControlData()
     {
         bool hicon = false;
-        std::string fappid = FormatApplicationId(this->ApplicationId);
+        pu::String fappid = FormatApplicationId(this->ApplicationId);
         NacpStruct *nacp = this->TryGetNACP();
         auto sdexp = fs::GetSdCardExplorer();
         if(nacp != NULL)
         {
-            std::string fnacp = GoldleafDir + "/title/" + fappid + ".nacp";
+            pu::String fnacp = GoldleafDir + "/title/" + fappid + ".nacp";
             sdexp->DeleteFile(fnacp);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
             delete nacp;
@@ -103,7 +103,7 @@ namespace hos
         u8 *jpg = this->TryGetIcon();
         if(jpg != NULL)
         {
-            std::string fjpg = GoldleafDir + "/title/" + fappid + ".jpg";
+            pu::String fjpg = GoldleafDir + "/title/" + fappid + ".jpg";
             sdexp->DeleteFile(fjpg);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
             delete jpg;
@@ -181,11 +181,11 @@ namespace hos
         return __bswap64(*(u64*)(this->RId.RId + 8));
     }
 
-    std::string Ticket::ToString()
+    pu::String Ticket::ToString()
     {
         u64 appid = this->GetApplicationId();
         u64 kgen = this->GetKeyGeneration();
-        std::string tostr = FormatApplicationId(appid) + FormatApplicationId(kgen);
+        pu::String tostr = FormatApplicationId(appid) + FormatApplicationId(kgen);
         return tostr;
     }
 
@@ -203,8 +203,8 @@ namespace hos
         Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(Location), &metadb);
         if(rc == 0)
         {
-            u32 srecs = MaxTitleCount * sizeof(NcmMetaRecord);
-            NcmMetaRecord *recs = new NcmMetaRecord[MaxTitleCount];
+            size_t srecs = MaxTitleCount * sizeof(NcmMetaRecord);
+            NcmMetaRecord *recs = new NcmMetaRecord[MaxTitleCount]();
             u32 wrt = 0;
             u32 total = 0;
             rc = ncmContentMetaDatabaseList(&metadb, static_cast<u32>(Type), 0, 0, UINT64_MAX, recs, srecs, &wrt, &total);
@@ -213,8 +213,7 @@ namespace hos
                 titles.reserve(wrt);
                 for(u32 i = 0; i < wrt; i++)
                 {
-                    Title t;
-                    memset(&t, 0, sizeof(t));
+                    Title t = {};
                     t.ApplicationId = recs[i].titleId;
                     t.Type = static_cast<ncm::ContentMetaType>(recs[i].type);
                     t.Version = recs[i].version;
@@ -231,42 +230,36 @@ namespace hos
 
     Title Locate(u64 ApplicationId)
     {
-        Title tit;
-        memset(&tit, 0, sizeof(tit));
-        std::vector<Title> titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDSystem);
-        if(!titles.empty()) for(u32 i = 0; i < titles.size(); i++)
-        {
-            if(titles[i].ApplicationId == ApplicationId)
-            {
-                tit = titles[i];
-                break;
-            }
+        #ifdef _TMP_FIND_LOCATE
+        #undef _TMP_FIND_LOCATE
+        #endif
+
+        #define _TMP_FIND_LOCATE { \
+            auto it = std::find_if(titles.begin(), titles.end(), [&](Title &t) -> bool \
+            { \
+                return (t.ApplicationId == ApplicationId); \
+            }); \
+            if(it != titles.end()) tit = *it; \
         }
+
+        Title tit = {};
+        std::vector<Title> titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDSystem);
+        
+        _TMP_FIND_LOCATE
+
         if(tit.ApplicationId == 0)
         {
             titles.clear();
             titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
-            if(!titles.empty()) for(u32 i = 0; i < titles.size(); i++)
-            {
-                if(titles[i].ApplicationId == ApplicationId)
-                {
-                    tit = titles[i];
-                    break;
-                }
-            }
+            
+            _TMP_FIND_LOCATE
         }
         if(tit.ApplicationId == 0)
         {
             titles.clear();
             titles = SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
-            if(!titles.empty()) for(u32 i = 0; i < titles.size(); i++)
-            {
-                if(titles[i].ApplicationId == ApplicationId)
-                {
-                    tit = titles[i];
-                    break;
-                }
-            }
+
+            _TMP_FIND_LOCATE
         }
         titles.clear();
         return tit;
@@ -274,15 +267,14 @@ namespace hos
 
     bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId)
     {
-        bool ex = false;
         std::vector<Title> ts = SearchTitles(Type, Location);
-        for(u32 i = 0; i < ts.size(); i++) if(ts[i].ApplicationId == ApplicationId)
+
+        auto it = std::find_if(ts.begin(), ts.end(), [&](Title &t) -> bool
         {
-            ex = true;
-            break;
-        }
-        ts.clear();
-        return ex;
+            return (t.ApplicationId == ApplicationId);
+        });
+
+        return (it != ts.end());
     }
 
     Result RemoveTitle(Title &ToRemove)
@@ -327,8 +319,7 @@ namespace hos
         if(cc > 0)
         {
             auto sz = cc * sizeof(es::RightsId);
-            es::RightsId *ids = new es::RightsId[cc];
-            memset(ids, 0, sz);
+            es::RightsId *ids = new es::RightsId[cc]();
             es::ListCommonTicket(&wrt, ids, sz);
             for(u32 i = 0; i < wrt; i++) tickets.push_back({ ids[i], hos::TicketType::Common });
             delete[] ids;
@@ -339,8 +330,7 @@ namespace hos
         if(cc > 0)
         {
             auto sz = pc * sizeof(es::RightsId);
-            es::RightsId *ids = new es::RightsId[pc];
-            memset(ids, 0, sz);
+            es::RightsId *ids = new es::RightsId[pc]();
             es::ListPersonalizedTicket(&wrt, ids, sz);
             for(u32 i = 0; i < wrt; i++) tickets.push_back({ ids[i], hos::TicketType::Personalized });
             delete[] ids;
@@ -354,7 +344,7 @@ namespace hos
         return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".jpg";
     }
 
-    std::string GetExportedNACPPath(u64 ApplicationId)
+    pu::String GetExportedNACPPath(u64 ApplicationId)
     {
         return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".nacp";
     }
@@ -379,19 +369,25 @@ namespace hos
 
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId)
     {
-        std::string fappid = FormatApplicationId(ApplicationId);
-        std::string ids = fappid.substr(0, 2);
+        pu::String fappid = FormatApplicationId(ApplicationId);
+        pu::String ids = fappid.substr(0, 2);
         if(ids == "01") return ApplicationIdMask::Official;
         else if(ids == "05") return ApplicationIdMask::Homebrew;
         return ApplicationIdMask::Invalid;
     }
 
-    TicketData ReadTicket(std::string Path)
+    TicketData ReadTicket(pu::String Path)
     {
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
         TicketData tik;
         u64 off = 0;
         u32 tiksig = 0;
+        FILE *f = fopen("sdmc:/ticket.log", "a");
+        if(f)
+        {
+            fprintf(f, "Explorer: %p, Path: %s", fexp, Path.AsUTF8().c_str());
+            fclose(f);
+        }
         fexp->ReadFileBlock(Path, off, sizeof(u32), (u8*)&tiksig);
         tik.Signature = static_cast<TicketSignature>(tiksig);
         u32 sigsz = 0;
@@ -438,26 +434,26 @@ namespace hos
         return tik;
     }
 
-    std::string GetNACPName(NacpStruct *NACP)
+    pu::String GetNACPName(NacpStruct *NACP)
     {
         NacpLanguageEntry *lent;
         nacpGetLanguageEntry(NACP, &lent);
-        std::string ret;
-        if(lent != NULL) ret = std::string(lent->name);
+        pu::String ret;
+        if(lent != NULL) ret = pu::String(lent->name);
         return ret;
     }
 
-    std::string GetNACPAuthor(NacpStruct *NACP)
+    pu::String GetNACPAuthor(NacpStruct *NACP)
     {
         NacpLanguageEntry *lent;
         nacpGetLanguageEntry(NACP, &lent);
-        std::string ret;
-        if(lent != NULL) ret = std::string(lent->author);
+        pu::String ret;
+        if(lent != NULL) ret = pu::String(lent->author);
         return ret;
     }
 
-    std::string GetNACPVersion(NacpStruct *NACP)
+    pu::String GetNACPVersion(NacpStruct *NACP)
     {
-        return std::string(NACP->version);
+        return pu::String(NACP->version);
     }
 }

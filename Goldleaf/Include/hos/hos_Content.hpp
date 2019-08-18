@@ -14,10 +14,11 @@
 #include <cstdio>
 #include <cstring>
 #include <switch.h>
+#include <Types.hpp>
 #include <ncm/ncm_Types.hpp>
 
 namespace hos
 {
-    std::string ContentIdAsString(const NcmNcaId &ContentId);
-    NcmNcaId StringAsContentId(std::string ContentId);
+    pu::String ContentIdAsString(const NcmNcaId &ContentId);
+    NcmNcaId StringAsContentId(pu::String ContentId);
 }

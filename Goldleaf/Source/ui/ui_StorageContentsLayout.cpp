@@ -78,7 +78,7 @@ namespace ui
             for(u32 i = 0; i < this->contents.size(); i++)
             {
                 NacpStruct *nacp = this->contents[i].TryGetNACP();
-                std::string name = hos::FormatApplicationId(this->contents[i].ApplicationId);
+                pu::String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
                 if(nacp != NULL)
                 {
                     name = hos::GetNACPName(nacp);

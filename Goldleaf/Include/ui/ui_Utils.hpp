@@ -14,12 +14,11 @@
 
 namespace ui
 {
-    void SetClipboard(std::string Path);
+    void SetClipboard(pu::String Path);
     void ClearClipboard();
     bool ClipboardEmpty();
     bool ClipboardNotEmpty();
-    void ShowPowerTasksDialog(std::string Title, std::string Message);
-    std::string AskForText(std::string Guide, std::string Initial);
-    u128 AskForUser();
-    void HandleResult(Result OSError, std::string Context);
+    void ShowPowerTasksDialog(pu::String Title, pu::String Message);
+    pu::String AskForText(pu::String Guide = "", pu::String Initial = "", int MaxSize = -1);
+    void HandleResult(Result OSError, pu::String Context);
 }

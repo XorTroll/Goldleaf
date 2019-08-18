@@ -35,10 +35,10 @@ namespace ui
         public:
             MainApplication();
             ~MainApplication();
-            void ShowNotification(std::string Text);
+            void ShowNotification(pu::String Text);
             void UpdateValues();
-            void LoadMenuData(std::string Name, std::string ImageName, std::string TempHead, bool CommonIcon = true);
-            void LoadMenuHead(std::string Head);
+            void LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon = true);
+            void LoadMenuHead(pu::String Head);
             void UnloadMenuData();
             void browser_Input(u64 Down, u64 Up, u64 Held);
             void exploreMenu_Input(u64 Down, u64 Up, u64 Held);
@@ -77,7 +77,7 @@ namespace ui
             bool preisch;
             bool hasusb;
             u32 connstate;
-            std::string pretime;
+            pu::String pretime;
             bool vfirst;
             MainMenuLayout *mainMenu;
             PartitionBrowserLayout *browser;
@@ -117,5 +117,5 @@ namespace ui
     static const ColorScheme DefaultLight = { { 124, 199, 239, 255 }, { 196, 224, 239, 255 }, { 168, 214, 237, 255 }, { 15, 15, 15, 255 } };
     static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
 
-    void UpdateClipboard(std::string Path);
+    void UpdateClipboard(pu::String Path);
 }

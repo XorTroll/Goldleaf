@@ -19,7 +19,7 @@ namespace ui
         public:
             InstallLayout();
             ~InstallLayout();
-            void StartInstall(std::string Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation = false);
+            void StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation = false);
         private:
             pu::ui::elm::TextBlock *installText;
             pu::ui::elm::ProgressBar *installBar;

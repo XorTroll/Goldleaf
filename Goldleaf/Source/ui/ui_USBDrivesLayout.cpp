@@ -72,9 +72,9 @@ namespace ui
                 char label[256];
                 drive::f_getlabel("0:", label, NULL);
                 drive::DriveUnmount(drv);
-                std::string slabel;
+                pu::String slabel;
                 if(strlen(label) == 0) slabel = "Drive " + std::to_string(i);
-                else slabel = std::string(label);
+                else slabel = pu::String(label);
                 pu::ui::elm::MenuItem *mitm = new pu::ui::elm::MenuItem(slabel);
                 mitm->SetIcon(gsets.PathForResource("/Common/Drive.png"));
                 mitm->AddOnClick(std::bind(&USBDrivesLayout::drive_Click, this));

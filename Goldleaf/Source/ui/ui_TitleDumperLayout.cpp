@@ -29,12 +29,12 @@ namespace ui
         EnsureDirectories();
         mainapp->CallForRender();
         FsStorageId stid = static_cast<FsStorageId>(Target.Location);
-        std::string fappid = hos::FormatApplicationId(Target.ApplicationId);
-        std::string outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
+        pu::String fappid = hos::FormatApplicationId(Target.ApplicationId);
+        pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
         fs::CreateDirectory(outdir);
         this->dumpText->SetText(set::GetDictionaryEntry(192));
         mainapp->CallForRender();
-        std::string tkey = dump::GetTitleKeyData(Target.ApplicationId, true);
+        pu::String tkey = dump::GetTitleKeyData(Target.ApplicationId, true);
         this->dumpText->SetText(set::GetDictionaryEntry(193));
         mainapp->CallForRender();
         NcmContentStorage cst;
@@ -74,40 +74,40 @@ namespace ui
             serviceClose(&cmdb.s);
             return;
         }
-        std::string smeta = dump::GetNCAIdPath(&cst, &meta);
+        pu::String smeta = dump::GetNCAIdPath(&cst, &meta);
         NcmNcaId program;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
         bool hasprogram = ok;
-        std::string sprogram;
+        pu::String sprogram;
         if(ok) sprogram = dump::GetNCAIdPath(&cst, &program);
         NcmNcaId control;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
         bool hascontrol = ok;
-        std::string scontrol;
+        pu::String scontrol;
         if(ok) scontrol = dump::GetNCAIdPath(&cst, &control);
         NcmNcaId linfo;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
         bool haslinfo = ok;
-        std::string slinfo;
+        pu::String slinfo;
         if(ok) slinfo = dump::GetNCAIdPath(&cst, &linfo);
         NcmNcaId hoff;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::OfflineHtml, &hoff);
         bool hashoff = ok;
-        std::string shoff;
+        pu::String shoff;
         if(ok) shoff = dump::GetNCAIdPath(&cst, &hoff);
 
         NcmNcaId data;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Data, &data);
         bool hasdata = ok;
-        std::string sdata;
+        pu::String sdata;
         if(ok) sdata = dump::GetNCAIdPath(&cst, &data);
 
-        std::string xprogram = sprogram;
-        std::string xmeta = smeta;
-        std::string xcontrol = scontrol;
-        std::string xlinfo = slinfo;
-        std::string xhoff = shoff;
-        std::string xdata = sdata;
+        pu::String xprogram = sprogram;
+        pu::String xmeta = smeta;
+        pu::String xcontrol = scontrol;
+        pu::String xlinfo = slinfo;
+        pu::String xhoff = shoff;
+        pu::String xdata = sdata;
         if(stid == FsStorageId_SdCard)
         {
             this->dumpText->SetText(set::GetDictionaryEntry(194));
@@ -196,7 +196,7 @@ namespace ui
             }
             this->dumpText->SetText(set::GetDictionaryEntry(195));
             xmeta = nexp->FullPathFor("Contents/" + xmeta.substr(15));
-            std::string txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
+            pu::String txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
             this->ncaBar->SetVisible(true);
             fs::CopyFileProgress(xmeta, txmeta, [&](u8 p)
             {
@@ -208,7 +208,7 @@ namespace ui
             if(hasprogram)
             {
                 xprogram = nexp->FullPathFor("Contents/" + xprogram.substr(15));
-                std::string txprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
+                pu::String txprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
                 {
@@ -221,7 +221,7 @@ namespace ui
             if(hascontrol)
             {
                 xcontrol = nexp->FullPathFor("Contents/" + xcontrol.substr(15));
-                std::string txcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
+                pu::String txcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
                 {
@@ -234,7 +234,7 @@ namespace ui
             if(haslinfo)
             {
                 xlinfo = nexp->FullPathFor("Contents/" + xlinfo.substr(15));
-                std::string txlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
+                pu::String txlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xlinfo, txlinfo, [&](u8 p)
                 {
@@ -247,7 +247,7 @@ namespace ui
             if(hashoff)
             {
                 xhoff = nexp->FullPathFor("Contents/" + xhoff.substr(15));
-                std::string txhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
+                pu::String txhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xhoff, txhoff, [&](u8 p)
                 {
@@ -260,7 +260,7 @@ namespace ui
             if(hasdata)
             {
                 xdata = nexp->FullPathFor("Contents/" + xdata.substr(15));
-                std::string txdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
+                pu::String txdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xdata, txdata, [&](u8 p)
                 {
@@ -271,7 +271,7 @@ namespace ui
                 xdata = txdata;
             }
         }
-        std::string fout = "sdmc:/" + GoldleafDir + "/dump/" + fappid + ".nsp";
+        pu::String fout = "sdmc:/" + GoldleafDir + "/dump/" + fappid + ".nsp";
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
         int qi = nsp::Build(outdir, fout, [&](u8 p)

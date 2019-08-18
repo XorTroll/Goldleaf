@@ -1,4 +1,5 @@
 #include <set/set_Strings.hpp>
+#include <fs/fs_Common.hpp>
 
 extern set::Settings gsets;
 
@@ -6,7 +7,7 @@ namespace set
 {
     void Initialize()
     {
-        std::string pdict;
+        std::string pdict = "en"; // By default
         switch(gsets.CustomLanguage)
         {
             case Language::English:
@@ -36,12 +37,12 @@ namespace set
         ifs.close();
     }
     
-    std::string GetDictionaryEntry(u32 Index)
+    pu::String GetDictionaryEntry(u32 Index)
     {
         return MainDictionary.Strings[Index].get<std::string>();
     }
 
-    std::string GetErrorEntry(u32 Index)
+    pu::String GetErrorEntry(u32 Index)
     {
         return Errors.Strings[Index].get<std::string>();
     }

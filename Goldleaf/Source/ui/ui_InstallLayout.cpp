@@ -23,7 +23,7 @@ namespace ui
         delete this->installBar;
     }
 
-    void InstallLayout::StartInstall(std::string Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation)
+    void InstallLayout::StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation)
     {
         nsp::Installer inst(Path, Exp, Location);
 
@@ -68,7 +68,7 @@ namespace ui
         if(OmitConfirmation) doinstall = true;
         else
         {
-            std::string info = set::GetDictionaryEntry(82) + "\n\n";
+            pu::String info = set::GetDictionaryEntry(82) + "\n\n";
             switch(inst.GetContentMetaType())
             {
                 case ncm::ContentMetaType::Application:
@@ -235,7 +235,7 @@ namespace ui
             rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
             {
                 this->installBar->SetMaxValue(Total);
-                std::string name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
+                pu::String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
                 if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
                 u64 speed = (u64)BytesSec;
                 u64 size = (u64)(Total - Done);

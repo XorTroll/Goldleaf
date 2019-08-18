@@ -27,11 +27,11 @@ namespace usb
     bool Read8(u8 &Out, comms::CallbackFunction Callback = CallbackStub);
     bool Read32(u32 &Out, comms::CallbackFunction Callback = CallbackStub);
     bool Read64(u64 &Out, comms::CallbackFunction Callback = CallbackStub);
-    bool ReadString(std::string &Out, comms::CallbackFunction Callback = CallbackStub);
+    bool ReadString(pu::String &Out, comms::CallbackFunction Callback = CallbackStub);
     bool Write8(u8 Data);
     bool Write32(u32 Data);
     bool Write64(u64 Data);
-    bool WriteString(std::string Str);
+    bool WriteString(pu::String Str);
     u32 GetState();
     bool IsStatePlugged();
     bool IsStateNotReady();

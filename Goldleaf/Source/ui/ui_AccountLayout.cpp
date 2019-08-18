@@ -34,78 +34,79 @@ namespace ui
     void AccountLayout::Load(u128 UserId)
     {
         this->uid = UserId;
-        Result rc = accountGetProfile(&this->prf, UserId);
-        if(rc != 0)
-        {
-            HandleResult(rc, set::GetDictionaryEntry(211));
-            this->CleanData();
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
-        this->pbase = new AccountProfileBase;
-        this->udata = new AccountUserData;
-        rc = accountProfileGet(&this->prf, this->udata, this->pbase);
-        if(rc != 0)
-        {
-            HandleResult(rc, set::GetDictionaryEntry(211));
-            this->CleanData();
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
-        mainapp->LoadMenuHead(set::GetDictionaryEntry(212) + " " + std::string(this->pbase->username));
-        rc = acc::GetProfileEditor(UserId, &this->pred);
-        if(rc != 0)
-        {
-            HandleResult(rc, set::GetDictionaryEntry(211));
-            this->CleanData();
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
-        std::string iconpth = "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(UserId) + ".jpg";
-        fs::DeleteFile(iconpth);
-        size_t imgsz = 0;
-        size_t pimgsz = 0;
-        rc = accountProfileGetImageSize(&this->prf, &pimgsz);
-        u8 *img = new u8[pimgsz];
-        rc = accountProfileLoadImage(&this->prf, img, pimgsz, &imgsz);
-        FILE *f = fopen(iconpth.c_str(), "wb");
-        if((rc == 0) && f) fwrite(img, pimgsz, 1, f);
-        fclose(f);
-        delete[] img;
-    }
 
-    void AccountLayout::CleanData()
-    {
-        if(this->uid != 0)
+        AccountProfile prof;
+        auto rc = accountGetProfile(&prof, UserId);
+        if(rc != 0)
         {
-            this->uid = 0;
-            serviceClose(&this->prf.s);
-            delete this->pbase;
-            delete this->udata;
-            this->pred.Close();
+            HandleResult(rc, set::GetDictionaryEntry(211));
+            mainapp->UnloadMenuData();
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
         }
+
+        AccountProfileBase pbase;
+        AccountUserData udata;
+
+        rc = accountProfileGet(&prof, &udata, &pbase);
+        if(rc != 0)
+        {
+            HandleResult(rc, set::GetDictionaryEntry(211));
+            mainapp->UnloadMenuData();
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
+        }
+
+        size_t iconsz = 0;
+        rc = accountProfileGetImageSize(&prof, &iconsz);
+        if(rc != 0)
+        {
+            HandleResult(rc, set::GetDictionaryEntry(211));
+            mainapp->UnloadMenuData();
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
+        }
+
+        u8 *icon = new u8[iconsz]();
+        size_t tmpsz = 0;
+        rc = accountProfileLoadImage(&prof, icon, iconsz, &tmpsz);
+        if(rc != 0)
+        {
+            HandleResult(rc, set::GetDictionaryEntry(211));
+            mainapp->UnloadMenuData();
+            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+            return;
+        }
+
+        accountProfileClose(&prof);
+        mainapp->LoadMenuHead(set::GetDictionaryEntry(212) + " " + pu::String(pbase.username));
+
+        pu::String iconpth = "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(UserId) + ".jpg";
+        fs::DeleteFile(iconpth);
+        FILE *f = fopen(iconpth.AsUTF8().c_str(), "wb");
+        if(f)
+        {
+            fwrite(icon, 1, iconsz, f);
+            fclose(f);
+        }
+        delete[] icon;
     }
 
     void AccountLayout::optsRename_Click()
     {
-        std::string name = AskForText(set::GetDictionaryEntry(213), "");
-        if(name != "")
+        pu::String name = AskForText(set::GetDictionaryEntry(213), "", 10);
+        if(!name.empty())
         {
-            if(name.length() <= 10)
+            auto rc = acc::EditUser([&](AccountProfileBase *pbase, AccountUserData *udata)
             {
-                strcpy(this->pbase->username, name.c_str());
-                Result rc = this->pred.Store(this->pbase, this->udata);
-                if(rc == 0)
-                {
-                    mainapp->LoadMenuHead(set::GetDictionaryEntry(212) + " " + name);
-                    mainapp->ShowNotification(set::GetDictionaryEntry(214) + " \'" + name + "\'.");
-                }
-                else HandleResult(rc, set::GetDictionaryEntry(215));
+                strcpy(pbase->username, name.AsUTF8().c_str());
+            });
+            if(rc == 0)
+            {
+                mainapp->LoadMenuHead(set::GetDictionaryEntry(212) + " " + name);
+                mainapp->ShowNotification(set::GetDictionaryEntry(214) + " \'" + name + "\'.");
             }
-            else mainapp->ShowNotification(set::GetDictionaryEntry(249));
+            else HandleResult(rc, set::GetDictionaryEntry(215));
         }
     }
 
@@ -127,11 +128,10 @@ namespace ui
                 mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(276), { set::GetDictionaryEntry(234) }, true);
                 return;
             }
-            Result rc = acc::DeleteUser(this->uid);
+            auto rc = acc::DeleteUser(this->uid);
             if(rc == 0)
             {
                 mainapp->ShowNotification(set::GetDictionaryEntry(219));
-                this->CleanData();
                 mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             }

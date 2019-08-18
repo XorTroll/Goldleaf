@@ -14,6 +14,7 @@
 #include <vector>
 #include <functional>
 #include <switch.h>
+#include <Types.hpp>
 
 namespace fs
 {
@@ -26,33 +27,36 @@ namespace fs
         SdCard = 5,
     };
 
-    bool Exists(std::string Path);
-    bool IsFile(std::string Path);
-    bool IsDirectory(std::string Path);
-    void CreateFile(std::string Path);
-    Result CreateDirectory(std::string Path);
-    void CopyFile(std::string Path, std::string NewPath);
-    void CopyFileProgress(std::string Path, std::string NewPath, std::function<void(u8 Percentage)> Callback);
-    void CopyDirectory(std::string Dir, std::string NewDir);
-    void CopyDirectoryProgress(std::string Dir, std::string NewDir, std::function<void(u8 Percentage)> Callback);
-    Result DeleteFile(std::string Path);
-    Result DeleteDirectory(std::string Path);
-    bool IsFileBinary(std::string Path);
-    std::vector<u8> ReadFile(std::string Path);
-    std::vector<std::string> ReadFileLines(std::string Path, u32 LineOffset, u32 LineCount);
-    std::vector<std::string> ReadFileFormatHex(std::string Path, u32 LineOffset, u32 LineCount);
-    Result WriteFile(std::string Path, std::vector<u8> Data);
-    u64 GetFileSize(std::string Path);
-    u64 GetDirectorySize(std::string Path);
-    std::string GetFileName(std::string Path);
-    std::string GetExtension(std::string Path);
-    std::string GetPathRoot(std::string Path);
-    std::string GetPathWithoutRoot(std::string Path);
+    using ifstream = std::basic_ifstream<char16_t>;
+    using ofstream = std::basic_ofstream<char16_t>;
+
+    bool Exists(pu::String Path);
+    bool IsFile(pu::String Path);
+    bool IsDirectory(pu::String Path);
+    void CreateFile(pu::String Path);
+    Result CreateDirectory(pu::String Path);
+    void CopyFile(pu::String Path, pu::String NewPath);
+    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback);
+    void CopyDirectory(pu::String Dir, pu::String NewDir);
+    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback);
+    Result DeleteFile(pu::String Path);
+    Result DeleteDirectory(pu::String Path);
+    bool IsFileBinary(pu::String Path);
+    std::vector<u8> ReadFile(pu::String Path);
+    std::vector<pu::String> ReadFileLines(pu::String Path, u32 LineOffset, u32 LineCount);
+    std::vector<pu::String> ReadFileFormatHex(pu::String Path, u32 LineOffset, u32 LineCount);
+    Result WriteFile(pu::String Path, std::vector<u8> Data);
+    u64 GetFileSize(pu::String Path);
+    u64 GetDirectorySize(pu::String Path);
+    pu::String GetFileName(pu::String Path);
+    pu::String GetExtension(pu::String Path);
+    pu::String GetPathRoot(pu::String Path);
+    pu::String GetPathWithoutRoot(pu::String Path);
     u64 GetTotalSpaceForPartition(Partition Partition);
     u64 GetFreeSpaceForPartition(Partition Partition);
-    std::string FormatSize(u64 Bytes);
-    std::string SearchForFile(FsFileSystem FS, std::string Extension);
-    std::string SearchForFileInPath(std::string Base, std::string Extension);
+    pu::String FormatSize(u64 Bytes);
+    pu::String SearchForFile(FsFileSystem FS, pu::String Extension);
+    pu::String SearchForFileInPath(pu::String Base, pu::String Extension);
 
     u8 *GetFileSystemOperationsBuffer();
     size_t GetFileSystemOperationsBufferSize();

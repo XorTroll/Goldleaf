@@ -53,7 +53,7 @@ namespace ui
             {
                 hos::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
-                std::string tname = hos::FormatApplicationId(tappid);
+                pu::String tname = hos::FormatApplicationId(tappid);
                 pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
                 itm->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
@@ -67,7 +67,7 @@ namespace ui
     void UnusedTicketsLayout::tickets_Click()
     {
         hos::Ticket seltick = this->tickets[this->ticketsMenu->GetSelectedIndex()];
-        std::string info = set::GetDictionaryEntry(201) + "\n\n\n";
+        pu::String info = set::GetDictionaryEntry(201) + "\n\n\n";
         u64 tappid = seltick.GetApplicationId();
         info += set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(tappid);
         info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(seltick.GetKeyGeneration() + 1);

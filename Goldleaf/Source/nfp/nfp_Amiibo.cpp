@@ -84,18 +84,18 @@ namespace nfp
 
     Result DumpToEmuiibo(NfpuTagInfo &tag, NfpuRegisterInfo &reg, NfpuCommonInfo &common, NfpuModelInfo &model)
     {
-        auto outdir = "sdmc:/emuiibo/amiibo/" + std::string(reg.amiibo_name);
-        fsdevDeleteDirectoryRecursively(outdir.c_str());
+        auto outdir = "sdmc:/emuiibo/amiibo/" + pu::String(reg.amiibo_name);
+        fsdevDeleteDirectoryRecursively(outdir.AsUTF8().c_str());
 
         mkdir("sdmc:/emuiibo", 777);
         mkdir("sdmc:/emuiibo/amiibo", 777);
-        mkdir(outdir.c_str(), 777);
+        mkdir(outdir.AsUTF8().c_str(), 777);
 
         auto jtag = JSON::object();
         std::stringstream strm;
         for(u32 i = 0; i < 9; i++) strm << std::hex << std::setw(2) << std::uppercase << std::setfill('0') << (int)tag.uuid[i];
         jtag["uuid"] = strm.str();
-        std::ofstream ofs(outdir + "/tag.json");
+        std::ofstream ofs((outdir + "/tag.json").AsUTF8());
         ofs << std::setw(4) << jtag;
         ofs.close();
 
@@ -104,11 +104,11 @@ namespace nfp
         strm.clear();
         for(u32 i = 0; i < 8; i++) strm << std::hex << std::setw(2) << std::uppercase << std::setfill('0') << (int)model.amiibo_id[i];
         jmodel["amiiboId"] = strm.str();
-        ofs = std::ofstream(outdir + "/model.json");
+        ofs = std::ofstream((outdir + "/model.json").AsUTF8());
         ofs << std::setw(4) << jmodel;
         ofs.close();
 
-        FILE *f = fopen((outdir + "/mii-charinfo.bin").c_str(), "wb");
+        FILE *f = fopen((outdir + "/mii-charinfo.bin").AsUTF8().c_str(), "wb");
         fwrite(&reg.mii, 1, sizeof(NfpuMiiCharInfo), f);
         fclose(f);
 
@@ -121,7 +121,7 @@ namespace nfp
         strm << std::dec << std::setw(2) << std::setfill('0') << (int)reg.first_write_month << "-";
         strm << std::dec << std::setw(2) << std::setfill('0') << (int)reg.first_write_day;
         jreg["firstWriteDate"] = strm.str();
-        ofs = std::ofstream(outdir + "/register.json");
+        ofs = std::ofstream((outdir + "/register.json").AsUTF8());
         ofs << std::setw(4) << jreg;
         ofs.close();
 
@@ -134,7 +134,7 @@ namespace nfp
         jcommon["lastWriteDate"] = strm.str();
         jcommon["writeCounter"] = (int)common.write_counter;
         jcommon["version"] = (int)common.version;
-        ofs = std::ofstream(outdir + "/common.json");
+        ofs = std::ofstream((outdir + "/common.json").AsUTF8());
         ofs << std::setw(4) << jcommon;
         ofs.close();
 

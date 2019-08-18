@@ -8,7 +8,7 @@
 
 namespace nsp
 {
-    int Build(std::string ContentsDir, std::string Out, std::function<void(u8 Percentage)> Callback)
+    int Build(pu::String ContentsDir, pu::String Out, std::function<void(u8 Percentage)> Callback)
     {
         struct dirent *cur_dirent = NULL;
         struct stat objstats;
@@ -26,9 +26,9 @@ namespace nsp
         memset(&header, 0, sizeof(header));
         memset(fsentries, 0, sizeof(fsentries));
         memset(stringtable, 0, sizeof(stringtable));
-        DIR *dir = opendir(ContentsDir.c_str());
+        DIR *dir = opendir(ContentsDir.AsUTF8().c_str());
         if(dir == NULL) return 1;
-        FILE *fout = fopen(Out.c_str(), "wb");
+        FILE *fout = fopen(Out.AsUTF8().c_str(), "wb");
         if(fout == NULL)
         {
             closedir(dir);
@@ -38,7 +38,7 @@ namespace nsp
         {
             if(strcmp(cur_dirent->d_name, ".") == 0 || strcmp(cur_dirent->d_name, "..") == 0) continue;
             memset(objpath, 0, sizeof(objpath));
-            snprintf(objpath, sizeof(objpath)-1, "%s/%s", ContentsDir.c_str(), cur_dirent->d_name);
+            snprintf(objpath, sizeof(objpath)-1, "%s/%s", ContentsDir.AsUTF8().c_str(), cur_dirent->d_name);
             if(stat(objpath, &objstats) == -1)
             {
                 ret = false;
@@ -93,7 +93,7 @@ namespace nsp
                     break;
                 }
                 memset(objpath, 0, sizeof(objpath));
-                snprintf(objpath, sizeof(objpath) - 1, "%s/%s", ContentsDir.c_str(), &stringtable[stringtable_offset]);
+                snprintf(objpath, sizeof(objpath) - 1, "%s/%s", ContentsDir.AsUTF8().c_str(), &stringtable[stringtable_offset]);
                 stringtable_offset+=tmplen;
                 FILE *fin = fopen(objpath, "rb");
                 if(fin == NULL)

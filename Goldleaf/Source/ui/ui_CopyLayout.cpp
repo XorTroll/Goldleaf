@@ -23,7 +23,7 @@ namespace ui
         delete this->copyBar;
     }
 
-    void CopyLayout::StartCopy(std::string Path, std::string NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev)
+    void CopyLayout::StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev)
     {
         if(Directory)
         {

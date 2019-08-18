@@ -79,12 +79,12 @@ namespace ui
             mainapp->CreateShowDialog(set::GetDictionaryEntry(5), set::GetDictionaryEntry(292), { set::GetDictionaryEntry(234) }, true);
             return;
         }
-        std::string out = AskForText(set::GetDictionaryEntry(38), "https://");
-        if(out.empty()) return;
+        pu::String out = AskForText(set::GetDictionaryEntry(38), u"https://");
+        if(out.AsUTF16().empty()) return;
         else
         {
-            bool nothttp = (out.substr(0, 6) != "http:/");
-            bool nothttps = (out.substr(0, 7) != "https:/");
+            bool nothttp = (out.AsUTF16().substr(0, 6) != u"http:/");
+            bool nothttps = (out.AsUTF16().substr(0, 7) != u"https:/");
             if(nothttp && nothttps)
             {
                 mainapp->CreateShowDialog(set::GetDictionaryEntry(36), set::GetDictionaryEntry(39), { set::GetDictionaryEntry(234) }, false);
@@ -92,15 +92,24 @@ namespace ui
             }
         }
         WebCommonConfig web;
-        webPageCreate(&web, out.c_str());
+        webPageCreate(&web, out.AsUTF8().c_str());
         WebCommonReply wout;
         webConfigShow(&web, &wout);  
     }
 
     void MainMenuLayout::accountMenuItem_Click()
     {
-        u128 uid = AskForUser();
-        if(uid == 0) return;
+        u128 uid = acc::GetSelectedUser();
+        if(uid == 0)
+        {
+            bool ok = acc::SelectUser();
+            if(!ok)
+            {
+                mainapp->ShowNotification("Unable to select a user.");
+                return;
+            }
+            uid = acc::GetSelectedUser();
+        }
         mainapp->LoadMenuData(set::GetDictionaryEntry(41), "Accounts", set::GetDictionaryEntry(42));
         mainapp->GetAccountLayout()->Load(uid);
         mainapp->LoadLayout(mainapp->GetAccountLayout());
@@ -131,14 +140,14 @@ namespace ui
 
     void MainMenuLayout::aboutMenuItem_Click()
     {
-        std::string exmode = set::GetDictionaryEntry(288);
+        pu::String exmode = set::GetDictionaryEntry(288);
         if(GetExecutableMode() == ExecutableMode::NSO) exmode = set::GetDictionaryEntry(289);
 
-        std::string lmode;
+        pu::String lmode;
         if(GetLaunchMode() == LaunchMode::Applet) lmode = set::GetDictionaryEntry(290);
         if(GetLaunchMode() == LaunchMode::Application) lmode = set::GetDictionaryEntry(291);
 
-        mainapp->LoadMenuData("Goldleaf v" + GetVersion(), "Info", exmode + ", " + lmode);
+        mainapp->LoadMenuData("Goldleaf v" + GetVersion(), "Info", exmode.AsUTF16() + u", " + lmode.AsUTF16());
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 }

@@ -39,6 +39,11 @@ namespace gtree
         {
             return Str.Replace('\\', '/');
         }
+
+        public static bool IsUnicode(this string Str)
+        {
+            return Encoding.ASCII.GetByteCount(Str) != Encoding.UTF8.GetByteCount(Str);
+        }
     }
 
     public static class USBCommands
@@ -72,14 +77,14 @@ namespace gtree
         public static string ReadStringEx(this BinaryReader Reader)
         {
             var strlen = Reader.ReadUInt32();
-            var str = Reader.ReadBytes((int)strlen);
-            return Encoding.UTF8.GetString(str).Replace("\0", "");
+            var str = Reader.ReadBytes((int)strlen * 2); // Length * 2 (UTF-16)
+            return Encoding.Unicode.GetString(str);
         }
 
         public static void WriteStringEx(this BinaryWriter Writer, string Str)
         {
             Writer.Write((uint)Str.Length);
-            Writer.Write(Encoding.UTF8.GetBytes(Str));
+            Writer.Write(Encoding.Unicode.GetBytes(Str));
         }
 
         public static byte[] ReadBuffer(this UsbK USB, ulong Size)
@@ -167,6 +172,7 @@ namespace gtree
                                             WriteOutBlockBase(Command.ResultSuccess);
                                             string label = drive.VolumeLabel;
                                             string prefix = drive.Name.Substring(0, 1);
+                                            if(string.IsNullOrEmpty(label) || label.IsUnicode()) label = prefix;
                                             outblock.WriteStringEx(label);
                                             outblock.WriteStringEx(prefix);
                                             outblock.Write((uint)drive.TotalFreeSpace);
@@ -220,7 +226,6 @@ namespace gtree
                                         {
                                             if((LastFilesPath != path) || (LastFiles == null))
                                             {
-                                                Program.Warn.LogL("Reloading...");
                                                 LastFilesPath = path;
                                                 LastFiles = Directory.GetFiles(path);
                                             }
@@ -239,7 +244,7 @@ namespace gtree
                                 case CommandId.GetDirectoryCount:
                                     {
                                         var path = inblock.ReadStringEx().NormalizeAsPath();
-                                        if(Directory.Exists(path))
+                                        if (Directory.Exists(path))
                                         {
                                             if((LastDirectoriesPath != path) || (LastDirectories == null))
                                             {

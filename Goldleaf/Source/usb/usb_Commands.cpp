@@ -21,10 +21,10 @@ namespace usb
         WriteBuffer(&Value, sizeof(u64));
     }
 
-    void InCommandBlock::WriteString(std::string Value)
+    void InCommandBlock::WriteString(pu::String Value)
     {
         Write32(Value.length());
-        WriteBuffer((char*)Value.c_str(), Value.length());
+        WriteBuffer((char16_t*)Value.AsUTF16().c_str(), Value.length() * sizeof(char16_t));
     }
 
     void InCommandBlock::WriteBuffer(void *Buf, size_t Size)
@@ -73,12 +73,12 @@ namespace usb
         return val;
     }
 
-    std::string OutCommandBlock::ReadString()
+    pu::String OutCommandBlock::ReadString()
     {
         u32 len = Read32();
-        char *str = new char[len + 1]();
-        ReadBuffer(str, len);
-        std::string nstr(str);
+        char16_t *str = new char16_t[len + 1]();
+        ReadBuffer(str, len * sizeof(char16_t));
+        pu::String nstr(str);
         delete[] str;
         return nstr;
     }
@@ -173,7 +173,7 @@ namespace usb
     {
     }
 
-    InString::InString(std::string Value) : val(Value)
+    InString::InString(pu::String Value) : val(Value)
     {
     }
 
@@ -194,7 +194,7 @@ namespace usb
     {
     }
 
-    OutString::OutString(std::string &Value) : val(Value)
+    OutString::OutString(pu::String &Value) : val(Value)
     {
     }
 

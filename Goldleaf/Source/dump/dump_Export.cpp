@@ -9,12 +9,12 @@ FsStorage fatfs_bin;
 
 namespace dump
 {
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, std::string Path, std::function<void(double Done, double Total)> Callback)
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, pu::String Path, std::function<void(double Done, double Total)> Callback)
     {
         u64 ncasize = 0;
         ncmContentStorageGetSize(ncst, &NCAId, &ncasize);
         u64 szrem = ncasize;
-        FILE *f = fopen(Path.c_str(), "wb");
+        FILE *f = fopen(Path.AsUTF8().c_str(), "wb");
         u64 off = 0;
         u64 rmax = fs::GetFileSystemOperationsBufferSize();
         u8 *data = fs::GetFileSystemOperationsBuffer();
@@ -33,7 +33,7 @@ namespace dump
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out)
     {
         size_t size = sizeof(NcmMetaRecord) * hos::MaxTitleCount;
-        NcmMetaRecord *metas = new NcmMetaRecord[hos::MaxTitleCount];
+        NcmMetaRecord *metas = new NcmMetaRecord[hos::MaxTitleCount]();
         u32 total = 0;
         u32 written = 0;
         bool got = false;
@@ -74,7 +74,7 @@ namespace dump
         return stid;
     }
 
-    std::string GetTitleKeyData(u64 ApplicationId, bool ExportData)
+    pu::String GetTitleKeyData(u64 ApplicationId, bool ExportData)
     {
         fsOpenBisStorage(&fatfs_bin, FsBisStorageId_System);
         FATFS fs;
@@ -82,15 +82,15 @@ namespace dump
         f_mount(&fs, "0", 1);
         f_chdir("/save");
         f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
-        std::string tkey = "";
-        std::string orid = "";
-        std::string fappid = hos::FormatApplicationId(ApplicationId);
-        std::string outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
+        pu::String tkey = "";
+        pu::String orid = "";
+        pu::String fappid = hos::FormatApplicationId(ApplicationId);
+        pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
         u32 tmpsz = 0;
         while(true)
         {
             if(tkey != "") break;
-            u8 *tkdata = new u8[0x40000];
+            u8 *tkdata = new u8[0x40000]();
             FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
             if(fr) break;
             if(tmpsz == 0) break;
@@ -120,15 +120,15 @@ namespace dump
                             u32 off = j + 0x180 + k;
                             stkey << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
                         }
-                        std::string tid = stid.str();
-                        std::string rid = srid.str();
-                        std::string etkey = stkey.str();
+                        pu::String tid = stid.str();
+                        pu::String rid = srid.str();
+                        pu::String etkey = stkey.str();
                         if(fappid == tid)
                         {
                             orid = rid;
                             if(ExportData)
                             {
-                                FILE *tikf = fopen((outdir + "/" + rid + ".tik").c_str(), "wb");
+                                FILE *tikf = fopen((outdir + "/" + rid + ".tik").AsUTF8().c_str(), "wb");
                                 fwrite(&tkdata[j], 1, 0x400, tikf);
                                 fclose(tikf);
                             }
@@ -145,19 +145,19 @@ namespace dump
         fsStorageClose(&fatfs_bin);
         if(ExportData && (tkey != ""))
         {
-            FILE *ceout = fopen((outdir + "/" + orid + ".cert").c_str(), "wb");
+            FILE *ceout = fopen((outdir + "/" + orid + ".cert").AsUTF8().c_str(), "wb");
             fwrite(es::CertData, 1792, 1, ceout);
             fclose(ceout);
         }
         return "";
     }
 
-    std::string GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id)
+    pu::String GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id)
     {
         char out[FS_MAX_PATH] = { 0 };
         Result rc = ncmContentStorageGetPath(st, Id, out, FS_MAX_PATH);
-        std::string sst = "";
-        if(rc == 0) sst = std::string(out);
+        pu::String sst = "";
+        if(rc == 0) sst = pu::String(out);
         return sst;
     }
 
