@@ -30,10 +30,13 @@ namespace fs
     using ifstream = std::basic_ifstream<char16_t>;
     using ofstream = std::basic_ofstream<char16_t>;
 
+    static constexpr u64 Size4GB = 0x100000000;
+
     bool Exists(pu::String Path);
     bool IsFile(pu::String Path);
     bool IsDirectory(pu::String Path);
     void CreateFile(pu::String Path);
+    void CreateConcatenationFile(pu::String Path);
     Result CreateDirectory(pu::String Path);
     void CopyFile(pu::String Path, pu::String NewPath);
     void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback);

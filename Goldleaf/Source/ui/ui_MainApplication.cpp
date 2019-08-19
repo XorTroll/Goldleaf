@@ -693,7 +693,11 @@ namespace ui
 
     void MainApplication::userImage_OnClick()
     {
-        if(acc::SelectUser()) acc::CacheSelectedUserIcon();
+        if(acc::SelectUser())
+        {
+            acc::CacheSelectedUserIcon();
+            this->ShowNotification("User was successfully selected.");
+        }
     }
 
     void MainApplication::helpImage_OnClick()
@@ -705,6 +709,7 @@ namespace ui
     {
         if(((Down & KEY_PLUS) || (Down & KEY_MINUS)) && (GetExecutableMode() == ExecutableMode::NRO)) this->CloseWithFadeOut();
         else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
+        else if(Down & KEY_X) this->helpImage_OnClick();
     }
 
     MainMenuLayout *MainApplication::GetMainMenuLayout()

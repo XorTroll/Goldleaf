@@ -99,14 +99,14 @@ namespace ui
 
     void MainMenuLayout::accountMenuItem_Click()
     {
-        u128 uid = acc::GetSelectedUser();
-        if(uid == 0)
+        if(acc::GetSelectedUser() == 0)
         {
-            mainapp->ShowNotification("No user has been selected. Select a user in the main menu.");
-            return;
+            int sopt = mainapp->CreateShowDialog("User", "No user has been selected. Would you like to select one?", {"Yes", "Cancel"}, true);
+            if(sopt != 0) return;
+            if(!acc::SelectUser()) mainapp->ShowNotification("Unable to select a user.");
         }
         mainapp->LoadMenuData(set::GetDictionaryEntry(41), "Accounts", set::GetDictionaryEntry(42));
-        mainapp->GetAccountLayout()->Load(uid);
+        mainapp->GetAccountLayout()->Load();
         mainapp->LoadLayout(mainapp->GetAccountLayout());
     }
 

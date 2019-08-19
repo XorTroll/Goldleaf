@@ -140,4 +140,46 @@ namespace acc
     {
         return "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(selected_user) + ".jpg";
     }
+
+    bool IsLinked()
+    {
+        acc::BaasAdministrator admin;
+        auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
+        if(res == 0)
+        {
+            bool linked = false;
+            admin.IsLinkedWithNintendoAccount(&linked);
+            admin.Close();
+            return linked;
+        }
+        return false;
+    }
+
+    Result UnlinkLocally()
+    {
+        acc::BaasAdministrator admin;
+        auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
+        if(res == 0)
+        {
+            bool linked = false;
+            admin.IsLinkedWithNintendoAccount(&linked);
+            if(linked) res = admin.DeleteRegistrationInfoLocally();
+            admin.Close();
+        }
+        return res;
+    }
+
+    LinkedAccountInfo GetUserLinkedInfo()
+    {
+        LinkedAccountInfo info = {};
+        acc::BaasAdministrator admin;
+        auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
+        if(res == 0)
+        {
+            res = admin.GetAccountId(&info.AccountId);
+            if(res == 0) res = admin.GetNintendoAccountId(&info.NintendoAccountId);
+            admin.Close();
+        }
+        return info;
+    }
 }

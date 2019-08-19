@@ -25,28 +25,6 @@ namespace ui
 
     void UpdateLayout::StartUpdateSearch()
     {
-        // Debug, using this code to test features
-
-        acc::BaasAdministrator baas;
-        auto user = acc::GetSelectedUser();
-        auto res = acc::GetBaasAccountAdministrator(user, &baas);
-        if(res != 0) mainapp->CreateShowDialog("Baas testing", "Bad result (GetBaasAccountAdministrator): " + hos::FormatHex(res), {"K"}, true);
-        else
-        {
-            bool linked = false;
-            res = baas.IsLinkedWithNintendoAccount(&linked);
-            if(res != 0) mainapp->CreateShowDialog("Baas testing", "Bad result (baas.IsLinkedWithNintendoAccount): " + hos::FormatHex(res), {"K"}, true);
-            else mainapp->CreateShowDialog("Baas testing", "Linked: " + pu::String(linked ? "yup" : "nope"), {"K"}, true);
-            baas.Close();
-        }
-        
-
-        // Exit normally
-        mainapp->UnloadMenuData();
-        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-        return;
-
-
         if(!net::HasConnection())
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(304), { set::GetDictionaryEntry(234) }, true);

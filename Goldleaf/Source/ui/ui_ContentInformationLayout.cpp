@@ -66,9 +66,27 @@ namespace ui
                 break;
         }
         msg += "\n" + set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(cnt.ApplicationId);
-        msg += "\n\n" + set::GetDictionaryEntry(177) + " " + this->contents.GetFormattedTotalSize();
+        msg += "\n\n" + set::GetDictionaryEntry(177) + " " + cnt.GetContents().GetFormattedTotalSize();
         msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
         if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
+        if(cnt.IsBaseTitle() && (cnt.Location != Storage::NANDSystem))
+        {
+            msg += "\n";
+            auto uid = acc::GetSelectedUser();
+            hos::TitlePlayStats stats = {};
+            if(uid != 0)
+            {
+                stats = cnt.GetUserPlayStats(uid);
+                msg += "\nUser-specific play statistics:";
+                msg += "\nLast played: " + hos::FormatTime(stats.SecondsFromLastLaunched) + " ago";
+                msg += "\nTotal play time: " + hos::FormatTime(stats.TotalPlaySeconds);
+                msg += "\n";
+            }
+            stats = cnt.GetGlobalPlayStats();
+            msg += "\nGlobal play statistics:";
+            msg += "\nLast played: " + hos::FormatTime(stats.SecondsFromLastLaunched) + " ago";
+            msg += "\nTotal play time: " + hos::FormatTime(stats.TotalPlaySeconds);
+        }
         auto tiks = hos::GetAllTickets();
         bool hastik = false;
         hos::Ticket stik;
@@ -90,7 +108,7 @@ namespace ui
             return;
         }
         if(hastik) opts.push_back(set::GetDictionaryEntry(293));
-        opts.push_back("Reset expected title version");
+        opts.push_back("Reset launch version");
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
@@ -126,11 +144,6 @@ namespace ui
         }
         else if(sopt == 1)
         {
-            if(this->contents.GetTotalSize() >= 0x100000000)
-            {
-                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(183), { set::GetDictionaryEntry(234), set::GetDictionaryEntry(18) }, true);
-                if(sopt < 0) return;
-            }
             sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             if(sopt == 0)

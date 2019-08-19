@@ -69,6 +69,13 @@ namespace hos
         pu::String GetFormattedTotalSize();
     };
 
+    struct TitlePlayStats
+    {
+        u64 TotalPlaySeconds;
+        u64 SecondsFromLastLaunched;
+        u64 SecondsFromFirstLaunched;
+    };
+
     struct Title
     {
         u64 ApplicationId;
@@ -85,6 +92,8 @@ namespace hos
         bool IsUpdate();
         bool IsDLC();
         bool CheckBase(Title &Other);
+        TitlePlayStats GetGlobalPlayStats();
+        TitlePlayStats GetUserPlayStats(u128 UserId);
     };
 
     struct Ticket

@@ -171,6 +171,30 @@ namespace hos
         return ((!Other.IsBaseTitle()) && (this->ApplicationId == GetBaseApplicationId(Other.ApplicationId, Other.Type)));
     }
 
+    static TitlePlayStats ProcessFromPdm(PdmPlayStatistics Stats)
+    {
+        TitlePlayStats stats = {};
+        stats.TotalPlaySeconds = Stats.playtimeMinutes * 60;
+        u64 timenow = time(NULL);
+        stats.SecondsFromFirstLaunched = timenow - pdmPlayTimestampToPosix(Stats.first_timestampUser);
+        stats.SecondsFromLastLaunched = timenow - pdmPlayTimestampToPosix(Stats.last_timestampUser);
+        return stats;
+    }
+
+    TitlePlayStats Title::GetGlobalPlayStats()
+    {
+        PdmPlayStatistics pdmstats;
+        pdmqryQueryPlayStatisticsByApplicationId(ApplicationId, &pdmstats);
+        return ProcessFromPdm(pdmstats);
+    }
+    
+    TitlePlayStats Title::GetUserPlayStats(u128 UserId)
+    {
+        PdmPlayStatistics pdmstats;
+        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId, &pdmstats);
+        return ProcessFromPdm(pdmstats);
+    }
+
     u64 Ticket::GetApplicationId()
     {
         return __bswap64(*(u64*)(this->RId.RId));

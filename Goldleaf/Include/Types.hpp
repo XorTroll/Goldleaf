@@ -47,6 +47,7 @@ enum class Language
     German,
     French,
     Italian,
+    Dutch,
 };
 
 struct ColorScheme

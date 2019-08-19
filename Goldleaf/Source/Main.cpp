@@ -21,6 +21,7 @@ void Initialize()
     if(R_FAILED(splInitialize())) exit(1);
     if(R_FAILED(bpcInitialize())) exit(1);
     if(R_FAILED(nifmInitialize())) exit(1);
+    if(R_FAILED(pdmqryInitialize())) exit(1);
     srand(time(NULL));
     EnsureDirectories();
 }
@@ -53,6 +54,7 @@ void Finalize()
     ncm::Finalize();
     ncmExit();
     nifmExit();
+    pdmqryExit();
 }
 
 int main()

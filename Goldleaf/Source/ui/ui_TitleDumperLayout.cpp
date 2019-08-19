@@ -102,6 +102,8 @@ namespace ui
         pu::String sdata;
         if(ok) sdata = dump::GetNCAIdPath(&cst, &data);
 
+        hos::LockAutoSleep();
+
         pu::String xprogram = sprogram;
         pu::String xmeta = smeta;
         pu::String xcontrol = scontrol;
@@ -112,6 +114,7 @@ namespace ui
         {
             this->dumpText->SetText(set::GetDictionaryEntry(194));
             xmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
+            fs::CreateConcatenationFile(xmeta);
             this->ncaBar->SetVisible(true);
             dump::DecryptCopyNAX0ToNCA(&cst, meta, xmeta, [&](double Done, double Total)
             {
@@ -123,6 +126,7 @@ namespace ui
             if(hasprogram)
             {
                 xprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
+                fs::CreateConcatenationFile(xprogram);
                 this->ncaBar->SetVisible(true);
                 dump::DecryptCopyNAX0ToNCA(&cst, program, xprogram, [&](double Done, double Total)
                 {
@@ -135,6 +139,7 @@ namespace ui
             if(hascontrol)
             {
                 xcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
+                fs::CreateConcatenationFile(xcontrol);
                 this->ncaBar->SetVisible(true);
                 dump::DecryptCopyNAX0ToNCA(&cst, control, xcontrol, [&](double Done, double Total)
                 {
@@ -147,6 +152,7 @@ namespace ui
             if(haslinfo)
             {
                 xlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
+                fs::CreateConcatenationFile(xlinfo);
                 this->ncaBar->SetVisible(true);
                 dump::DecryptCopyNAX0ToNCA(&cst, linfo, xlinfo, [&](double Done, double Total)
                 {
@@ -159,6 +165,7 @@ namespace ui
             if(hashoff)
             {
                 xhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
+                fs::CreateConcatenationFile(xhoff);
                 this->ncaBar->SetVisible(true);
                 dump::DecryptCopyNAX0ToNCA(&cst, hoff, xhoff, [&](double Done, double Total)
                 {
@@ -171,6 +178,7 @@ namespace ui
             if(hasdata)
             {
                 xdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
+                fs::CreateConcatenationFile(xdata);
                 this->ncaBar->SetVisible(true);
                 dump::DecryptCopyNAX0ToNCA(&cst, data, xdata, [&](double Done, double Total)
                 {
@@ -192,11 +200,13 @@ namespace ui
                 mainapp->LoadLayout(mainapp->GetContentManagerLayout());
                 serviceClose(&cst.s);
                 serviceClose(&cmdb.s);
+                hos::UnlockAutoSleep();
                 return;
             }
             this->dumpText->SetText(set::GetDictionaryEntry(195));
             xmeta = nexp->FullPathFor("Contents/" + xmeta.substr(15));
             pu::String txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
+            fs::CreateConcatenationFile(txmeta);
             this->ncaBar->SetVisible(true);
             fs::CopyFileProgress(xmeta, txmeta, [&](u8 p)
             {
@@ -209,6 +219,7 @@ namespace ui
             {
                 xprogram = nexp->FullPathFor("Contents/" + xprogram.substr(15));
                 pu::String txprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
+                fs::CreateConcatenationFile(txprogram);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
                 {
@@ -222,6 +233,7 @@ namespace ui
             {
                 xcontrol = nexp->FullPathFor("Contents/" + xcontrol.substr(15));
                 pu::String txcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
+                fs::CreateConcatenationFile(txcontrol);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
                 {
@@ -235,6 +247,7 @@ namespace ui
             {
                 xlinfo = nexp->FullPathFor("Contents/" + xlinfo.substr(15));
                 pu::String txlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
+                fs::CreateConcatenationFile(txlinfo);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xlinfo, txlinfo, [&](u8 p)
                 {
@@ -248,6 +261,7 @@ namespace ui
             {
                 xhoff = nexp->FullPathFor("Contents/" + xhoff.substr(15));
                 pu::String txhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
+                fs::CreateConcatenationFile(txhoff);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xhoff, txhoff, [&](u8 p)
                 {
@@ -261,6 +275,7 @@ namespace ui
             {
                 xdata = nexp->FullPathFor("Contents/" + xdata.substr(15));
                 pu::String txdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
+                fs::CreateConcatenationFile(txdata);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xdata, txdata, [&](u8 p)
                 {
@@ -272,6 +287,7 @@ namespace ui
             }
         }
         pu::String fout = "sdmc:/" + GoldleafDir + "/dump/" + fappid + ".nsp";
+        fs::CreateConcatenationFile(fout);
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
         int qi = nsp::Build(outdir, fout, [&](u8 p)
@@ -279,6 +295,7 @@ namespace ui
             this->ncaBar->SetProgress(p);
             mainapp->CallForRender();
         });
+        hos::UnlockAutoSleep();
         ok = (qi == 0);
         fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
         fs::DeleteDirectory(outdir);

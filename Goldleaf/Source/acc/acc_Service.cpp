@@ -198,35 +198,6 @@ namespace acc
         return rc;
     }
 
-    Result BaasAdministrator::Demo_GetNintendoAccountUserResourceCache(u64 *out_NAId, void *out_NASUser, size_t out_NASUser_Size)
-    {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        ipcAddRecvStatic(&cmd, out_NASUser, out_NASUser_Size, 0);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 130;
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-                u64 NAId;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-            if(R_SUCCEEDED(rc)) *out_NAId = oraw->NAId;
-        }
-        return rc;
-    }
-
     void BaasAdministrator::Close()
     {
         serviceClose(&this->srv);

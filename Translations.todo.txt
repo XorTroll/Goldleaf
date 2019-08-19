@@ -1,6 +1,19 @@
 No user has been selected. Select it clicking on the user icon above.
-Reset expected title version
+Reset launch version
 Welcome to Goldleaf! Press X anytime for control information.
 Unlink account (locally)
 The title's launch version was successfully reset.
 An error ocurred attempting to reset the title's launch version:
+User was successfully selected.
+Directory delete
+Would you like to delete this directory?
+The directory was successfully deleted.
+Account ID:
+Nintendo Account ID:
+Linked account
+Unlink (locally)
+Unlink account locally
+Would you like to unlink this account? (It will only be unlinked locally)
+The account was successfully unlinked. It can be deleted now.
+An error ocurred attempting to unlink the account:
+Nintendo account information

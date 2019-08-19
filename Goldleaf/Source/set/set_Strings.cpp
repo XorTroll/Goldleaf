@@ -25,6 +25,9 @@ namespace set
             case Language::Italian:
                 pdict = "it";
                 break;
+            case Language::Dutch:
+                pdict = "nl";
+                break;
         }
         pdict += ".json";
         std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));

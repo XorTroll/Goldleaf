@@ -15,6 +15,7 @@
 #include <ctime>
 #include <functional>
 #include <cstdio>
+#include <sstream>
 #include <Types.hpp>
 
 namespace hos
@@ -32,7 +33,15 @@ namespace hos
     bool IsCharging();
     std::string GetCurrentTime();
     FwVersion GetFwVersion();
-    std::string FormatHex(u32 Number);
+    
+    template<typename N>
+    inline std::string FormatHex(N Number)
+    {
+        std::stringstream strm;
+        strm << "0x" << std::hex << std::uppercase << Number;
+        return strm.str();
+    }
+
     std::string FormatHex128(u128 Number);
     std::string DoubleToString(double Number);
     std::string FormatTime(u64 Seconds);
@@ -41,6 +50,8 @@ namespace hos
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
     void IRAMClear();
     void PayloadProcess(pu::String Path);
+    void LockAutoSleep();
+    void UnlockAutoSleep();
 
     static constexpr size_t MaxPayloadSize = 0x2F000;
     static constexpr size_t IRAMPayloadBaseAddress = 0x40010000;

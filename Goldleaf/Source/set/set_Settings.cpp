@@ -46,7 +46,11 @@ namespace set
             /*
             case 6:
             case 7:
+            */
             case 8:
+                gset.CustomLanguage = Language::Dutch;
+                break;
+            /*
             case 9:
             case 10:
             case 11:
@@ -76,6 +80,7 @@ namespace set
                     else if(lang == "de") gset.CustomLanguage = Language::German;
                     else if(lang == "fr") gset.CustomLanguage = Language::French;
                     else if(lang == "it") gset.CustomLanguage = Language::Italian;
+                    else if(lang == "nl") gset.CustomLanguage = Language::Dutch;
                 }
                 std::string keys = settings["general"].value("keysPath", "");
                 if(!keys.empty())

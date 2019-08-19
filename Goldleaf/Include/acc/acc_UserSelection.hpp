@@ -16,6 +16,12 @@
 
 namespace acc
 {
+    struct LinkedAccountInfo
+    {
+        u64 AccountId;
+        u64 NintendoAccountId;  
+    };
+
     u128 GetSelectedUser();
     void SetSelectedUser(u128 User);
     bool SelectFromPreselectedUser();
@@ -25,4 +31,7 @@ namespace acc
     Result EditUserIcon(u8 *JPEG, size_t JPEG_size);
     void CacheSelectedUserIcon();
     std::string GetCachedUserIcon();
+    bool IsLinked();
+    Result UnlinkLocally();
+    LinkedAccountInfo GetUserLinkedInfo();
 }

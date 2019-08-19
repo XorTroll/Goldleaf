@@ -11,6 +11,18 @@ namespace ui
     {
         this->optsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->optsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        this->ReloadItems();
+        this->Add(this->optsMenu);
+    }
+
+    AccountLayout::~AccountLayout()
+    {
+        delete this->optsMenu;
+    }
+
+    void AccountLayout::ReloadItems()
+    {
+        this->optsMenu->ClearItems();
         pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(208));
         itm->SetColor(gsets.CustomScheme.Text);
         itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
@@ -23,20 +35,21 @@ namespace ui
         itm3->SetColor(gsets.CustomScheme.Text);
         itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
         this->optsMenu->AddItem(itm3);
-        this->Add(this->optsMenu);
+        if(acc::IsLinked())
+        {
+            pu::ui::elm::MenuItem *itm4 = new pu::ui::elm::MenuItem("Nintendo account information");
+            itm4->SetColor(gsets.CustomScheme.Text);
+            itm4->AddOnClick(std::bind(&AccountLayout::optsServicesInfo_Click, this));
+            this->optsMenu->AddItem(itm4);
+        }
     }
 
-    AccountLayout::~AccountLayout()
+    void AccountLayout::Load()
     {
-        delete this->optsMenu;
-    }
-
-    void AccountLayout::Load(u128 UserId)
-    {
-        this->uid = UserId;
+        this->uid = acc::GetSelectedUser();
 
         AccountProfile prof;
-        auto rc = accountGetProfile(&prof, UserId);
+        auto rc = accountGetProfile(&prof, this->uid);
         if(rc != 0)
         {
             HandleResult(rc, set::GetDictionaryEntry(211));
@@ -69,6 +82,7 @@ namespace ui
         }
         
         mainapp->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + pu::String(pbase.username), deficon);
+        this->ReloadItems();
     }
 
     void AccountLayout::optsRename_Click()
@@ -116,5 +130,19 @@ namespace ui
             }
             else HandleResult(rc, set::GetDictionaryEntry(220));
         }
+    }
+
+    void AccountLayout::optsServicesInfo_Click()
+    {
+        auto linkedinfo = acc::GetUserLinkedInfo();
+        pu::String str = "Account ID: " + hos::FormatHex(linkedinfo.AccountId);
+        str += "\nNintendo Account ID: " + hos::FormatHex(linkedinfo.NintendoAccountId);
+        auto sopt = mainapp->CreateShowDialog("Linked account", str, { "Unlink (locally)", "Ok" }, false);
+        if(sopt < 0) return;
+        sopt = mainapp->CreateShowDialog("Unlink account locally", "Sure?", {"Yes", "Cancel"}, true);
+        if(sopt < 0) return;
+        auto res = acc::UnlinkLocally();
+        if(res == 0) mainapp->ShowNotification("Unlinked locally!");
+        else HandleResult(res, "An error ocurred unlinking account locally:");
     }
 }

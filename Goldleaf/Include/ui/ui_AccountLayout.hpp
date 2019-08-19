@@ -19,10 +19,12 @@ namespace ui
         public:
             AccountLayout();
             ~AccountLayout();
-            void Load(u128 UserId);
+            void ReloadItems();
+            void Load();
             void optsRename_Click();
             void optsIcon_Click();
             void optsDelete_Click();
+            void optsServicesInfo_Click();
         private:
             pu::ui::elm::Menu *optsMenu;
             u128 uid;

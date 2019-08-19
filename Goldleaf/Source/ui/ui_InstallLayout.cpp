@@ -227,8 +227,7 @@ namespace ui
                 mainapp->LoadLayout(Prev);
                 return;
             }
-            if(GetLaunchMode() == LaunchMode::Application) appletBeginBlockingHomeButton(0);
-            appletSetMediaPlaybackState(true);
+            hos::LockAutoSleep();
             this->installText->SetText(set::GetDictionaryEntry(146));
             mainapp->CallForRender();
             this->installBar->SetVisible(true);
@@ -246,9 +245,7 @@ namespace ui
                 mainapp->CallForRender();
             });
         }
-
-        appletSetMediaPlaybackState(false);
-        if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
+        hos::UnlockAutoSleep();
         this->installBar->SetVisible(false);
         mainapp->CallForRender();
         if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));

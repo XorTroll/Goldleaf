@@ -47,6 +47,11 @@ namespace fs
         fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
     }
 
+    void CreateConcatenationFile(pu::String Path)
+    {
+        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FS_CREATE_BIG_FILE);
+    }
+
     Result CreateDirectory(pu::String Path)
     {
         int res = mkdir(Path.AsUTF8().c_str(), 777);
@@ -58,12 +63,18 @@ namespace fs
     void CopyFile(pu::String Path, pu::String NewPath)
     {
         Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
+        Explorer *ogexp = GetExplorerForMountName(GetPathRoot(NewPath));
+        auto fsize = gexp->GetFileSize(Path);
+        if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
         gexp->CopyFile(Path, NewPath);
     }
 
     void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback)
     {
         Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
+        Explorer *ogexp = GetExplorerForMountName(GetPathRoot(NewPath));
+        auto fsize = gexp->GetFileSize(Path);
+        if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
         gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 

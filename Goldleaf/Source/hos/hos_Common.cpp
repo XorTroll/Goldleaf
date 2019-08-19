@@ -49,13 +49,6 @@ namespace hos
         return (std::to_string(this->Major) + "." + std::to_string(this->Minor) + "." + std::to_string(this->Micro));
     }
 
-    std::string FormatHex(u32 Number)
-    {
-        std::stringstream strm;
-        strm << "0x" << std::hex << std::uppercase << Number;
-        return strm.str();
-    }
-
     std::string FormatHex128(u128 Number)
     {
         u8 *ptr = (u8*)&Number;
@@ -82,7 +75,7 @@ namespace hos
             secs = divt.rem;
             base = std::to_string(mins) + "min";
             if(secs > 0) base += (" " + std::to_string(secs) + "s");
-            if(mins > 60)
+            if(mins >= 60)
             {
                 auto divt2 = div(mins, 60);
                 u64 hrs = divt2.quot;
@@ -90,6 +83,39 @@ namespace hos
                 base = std::to_string(hrs) + "h";
                 if(mins > 0) base += (" " + std::to_string(mins) + "min");
                 if(secs > 0) base += (" " + std::to_string(secs) + "s");
+                if(hrs >= 24)
+                {
+                    auto divt3 = div(hrs, 24);
+                    u64 days = divt3.quot;
+                    hrs = divt3.rem;
+                    base = std::to_string(days) + "d";
+                    if(hrs > 0) base += (" " + std::to_string(hrs) + "h");
+                    if(mins > 0) base += (" " + std::to_string(mins) + "min");
+                    if(secs > 0) base += (" " + std::to_string(secs) + "s");
+                    if(days >= 7)
+                    {
+                        auto divt4 = div(days, 7);
+                        u64 weeks = divt4.quot;
+                        days = divt4.rem;
+                        base = std::to_string(weeks) + "w";
+                        if(days > 0) base += (" " + std::to_string(days) + "d");
+                        if(hrs > 0) base += (" " + std::to_string(hrs) + "h");
+                        if(mins > 0) base += (" " + std::to_string(mins) + "min");
+                        if(secs > 0) base += (" " + std::to_string(secs) + "s");
+                        if(weeks >= 52)
+                        {
+                            auto divt5 = div(weeks, 52);
+                            u64 years = divt5.quot;
+                            weeks = divt5.rem;
+                            base = std::to_string(years) + "y";
+                            if(days > 0) base += (" " + std::to_string(weeks) + "w");
+                            if(days > 0) base += (" " + std::to_string(days) + "d");
+                            if(hrs > 0) base += (" " + std::to_string(hrs) + "h");
+                            if(mins > 0) base += (" " + std::to_string(mins) + "min");
+                            if(secs > 0) base += (" " + std::to_string(secs) + "s");
+                        }
+                    }
+                }
             }
         }
         return base;
@@ -141,5 +167,17 @@ namespace hos
         operator delete[](block, std::align_val_t(0x1000));
 
         splSetConfig((SplConfigItem)65001, 2);
+    }
+
+    void LockAutoSleep()
+    {
+        if(GetLaunchMode() == LaunchMode::Application) appletBeginBlockingHomeButton(0);
+        appletSetMediaPlaybackState(true);
+    }
+
+    void UnlockAutoSleep()
+    {
+        appletSetMediaPlaybackState(false);
+        if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
     }
 }

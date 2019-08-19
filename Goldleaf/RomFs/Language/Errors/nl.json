@@ -1,0 +1,15 @@
+[
+     "Onbekende of ongedocumenteerde fout",
+     "Ongeldig pad",
+     "Ongeldige NCA (kan betekenen dat er sigpatches ontbreken of een te lage versie)",
+     "Ongeldige PFS0 (NSP)",
+     "Standaard C / C ++ fout",
+     "Er is niet genoeg ruimte beschikbaar om de taak te voltooien",
+     "De metagegevens NCA konden niet worden gevonden in de NSP",
+     "Metadata kon niet worden gevonden in de NCA",
+     "De titel is al op deze console geïnstalleerd",
+     "Ongeldige USB-opdracht",
+     "Er bestaat al een ander bestand of map met dezelfde naam",
+     "Kon titelinhoud niet vinden",
+     "Kon de PFS0 (NSP) niet bouwen"
+]

@@ -348,23 +348,6 @@ namespace ui
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(122), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0) return;
 
-                        /*
-                        pu::ui::render::NativeTexture icon = pu::ui::render::LoadImage(fullitm);
-                        if(!icon)
-                        {
-                            mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(259), { set::GetDictionaryEntry(234) }, true);
-                            return;
-                        }
-                        u32 icw = pu::ui::render::GetTextureWidth(icon);
-                        u32 ich = pu::ui::render::GetTextureHeight(icon);
-                        if((icw != 256) || (ich != 256))
-                        {
-                            mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(260), { set::GetDictionaryEntry(234) }, true);
-                            return;
-                        }
-                        pu::ui::render::DeleteTexture(icon);
-                        */
-
                         size_t fsize = this->gexp->GetFileSize(fullitm);
                         u8 *iconbuf = new u8[fsize]();
                         this->gexp->ReadFileBlock(fullitm, 0, fsize, iconbuf);
@@ -478,7 +461,10 @@ namespace ui
                 case 2:
                     if(this->WarnNANDWriteAccess())
                     {
+                        sopt = mainapp->CreateShowDialog("Directory delete", "Would you like to delete this directory?", {"Yes", "Cancel"}, true);
+                        if(sopt < 0) return;
                         this->gexp->DeleteDirectory(fullitm);
+                        mainapp->ShowNotification("The directory was successfully deleted.");
                         this->UpdateElements();
                     }
                     break;
