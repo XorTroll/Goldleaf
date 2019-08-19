@@ -24,6 +24,10 @@
 
   - Copying files from PC to SD which are over 4GB is now correctly handled, creating a concatenation file (see above) to correctly handle it.
 
+  - Goldleaf takes advantage now from hbloader v2.2.0's heap reservation, which reserved 128MB of heap for other applets. Goldleaf probably won't work without this trick, so its support is uncertain with old Atmosphere or other CFWs.
+
+  - The forwarder was updated with hbloader's latest code.
+
 - User / accounts
 
   - Users have a more important role in Goldleaf. Now an account has to be selected in order to use several user-related features.
