@@ -78,13 +78,13 @@ namespace ui
             {
                 stats = cnt.GetUserPlayStats(uid);
                 msg += "\nUser-specific play statistics:";
-                msg += "\nLast played: " + hos::FormatTime(stats.SecondsFromLastLaunched) + " ago";
+                msg += "\nTime since last played: " + hos::FormatTime(stats.SecondsFromLastLaunched);
                 msg += "\nTotal play time: " + hos::FormatTime(stats.TotalPlaySeconds);
                 msg += "\n";
             }
             stats = cnt.GetGlobalPlayStats();
             msg += "\nGlobal play statistics:";
-            msg += "\nLast played: " + hos::FormatTime(stats.SecondsFromLastLaunched) + " ago";
+            msg += "\nTime since last played: " + hos::FormatTime(stats.SecondsFromLastLaunched);
             msg += "\nTotal play time: " + hos::FormatTime(stats.TotalPlaySeconds);
         }
         auto tiks = hos::GetAllTickets();
@@ -171,10 +171,10 @@ namespace ui
             auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
             if(rc == 0)
             {
-                mainapp->ShowNotification("Yeet!");
+                mainapp->ShowNotification("The title's launch version was successfully reset.");
                 this->UpdateElements();
             }
-            else HandleResult(rc, "Boop...");
+            else HandleResult(rc, "An error ocurred attempting to reset the title's launch version:");
         }
     }
 

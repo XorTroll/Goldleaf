@@ -17,3 +17,9 @@ Would you like to unlink this account? (It will only be unlinked locally)
 The account was successfully unlinked. It can be deleted now.
 An error ocurred attempting to unlink the account:
 Nintendo account information
+The title's launch version was successfully reset.
+An error ocurred attempting to reset the title's launch version:
+User-specific play statistics:
+Global play statistics:
+Time since last played:
+Total play time:
