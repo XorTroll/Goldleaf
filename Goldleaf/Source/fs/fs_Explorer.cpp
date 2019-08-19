@@ -144,7 +144,7 @@ namespace fs
             szrem -= rbytes;
             off += rbytes;
             ex->WriteFileBlock(NewPath, data, rbytes);
-            u8 perc = ((double)((double)off / (double)fsize) * 100.0);
+            u8 perc = (u8)((double)((double)off / (double)fsize) * 100.0);
             Callback(perc);
         }
     }

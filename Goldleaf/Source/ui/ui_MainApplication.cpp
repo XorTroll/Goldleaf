@@ -12,16 +12,18 @@ namespace ui
     {
         gsets = set::ProcessSettings();
         set::Initialize();
+        if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
         pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
+        this->seluser = 0;
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
         this->connstate = 0;
         this->baseImage = new pu::ui::elm::Image(0, 0, gsets.PathForResource("/Base.png"));
-        this->timeText = new pu::ui::elm::TextBlock(1124, 20, "00:00:00");
+        this->timeText = new pu::ui::elm::TextBlock(1124, 15, "00:00:00");
         this->timeText->SetColor(gsets.CustomScheme.Text);
-        this->batteryText = new pu::ui::elm::TextBlock(1015, 22, "0%", 20);
+        this->batteryText = new pu::ui::elm::TextBlock(1015, 20, "0%", 20);
         this->batteryText->SetColor(gsets.CustomScheme.Text);
         this->batteryImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/0.png"));
         this->batteryChargeImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/Charge.png"));
@@ -29,7 +31,15 @@ namespace ui
         this->menuImage = new pu::ui::elm::Image(15, 69, gsets.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(85);
         this->menuImage->SetHeight(85);
-        this->usbImage = new pu::ui::elm::Image(710, 12, gsets.PathForResource("/Common/USB.png"));
+        this->userImage = new ClickableImage(1090, 75, gsets.PathForResource("/Common/User.png"));
+        this->userImage->SetWidth(70);
+        this->userImage->SetHeight(70);
+        this->userImage->SetOnClick(std::bind(&MainApplication::userImage_OnClick, this));
+        this->helpImage = new ClickableImage(1180, 80, gsets.PathForResource("/Common/Help.png"));
+        this->helpImage->SetWidth(60);
+        this->helpImage->SetHeight(60);
+        this->helpImage->SetOnClick(std::bind(&MainApplication::helpImage_OnClick, this));
+        this->usbImage = new pu::ui::elm::Image(695, 12, gsets.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);
@@ -37,7 +47,7 @@ namespace ui
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = new pu::ui::elm::TextBlock(800, 22, "(...)", 20);
+        this->ipText = new pu::ui::elm::TextBlock(800, 20, "", 20);
         this->ipText->SetColor(gsets.CustomScheme.Text);
         this->menuNameText = new pu::ui::elm::TextBlock(120, 85, "-");
         this->menuNameText->SetColor(gsets.CustomScheme.Text);
@@ -294,10 +304,46 @@ namespace ui
         this->sysInfo->Add(this->menuHeadText);
         this->update->Add(this->menuHeadText);
         this->about->Add(this->menuHeadText);
+        this->mainMenu->Add(this->userImage);
+        this->browser->Add(this->userImage);
+        this->exploreMenu->Add(this->userImage);
+        this->pcExplore->Add(this->userImage);
+        this->usbDrives->Add(this->userImage);
+        this->fileContent->Add(this->userImage);
+        this->copy->Add(this->userImage);
+        this->nspInstall->Add(this->userImage);
+        this->contentInformation->Add(this->userImage);
+        this->storageContents->Add(this->userImage);
+        this->contentManager->Add(this->userImage);
+        this->titleDump->Add(this->userImage);
+        this->unusedTickets->Add(this->userImage);
+        this->account->Add(this->userImage);
+        this->amiibo->Add(this->userImage);
+        this->sysInfo->Add(this->userImage);
+        this->update->Add(this->userImage);
+        this->about->Add(this->userImage);
+        this->mainMenu->Add(this->helpImage);
+        this->browser->Add(this->helpImage);
+        this->exploreMenu->Add(this->helpImage);
+        this->pcExplore->Add(this->helpImage);
+        this->usbDrives->Add(this->helpImage);
+        this->fileContent->Add(this->helpImage);
+        this->copy->Add(this->helpImage);
+        this->nspInstall->Add(this->helpImage);
+        this->contentInformation->Add(this->helpImage);
+        this->storageContents->Add(this->helpImage);
+        this->contentManager->Add(this->helpImage);
+        this->titleDump->Add(this->helpImage);
+        this->unusedTickets->Add(this->helpImage);
+        this->account->Add(this->helpImage);
+        this->amiibo->Add(this->helpImage);
+        this->sysInfo->Add(this->helpImage);
+        this->update->Add(this->helpImage);
+        this->about->Add(this->helpImage);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->LoadLayout(this->mainMenu);   
-        this->updshown = false;
+        this->welcomeshown = false;
         this->start = std::chrono::steady_clock::now();
         mainapp = this;
     }
@@ -312,6 +358,8 @@ namespace ui
         delete this->menuBanner;
         delete this->menuImage;
         delete this->usbImage;
+        delete this->userImage;
+        delete this->helpImage;
         delete this->connImage;
         delete this->ipText;
         delete this->menuNameText;
@@ -346,6 +394,17 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
+        if(!this->welcomeshown)
+        {
+            auto tnow = std::chrono::steady_clock::now();
+            auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
+            if(timediff >= 1000)
+            {
+                this->ShowNotification("Welcome to Goldleaf! Press X anytime for control information.");
+                this->welcomeshown = true;
+            }
+        }
+
         pu::String dtime = hos::GetCurrentTime();
         u32 blv = hos::GetBatteryLevel();
         bool isch = hos::IsCharging();
@@ -362,8 +421,6 @@ namespace ui
             else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/80.png"));
             else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/90.png"));
             else if(blv == 100) this->batteryImage->SetImage(gsets.PathForResource("/Battery/100.png"));
-            this->batteryImage->SetWidth(85);
-            this->batteryImage->SetHeight(85);
             this->batteryText->SetText(std::to_string(blv) + "%");
             this->preblv = blv;
         }
@@ -395,11 +452,25 @@ namespace ui
         if(connstr > 0)
         {
             u32 ip = gethostid();
-            char sip[256];
-            inet_ntop(AF_INET, &ip, sip, 256);
+            char sip[0x20] = {0};
+            inet_ntop(AF_INET, &ip, sip, 0x20);
             this->ipText->SetText(pu::String(sip));
         }
-        else this->ipText->SetText("<no connection>");
+        else this->ipText->SetText("");
+        auto user = acc::GetSelectedUser();
+        if(user != this->seluser)
+        {
+            this->seluser = user;
+            if(this->seluser == 0) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+            else
+            {
+                auto usericon = acc::GetCachedUserIcon();
+                if(fs::Exists(usericon)) this->userImage->SetImage(usericon);
+                else this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+            }
+            this->userImage->SetWidth(70);
+            this->userImage->SetHeight(70);
+        }
     }
 
     void MainApplication::LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon)
@@ -618,6 +689,16 @@ namespace ui
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
+    }
+
+    void MainApplication::userImage_OnClick()
+    {
+        if(acc::SelectUser()) acc::CacheSelectedUserIcon();
+    }
+
+    void MainApplication::helpImage_OnClick()
+    {
+        mainapp->CreateShowDialog("Demo", "Demo2", {"Ok"}, false);
     }
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)

@@ -35,7 +35,6 @@ namespace acc
             Result DeleteRegistrationInfoLocally();
             Result GetAccountId(u64 *out_AId);
             Result GetNintendoAccountId(u64 *out_NAId);
-            Result Demo_GetNintendoAccountUserResourceCache(u64 *out_NAId, void *out_NASUser, size_t out_NASUser_Size);
             void Close();
         private:
             Service srv;

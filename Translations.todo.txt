@@ -1,2 +1,6 @@
-No user has been selected. Select a user in the main menu.
+No user has been selected. Select it clicking on the user icon above.
 Reset expected title version
+Welcome to Goldleaf! Press X anytime for control information.
+Unlink account (locally)
+The title's launch version was successfully reset.
+An error ocurred attempting to reset the title's launch version:

@@ -52,21 +52,16 @@ namespace hos
     std::string FormatHex(u32 Number)
     {
         std::stringstream strm;
-        strm << "0x" << std::hex << Number;
+        strm << "0x" << std::hex << std::uppercase << Number;
         return strm.str();
     }
 
     std::string FormatHex128(u128 Number)
     {
         u8 *ptr = (u8*)&Number;
-        std::string res;
-        for(u32 i = 0; i < 16; i++)
-        {
-            std::stringstream strm;
-            strm << std::hex << (int)ptr[i];
-            res += strm.str();
-        }
-        return res;
+        std::stringstream strm;
+        for(u32 i = 0; i < 16; i++) strm << std::hex << std::uppercase << (int)ptr[i];
+        return strm.str();
     }
 
     std::string DoubleToString(double Number)

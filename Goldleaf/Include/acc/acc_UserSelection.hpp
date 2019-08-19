@@ -12,12 +12,17 @@
 #pragma once
 #include <switch.h>
 #include <functional>
+#include <Types.hpp>
 
 namespace acc
 {
     u128 GetSelectedUser();
+    void SetSelectedUser(u128 User);
+    bool SelectFromPreselectedUser();
     bool SelectUser();
     u128 LaunchPlayerSelect();
     Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb);
     Result EditUserIcon(u8 *JPEG, size_t JPEG_size);
+    void CacheSelectedUserIcon();
+    std::string GetCachedUserIcon();
 }

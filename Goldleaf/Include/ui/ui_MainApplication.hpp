@@ -28,6 +28,8 @@
 #include <ui/ui_UpdateLayout.hpp>
 #include <ui/ui_USBDrivesLayout.hpp>
 
+#include <ui/ui_ClickableImage.hpp>
+
 namespace ui
 {
     class MainApplication : public pu::ui::Application
@@ -53,6 +55,9 @@ namespace ui
             void amiibo_Input(u64 Down, u64 Up, u64 Held);
             void sysInfo_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
+            void userImage_OnClick();
+            void helpImage_OnClick();
+            void ReloadUser(u128 User);
             void OnInput(u64 Down, u64 Up, u64 Held);
             MainMenuLayout *GetMainMenuLayout();
             PartitionBrowserLayout *GetBrowserLayout();
@@ -77,6 +82,7 @@ namespace ui
             bool preisch;
             bool hasusb;
             u32 connstate;
+            u128 seluser;
             pu::String pretime;
             bool vfirst;
             MainMenuLayout *mainMenu;
@@ -109,10 +115,12 @@ namespace ui
             pu::ui::elm::TextBlock *ipText;
             pu::ui::elm::TextBlock *menuNameText;
             pu::ui::elm::TextBlock *menuHeadText;
+            ClickableImage *userImage;
+            ClickableImage *helpImage;
             pu::ui::extras::Toast *toast;
-            bool updshown;
+            bool welcomeshown;
             std::chrono::time_point<std::chrono::steady_clock> start;
-    }; // { 50, 138, 188, 255 }
+    };
 
     static const ColorScheme DefaultLight = { { 124, 199, 239, 255 }, { 196, 224, 239, 255 }, { 168, 214, 237, 255 }, { 15, 15, 15, 255 } };
     static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };

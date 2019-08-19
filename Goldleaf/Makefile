@@ -9,7 +9,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.6.X-dev
+APP_VERSION := 0.7-dev
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
@@ -27,7 +27,7 @@ CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
 
-CXXFLAGS	:= $(CFLAGS) -std=gnu++17 $(CXXFLAGS)
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17 $(CXXFLAGS)
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

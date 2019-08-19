@@ -205,6 +205,7 @@ namespace ui
             vopts.push_back(set::GetDictionaryEntry(18));
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(76), msg, vopts, true);
             if(sopt < 0) return;
+            int osopt = sopt;
             if(ext == "nsp")
             {
                 switch(sopt)
@@ -400,13 +401,13 @@ namespace ui
             int copyopt = copt - 4;
             int delopt = copt - 3;
             int renopt = copt - 2;
-            if((sopt == viewopt) && (this->gexp->GetFileSize(fullitm) > 0))
+            if((osopt == viewopt) && (this->gexp->GetFileSize(fullitm) > 0))
             {
                 mainapp->LoadLayout(mainapp->GetFileContentLayout());
                 mainapp->GetFileContentLayout()->LoadFile(fullitm, this, this->gexp, true);
             }
-            else if(sopt == copyopt) UpdateClipboard(fullitm);
-            else if(sopt == delopt)
+            else if(osopt == copyopt) UpdateClipboard(fullitm);
+            else if(osopt == delopt)
             {
                 if(this->WarnNANDWriteAccess())
                 {
@@ -421,7 +422,7 @@ namespace ui
                     this->UpdateElements(tmpidx);
                 }
             }
-            else if(sopt == renopt)
+            else if(osopt == renopt)
             {
                 pu::String kbdt = AskForText(set::GetDictionaryEntry(130), itm);
                 if(kbdt != "")

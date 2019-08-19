@@ -71,7 +71,7 @@ namespace hos
         Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
-            icon = new u8[0x20000];
+            icon = new u8[0x20000]();
             memcpy(icon, ctdata->icon, 0x20000);
         }
         else
@@ -79,7 +79,7 @@ namespace hos
             rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
-                icon = new u8[0x20000];
+                icon = new u8[0x20000]();
                 memcpy(icon, ctdata->icon, 0x20000);
             }
         }
@@ -106,7 +106,7 @@ namespace hos
             pu::String fjpg = GoldleafDir + "/title/" + fappid + ".jpg";
             sdexp->DeleteFile(fjpg);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
-            delete jpg;
+            delete[] jpg;
             hicon = true;
         }
         return hicon;

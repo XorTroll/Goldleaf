@@ -102,13 +102,8 @@ namespace ui
         u128 uid = acc::GetSelectedUser();
         if(uid == 0)
         {
-            bool ok = acc::SelectUser();
-            if(!ok)
-            {
-                mainapp->ShowNotification("Unable to select a user.");
-                return;
-            }
-            uid = acc::GetSelectedUser();
+            mainapp->ShowNotification("No user has been selected. Select a user in the main menu.");
+            return;
         }
         mainapp->LoadMenuData(set::GetDictionaryEntry(41), "Accounts", set::GetDictionaryEntry(42));
         mainapp->GetAccountLayout()->Load(uid);

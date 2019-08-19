@@ -57,39 +57,18 @@ namespace ui
             return;
         }
 
-        size_t iconsz = 0;
-        rc = accountProfileGetImageSize(&prof, &iconsz);
-        if(rc != 0)
-        {
-            HandleResult(rc, set::GetDictionaryEntry(211));
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
-
-        u8 *icon = new u8[iconsz]();
-        size_t tmpsz = 0;
-        rc = accountProfileLoadImage(&prof, icon, iconsz, &tmpsz);
-        if(rc != 0)
-        {
-            HandleResult(rc, set::GetDictionaryEntry(211));
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
-
         accountProfileClose(&prof);
-        mainapp->LoadMenuHead(set::GetDictionaryEntry(212) + " " + pu::String(pbase.username));
 
-        pu::String iconpth = "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(UserId) + ".jpg";
-        fs::DeleteFile(iconpth);
-        FILE *f = fopen(iconpth.AsUTF8().c_str(), "wb");
-        if(f)
+        acc::CacheSelectedUserIcon();
+        bool deficon = false;
+        auto usericon = acc::GetCachedUserIcon();
+        if(fs::Exists(usericon))
         {
-            fwrite(icon, 1, iconsz, f);
-            fclose(f);
+            deficon = true;
+            usericon = "Accounts";
         }
-        delete[] icon;
+        
+        mainapp->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + pu::String(pbase.username), deficon);
     }
 
     void AccountLayout::optsRename_Click()
