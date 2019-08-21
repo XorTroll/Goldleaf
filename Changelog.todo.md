@@ -1,4 +1,4 @@
-# Changelog
+# Changelog (dummy, to be filled, later used in release time)
 
 - Remote PC
 
@@ -11,6 +11,8 @@
   - The NSP's name is shown above (instead of the directory).
 
   - ETA (estimated time for the install to finish) is now shown too.
+
+  - Now Goldleaf always obtains the NSP's key generation (previously only when it had a ticket) and compares it to a computed system one, in order to block installs with higher key generations (mostly since the contents couldn't be decryptable, thus utterly useless)
 
 - Title dump / export
 
@@ -58,4 +60,4 @@
 
   - Several icon changes (forwarder's icon and amiibo dump), thanks to **C4Phoenix** for all his help with graphic resources since 0.1!
 
-  - Now, Goldleaf also supports dutch! Thanks a lot to **Mega** for helping with the translation!
+  - Now, Goldleaf also supports dutch language! Thanks a lot to **Mega** for helping with the translation!

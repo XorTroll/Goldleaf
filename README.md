@@ -122,7 +122,7 @@ This is an example JSON for Goldleaf settings:
     "general": {
         "customLanguage": "es",
         "keysPath": "/switch/prod.keys",
-        "externalRomfs": "/switch/Goldleaf/theme/rom"
+        "externalRomFs": "/switch/Goldleaf/theme/rom"
     },
     "ui": {
         "background": "#aabbccdd",

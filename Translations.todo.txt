@@ -23,4 +23,3 @@ User-specific play statistics:
 Global play statistics:
 Time since last played:
 Total play time:
-Installing NSP:
