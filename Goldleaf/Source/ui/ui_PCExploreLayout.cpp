@@ -67,6 +67,11 @@ namespace ui
             itm->AddOnClick(std::bind(&PCExploreLayout::path_Click, this));
             this->pathsMenu->AddItem(itm);
         }
+        pu::ui::elm::MenuItem *fselitm = new pu::ui::elm::MenuItem("Select file from PC");
+        fselitm->SetColor(gsets.CustomScheme.Text);
+        fselitm->SetIcon(gsets.PathForResource("/FileSystem/File.png"));
+        fselitm->AddOnClick(std::bind(&PCExploreLayout::fileSelect_Click, this));
+        this->pathsMenu->AddItem(fselitm);
         this->pathsMenu->SetSelectedIndex(0);
     }
 
@@ -75,5 +80,12 @@ namespace ui
         u32 idx = this->pathsMenu->GetSelectedIndex();
         mainapp->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
         mainapp->LoadLayout(mainapp->GetBrowserLayout());
+    }
+
+    void PCExploreLayout::fileSelect_Click()
+    {
+        pu::String selfile;
+        auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selfile));
+        if(R_SUCCEEDED(rc)) mainapp->GetBrowserLayout()->HandleFileDirectly(selfile, this);
     }
 }

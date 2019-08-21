@@ -118,6 +118,24 @@ namespace ui
         }
     }
 
+    void PartitionBrowserLayout::HandleFileDirectly(pu::String Path, pu::ui::Layout *Prev)
+    {
+        auto dir = fs::GetBaseDirectory(Path);
+        auto fname = fs::GetFileName(Path);
+        this->ChangePartitionPCDrive(dir);
+
+        auto &items = this->browseMenu->GetItems();
+        auto it = std::find_if(items.begin(), items.end(), [&](pu::ui::elm::MenuItem *&item) -> bool
+        {
+            return (item->GetName() == fname);
+        });
+        if(it == items.end()) return;
+
+        u32 idx = std::distance(items.begin(), it);
+        this->browseMenu->SetSelectedIndex(idx);
+        fsItems_Click();
+    }
+
     bool PartitionBrowserLayout::GoBack()
     {
         return this->gexp->NavigateBack();

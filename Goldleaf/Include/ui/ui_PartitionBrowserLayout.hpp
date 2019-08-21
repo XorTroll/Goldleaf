@@ -23,6 +23,7 @@ namespace ui
             void ChangePartitionNAND(fs::Partition Partition, bool Update = true);
             void ChangePartitionPCDrive(pu::String Mount, bool Update = true);
             void UpdateElements(int Idx = 0);
+            void HandleFileDirectly(pu::String Path, pu::ui::Layout *Prev);
             bool GoBack();
             bool WarnNANDWriteAccess();
             void fsItems_Click();

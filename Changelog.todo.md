@@ -6,6 +6,8 @@
 
   - Read size was dropped again to 8MB (from previous 16MB), to make USB more stable (16MB size might cause unstability)
 
+  - Added option to select a file directly on the remote PC tool (basically same system as on <=0.5 Goldleaf versions, for those who like the classic system!)
+
 - NSP installs
 
   - The NSP's name is shown above (instead of the directory).
@@ -15,6 +17,8 @@
   - Now Goldleaf always obtains the NSP's key generation (previously only when it had a ticket) and compares it to a computed system one, in order to block installs with higher key generations (mostly since the contents couldn't be decryptable, thus utterly useless)
 
   - Now install location is just chosen once, at the start of batch NSP installs (all NSPs within a directory)
+
+  - Multi-content installations (just a few titles currently) work now (didn't seem to work on 0.6.x)
 
 - Title dump / export
 

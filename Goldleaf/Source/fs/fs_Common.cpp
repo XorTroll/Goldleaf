@@ -310,6 +310,11 @@ namespace fs
         return Path.substr(Path.find_last_of("/\\") + 1);
     }
 
+    pu::String GetBaseDirectory(pu::String Path)
+    {
+        return Path.substr(0, Path.find_last_of("/\\"));
+    }
+
     pu::String GetExtension(pu::String Path)
     {
         return Path.substr(Path.find_last_of(".") + 1);

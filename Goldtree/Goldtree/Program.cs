@@ -99,6 +99,7 @@ namespace gtree
             Console.ForegroundColor = ConsoleColor.Gray;
         }
 
+        [STAThread]
         public static void Main(string[] Args)
         {
             Initialize();

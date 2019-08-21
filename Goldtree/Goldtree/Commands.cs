@@ -494,7 +494,7 @@ namespace gtree
                                                 Title = "Select file for Goldleaf",
                                                 Multiselect = false
                                             };
-                                            if (openfd.ShowDialog() == DialogResult.OK)
+                                            if(openfd.ShowDialog() == DialogResult.OK)
                                             {
                                                 WriteOutBlockBase(Command.ResultSuccess);
                                                 var path = openfd.FileName.NormalizeAsGoldleafPath();

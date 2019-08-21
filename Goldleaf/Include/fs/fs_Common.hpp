@@ -62,6 +62,7 @@ namespace fs
     u64 GetFileSize(pu::String Path);
     u64 GetDirectorySize(pu::String Path);
     pu::String GetFileName(pu::String Path);
+    pu::String GetBaseDirectory(pu::String Path);
     pu::String GetExtension(pu::String Path);
     pu::String GetPathRoot(pu::String Path);
     pu::String GetPathWithoutRoot(pu::String Path);

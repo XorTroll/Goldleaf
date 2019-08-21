@@ -21,6 +21,7 @@ namespace ui
             ~PCExploreLayout();
             void UpdatePaths();
             void path_Click();
+            void fileSelect_Click();
         private:
             std::vector<pu::String> names;
             std::vector<pu::String> paths;
