@@ -46,7 +46,7 @@
 
   - Added play statistics support, both for user-only (user must be selected first, see above) and global, this includes last played time and total play time for both.
 
-  - Fixed bugs where contents whose base title is on a different location than updates/DLCs.
+  - Fixed bugs where contents whose base title is on a different location than updates/DLCs would be shown incorrecly.
 
 - UI
 

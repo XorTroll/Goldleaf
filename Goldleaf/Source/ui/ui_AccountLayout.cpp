@@ -137,8 +137,8 @@ namespace ui
         auto linkedinfo = acc::GetUserLinkedInfo();
         pu::String str = "Account ID: " + hos::FormatHex(linkedinfo.AccountId);
         str += "\nNintendo Account ID: " + hos::FormatHex(linkedinfo.NintendoAccountId);
-        auto sopt = mainapp->CreateShowDialog("Linked account", str, { "Unlink (locally)", "Ok" }, false);
-        if(sopt < 0) return;
+        auto sopt = mainapp->CreateShowDialog("Linked account", str, { "Unlink (locally)", "Ok" }, true);
+        if(sopt != 0) return;
         sopt = mainapp->CreateShowDialog("Unlink account locally", "Sure?", {"Yes", "Cancel"}, true);
         if(sopt < 0) return;
         auto res = acc::UnlinkLocally();

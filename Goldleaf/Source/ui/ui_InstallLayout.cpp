@@ -150,7 +150,7 @@ namespace ui
 
             u8 kgen = inst.GetKeyGeneration();
             info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(kgen) + " ";
-            switch(kgen)
+            switch(kgen + 1)
             {
                 case 0:
                     info += "(1.0.0 - 2.3.0)";
