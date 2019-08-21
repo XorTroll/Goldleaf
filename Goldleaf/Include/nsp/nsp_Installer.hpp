@@ -38,17 +38,18 @@ namespace nsp
             NacpStruct *GetNACP();
             bool HasTicket();
             hos::TicketData GetTicketData();
+            u8 GetKeyGeneration();
             std::vector<ncm::ContentRecord> GetNCAs();
             Result WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite);
             void FinalizeInstallation();
         private:
             PFS0 nspentry;
             NacpStruct entrynacp;
+            u8 keygen;
             hos::TicketData entrytik;
             ncm::ContentMeta cnmt;
             FsStorageId storage;
             ByteBuffer ccnmt;
-            ncm::ContentRecord record;
             NcmMetaRecord mrec;
             u64 baseappid;
             u64 stik;

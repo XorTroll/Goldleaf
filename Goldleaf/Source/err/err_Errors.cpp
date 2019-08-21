@@ -58,52 +58,52 @@ namespace err
         switch(mod)
         {
             case 128:
-                modidx = 0;
-                break;
-            case 124:
                 modidx = 1;
                 break;
-            case 5:
+            case 124:
                 modidx = 2;
                 break;
-            case 8:
+            case 5:
                 modidx = 3;
                 break;
-            case 15:
+            case 8:
                 modidx = 4;
                 break;
-            case 21:
+            case 15:
                 modidx = 5;
                 break;
-            case 16:
+            case 21:
                 modidx = 6;
                 break;
-            case 145:
+            case 16:
                 modidx = 7;
                 break;
-            case 136:
+            case 145:
                 modidx = 8;
                 break;
-            case 135:
+            case 136:
                 modidx = 9;
                 break;
-            case 26:
+            case 135:
                 modidx = 10;
                 break;
-            case 105:
+            case 26:
                 modidx = 11;
                 break;
-            case 140:
+            case 105:
                 modidx = 12;
                 break;
-            case 2:
+            case 140:
                 modidx = 13;
                 break;
-            case 356:
+            case 2:
                 modidx = 14;
                 break;
-            case 358:
+            case 356:
                 modidx = 15;
+                break;
+            case 358:
+                modidx = 16;
                 break;
         }
         err.OSError = OSError;

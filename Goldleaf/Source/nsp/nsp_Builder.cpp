@@ -8,7 +8,7 @@
 
 namespace nsp
 {
-    int Build(pu::String ContentsDir, pu::String Out, std::function<void(u8 Percentage)> Callback)
+    int Build(pu::String ContentsDir, pu::String Out, std::function<void(u64, u64)> Callback)
     {
         struct dirent *cur_dirent = NULL;
         struct stat objstats;
@@ -112,8 +112,7 @@ namespace nsp
                     szrem -= tmplen;
                     szread += tmplen;
                     fwrite(tmpbuf, 1, tmplen, fout);
-                    u8 pc = (u8)((double)szread / (double)fsentries[pos].Size * 100.0);
-                    Callback(pc);
+                    Callback(szread, fsentries[pos].Size);
                 }
                 fclose(fin);
             }

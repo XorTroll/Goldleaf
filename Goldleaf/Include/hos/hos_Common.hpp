@@ -52,6 +52,7 @@ namespace hos
     void PayloadProcess(pu::String Path);
     void LockAutoSleep();
     void UnlockAutoSleep();
+    u8 ComputeSystemKeyGeneration();
 
     static constexpr size_t MaxPayloadSize = 0x2F000;
     static constexpr size_t IRAMPayloadBaseAddress = 0x40010000;

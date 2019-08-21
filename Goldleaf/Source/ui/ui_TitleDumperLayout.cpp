@@ -41,7 +41,8 @@ namespace ui
         Result rc = ncmOpenContentStorage(stid, &cst);
         if(rc != 0)
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(MAKERESULT(222, 2221), set::GetDictionaryEntry(198));
+            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             return;
         }
@@ -49,26 +50,31 @@ namespace ui
         rc = ncmOpenContentMetaDatabase(stid, &cmdb);
         if(rc != 0)
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(MAKERESULT(222, 2222), set::GetDictionaryEntry(198));
+            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             serviceClose(&cst.s);
             return;
         }
-        NcmMetaRecord mrec;
+        NcmMetaRecord mrec = Target.Record;
+        /*
         bool ok = dump::GetMetaRecord(&cmdb, Target.ApplicationId, &mrec);
         if(!ok)
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(MAKERESULT(222, 2223), set::GetDictionaryEntry(198));
+            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             serviceClose(&cst.s);
             serviceClose(&cmdb.s);
             return;
         }
+        */
         NcmNcaId meta;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
+        bool ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(MAKERESULT(222, 2224), set::GetDictionaryEntry(198));
+            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             serviceClose(&cst.s);
             serviceClose(&cmdb.s);
@@ -290,9 +296,10 @@ namespace ui
         fs::CreateConcatenationFile(fout);
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
-        int qi = nsp::Build(outdir, fout, [&](u8 p)
+        int qi = nsp::Build(outdir, fout, [&](u64 done, u64 total)
         {
-            this->ncaBar->SetProgress(p);
+            this->ncaBar->SetMaxValue((double)total);
+            this->ncaBar->SetProgress((double)done);
             mainapp->CallForRender();
         });
         hos::UnlockAutoSleep();

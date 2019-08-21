@@ -2,6 +2,7 @@
 #include <err/err_Errors.hpp>
 #include <fs/fs_Explorer.hpp>
 #include <sys/stat.h>
+#include <hos/hos_Common.hpp>
 #include <fstream>
 #include <malloc.h>
 #include <dirent.h>
@@ -22,7 +23,7 @@ namespace nsp
 
     Result Installer::PrepareInstallation()
     {
-        Result rc = err::Make(err::ErrorDescription::CNMTNotFound);
+        Result rc = err::Make(err::ErrorDescription::InvalidNSP);
         if(nspentry.IsOk())
         {
             rc = 0;
@@ -61,8 +62,17 @@ namespace nsp
             nspentry.SaveFile(idxcnmtnca, nsys, ncnmtnca);
             pu::String acnmtnca = "@SystemContent://temp/" + cnmtnca;
             acnmtnca.reserve(FS_MAX_PATH);
+            FsRightsId rid = {};
+            rc = fsGetRightsIdAndKeyGenerationByPath(acnmtnca.AsUTF8().c_str(), &keygen, &rid);
+            if(rc != 0) return rc;
+            u8 systemkgen = hos::ComputeSystemKeyGeneration();
+            if(systemkgen < keygen)
+            {
+                rc = err::Make(err::ErrorDescription::KeyGenMismatch);
+                return rc;
+            }
             FsFileSystem cnmtncafs;
-            rc = fsOpenFileSystem(&cnmtncafs, FsFileSystemType_ContentMeta, acnmtnca.AsUTF8().c_str());
+            rc = fsOpenFileSystemWithId(&cnmtncafs, 0, FsFileSystemType_ContentMeta, acnmtnca.AsUTF8().c_str());
             if(rc != 0) return rc;
             {
                 fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs);
@@ -83,12 +93,12 @@ namespace nsp
                     return rc;
                 }
                 u64 fcnmtsz = cnmtfs.GetFileSize(fcnmt);
-                u8 *cnmtbuf = new u8[fcnmtsz];
+                u8 *cnmtbuf = new u8[fcnmtsz]();
                 cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, cnmtbuf);
                 cnmt = ncm::ContentMeta(cnmtbuf, fcnmtsz);
                 delete[] cnmtbuf;
             }
-            memset(&record, 0, sizeof(record));
+            ncm::ContentRecord record = {};
             record.ContentId = hos::StringAsContentId(icnmtnca);
             *(u64*)record.Size = (scnmtnca & 0xffffffffffff);
             record.Type = ncm::ContentType::Meta;
@@ -110,6 +120,7 @@ namespace nsp
             ncmContentStorageHas(&cst, &record.ContentId, &hascnmt);
             serviceClose(&cst.s);
             if(!hascnmt) ncas.push_back(record);
+            cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
             baseappid = hos::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
             auto recs = cnmt.GetContentRecords();
             memset(&entrynacp, 0, sizeof(entrynacp));
@@ -132,8 +143,8 @@ namespace nsp
                     pu::String acontrolnca = "@SystemContent://temp/" + controlnca;
                     acontrolnca.reserve(FS_MAX_PATH);
                     FsFileSystem controlncafs;
-                    rc = fsOpenFileSystemWithId(&controlncafs, baseappid, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
-                    if(rc == 0)
+                    auto rc2 = fsOpenFileSystemWithId(&controlncafs, mrec.titleId, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
+                    if(rc2 == 0)
                     {
                         fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs);
                         auto cnts = controlfs.GetContents();
@@ -161,7 +172,6 @@ namespace nsp
         NcmContentMetaDatabase mdb;
         Result rc = ncmOpenContentMetaDatabase(storage, &mdb);
         if(rc != 0) return rc;
-        cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
         rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetSize(), (NcmContentMetaRecordsHeader*)ccnmt.GetData());
         if(rc != 0)
         {
@@ -202,7 +212,7 @@ namespace nsp
         {
             u8 *tikbuf = new u8[stik]();
             nsys->ReadFileBlock("Contents/temp/" + tik, 0, stik, tikbuf);
-            rc = es::ImportTicket(tikbuf, stik, es::CertData, 1792);
+            es::ImportTicket(tikbuf, stik, es::CertData, 1792);
             delete[] tikbuf;
         }
         return rc;
@@ -236,6 +246,11 @@ namespace nsp
     hos::TicketData Installer::GetTicketData()
     {
         return entrytik;
+    }
+
+    u8 Installer::GetKeyGeneration()
+    {
+        return keygen;
     }
 
     std::vector<ncm::ContentRecord> Installer::GetNCAs()

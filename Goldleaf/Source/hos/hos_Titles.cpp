@@ -168,7 +168,7 @@ namespace hos
 
     bool Title::CheckBase(Title &Other)
     {
-        return ((!Other.IsBaseTitle()) && (this->ApplicationId == GetBaseApplicationId(Other.ApplicationId, Other.Type)));
+        return ((this->ApplicationId != Other.ApplicationId) && ((GetBaseApplicationId(this->ApplicationId, this->Type) == GetBaseApplicationId(Other.ApplicationId, Other.Type))));
     }
 
     static TitlePlayStats ProcessFromPdm(PdmPlayStatistics Stats)

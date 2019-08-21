@@ -47,19 +47,15 @@ namespace ui
             bool ok = true;
             if(!this->contents.empty()) for(u32 j = 0; j < this->contents.size(); j++)
             {
-                if(cnt.ApplicationId == this->contents[j].ApplicationId)
+                u64 curappid = cnt.ApplicationId;
+                u64 curbaseid = hos::GetBaseApplicationId(curappid, cnt.Type);
+                u64 cntappid = this->contents[j].ApplicationId;
+                u64 cntbaseid = hos::GetBaseApplicationId(cntappid, this->contents[j].Type);
+
+                if(curbaseid == cntbaseid)
                 {
                     ok = false;
                     break;
-                }
-                else
-                {
-                    u64 baseid = hos::GetBaseApplicationId(cnt.ApplicationId, cnt.Type);
-                    if(baseid == this->contents[j].ApplicationId)
-                    {
-                        ok = false;
-                        break;
-                    }
                 }
             }
             if(ok) this->contents.push_back(cnt);

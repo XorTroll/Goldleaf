@@ -182,14 +182,10 @@ namespace ui
     {
         this->tcontents.clear();
         this->tcontents.push_back(Content);
-        this->contents = Content.GetContents();
-        if(Content.IsBaseTitle())
+        std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Content.Location);
+        for(u32 i = 0; i < tts.size(); i++)
         {
-            std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Content.Location);
-            for(u32 i = 0; i < tts.size(); i++)
-            {
-                if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
-            }
+            if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
         }
         NacpStruct *nacp = Content.TryGetNACP();
         pu::String tcnt = hos::FormatApplicationId(Content.ApplicationId);

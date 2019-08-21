@@ -223,7 +223,7 @@ namespace ui
                             HandleResult(err::Make(err::ErrorDescription::NotEnoughSize), set::GetDictionaryEntry(251));
                             return;
                         }
-                        mainapp->LoadMenuHead("Installing NSP: " + pfullitm);
+                        mainapp->LoadMenuHead(set::GetDictionaryEntry(145) + " " + pfullitm);
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
                         mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst, this);
                         mainapp->LoadMenuHead(this->gexp->GetPresentableCwd());
@@ -514,7 +514,7 @@ namespace ui
                                     HandleResult(err::Make(err::ErrorDescription::NotEnoughSize), set::GetDictionaryEntry(251));
                                     return;
                                 }
-                                mainapp->LoadMenuHead("Installing NSP: " + pnsp);
+                                mainapp->LoadMenuHead(set::GetDictionaryEntry(145) + " " + pnsp);
                                 mainapp->LoadLayout(mainapp->GetInstallLayout());
                                 mainapp->GetInstallLayout()->StartInstall(nsp, this->gexp, dst, this, true);
                             }

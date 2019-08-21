@@ -10,9 +10,13 @@
 
   - The NSP's name is shown above (instead of the directory).
 
+  - ETA (estimated time for the install to finish) is now shown too.
+
 - Title dump / export
 
   - Titles are always dumped inside concatenation files (HOS's archive bit directories, used to support +4GB files), what means +4GB titles can safely be dumped on FAT32, and directly installed.
+
+  - Fixed errors dumping updates and DLCs. They should work fine now.
 
 - General
 

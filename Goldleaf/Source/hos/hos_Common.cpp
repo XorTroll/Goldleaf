@@ -180,4 +180,28 @@ namespace hos
         appletSetMediaPlaybackState(false);
         if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
     }
+
+    #define VERSION_EXACT(a,b,c) (hosversionGet() == MAKEHOSVERSION(a,b,c))
+    #define VERSION_BETWEEN(a,b,c,d,e,f) ((hosversionGet() >= MAKEHOSVERSION(a,b,c)) && (hosversionGet() <= MAKEHOSVERSION(d,e,f)))
+
+    #define MKEY_SET_IF(expression, kgen) if(expression) { masterkey = kgen; }
+
+    u8 ComputeSystemKeyGeneration()
+    {
+        u8 masterkey = 0;
+        
+        MKEY_SET_IF(VERSION_BETWEEN(1,0,0,2,3,0), 0)
+        MKEY_SET_IF(VERSION_EXACT(3,0,0), 1)
+        MKEY_SET_IF(VERSION_BETWEEN(3,0,1,3,0,2), 2)
+        MKEY_SET_IF(VERSION_BETWEEN(4,0,0,4,1,0), 3)
+        MKEY_SET_IF(VERSION_BETWEEN(5,0,0,5,1,0), 4)
+        MKEY_SET_IF(VERSION_BETWEEN(6,0,0,6,1,0), 5)
+        MKEY_SET_IF(VERSION_EXACT(6,2,0), 6)
+        MKEY_SET_IF(VERSION_BETWEEN(7,0,0,8,0,1), 7)
+        MKEY_SET_IF(VERSION_EXACT(8,1,0), 8)
+
+        // KeyGen = MasterKey + 1
+
+        return masterkey + 1;
+    }
 }

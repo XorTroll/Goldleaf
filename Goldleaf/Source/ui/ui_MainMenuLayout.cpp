@@ -142,7 +142,7 @@ namespace ui
         if(GetLaunchMode() == LaunchMode::Applet) lmode = set::GetDictionaryEntry(290);
         if(GetLaunchMode() == LaunchMode::Application) lmode = set::GetDictionaryEntry(291);
 
-        mainapp->LoadMenuData("Goldleaf v" + GetVersion(), "Info", exmode.AsUTF16() + u", " + lmode.AsUTF16());
+        mainapp->LoadMenuData("(Debug - System KeyGen: " + std::to_string((int)hos::ComputeSystemKeyGeneration()) + ")  --  Goldleaf v" + GetVersion(), "Info", exmode.AsUTF16() + u", " + lmode.AsUTF16());
         mainapp->LoadLayout(mainapp->GetAboutLayout());
     }
 }

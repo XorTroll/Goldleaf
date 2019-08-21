@@ -42,11 +42,13 @@ namespace set
     
     pu::String GetDictionaryEntry(u32 Index)
     {
+        if(Index >= MainDictionary.Strings.size()) return "<invalid entry>";
         return MainDictionary.Strings[Index].get<std::string>();
     }
 
     pu::String GetErrorEntry(u32 Index)
     {
+        if(Index >= Errors.Strings.size()) return "<invalid error entry>";
         return Errors.Strings[Index].get<std::string>();
     }
 }

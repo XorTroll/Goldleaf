@@ -111,9 +111,9 @@ namespace set
             if(settings.count("installs"))
             {
                 gset.IgnoreRequiredFirmwareVersion = settings["installs"].value("ignoreRequiredFwVersion", false);
-                // More for 0.7!
+                // More for 0.8!
             }
-            /* 0.7
+            /* 0.8
             if(settings.count("web"))
             {
                 if(settings["web"].count("bookmarks"))

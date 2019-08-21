@@ -152,7 +152,7 @@ namespace fs
             fseek(fle, 0, SEEK_END);
             auto sz = ftell(fle);
             rewind(fle);
-            file = std::vector<u8>(sz);
+            file.resize(sz);
             fread(file.data(), 1, sz, fle);
         }
         fclose(fle);

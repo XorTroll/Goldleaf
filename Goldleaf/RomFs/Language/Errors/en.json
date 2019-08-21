@@ -8,8 +8,9 @@
     "The metadata NCA could not be located in the NSP",
     "Metadata could not be located in the NCA",
     "The title is already installed on this console",
-    "Invalid USB command",
     "Another file or directory with the same name already exists",
     "Could not locate title contents",
-    "Could not build the PFS0 (NSP)"
+    "Could not build the PFS0 (NSP)",
+    "Key generation mismatch (console's firmware is too low)",
+    "Invalid NSP / PFS0"
 ]

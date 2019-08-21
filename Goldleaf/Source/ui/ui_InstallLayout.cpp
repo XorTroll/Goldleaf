@@ -148,6 +148,42 @@ namespace ui
                 if(i != (NCAs.size() - 1)) info += ", ";
             }
 
+            u8 kgen = inst.GetKeyGeneration();
+            info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(kgen) + " ";
+            switch(kgen)
+            {
+                case 0:
+                    info += "(1.0.0 - 2.3.0)";
+                    break;
+                case 1:
+                    info += "(3.0.0)";
+                    break;
+                case 2:
+                    info += "(3.0.1 - 3.0.2)";
+                    break;
+                case 3:
+                    info += "(4.0.0 - 4.1.0)";
+                    break;
+                case 4:
+                    info += "(5.0.0 - 5.1.0)";
+                    break;
+                case 5:
+                    info += "(6.0.0 - 6.1.0)";
+                    break;
+                case 6:
+                    info += "(6.2.0)";
+                    break;
+                case 7:
+                    info += "(7.0.0 - 8.0.1)";
+                    break;
+                case 8:
+                    info += "(8.1.0 -)";
+                    break;
+                default:
+                    info += set::GetDictionaryEntry(96);
+                    break;
+            }
+
             if(inst.HasTicket())
             {
                 auto Tik = inst.GetTicketData();
@@ -175,40 +211,6 @@ namespace ui
                         info += "ECDSA (SHA256)";
                         break;
                     default:
-                        break;
-                }
-                info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(Tik.KeyGeneration + 1) + " ";
-                switch(Tik.KeyGeneration)
-                {
-                    case 0:
-                        info += "(1.0.0 - 2.3.0)";
-                        break;
-                    case 1:
-                        info += "(3.0.0)";
-                        break;
-                    case 2:
-                        info += "(3.0.1 - 3.0.2)";
-                        break;
-                    case 3:
-                        info += "(4.0.0 - 4.1.0)";
-                        break;
-                    case 4:
-                        info += "(5.0.0 - 5.1.0)";
-                        break;
-                    case 5:
-                        info += "(6.0.0 - 6.1.0)";
-                        break;
-                    case 6:
-                        info += "(6.2.0)";
-                        break;
-                    case 7:
-                        info += "(7.0.0 - 8.0.1)";
-                        break;
-                    case 8:
-                        info += "(8.1.0 -)";
-                        break;
-                    default:
-                        info += set::GetDictionaryEntry(96);
                         break;
                 }
             }

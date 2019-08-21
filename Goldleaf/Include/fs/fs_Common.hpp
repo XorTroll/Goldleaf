@@ -32,6 +32,15 @@ namespace fs
 
     static constexpr u64 Size4GB = 0x100000000;
 
+    #define QUICK_LOG(fmt, ...) { \
+        FILE *f = fopen("sdmc:/QuickGleaf.log", "a"); \
+        if(f) \
+        { \
+            fprintf(f, fmt, ##__VA_ARGS__); \
+            fclose(f); \
+        } \
+    }
+
     bool Exists(pu::String Path);
     bool IsFile(pu::String Path);
     bool IsDirectory(pu::String Path);

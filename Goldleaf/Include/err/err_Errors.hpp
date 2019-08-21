@@ -20,10 +20,11 @@ namespace err
         MetaNotFound,
         CNMTNotFound,
         TitleAlreadyInstalled,
-        BadGLUCCommand,
         FileDirectoryAlreadyPresent,
         CouldNotLocateTitleContents,
         CouldNotBuildNSP,
+        KeyGenMismatch,
+        InvalidNSP
     };
 
     struct Error
@@ -36,6 +37,7 @@ namespace err
 
     static const std::vector<pu::String> Modules =
     {
+        "(...)",
         "Applet",
         "Account",
         "NCM",

@@ -17,5 +17,5 @@
 
 namespace nsp
 {
-    int Build(pu::String ContentsDir, pu::String Out, std::function<void(u8 Percentage)> Callback);
+    int Build(pu::String ContentsDir, pu::String Out, std::function<void(u64, u64)> Callback);
 }
