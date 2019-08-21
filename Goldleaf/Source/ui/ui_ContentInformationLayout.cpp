@@ -109,7 +109,7 @@ namespace ui
             return;
         }
         if(hastik) opts.push_back(set::GetDictionaryEntry(293));
-        opts.push_back("Reset launch version");
+        if(cnt.Location != Storage::NANDSystem) opts.push_back("Reset launch version");
         opts.push_back(set::GetDictionaryEntry(18));
         int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
