@@ -110,7 +110,7 @@ namespace set
             }
             if(settings.count("installs"))
             {
-                gset.IgnoreRequiredFirmwareVersion = settings["installs"].value("ignoreRequiredFwVersion", false);
+                gset.IgnoreRequiredFirmwareVersion = settings["installs"].value("ignoreRequiredFwVersion", true);
                 // More for 0.8!
             }
             /* 0.8
