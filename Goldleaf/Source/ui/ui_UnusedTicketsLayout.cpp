@@ -11,6 +11,7 @@ namespace ui
     {
         this->ticketsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->ticketsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->ticketsMenu);
         this->notTicketsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(199));
         this->notTicketsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->notTicketsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);

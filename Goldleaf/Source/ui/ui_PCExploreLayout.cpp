@@ -11,6 +11,7 @@ namespace ui
     {
         this->pathsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->pathsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->pathsMenu);
         this->Add(this->pathsMenu);
     }
 

@@ -1,5 +1,6 @@
 #include <ui/ui_InstallLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
+#include <iomanip>
 
 extern set::Settings gsets;
 
@@ -13,6 +14,7 @@ namespace ui
         this->installText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->installText->SetColor(gsets.CustomScheme.Text);
         this->installBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        gsets.ApplyProgressBarColor(this->installBar);
         this->Add(this->installText);
         this->Add(this->installBar);
     }
@@ -116,9 +118,10 @@ namespace ui
                 info += lent->author;
                 info += "\n" + set::GetDictionaryEntry(109) + " ";
                 info += NACP->version;
-                info += "\n\n" + set::GetDictionaryEntry(93) + " ";
+                info += "\n\n";
             }
             auto NCAs = inst.GetNCAs();
+            info += set::GetDictionaryEntry(93) + " ";
             for(u32 i = 0; i < NCAs.size(); i++)
             {
                 ncm::ContentType t = NCAs[i].Type;
@@ -149,8 +152,9 @@ namespace ui
             }
 
             u8 kgen = inst.GetKeyGeneration();
+            u8 masterkey = kgen - 1;
             info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(kgen) + " ";
-            switch(kgen + 1)
+            switch(masterkey)
             {
                 case 0:
                     info += "(1.0.0 - 2.3.0)";
@@ -183,6 +187,11 @@ namespace ui
                     info += set::GetDictionaryEntry(96);
                     break;
             }
+
+            std::stringstream strm;
+            strm << std::setw(2) << std::setfill('0') << (int)masterkey;
+
+            info += " (master_key_" + strm.str() + ")";
 
             if(inst.HasTicket())
             {

@@ -62,32 +62,6 @@ namespace ui
         return out;
     }
 
-    u128 AskForUser()
-    {
-        AppletHolder aph;
-        AppletStorage hast1;
-        LibAppletArgs args;
-        appletCreateLibraryApplet(&aph, AppletId_playerSelect, LibAppletMode_AllForeground);
-        libappletArgsCreate(&args, 0x10000);
-        libappletArgsPush(&args, &aph);
-        appletCreateStorage(&hast1, 0xa0);
-        u8 indata[0xa0] = { 0 };
-        indata[0x96] = 1;
-        appletStorageWrite(&hast1, 0, indata, 0xa0);
-        appletHolderPushInData(&aph, &hast1);
-        appletHolderStart(&aph);
-        appletStorageClose(&hast1);
-        while(appletHolderWaitInteractiveOut(&aph));
-        appletHolderJoin(&aph);
-        AppletStorage ost;
-        appletHolderPopOutData(&aph, &ost);
-        u8 out[24] = { 0 };
-        appletStorageRead(&ost, 0, out, 24);
-        appletStorageClose(&ost);
-        appletHolderClose(&aph);
-        return *(u128*)&out[8];
-    }
-
     void HandleResult(Result OSError, pu::String Context)
     {
         if(OSError != 0)

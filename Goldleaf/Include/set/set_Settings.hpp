@@ -27,10 +27,16 @@ namespace set
         std::string ExternalRomFs;
         ColorScheme CustomScheme;
         u32 MenuItemSize;
+        bool HasScrollBar;
+        pu::ui::Color ScrollBarColor;
+        bool HasProgressBar;
+        pu::ui::Color ProgressBarColor;
         bool IgnoreRequiredFirmwareVersion;
         std::vector<WebBookmark> Bookmarks;
 
         std::string PathForResource(std::string Path);
+        void ApplyScrollBarColor(pu::ui::elm::Menu *Menu);
+        void ApplyProgressBarColor(pu::ui::elm::ProgressBar *PBar);
     };
 
     static const std::string SettingsFile = "sdmc:/" + GoldleafDir + "/settings.json";

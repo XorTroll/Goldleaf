@@ -11,6 +11,7 @@ namespace ui
     {
         this->drivesMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->drivesMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->drivesMenu);
         this->noDrivesText = new pu::ui::elm::TextBlock(30, 630, "No drives were found.");
         this->noDrivesText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->noDrivesText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);

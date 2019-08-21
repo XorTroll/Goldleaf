@@ -11,6 +11,7 @@ namespace ui
     {
         this->optionsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->optionsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->optionsMenu);
         this->Add(this->optionsMenu);
     }
 

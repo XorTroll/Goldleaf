@@ -107,7 +107,7 @@ namespace ui
         {
             auto tpnow = std::chrono::steady_clock::now();
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(tpnow - touchtp).count();
-            if(diff >= 500)
+            if(diff >= 200)
             {
                 (this->cb)();
                 touched = false;

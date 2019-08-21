@@ -13,6 +13,7 @@ namespace ui
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
         this->copyBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        gsets.ApplyProgressBarColor(this->copyBar);
         this->Add(this->infoText);
         this->Add(this->copyBar);
     }

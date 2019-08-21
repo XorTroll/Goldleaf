@@ -11,6 +11,7 @@ namespace ui
     {
         this->contentsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->contentsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->contentsMenu);
         this->noContentsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(188));
         this->noContentsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->noContentsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);

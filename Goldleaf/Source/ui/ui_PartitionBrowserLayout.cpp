@@ -13,6 +13,7 @@ namespace ui
         this->gexp = fs::GetSdCardExplorer();
         this->browseMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->browseMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->browseMenu);
         this->dirEmptyText = new pu::ui::elm::TextBlock(30, 630, set::GetDictionaryEntry(49));
         this->dirEmptyText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->dirEmptyText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);

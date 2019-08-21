@@ -11,6 +11,7 @@ namespace ui
     {
         this->mountsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->mountsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
+        gsets.ApplyScrollBarColor(this->mountsMenu);
         this->sdCardMenuItem = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(19));
         this->sdCardMenuItem->SetIcon(gsets.PathForResource("/Common/SdCard.png"));
         this->sdCardMenuItem->SetColor(gsets.CustomScheme.Text);

@@ -14,6 +14,8 @@
 
   - Now Goldleaf always obtains the NSP's key generation (previously only when it had a ticket) and compares it to a computed system one, in order to block installs with higher key generations (mostly since the contents couldn't be decryptable, thus utterly useless)
 
+  - Now install location is just chosen once, at the start of batch NSP installs (all NSPs within a directory)
+
 - Title dump / export
 
   - Titles are always dumped inside concatenation files (HOS's archive bit directories, used to support +4GB files), what means +4GB titles can safely be dumped on FAT32, and directly installed.
@@ -26,13 +28,13 @@
 
   - Added a warning and success / failure messages for directory deleting.
 
-  - Goldleaf no longer relies on its custom libnx fork, since its only worthy difference was its (slightly) custom USB code, which has been merged in Goldleaf. This doesn't involve eny performance changes, but less complexity in order to build the project.
+  - Goldleaf no longer relies on its custom libnx fork, since its only worthy difference was its (slightly) custom USB code, which has been merged in Goldleaf. This doesn't involve any performance changes, but less complexity in order to build the project.
 
   - Copying files from PC to SD which are over 4GB is now correctly handled, creating a concatenation file (see above) to correctly handle it.
 
-  - Goldleaf takes advantage now from hbloader v2.2.0's heap reservation, which reserved 128MB of heap for other applets. Goldleaf probably won't work without this trick, so its support is uncertain with old Atmosphere or other CFWs.
+  - Goldleaf takes advantage now from hbloader v2.2.0's heap reservation, which reserved 128MB of heap for other applets. Goldleaf probably won't work without this trick, so its support is uncertain with old Atmosphere or other CFWs (unless it's launched overriding an application or from the forwarder)
 
-  - The forwarder was updated with hbloader's latest code.
+  - The forwarder was updated with hbloader's latest version.
 
 - User / accounts
 

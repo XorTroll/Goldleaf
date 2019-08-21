@@ -14,6 +14,7 @@ namespace ui
         this->dumpText->SetColor(gsets.CustomScheme.Text);
         this->ncaBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
         this->ncaBar->SetVisible(false);
+        gsets.ApplyProgressBarColor(this->ncaBar);
         this->Add(this->dumpText);
         this->Add(this->ncaBar);
     }

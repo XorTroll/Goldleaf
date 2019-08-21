@@ -15,6 +15,16 @@ namespace set
         return outres;
     }
 
+    void Settings::ApplyScrollBarColor(pu::ui::elm::Menu *Menu)
+    {
+        if(this->HasScrollBar) Menu->SetScrollbarColor(this->ScrollBarColor);
+    }
+
+    void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar *PBar)
+    {
+        if(this->HasProgressBar) PBar->SetProgressColor(this->ProgressBarColor);
+    }
+
     Settings ProcessSettings()
     {
         Settings gset;
@@ -62,6 +72,9 @@ namespace set
                 break;
         }
         gset.MenuItemSize = 80;
+        gset.HasScrollBar = false;
+        gset.HasProgressBar = false;
+        gset.IgnoreRequiredFirmwareVersion = true;
         ColorSetId csid = ColorSetId_Light;
         setsysGetColorSetId(&csid);
         if(csid == ColorSetId_Dark) gset.CustomScheme = ui::DefaultDark;
@@ -107,6 +120,18 @@ namespace set
                 if(!clr.empty()) gset.CustomScheme.BaseFocus = pu::ui::Color::FromHex(clr);
                 clr = settings["ui"].value("text", "");
                 if(!clr.empty()) gset.CustomScheme.Text = pu::ui::Color::FromHex(clr);
+                clr = settings["ui"].value("scrollBar", "");
+                if(!clr.empty())
+                {
+                    gset.HasScrollBar = true;
+                    gset.ScrollBarColor = pu::ui::Color::FromHex(clr);
+                }
+                clr = settings["ui"].value("progressBar", "");
+                if(!clr.empty())
+                {
+                    gset.HasProgressBar = true;
+                    gset.ProgressBarColor = pu::ui::Color::FromHex(clr);
+                }
             }
             if(settings.count("installs"))
             {
