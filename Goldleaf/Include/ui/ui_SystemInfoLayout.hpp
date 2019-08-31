@@ -18,21 +18,22 @@ namespace ui
     {
         public:
             SystemInfoLayout();
-            ~SystemInfoLayout();
+            PU_SMART_CTOR(SystemInfoLayout)
+
             void UpdateElements();
         private:
-            pu::ui::elm::TextBlock *fwText;
-            pu::ui::elm::TextBlock *sdText;
-            pu::ui::elm::ProgressBar *sdBar;
-            pu::ui::elm::TextBlock *sdFreeText;
-            pu::ui::elm::TextBlock *nandText;
-            pu::ui::elm::ProgressBar *nandBar;
-            pu::ui::elm::TextBlock *nandFreeText;
-            pu::ui::elm::TextBlock *safeText;
-            pu::ui::elm::ProgressBar *safeBar;
-            pu::ui::elm::TextBlock *systemText;
-            pu::ui::elm::ProgressBar *systemBar;
-            pu::ui::elm::TextBlock *userText;
-            pu::ui::elm::ProgressBar *userBar;
+            pu::ui::elm::TextBlock::Ref fwText;
+            pu::ui::elm::TextBlock::Ref sdText;
+            pu::ui::elm::ProgressBar::Ref sdBar;
+            pu::ui::elm::TextBlock::Ref sdFreeText;
+            pu::ui::elm::TextBlock::Ref nandText;
+            pu::ui::elm::ProgressBar::Ref nandBar;
+            pu::ui::elm::TextBlock::Ref nandFreeText;
+            pu::ui::elm::TextBlock::Ref safeText;
+            pu::ui::elm::ProgressBar::Ref safeBar;
+            pu::ui::elm::TextBlock::Ref systemText;
+            pu::ui::elm::ProgressBar::Ref systemBar;
+            pu::ui::elm::TextBlock::Ref userText;
+            pu::ui::elm::ProgressBar::Ref userBar;
     };
 }

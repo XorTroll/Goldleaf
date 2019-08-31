@@ -18,12 +18,13 @@ namespace ui
     {
         public:
             UnusedTicketsLayout();
-            ~UnusedTicketsLayout();
+            PU_SMART_CTOR(UnusedTicketsLayout)
+            
             void UpdateElements(bool Cooldown);
             void tickets_Click();
         private:
             std::vector<hos::Ticket> tickets;
-            pu::ui::elm::TextBlock *notTicketsText;
-            pu::ui::elm::Menu *ticketsMenu;
+            pu::ui::elm::TextBlock::Ref notTicketsText;
+            pu::ui::elm::Menu::Ref ticketsMenu;
     };
 }

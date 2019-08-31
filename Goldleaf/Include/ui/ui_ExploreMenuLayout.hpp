@@ -18,7 +18,8 @@ namespace ui
     {
         public:
             ExploreMenuLayout();
-            ~ExploreMenuLayout();
+            PU_SMART_CTOR(ExploreMenuLayout)
+
             void mountsMenu_SelectionChanged();
             void sdCard_Click();
             void pcDrive_Click();
@@ -31,15 +32,15 @@ namespace ui
             void specialMount_Click_X();
             void otherMount_Click_X();
         private:
-            pu::ui::elm::Menu *mountsMenu;
-            pu::ui::elm::MenuItem *sdCardMenuItem;
-            pu::ui::elm::MenuItem *pcDriveMenuItem;
-            pu::ui::elm::MenuItem *usbDriveMenuItem;
-            pu::ui::elm::MenuItem *nandProfInfoFMenuItem;
-            pu::ui::elm::MenuItem *nandSafeMenuItem;
-            pu::ui::elm::MenuItem *nandUserMenuItem;
-            pu::ui::elm::MenuItem *nandSystemMenuItem;
-            std::vector<pu::ui::elm::MenuItem*> mounts;
+            pu::ui::elm::Menu::Ref mountsMenu;
+            pu::ui::elm::MenuItem::Ref sdCardMenuItem;
+            pu::ui::elm::MenuItem::Ref pcDriveMenuItem;
+            pu::ui::elm::MenuItem::Ref usbDriveMenuItem;
+            pu::ui::elm::MenuItem::Ref nandProfInfoFMenuItem;
+            pu::ui::elm::MenuItem::Ref nandSafeMenuItem;
+            pu::ui::elm::MenuItem::Ref nandUserMenuItem;
+            pu::ui::elm::MenuItem::Ref nandSystemMenuItem;
+            std::vector<pu::ui::elm::MenuItem::Ref> mounts;
             std::vector<fs::Explorer*> expls;
     };
 }

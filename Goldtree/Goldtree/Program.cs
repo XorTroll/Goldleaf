@@ -103,25 +103,24 @@ namespace gtree
         public static void Main(string[] Args)
         {
             Initialize();
-            Warn.LLogL("Make sure to open Goldtree after having opened Goldleaf on your console. Looking for connection...");
+            Warn.LLogL("Make sure Goldleaf is already opened and the console is connected to this system via USB. Looking for connection...");
             try
             {
                 var pat = new KLST_PATTERN_MATCH { DeviceID = @"USB\VID_057E&PID_3000" };
                 var lst = new LstK(0, ref pat);
                 lst.MoveNext(out var dinfo);
                 USB = new UsbK(dinfo);
-                Log.LogL("Connection was established.");
+                Log.LogL("Connection with Goldleaf was established.");
             }
             catch
             {
-                Error.LLogL("Unable to find connection. Have you installed libusbK drivers? Are you sure Goldleaf is open and ready?");
+                Error.LLogL("Unable to find connection. Have you installed libusbK drivers? Are you sure Goldleaf is open and the USB icon is shown there?");
             }
             Console.WriteLine();
             while(true)
             {
                 USB.CommandHandleLoop();
             }
-            Error.LLogL("An error ocurred handling Goldleaf's latest command request.");
         }
     }
 }

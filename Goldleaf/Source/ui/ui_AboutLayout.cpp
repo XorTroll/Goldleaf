@@ -5,16 +5,11 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     AboutLayout::AboutLayout()
     {
-        this->logoImage = new pu::ui::elm::Image(85, 150, gsets.PathForResource("/Logo.png"));
+        this->logoImage = pu::ui::elm::Image::New(85, 150, gsets.PathForResource("/Logo.png"));
         this->Add(this->logoImage);
-    }
-
-    AboutLayout::~AboutLayout()
-    {
-        delete this->logoImage;
     }
 }

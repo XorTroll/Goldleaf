@@ -18,11 +18,12 @@ namespace ui
     {
         public:
             CopyLayout();
-            ~CopyLayout();
-            void StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev);
+            PU_SMART_CTOR(CopyLayout)
+
+            void StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp);
         private:
             fs::Explorer *gexp;
-            pu::ui::elm::TextBlock *infoText;
-            pu::ui::elm::ProgressBar *copyBar;
+            pu::ui::elm::TextBlock::Ref infoText;
+            pu::ui::elm::ProgressBar::Ref copyBar;
     };
 }

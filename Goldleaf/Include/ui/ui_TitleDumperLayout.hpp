@@ -18,10 +18,11 @@ namespace ui
     {
         public:
             TitleDumperLayout();
-            ~TitleDumperLayout();
+            PU_SMART_CTOR(TitleDumperLayout)
+
             void StartDump(hos::Title &Target);
         private:
-            pu::ui::elm::TextBlock *dumpText;
-            pu::ui::elm::ProgressBar *ncaBar;
+            pu::ui::elm::TextBlock::Ref dumpText;
+            pu::ui::elm::ProgressBar::Ref ncaBar;
     };
 }

@@ -5,7 +5,7 @@ set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
     pu::String clipboard;
 
     void SetClipboard(pu::String Path)
@@ -67,9 +67,11 @@ namespace ui
         if(OSError != 0)
         {
             err::Error err = err::DetermineError(OSError);
+            char displayerr[0x10] = {0};
+            sprintf(displayerr, "%04d-%04d", 2000 + R_MODULE(err.OSError), R_DESCRIPTION(err.OSError));
             pu::String emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
             pu::String edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(266), Context + "\n\n" + set::GetDictionaryEntry(266) + ": " + hos::FormatHex(err.OSError) + "\n" + set::GetDictionaryEntry(264) + ": " + emod + "\n" + set::GetDictionaryEntry(265) + ": " + edesc + "", { set::GetDictionaryEntry(234) }, false);
+            mainapp->CreateShowDialog(set::GetDictionaryEntry(266), Context + "\n\n" + set::GetDictionaryEntry(266) + ": " + std::string(displayerr) + " (" + hos::FormatHex(err.OSError) + ")\n" + set::GetDictionaryEntry(264) + ": " + emod + "\n" + set::GetDictionaryEntry(265) + ": " + edesc + "", { set::GetDictionaryEntry(234) }, false);
         }
     }
 }

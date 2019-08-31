@@ -5,19 +5,14 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     AmiiboDumpLayout::AmiiboDumpLayout() : pu::ui::Layout()
     {
-        this->infoText = new pu::ui::elm::TextBlock(150, 320, "-");
+        this->infoText = pu::ui::elm::TextBlock::New(150, 320, "-");
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->infoText);
-    }
-
-    AmiiboDumpLayout::~AmiiboDumpLayout()
-    {
-        delete this->infoText;
     }
 
     void AmiiboDumpLayout::StartDump()

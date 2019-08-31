@@ -1,2 +1,0 @@
-Key generation mismatch (console's firmware is too low)
-Invalid NSP / PFS0

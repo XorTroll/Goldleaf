@@ -18,7 +18,8 @@ namespace ui
     {
         public:
             AccountLayout();
-            ~AccountLayout();
+            PU_SMART_CTOR(AccountLayout)
+
             void ReloadItems();
             void Load();
             void optsRename_Click();
@@ -26,7 +27,7 @@ namespace ui
             void optsDelete_Click();
             void optsServicesInfo_Click();
         private:
-            pu::ui::elm::Menu *optsMenu;
+            pu::ui::elm::Menu::Ref optsMenu;
             u128 uid;
     };
 }

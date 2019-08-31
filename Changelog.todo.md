@@ -8,6 +8,8 @@
 
   - Added option to select a file directly on the remote PC tool (basically same system as on <=0.5 Goldleaf versions, for those who like the classic system!)
 
+  - Goldtree's messages were slightly changed to be more accurate.
+
 - NSP installs
 
   - The NSP's name is shown above (instead of the directory).
@@ -67,5 +69,7 @@
   - Plutonium corrections with newlines and text sizes make dialog sizes more well measured now (previously, a single newline would make the dialog as wide as the entire screen)
 
   - Several icon changes (forwarder's icon and amiibo dump), thanks to **C4Phoenix** for all his help with graphic resources since 0.1!
+
+  - Goldleaf now has been compiled with an experimental Plutonium branch which uses smart pointers instead of raw pointers aiming no memory leaks!
 
   - Now, Goldleaf also supports dutch language! Thanks a lot to **Mega** for helping with the translation!

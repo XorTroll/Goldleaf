@@ -18,10 +18,11 @@ namespace ui
     {
         public:
             InstallLayout();
-            ~InstallLayout();
-            void StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation = false);
+            PU_SMART_CTOR(InstallLayout)
+
+            void StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation = false);
         private:
-            pu::ui::elm::TextBlock *installText;
-            pu::ui::elm::ProgressBar *installBar;
+            pu::ui::elm::TextBlock::Ref installText;
+            pu::ui::elm::ProgressBar::Ref installBar;
     };
 }

@@ -5,7 +5,8 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    MainApplication *mainapp;
+    MainApplication::Ref mainapp;
+
     extern pu::String clipboard;
 
     MainApplication::MainApplication() : pu::ui::Application()
@@ -20,72 +21,72 @@ namespace ui
         this->pretime = "";
         this->vfirst = true;
         this->connstate = 0;
-        this->baseImage = new pu::ui::elm::Image(0, 0, gsets.PathForResource("/Base.png"));
-        this->timeText = new pu::ui::elm::TextBlock(1124, 15, "00:00:00");
+        this->baseImage = pu::ui::elm::Image::New(0, 0, gsets.PathForResource("/Base.png"));
+        this->timeText = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
         this->timeText->SetColor(gsets.CustomScheme.Text);
-        this->batteryText = new pu::ui::elm::TextBlock(1015, 20, "0%", 20);
+        this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%", 20);
         this->batteryText->SetColor(gsets.CustomScheme.Text);
-        this->batteryImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/0.png"));
-        this->batteryChargeImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/Charge.png"));
-        this->menuBanner = new pu::ui::elm::Image(10, 62, gsets.PathForResource("/MenuBanner.png"));
-        this->menuImage = new pu::ui::elm::Image(15, 69, gsets.PathForResource("/Common/SdCard.png"));
+        this->batteryImage = pu::ui::elm::Image::New(960, 8, gsets.PathForResource("/Battery/0.png"));
+        this->batteryChargeImage = pu::ui::elm::Image::New(960, 8, gsets.PathForResource("/Battery/Charge.png"));
+        this->menuBanner = pu::ui::elm::Image::New(10, 62, gsets.PathForResource("/MenuBanner.png"));
+        this->menuImage = pu::ui::elm::Image::New(15, 69, gsets.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(85);
         this->menuImage->SetHeight(85);
-        this->userImage = new ClickableImage(1090, 75, gsets.PathForResource("/Common/User.png"));
+        this->userImage = ClickableImage::New(1090, 75, gsets.PathForResource("/Common/User.png"));
         this->userImage->SetWidth(70);
         this->userImage->SetHeight(70);
         this->userImage->SetOnClick(std::bind(&MainApplication::userImage_OnClick, this));
-        this->helpImage = new ClickableImage(1180, 80, gsets.PathForResource("/Common/Help.png"));
+        this->helpImage = ClickableImage::New(1180, 80, gsets.PathForResource("/Common/Help.png"));
         this->helpImage->SetWidth(60);
         this->helpImage->SetHeight(60);
         this->helpImage->SetOnClick(std::bind(&MainApplication::helpImage_OnClick, this));
-        this->usbImage = new pu::ui::elm::Image(695, 12, gsets.PathForResource("/Common/USB.png"));
+        this->usbImage = pu::ui::elm::Image::New(695, 12, gsets.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);
-        this->connImage = new pu::ui::elm::Image(755, 12, gsets.PathForResource("/Connection/None.png"));
+        this->connImage = pu::ui::elm::Image::New(755, 12, gsets.PathForResource("/Connection/None.png"));
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = new pu::ui::elm::TextBlock(800, 20, "", 20);
+        this->ipText = pu::ui::elm::TextBlock::New(800, 20, "", 20);
         this->ipText->SetColor(gsets.CustomScheme.Text);
-        this->menuNameText = new pu::ui::elm::TextBlock(120, 85, "-");
+        this->menuNameText = pu::ui::elm::TextBlock::New(120, 85, "-");
         this->menuNameText->SetColor(gsets.CustomScheme.Text);
-        this->menuHeadText = new pu::ui::elm::TextBlock(120, 120, "-", 20);
+        this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-", 20);
         this->menuHeadText->SetColor(gsets.CustomScheme.Text);
         this->UnloadMenuData();
-        this->toast = new pu::ui::extras::Toast(":", 20, { 225, 225, 225, 255 }, { 40, 40, 40, 255 });
+        this->toast = pu::ui::extras::Toast::New(":", 20, pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
-        this->mainMenu = new MainMenuLayout();
-        this->browser = new PartitionBrowserLayout();
+        this->mainMenu = MainMenuLayout::New();
+        this->browser = PartitionBrowserLayout::New();
         this->browser->SetOnInput(std::bind(&MainApplication::browser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->fileContent = new FileContentLayout();
+        this->fileContent = FileContentLayout::New();
         this->fileContent->SetOnInput(std::bind(&MainApplication::fileContent_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->copy = new CopyLayout();
-        this->exploreMenu = new ExploreMenuLayout();
+        this->copy = CopyLayout::New();
+        this->exploreMenu = ExploreMenuLayout::New();
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->pcExplore = new PCExploreLayout();
+        this->pcExplore = PCExploreLayout::New();
         this->pcExplore->SetOnInput(std::bind(&MainApplication::pcExplore_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->usbDrives = new USBDrivesLayout();
+        this->usbDrives = USBDrivesLayout::New();
         this->usbDrives->SetOnInput(std::bind(&MainApplication::usbDrives_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->nspInstall = new InstallLayout();
-        this->contentInformation = new ContentInformationLayout();
+        this->nspInstall = InstallLayout::New();
+        this->contentInformation = ContentInformationLayout::New();
         this->contentInformation->SetOnInput(std::bind(&MainApplication::contentInformation_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->storageContents = new StorageContentsLayout();
+        this->storageContents = StorageContentsLayout::New();
         this->storageContents->SetOnInput(std::bind(&MainApplication::storageContents_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->contentManager = new ContentManagerLayout();
+        this->contentManager = ContentManagerLayout::New();
         this->contentManager->SetOnInput(std::bind(&MainApplication::contentManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->titleDump = new TitleDumperLayout();
-        this->unusedTickets = new UnusedTicketsLayout();
+        this->titleDump = TitleDumperLayout::New();
+        this->unusedTickets = UnusedTicketsLayout::New();
         this->unusedTickets->SetOnInput(std::bind(&MainApplication::unusedTickets_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->account = new AccountLayout();
+        this->account = AccountLayout::New();
         this->account->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->amiibo = new AmiiboDumpLayout();
+        this->amiibo = AmiiboDumpLayout::New();
         this->amiibo->SetOnInput(std::bind(&MainApplication::amiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->sysInfo = new SystemInfoLayout();
+        this->sysInfo = SystemInfoLayout::New();
         this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->update = new UpdateLayout();
-        this->about = new AboutLayout();
+        this->update = UpdateLayout::New();
+        this->about = AboutLayout::New();
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->mainMenu->SetBackgroundColor(gsets.CustomScheme.Background);
         this->browser->SetBackgroundColor(gsets.CustomScheme.Background);
@@ -345,51 +346,13 @@ namespace ui
         this->LoadLayout(this->mainMenu);   
         this->welcomeshown = false;
         this->start = std::chrono::steady_clock::now();
-        mainapp = this;
-    }
-
-    MainApplication::~MainApplication()
-    {
-        delete this->baseImage;
-        delete this->timeText;
-        delete this->batteryText;
-        delete this->batteryImage;
-        delete this->batteryChargeImage;
-        delete this->menuBanner;
-        delete this->menuImage;
-        delete this->usbImage;
-        delete this->userImage;
-        delete this->helpImage;
-        delete this->connImage;
-        delete this->ipText;
-        delete this->menuNameText;
-        delete this->menuHeadText;
-        delete this->toast;
-        delete this->mainMenu;
-        delete this->browser;
-        delete this->fileContent;
-        delete this->copy;
-        delete this->exploreMenu;
-        delete this->pcExplore;
-        delete this->usbDrives;
-        delete this->nspInstall;
-        delete this->contentInformation;
-        delete this->storageContents;
-        delete this->contentManager;
-        delete this->titleDump;
-        delete this->unusedTickets;
-        delete this->account;
-        delete this->amiibo;
-        delete this->sysInfo;
-        delete this->update;
-        delete this->about;
     }
 
     void MainApplication::ShowNotification(pu::String Text)
     {
-        mainapp->EndOverlay();
+        this->EndOverlay();
         this->toast->SetText(Text);
-        mainapp->StartOverlayWithTimeout(this->toast, 1500);
+        this->StartOverlayWithTimeout(this->toast, 1500);
     }
 
     void MainApplication::UpdateValues()
@@ -400,7 +363,7 @@ namespace ui
             auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
             if(timediff >= 1000)
             {
-                this->ShowNotification("Welcome to Goldleaf! Press X anytime for control information.");
+                this->ShowNotification(u"Welcome to Goldleaf! Press + anytime for help and control information.");
                 this->welcomeshown = true;
             }
         }
@@ -542,7 +505,8 @@ namespace ui
                 {
                     pu::String cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
-                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer(), this->browser);
+                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer());
+                    mainapp->LoadLayout(this->browser);
                     this->browser->UpdateElements();
                     clipboard = "";
                 }
@@ -614,7 +578,7 @@ namespace ui
 
     void MainApplication::fileContent_Input(u64 Down, u64 Up, u64 Held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->fileContent->GetPreviousLayout());
+        if(Down & KEY_B) this->LoadLayout(this->browser);
         else if((Down & KEY_DDOWN) || (Down & KEY_LSTICK_DOWN) || (Held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
         else if((Down & KEY_DUP) || (Down & KEY_LSTICK_UP) || (Held & KEY_RSTICK_UP)) this->fileContent->ScrollUp();
     }
@@ -696,108 +660,111 @@ namespace ui
         if(acc::SelectUser())
         {
             acc::CacheSelectedUserIcon();
-            this->ShowNotification("User was successfully selected.");
+            this->ShowNotification(set::GetDictionaryEntry(324));
         }
     }
 
     void MainApplication::helpImage_OnClick()
     {
-        mainapp->CreateShowDialog("Demo", "Demo2", {"Ok"}, false);
+        this->CreateShowDialog(set::GetDictionaryEntry(162), set::GetDictionaryEntry(342) + "\n\n" + set::GetDictionaryEntry(343) + "\n" + set::GetDictionaryEntry(344) + "\n" + set::GetDictionaryEntry(345) + "\n" + set::GetDictionaryEntry(346) + "\n" + set::GetDictionaryEntry(347), {set::GetDictionaryEntry(234)}, false);
     }
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
-        if((Down & KEY_MINUS) && (GetLaunchMode() == LaunchMode::Applet)) this->CloseWithFadeOut();
+        if((Down & KEY_MINUS) && (GetLaunchMode() == LaunchMode::Applet))
+        {
+            this->CloseWithFadeOut();
+        }
         else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
         else if(Down & KEY_PLUS) this->helpImage_OnClick();
     }
 
-    MainMenuLayout *MainApplication::GetMainMenuLayout()
+    MainMenuLayout::Ref &MainApplication::GetMainMenuLayout()
     {
         return this->mainMenu;
     }
 
-    PartitionBrowserLayout *MainApplication::GetBrowserLayout()
+    PartitionBrowserLayout::Ref &MainApplication::GetBrowserLayout()
     {
         return this->browser;
     }
 
-    FileContentLayout *MainApplication::GetFileContentLayout()
+    FileContentLayout::Ref &MainApplication::GetFileContentLayout()
     {
         return this->fileContent;
     }
 
-    CopyLayout *MainApplication::GetCopyLayout()
+    CopyLayout::Ref &MainApplication::GetCopyLayout()
     {
         return this->copy;
     }
 
-    ExploreMenuLayout *MainApplication::GetExploreMenuLayout()
+    ExploreMenuLayout::Ref &MainApplication::GetExploreMenuLayout()
     {
         return this->exploreMenu;
     }
 
-    PCExploreLayout *MainApplication::GetPCExploreLayout()
+    PCExploreLayout::Ref &MainApplication::GetPCExploreLayout()
     {
         return this->pcExplore;
     }
 
-    USBDrivesLayout *MainApplication::GetUSBDrivesLayout()
+    USBDrivesLayout::Ref &MainApplication::GetUSBDrivesLayout()
     {
         return this->usbDrives;
     }
 
-    InstallLayout *MainApplication::GetInstallLayout()
+    InstallLayout::Ref &MainApplication::GetInstallLayout()
     {
         return this->nspInstall;
     }
 
-    ContentInformationLayout *MainApplication::GetContentInformationLayout()
+    ContentInformationLayout::Ref &MainApplication::GetContentInformationLayout()
     {
         return this->contentInformation;
     }
 
-    StorageContentsLayout *MainApplication::GetStorageContentsLayout()
+    StorageContentsLayout::Ref &MainApplication::GetStorageContentsLayout()
     {
         return this->storageContents;
     }
 
-    ContentManagerLayout *MainApplication::GetContentManagerLayout()
+    ContentManagerLayout::Ref &MainApplication::GetContentManagerLayout()
     {
         return this->contentManager;
     }
 
-    TitleDumperLayout *MainApplication::GetTitleDumperLayout()
+    TitleDumperLayout::Ref &MainApplication::GetTitleDumperLayout()
     {
         return this->titleDump;
     }
 
-    UnusedTicketsLayout *MainApplication::GetUnusedTicketsLayout()
+    UnusedTicketsLayout::Ref &MainApplication::GetUnusedTicketsLayout()
     {
         return this->unusedTickets;
     }
 
-    AccountLayout *MainApplication::GetAccountLayout()
+    AccountLayout::Ref &MainApplication::GetAccountLayout()
     {
         return this->account;
     }
 
-    AmiiboDumpLayout *MainApplication::GetAmiiboDumpLayout()
+    AmiiboDumpLayout::Ref &MainApplication::GetAmiiboDumpLayout()
     {
         return this->amiibo;
     }
 
-    SystemInfoLayout *MainApplication::GetSystemInfoLayout()
+    SystemInfoLayout::Ref &MainApplication::GetSystemInfoLayout()
     {
         return this->sysInfo;
     }
 
-    UpdateLayout *MainApplication::GetUpdateLayout()
+    UpdateLayout::Ref &MainApplication::GetUpdateLayout()
     {
         return this->update;
     }
 
-    AboutLayout *MainApplication::GetAboutLayout()
+    AboutLayout::Ref &MainApplication::GetAboutLayout()
     {
         return this->about;
     }
@@ -809,10 +776,5 @@ namespace ui
         if(mainapp->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
         else copymsg = set::GetDictionaryEntry(258);
         mainapp->ShowNotification(copymsg);
-    }
-
-    void SetMainApplication(MainApplication *MainApp)
-    {
-        mainapp = MainApp;
     }
 }

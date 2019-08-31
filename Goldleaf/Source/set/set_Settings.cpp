@@ -15,12 +15,12 @@ namespace set
         return outres;
     }
 
-    void Settings::ApplyScrollBarColor(pu::ui::elm::Menu *Menu)
+    void Settings::ApplyScrollBarColor(pu::ui::elm::Menu::Ref &Menu)
     {
         if(this->HasScrollBar) Menu->SetScrollbarColor(this->ScrollBarColor);
     }
 
-    void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar *PBar)
+    void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar)
     {
         if(this->HasProgressBar) PBar->SetProgressColor(this->ProgressBarColor);
     }

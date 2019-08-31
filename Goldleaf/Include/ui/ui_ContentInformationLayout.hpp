@@ -18,13 +18,14 @@ namespace ui
     {
         public:
             ContentInformationLayout();
-            ~ContentInformationLayout();
+            PU_SMART_CTOR(ContentInformationLayout)
+
             void UpdateElements();
             void options_Click();
             void LoadContent(hos::Title &Content);
         private:
             std::vector<hos::Title> tcontents;
             hos::TitleContents contents;
-            pu::ui::elm::Menu *optionsMenu;
+            pu::ui::elm::Menu::Ref optionsMenu;
     };
 }

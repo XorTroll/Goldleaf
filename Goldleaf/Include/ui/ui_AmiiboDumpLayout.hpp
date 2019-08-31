@@ -18,9 +18,10 @@ namespace ui
     {
         public:
             AmiiboDumpLayout();
-            ~AmiiboDumpLayout();
+            PU_SMART_CTOR(AmiiboDumpLayout)
+
             void StartDump();
         private:
-            pu::ui::elm::TextBlock *infoText;
+            pu::ui::elm::TextBlock::Ref infoText;
     };
 }

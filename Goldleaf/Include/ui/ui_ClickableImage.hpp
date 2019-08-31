@@ -18,7 +18,9 @@ namespace ui
     {
         public:
             ClickableImage(s32 X, s32 Y, pu::String Image);
+            PU_SMART_CTOR(ClickableImage)
             ~ClickableImage();
+
             s32 GetX();
             void SetX(s32 X);
             s32 GetY();
@@ -31,8 +33,8 @@ namespace ui
             void SetImage(pu::String Image);
             bool IsImageValid();
             void SetOnClick(std::function<void()> Callback);
-            void OnRender(pu::ui::render::Renderer *Drawer);
-            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus);
+            void OnRender(pu::ui::render::Renderer::Ref &Drawer, s32 X, s32 Y);
+            void OnInput(u64 Down, u64 Up, u64 Held, bool Touch);
         protected:
             pu::String img;
             pu::ui::render::NativeTexture ntex;

@@ -5,27 +5,21 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
     std::vector<u32> expidxstack;
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout()
     {
         this->gexp = fs::GetSdCardExplorer();
-        this->browseMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->browseMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->browseMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         gsets.ApplyScrollBarColor(this->browseMenu);
-        this->dirEmptyText = new pu::ui::elm::TextBlock(30, 630, set::GetDictionaryEntry(49));
+        this->dirEmptyText = pu::ui::elm::TextBlock::New(30, 630, set::GetDictionaryEntry(49));
         this->dirEmptyText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->dirEmptyText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->dirEmptyText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->browseMenu);
         this->Add(this->dirEmptyText);
-    }
-
-    PartitionBrowserLayout::~PartitionBrowserLayout()
-    {
-        delete this->dirEmptyText;
-        delete this->browseMenu;
     }
 
     void PartitionBrowserLayout::ChangePartitionSdCard(bool Update)
@@ -81,7 +75,7 @@ namespace ui
             {
                 pu::String itm = this->elems[i];
                 bool isdir = this->gexp->IsDirectory(itm);
-                pu::ui::elm::MenuItem *mitm = new pu::ui::elm::MenuItem(itm);
+                auto mitm = pu::ui::elm::MenuItem::New(itm);
                 mitm->SetColor(gsets.CustomScheme.Text);
                 if(isdir) mitm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));
                 else
@@ -118,14 +112,14 @@ namespace ui
         }
     }
 
-    void PartitionBrowserLayout::HandleFileDirectly(pu::String Path, pu::ui::Layout *Prev)
+    void PartitionBrowserLayout::HandleFileDirectly(pu::String Path)
     {
         auto dir = fs::GetBaseDirectory(Path);
         auto fname = fs::GetFileName(Path);
         this->ChangePartitionPCDrive(dir);
 
-        auto &items = this->browseMenu->GetItems();
-        auto it = std::find_if(items.begin(), items.end(), [&](pu::ui::elm::MenuItem *&item) -> bool
+        auto items = this->browseMenu->GetItems();
+        auto it = std::find_if(items.begin(), items.end(), [&](pu::ui::elm::MenuItem::Ref &item) -> bool
         {
             return (item->GetName() == fname);
         });
@@ -244,7 +238,8 @@ namespace ui
                         }
                         mainapp->LoadMenuHead(set::GetDictionaryEntry(145) + " " + pfullitm);
                         mainapp->LoadLayout(mainapp->GetInstallLayout());
-                        mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst, this);
+                        mainapp->GetInstallLayout()->StartInstall(fullitm, this->gexp, dst);
+                        mainapp->LoadLayout(mainapp->GetBrowserLayout());
                         mainapp->LoadMenuHead(this->gexp->GetPresentableCwd());
                         break;
                 }
@@ -291,7 +286,7 @@ namespace ui
                 {
                     case 0:
                         std::string ntnro = "sdmc:/switch/nxthemes_installer/nxthemesinstaller.nro";
-                        if(!this->gexp->IsFile(ntnro))
+                        if(!fs::IsFile(ntnro))
                         {
                             mainapp->CreateShowDialog(set::GetDictionaryEntry(104), set::GetDictionaryEntry(105), { set::GetDictionaryEntry(234) }, false);
                             return;
@@ -315,8 +310,16 @@ namespace ui
                 switch(sopt)
                 {
                     case 0:
-                        u8 *rnacp = this->gexp->ReadFile(fullitm).data();
-                        NacpStruct *snacp = (NacpStruct*)rnacp;
+                        NacpStruct nacp = {};
+                        auto fsize = this->gexp->GetFileSize(fullitm);
+                        if(fsize < sizeof(NacpStruct))
+                        {
+                            mainapp->ShowNotification(set::GetDictionaryEntry(341));
+                            return;
+                        }
+                        this->gexp->ReadFileBlock(fullitm, 0, sizeof(NacpStruct), (u8*)&nacp);
+                        NacpStruct *snacp = &nacp;
+                        u8 *rnacp = (u8*)snacp;
                         NacpLanguageEntry *lent = NULL;
                         nacpGetLanguageEntry(snacp, &lent);
                         pu::String name = set::GetDictionaryEntry(106);
@@ -395,7 +398,7 @@ namespace ui
                 {
                     case 0:
                         mainapp->LoadLayout(mainapp->GetFileContentLayout());
-                        mainapp->GetFileContentLayout()->LoadFile(fullitm, this, this->gexp, false);
+                        mainapp->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, false);
                         break;
                 }
             }
@@ -406,7 +409,7 @@ namespace ui
             if((osopt == viewopt) && (this->gexp->GetFileSize(fullitm) > 0))
             {
                 mainapp->LoadLayout(mainapp->GetFileContentLayout());
-                mainapp->GetFileContentLayout()->LoadFile(fullitm, this, this->gexp, true);
+                mainapp->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, true);
             }
             else if(osopt == copyopt) UpdateClipboard(fullitm);
             else if(osopt == delopt)
@@ -467,27 +470,24 @@ namespace ui
             extraopts.push_back(set::GetDictionaryEntry(18));
             pu::String msg = set::GetDictionaryEntry(134);
             msg += "\n\n" + set::GetDictionaryEntry(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
-            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(136), set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), set::GetDictionaryEntry(280), set::GetDictionaryEntry(18) }, true);
+            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), set::GetDictionaryEntry(280), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             switch(sopt)
             {
                 case 0:
-                    if(this->gexp->NavigateForward(itm)) this->UpdateElements();
-                    break;
-                case 1:
                     UpdateClipboard(fullitm);
                     break;
-                case 2:
+                case 1:
                     if(this->WarnNANDWriteAccess())
                     {
-                        sopt = mainapp->CreateShowDialog("Directory delete", "Would you like to delete this directory?", {"Yes", "Cancel"}, true);
+                        sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(325), set::GetDictionaryEntry(326), {set::GetDictionaryEntry(111), set::GetDictionaryEntry(18)}, true);
                         if(sopt < 0) return;
                         this->gexp->DeleteDirectory(fullitm);
-                        mainapp->ShowNotification("The directory was successfully deleted.");
+                        mainapp->ShowNotification(set::GetDictionaryEntry(327));
                         this->UpdateElements();
                     }
                     break;
-                case 3:
+                case 2:
                     {
                         pu::String kbdt = AskForText(set::GetDictionaryEntry(238), itm);
                         if(kbdt != "")
@@ -506,7 +506,7 @@ namespace ui
                         }
                     }
                     break;
-                case 4:
+                case 3:
                     int sopt2 = mainapp->CreateShowDialog(set::GetDictionaryEntry(280), set::GetDictionaryEntry(134), extraopts, true);
                     switch(sopt2)
                     {
@@ -535,7 +535,8 @@ namespace ui
                                 }
                                 mainapp->LoadMenuHead(set::GetDictionaryEntry(145) + " " + pnsp);
                                 mainapp->LoadLayout(mainapp->GetInstallLayout());
-                                mainapp->GetInstallLayout()->StartInstall(nsp, this->gexp, dst, this, true);
+                                mainapp->GetInstallLayout()->StartInstall(nsp, this->gexp, dst, true);
+                                mainapp->LoadLayout(mainapp->GetBrowserLayout());
                             }
                             mainapp->LoadMenuHead(this->gexp->GetPresentableCwd());
                             break;

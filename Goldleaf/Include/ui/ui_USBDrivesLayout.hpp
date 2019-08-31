@@ -18,14 +18,13 @@ namespace ui
     {
         public:
             USBDrivesLayout();
-            ~USBDrivesLayout();
+            PU_SMART_CTOR(USBDrivesLayout)
+
             void Start();
             void UpdateDrives();
             void drive_Click();
-            // std::vector<drive::Drive*> GetDrives();
         private:
-            pu::ui::elm::Menu *drivesMenu;
-            pu::ui::elm::TextBlock *noDrivesText;
-            // std::vector<drive::Drive*> drvs;
+            pu::ui::elm::Menu::Ref drivesMenu;
+            pu::ui::elm::TextBlock::Ref noDrivesText;
     };
 }

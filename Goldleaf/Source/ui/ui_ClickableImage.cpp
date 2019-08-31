@@ -94,14 +94,14 @@ namespace ui
         cb = Callback;
     }
 
-    void ClickableImage::OnRender(pu::ui::render::Renderer *Drawer)
+    void ClickableImage::OnRender(pu::ui::render::Renderer::Ref &Drawer, s32 X, s32 Y)
     {
-        s32 rdx = this->GetProcessedX();
-        s32 rdy = this->GetProcessedY();
+        s32 rdx = X;
+        s32 rdy = Y;
         Drawer->RenderTextureScaled(this->ntex, rdx, rdy, w, h);
     }
 
-    void ClickableImage::OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus)
+    void ClickableImage::OnInput(u64 Down, u64 Up, u64 Held, bool Touch)
     {
         if(touched)
         {

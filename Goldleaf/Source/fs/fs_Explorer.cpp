@@ -240,7 +240,7 @@ namespace fs
         bool end = false;
         while(szrem && !end)
         {
-            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)0x1000, szrem), tmpdata);
+            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)GetFileSystemOperationsBufferSize(), szrem), tmpdata);
             if(rsize == 0) return data;
             szrem -= rsize;
             off += rsize;
@@ -902,5 +902,10 @@ namespace fs
         if(enss != NULL) if(enss->GetMountName() == MountName) return enss;
         if(epcdrv != NULL) if(epcdrv->GetMountName() == MountName) return epcdrv;
         return ex;
+    }
+
+    Explorer *GetExplorerForPath(pu::String Path)
+    {
+        return GetExplorerForMountName(GetPathRoot(Path));
     }
 }

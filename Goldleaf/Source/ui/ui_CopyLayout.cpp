@@ -5,26 +5,20 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     CopyLayout::CopyLayout()
     {
-        this->infoText = new pu::ui::elm::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->infoText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
-        this->copyBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->copyBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->copyBar);
         this->Add(this->infoText);
         this->Add(this->copyBar);
     }
 
-    CopyLayout::~CopyLayout()
-    {
-        delete this->infoText;
-        delete this->copyBar;
-    }
-
-    void CopyLayout::StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev)
+    void CopyLayout::StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp)
     {
         if(Directory)
         {
@@ -40,11 +34,7 @@ namespace ui
             if(Exp->IsFile(NewPath))
             {
                 int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
-                if(sopt < 0)
-                {
-                    mainapp->LoadLayout(Prev);
-                    return;
-                }
+                if(sopt < 0) return;
             }
             fs::CopyFileProgress(Path, NewPath, [&](u8 p)
             {
@@ -53,6 +43,5 @@ namespace ui
             });
             mainapp->ShowNotification(set::GetDictionaryEntry(240));
         }
-        mainapp->LoadLayout(Prev);
     }
 }

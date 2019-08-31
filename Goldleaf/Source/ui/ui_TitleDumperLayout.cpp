@@ -5,24 +5,18 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     TitleDumperLayout::TitleDumperLayout()
     {
-        this->dumpText = new pu::ui::elm::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->dumpText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->dumpText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->dumpText->SetColor(gsets.CustomScheme.Text);
-        this->ncaBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->ncaBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         this->ncaBar->SetVisible(false);
         gsets.ApplyProgressBarColor(this->ncaBar);
         this->Add(this->dumpText);
         this->Add(this->ncaBar);
-    }
-
-    TitleDumperLayout::~TitleDumperLayout()
-    {
-        delete this->dumpText;
-        delete this->ncaBar;
     }
 
     void TitleDumperLayout::StartDump(hos::Title &Target)

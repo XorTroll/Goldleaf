@@ -5,23 +5,17 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     UpdateLayout::UpdateLayout()
     {
-        this->infoText = new pu::ui::elm::TextBlock(150, 320, "(...)");
+        this->infoText = pu::ui::elm::TextBlock::New(150, 320, "(...)");
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
-        this->downloadBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->downloadBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->downloadBar);
         this->Add(this->infoText);
         this->Add(this->downloadBar);
-    }
-
-    UpdateLayout::~UpdateLayout()
-    {
-        delete this->infoText;
-        delete this->downloadBar;
     }
 
     void UpdateLayout::StartUpdateSearch()
@@ -126,8 +120,9 @@ namespace ui
                         return;
                     }
                     mainapp->LoadLayout(mainapp->GetInstallLayout());
-                    mainapp->GetInstallLayout()->StartInstall(nspfile, fs::GetSdCardExplorer(), dst, mainapp->GetMainMenuLayout());
+                    mainapp->GetInstallLayout()->StartInstall(nspfile, fs::GetSdCardExplorer(), dst);
                     mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
+                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
                 }
                 else mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
             }

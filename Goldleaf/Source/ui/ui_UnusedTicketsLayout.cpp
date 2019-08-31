@@ -5,25 +5,19 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout()
     {
-        this->ticketsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->ticketsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->ticketsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         gsets.ApplyScrollBarColor(this->ticketsMenu);
-        this->notTicketsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(199));
+        this->notTicketsText = pu::ui::elm::TextBlock::New(0, 0, set::GetDictionaryEntry(199));
         this->notTicketsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->notTicketsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->notTicketsText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->notTicketsText);
         this->Add(this->ticketsMenu);
-    }
-
-    UnusedTicketsLayout::~UnusedTicketsLayout()
-    {
-        delete this->notTicketsText;
-        delete this->ticketsMenu;
     }
 
     void UnusedTicketsLayout::UpdateElements(bool Cooldown)
@@ -55,7 +49,7 @@ namespace ui
                 hos::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
                 pu::String tname = hos::FormatApplicationId(tappid);
-                pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(tname);
+                auto itm = pu::ui::elm::MenuItem::New(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
                 itm->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
                 itm->AddOnClick(std::bind(&UnusedTicketsLayout::tickets_Click, this));

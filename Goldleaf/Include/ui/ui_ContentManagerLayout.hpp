@@ -18,18 +18,19 @@ namespace ui
     {
         public:
             ContentManagerLayout();
-            ~ContentManagerLayout();
+            PU_SMART_CTOR(ContentManagerLayout)
+
             void sdCardMenuItem_Click();
             void nandUserMenuItem_Click();
             void nandSystemMenuItem_Click();
             void gameCartMenuItem_Click();
             void unusedTicketsMenuItem_Click();
         private:
-            pu::ui::elm::MenuItem *sdCardMenuItem;
-            pu::ui::elm::MenuItem *nandUserMenuItem;
-            pu::ui::elm::MenuItem *nandSystemMenuItem;
-            pu::ui::elm::MenuItem *gameCartMenuItem;
-            pu::ui::elm::MenuItem *unusedTicketsMenuItem;
-            pu::ui::elm::Menu *typesMenu;
+            pu::ui::elm::MenuItem::Ref sdCardMenuItem;
+            pu::ui::elm::MenuItem::Ref nandUserMenuItem;
+            pu::ui::elm::MenuItem::Ref nandSystemMenuItem;
+            pu::ui::elm::MenuItem::Ref gameCartMenuItem;
+            pu::ui::elm::MenuItem::Ref unusedTicketsMenuItem;
+            pu::ui::elm::Menu::Ref typesMenu;
     };
 }

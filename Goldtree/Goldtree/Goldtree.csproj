@@ -13,7 +13,7 @@
     <FileVersion>0.6.1.0</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-    <Version>0.6.1</Version>
+    <Version>0.7</Version>
     <RepositoryUrl>https://github.com/XorTroll/Goldleaf</RepositoryUrl>
     <PackageLicenseExpression>GPLv3</PackageLicenseExpression>
   </PropertyGroup>
@@ -23,16 +23,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>E:\Nintendo\Switch\Proyectos\Goldleaf-dev\Goldleaf\Goldtree\Output\</OutputPath>
+    <OutputPath>E:\Nintendo\Switch\Proyectos\Goldleaf\Goldtree\Output\</OutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LibHac" Version="0.2.0" />
-    <PackageReference Include="System.Buffers" Version="4.5.0" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Properties\" />

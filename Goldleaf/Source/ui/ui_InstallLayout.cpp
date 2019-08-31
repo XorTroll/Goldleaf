@@ -6,26 +6,20 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     InstallLayout::InstallLayout() : pu::ui::Layout()
     {
-        this->installText = new pu::ui::elm::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->installText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->installText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->installText->SetColor(gsets.CustomScheme.Text);
-        this->installBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->installBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->installBar);
         this->Add(this->installText);
         this->Add(this->installBar);
     }
 
-    InstallLayout::~InstallLayout()
-    {
-        delete this->installText;
-        delete this->installBar;
-    }
-
-    void InstallLayout::StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation)
+    void InstallLayout::StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation)
     {
         nsp::Installer inst(Path, Exp, Location);
 
@@ -46,21 +40,18 @@ namespace ui
                         if(rc != 0)
                         {
                             HandleResult(rc, set::GetDictionaryEntry(251));
-                            mainapp->LoadLayout(Prev);
                             return;
                         }
                     }
                 }
                 else
                 {
-                    mainapp->LoadLayout(Prev);
                     return;
                 }
             }
             else
             {
                 HandleResult(rc, set::GetDictionaryEntry(251));
-                mainapp->LoadLayout(Prev);
                 return;
             }
         }
@@ -188,10 +179,12 @@ namespace ui
                     break;
             }
 
+            /*
             std::stringstream strm;
             strm << std::setw(2) << std::setfill('0') << (int)masterkey;
 
             info += " (master_key_" + strm.str() + ")";
+            */
 
             if(inst.HasTicket())
             {
@@ -235,7 +228,6 @@ namespace ui
             if(rc != 0)
             {
                 HandleResult(rc, set::GetDictionaryEntry(251));
-                mainapp->LoadLayout(Prev);
                 return;
             }
             hos::LockAutoSleep();
@@ -261,6 +253,5 @@ namespace ui
         mainapp->CallForRender();
         if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));
         else if(doinstall) mainapp->ShowNotification(set::GetDictionaryEntry(150));
-        mainapp->LoadLayout(Prev);
     }
 }

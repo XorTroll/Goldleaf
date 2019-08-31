@@ -18,10 +18,11 @@ namespace ui
     {
         public:
             UpdateLayout();
-            ~UpdateLayout();
+            PU_SMART_CTOR(UpdateLayout)
+
             void StartUpdateSearch();
         private:
-            pu::ui::elm::TextBlock *infoText;
-            pu::ui::elm::ProgressBar *downloadBar;
+            pu::ui::elm::TextBlock::Ref infoText;
+            pu::ui::elm::ProgressBar::Ref downloadBar;
     };
 }

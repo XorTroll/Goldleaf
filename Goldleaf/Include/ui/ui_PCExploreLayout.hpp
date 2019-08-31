@@ -18,14 +18,15 @@ namespace ui
     {
         public:
             PCExploreLayout();
-            ~PCExploreLayout();
+            PU_SMART_CTOR(PCExploreLayout)
+
             void UpdatePaths();
             void path_Click();
             void fileSelect_Click();
         private:
             std::vector<pu::String> names;
             std::vector<pu::String> paths;
-            pu::ui::elm::Menu *pathsMenu;
-            std::vector<pu::ui::elm::MenuItem*> pathItems;
+            pu::ui::elm::Menu::Ref pathsMenu;
+            std::vector<pu::ui::elm::MenuItem::Ref> pathItems;
     };
 }

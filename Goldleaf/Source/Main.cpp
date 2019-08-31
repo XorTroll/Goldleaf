@@ -57,15 +57,17 @@ void Finalize()
     pdmqryExit();
 }
 
+namespace ui
+{
+    extern MainApplication::Ref mainapp;
+}
+
 int main()
 {
     Initialize();
 
-    ui::MainApplication *mainapp = new ui::MainApplication();
-    mainapp->ShowWithFadeIn();
-    // Plutonium Application logic will handle closing render loop when user selects so
+    ui::mainapp = ui::MainApplication::New();
+    ui::mainapp->ShowWithFadeIn();
     Finalize();
-
-    delete mainapp;
     return 0;
 }

@@ -11,6 +11,5 @@
     "Another file or directory with the same name already exists",
     "Could not locate title contents",
     "Could not build the PFS0 (NSP)",
-    "Key generation mismatch (console's firmware is too low)",
-    "Invalid NSP / PFS0"
+    "Key generation mismatch (console's firmware is too low)"
 ]

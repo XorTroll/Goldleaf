@@ -5,40 +5,35 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     AccountLayout::AccountLayout() : pu::ui::Layout()
     {
-        this->optsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->optsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->optsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         gsets.ApplyScrollBarColor(this->optsMenu);
         this->ReloadItems();
         this->Add(this->optsMenu);
     }
 
-    AccountLayout::~AccountLayout()
-    {
-        delete this->optsMenu;
-    }
-
     void AccountLayout::ReloadItems()
     {
         this->optsMenu->ClearItems();
-        pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(208));
+        auto itm = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(208));
         itm->SetColor(gsets.CustomScheme.Text);
         itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
         this->optsMenu->AddItem(itm);
-        pu::ui::elm::MenuItem *itm2 = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(209));
+        auto itm2 = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(209));
         itm2->SetColor(gsets.CustomScheme.Text);
         itm2->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
         this->optsMenu->AddItem(itm2);
-        pu::ui::elm::MenuItem *itm3 = new pu::ui::elm::MenuItem(set::GetDictionaryEntry(210));
+        auto itm3 = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(210));
         itm3->SetColor(gsets.CustomScheme.Text);
         itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
         this->optsMenu->AddItem(itm3);
         if(acc::IsLinked())
         {
-            pu::ui::elm::MenuItem *itm4 = new pu::ui::elm::MenuItem("Nintendo account information");
+            auto itm4 = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(336));
             itm4->SetColor(gsets.CustomScheme.Text);
             itm4->AddOnClick(std::bind(&AccountLayout::optsServicesInfo_Click, this));
             this->optsMenu->AddItem(itm4);
@@ -136,14 +131,14 @@ namespace ui
     void AccountLayout::optsServicesInfo_Click()
     {
         auto linkedinfo = acc::GetUserLinkedInfo();
-        pu::String str = "Account ID: " + hos::FormatHex(linkedinfo.AccountId);
-        str += "\nNintendo Account ID: " + hos::FormatHex(linkedinfo.NintendoAccountId);
-        auto sopt = mainapp->CreateShowDialog("Linked account", str, { "Unlink (locally)", "Ok" }, true);
+        pu::String str = set::GetDictionaryEntry(328) + " " + hos::FormatHex(linkedinfo.AccountId);
+        str += "\n" + set::GetDictionaryEntry(329) + " " + hos::FormatHex(linkedinfo.NintendoAccountId);
+        auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(330), str, { set::GetDictionaryEntry(331), set::GetDictionaryEntry(234) }, true);
         if(sopt != 0) return;
-        sopt = mainapp->CreateShowDialog("Unlink account locally", "Sure?", {"Yes", "Cancel"}, true);
+        sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(332), set::GetDictionaryEntry(333), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
         auto res = acc::UnlinkLocally();
-        if(res == 0) mainapp->ShowNotification("Unlinked locally!");
-        else HandleResult(res, "An error ocurred unlinking account locally:");
+        if(res == 0) mainapp->ShowNotification(set::GetDictionaryEntry(334));
+        else HandleResult(res, set::GetDictionaryEntry(335));
     }
 }

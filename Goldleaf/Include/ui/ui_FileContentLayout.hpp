@@ -18,19 +18,18 @@ namespace ui
     {
         public:
             FileContentLayout();
-            ~FileContentLayout();
-            void LoadFile(pu::String Path, pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex);
+            PU_SMART_CTOR(FileContentLayout)
+
+            void LoadFile(pu::String PPath, pu::String Path, fs::Explorer *Exp, bool Hex);
             void Update();
             void ScrollUp();
             void ScrollDown();
-            pu::ui::Layout *GetPreviousLayout();
         private:
             u32 loffset;
             u32 rlines;
             bool mode;
             pu::String pth;
-            pu::ui::elm::TextBlock *cntText;
+            pu::ui::elm::TextBlock::Ref cntText;
             fs::Explorer *gexp;
-            pu::ui::Layout *prev;
     };
 }

@@ -5,25 +5,19 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     FileContentLayout::FileContentLayout()
     {
-        this->cntText = new pu::ui::elm::TextBlock(40, 180, "");
+        this->cntText = pu::ui::elm::TextBlock::New(40, 180, "");
         this->cntText->SetColor(gsets.CustomScheme.Text);
         this->cntText->SetFont(pu::ui::render::LoadFont(gsets.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
         this->Add(this->cntText);
         this->loffset = 0;
     }
 
-    FileContentLayout::~FileContentLayout()
+    void FileContentLayout::LoadFile(pu::String PPath, pu::String Path, fs::Explorer *Exp, bool Hex)
     {
-        delete this->cntText;
-    }
-
-    void FileContentLayout::LoadFile(pu::String Path,  pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex)
-    {
-        this->prev = Prev;
         this->pth = Path;
         this->mode = Hex;
         this->gexp = Exp;
@@ -65,10 +59,5 @@ namespace ui
     {
         this->loffset++;
         this->Update();
-    }
-
-    pu::ui::Layout *FileContentLayout::GetPreviousLayout()
-    {
-        return this->prev;
     }
 }

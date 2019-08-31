@@ -35,8 +35,8 @@ namespace set
         std::vector<WebBookmark> Bookmarks;
 
         std::string PathForResource(std::string Path);
-        void ApplyScrollBarColor(pu::ui::elm::Menu *Menu);
-        void ApplyProgressBarColor(pu::ui::elm::ProgressBar *PBar);
+        void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &Menu);
+        void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar);
     };
 
     static const std::string SettingsFile = "sdmc:/" + GoldleafDir + "/settings.json";

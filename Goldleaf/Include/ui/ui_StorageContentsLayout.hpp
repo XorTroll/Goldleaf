@@ -18,13 +18,14 @@ namespace ui
     {
         public:
             StorageContentsLayout();
-            ~StorageContentsLayout();
+            PU_SMART_CTOR(StorageContentsLayout)
+
             void contents_Click();
             void LoadFromStorage(Storage Location);
             std::vector<hos::Title> GetContents();
         private:
             std::vector<hos::Title> contents;
-            pu::ui::elm::TextBlock *noContentsText;
-            pu::ui::elm::Menu *contentsMenu;
+            pu::ui::elm::TextBlock::Ref noContentsText;
+            pu::ui::elm::Menu::Ref contentsMenu;
     };
 }

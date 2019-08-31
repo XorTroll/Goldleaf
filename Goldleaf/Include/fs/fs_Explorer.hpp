@@ -150,4 +150,5 @@ namespace fs
     NANDExplorer *GetNANDSystemExplorer();
     USBPCDriveExplorer *GetUSBPCDriveExplorer(pu::String MountName);
     Explorer *GetExplorerForMountName(pu::String MountName);
+    Explorer *GetExplorerForPath(pu::String Path);
 }

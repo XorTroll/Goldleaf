@@ -5,36 +5,36 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     SystemInfoLayout::SystemInfoLayout() : pu::ui::Layout()
     {
         hos::FwVersion fwv = hos::GetFwVersion();
-        this->fwText = new pu::ui::elm::TextBlock(40, 650, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
+        this->fwText = pu::ui::elm::TextBlock::New(40, 650, "Firmware: " + fwv.ToString() + " (" + fwv.DisplayName + ")");
         this->fwText->SetColor(gsets.CustomScheme.Text);
-        this->sdText = new pu::ui::elm::TextBlock(125, 300, set::GetDictionaryEntry(19), 35);
+        this->sdText = pu::ui::elm::TextBlock::New(125, 300, set::GetDictionaryEntry(19), 35);
         this->sdText->SetColor(gsets.CustomScheme.Text);
-        this->sdBar = new pu::ui::elm::ProgressBar(120, 345, 450, 30, 100.0f);
+        this->sdBar = pu::ui::elm::ProgressBar::New(120, 345, 450, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->sdBar);
-        this->sdFreeText = new pu::ui::elm::TextBlock(125, 385, "0 bytes " + set::GetDictionaryEntry(221));
+        this->sdFreeText = pu::ui::elm::TextBlock::New(125, 385, "0 bytes " + set::GetDictionaryEntry(221));
         this->sdFreeText->SetColor(gsets.CustomScheme.Text);
-        this->nandText = new pu::ui::elm::TextBlock(615, 300, set::GetDictionaryEntry(79), 35);
+        this->nandText = pu::ui::elm::TextBlock::New(615, 300, set::GetDictionaryEntry(79), 35);
         this->nandText->SetColor(gsets.CustomScheme.Text);
-        this->nandBar = new pu::ui::elm::ProgressBar(620, 345, 450, 30, 100.0f);
+        this->nandBar = pu::ui::elm::ProgressBar::New(620, 345, 450, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->nandBar);
-        this->nandFreeText = new pu::ui::elm::TextBlock(620, 385, "0 bytes " + set::GetDictionaryEntry(221));
+        this->nandFreeText = pu::ui::elm::TextBlock::New(620, 385, "0 bytes " + set::GetDictionaryEntry(221));
         this->nandFreeText->SetColor(gsets.CustomScheme.Text);
-        this->safeText = new pu::ui::elm::TextBlock(105, 480, set::GetDictionaryEntry(27));
+        this->safeText = pu::ui::elm::TextBlock::New(105, 480, set::GetDictionaryEntry(27));
         this->safeText->SetColor(gsets.CustomScheme.Text);
-        this->safeBar = new pu::ui::elm::ProgressBar(100, 515, 300, 30, 100.0f);
+        this->safeBar = pu::ui::elm::ProgressBar::New(100, 515, 300, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->safeBar);
-        this->userText = new pu::ui::elm::TextBlock(455, 480, set::GetDictionaryEntry(28));
+        this->userText = pu::ui::elm::TextBlock::New(455, 480, set::GetDictionaryEntry(28));
         this->userText->SetColor(gsets.CustomScheme.Text);
-        this->userBar = new pu::ui::elm::ProgressBar(450, 515, 300, 30, 100.0f);
+        this->userBar = pu::ui::elm::ProgressBar::New(450, 515, 300, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->userBar);
-        this->systemText = new pu::ui::elm::TextBlock(805, 480, set::GetDictionaryEntry(29));
+        this->systemText = pu::ui::elm::TextBlock::New(805, 480, set::GetDictionaryEntry(29));
         this->systemText->SetColor(gsets.CustomScheme.Text);
-        this->systemBar = new pu::ui::elm::ProgressBar(800, 515, 300, 30, 100.0f);
+        this->systemBar = pu::ui::elm::ProgressBar::New(800, 515, 300, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->systemBar);
         this->Add(this->fwText);
         this->Add(this->sdText);
@@ -49,11 +49,6 @@ namespace ui
         this->Add(this->userBar);
         this->Add(this->systemText);
         this->Add(this->systemBar);
-    }
-
-    SystemInfoLayout::~SystemInfoLayout()
-    {
-        
     }
 
     void SystemInfoLayout::UpdateElements()

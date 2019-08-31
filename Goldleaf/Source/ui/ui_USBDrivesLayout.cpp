@@ -5,24 +5,19 @@ extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
+    extern MainApplication::Ref mainapp;
 
     USBDrivesLayout::USBDrivesLayout() : pu::ui::Layout()
     {
-        this->drivesMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->drivesMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->drivesMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         gsets.ApplyScrollBarColor(this->drivesMenu);
-        this->noDrivesText = new pu::ui::elm::TextBlock(30, 630, "No drives were found.");
+        this->noDrivesText = pu::ui::elm::TextBlock::New(30, 630, "No drives were found.");
         this->noDrivesText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->noDrivesText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->noDrivesText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->noDrivesText);
         this->Add(this->drivesMenu);
-    }
-
-    USBDrivesLayout::~USBDrivesLayout()
-    {
-        delete this->drivesMenu;
     }
 
     void USBDrivesLayout::Start()
@@ -76,7 +71,7 @@ namespace ui
                 pu::String slabel;
                 if(strlen(label) == 0) slabel = "Drive " + std::to_string(i);
                 else slabel = pu::String(label);
-                pu::ui::elm::MenuItem *mitm = new pu::ui::elm::MenuItem(slabel);
+                pu::ui::elm::MenuItem *mitm = pu::ui::elm::MenuItem(slabel);
                 mitm->SetIcon(gsets.PathForResource("/Common/Drive.png"));
                 mitm->AddOnClick(std::bind(&USBDrivesLayout::drive_Click, this));
                 this->drivesMenu->AddItem(mitm);

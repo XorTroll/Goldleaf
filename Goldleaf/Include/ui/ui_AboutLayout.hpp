@@ -18,8 +18,8 @@ namespace ui
     {
         public:
             AboutLayout();
-            ~AboutLayout();
+            PU_SMART_CTOR(AboutLayout)
         private:
-            pu::ui::elm::Image *logoImage;
+            pu::ui::elm::Image::Ref logoImage;
     };
 }

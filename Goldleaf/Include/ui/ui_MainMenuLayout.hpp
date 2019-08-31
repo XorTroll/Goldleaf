@@ -18,7 +18,8 @@ namespace ui
     {
         public:
             MainMenuLayout();
-            ~MainMenuLayout();
+            PU_SMART_CTOR(MainMenuLayout)
+
             void exploreMenuItem_Click();
             void titleMenuItem_Click();
             void webMenuItem_Click();
@@ -28,14 +29,14 @@ namespace ui
             void updateMenuItem_Click();
             void aboutMenuItem_Click();
         private:
-            pu::ui::elm::Menu *optionMenu;
-            pu::ui::elm::MenuItem *exploreMenuItem;
-            pu::ui::elm::MenuItem *titleMenuItem;
-            pu::ui::elm::MenuItem *webMenuItem;
-            pu::ui::elm::MenuItem *accountMenuItem;
-            pu::ui::elm::MenuItem *amiiboMenuItem;
-            pu::ui::elm::MenuItem *sysinfoMenuItem;
-            pu::ui::elm::MenuItem *updateMenuItem;
-            pu::ui::elm::MenuItem *aboutMenuItem;
+            pu::ui::elm::Menu::Ref optionMenu;
+            pu::ui::elm::MenuItem::Ref exploreMenuItem;
+            pu::ui::elm::MenuItem::Ref titleMenuItem;
+            pu::ui::elm::MenuItem::Ref webMenuItem;
+            pu::ui::elm::MenuItem::Ref accountMenuItem;
+            pu::ui::elm::MenuItem::Ref amiiboMenuItem;
+            pu::ui::elm::MenuItem::Ref sysinfoMenuItem;
+            pu::ui::elm::MenuItem::Ref updateMenuItem;
+            pu::ui::elm::MenuItem::Ref aboutMenuItem;
     };
 }
