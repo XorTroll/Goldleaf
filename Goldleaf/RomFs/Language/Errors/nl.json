@@ -10,5 +10,6 @@
      "De titel is al op deze console geinstalleerd",
      "Er bestaat al een ander bestand of map met dezelfde naam",
      "Kon titelinhoud niet vinden",
-     "Kon de PFS0 (NSP) niet bouwen"
+     "Kon de PFS0 (NSP) niet bouwen",
+     "Key generatie incorrect (console's firmware is te laag)"
 ]

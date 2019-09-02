@@ -492,7 +492,7 @@ namespace fs
     {
         u64 wsz = 0;
         pu::String path = this->MakeFull(Path);
-        FILE *f = fopen(path.AsUTF8().c_str(), "wb");
+        FILE *f = fopen(path.AsUTF8().c_str(), "ab+");
         if(f)
         {
             wsz = fwrite(Data, 1, Size, f);

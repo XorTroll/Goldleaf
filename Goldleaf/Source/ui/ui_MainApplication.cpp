@@ -363,7 +363,7 @@ namespace ui
             auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
             if(timediff >= 1000)
             {
-                this->ShowNotification(u"Welcome to Goldleaf! Press + anytime for help and control information.");
+                this->ShowNotification(set::GetDictionaryEntry(320));
                 this->welcomeshown = true;
             }
         }

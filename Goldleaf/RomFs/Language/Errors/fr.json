@@ -10,5 +10,6 @@
     "Le titre est déjà installé sur cette console",
     "Un autre fichier ou répertoire du même nom existe déjà",
     "Impossible de trouver le contenu du titre",
-    "Impossible de construire le PFS0 (NSP)"
+    "Impossible de construire le PFS0 (NSP)",
+    "Génération de clé invalide (La version de la console est trop basse)"
 ]
