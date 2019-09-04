@@ -1,6 +1,10 @@
 ![Logo](Goldleaf/RomFs/Logo.png)
 
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)]() [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)]()
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
+
+[![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
+
+[![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
 
@@ -9,11 +13,12 @@
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
 3. [Remote PC system](#remote-pc-system)
-4. [Forwarding](#forwarding)
-5. [Settings](#settings)
-6. [Known bugs](#known-bugs)
-7. [Contributing](#contributing)
-8. [Credits and support](#credits-and-support)
+4. [Troubleshooting](#troubleshooting)
+5. [Forwarding](#forwarding)
+6. [Settings](#settings)
+7. [Known bugs](#known-bugs)
+8. [Contributing](#contributing)
+9. [Credits and support](#credits-and-support)
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
@@ -41,23 +46,23 @@ These are its main features:
 
 - **Web browser (web applets)**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. If Goldleaf is launched through hbmenu as a NRO, WifiWebAuth applet will be used, which tends to fail sometimes, along with fewer features, such as lack of video support.
 
-- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one.
+- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one. Linked accounts can also be unlinked (locally).
 
 - **Console information**: Simple menu to see current firmware string, and the total free and occupied size on SD card and console memory.
 
-Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: **English**, **Spanish**, **German**, **French** and **Italian**.
+Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
 
 ### Common controls
 
-- **(L-stick / D-pad)** Move through the current menu
-
-- **(R-stick)** Move slightly faster through the current menu
+- **(LR-stick / R-stick / D-pad)** Move through the current menu
 
 - **(ZL / ZR)** Show a dialog to shut down or reboot the console.
 
+- **(Plus / +)** Show a dialog with this information.
+
 #### NRO version
 
-- **(+ / -)** Exit the application in order to return to hbmenu.
+- **(Minus / -)** Exit the application in order to return to hbmenu.
 
 ## Disclaimer
 
@@ -93,13 +98,50 @@ One time setup:
 
 5. Select the Switch from the drop-down menu
 
-6. Change the driver (right next to the green arrow) to "libusbK (v3.0.7.0)"
+6. Change the driver (right next to the green arrow) to "libusbK"
 
 7. Click on the button below "Install WCID Driver" or "Replace Driver"
 
 8. Done. Now you can use Goldleaf and Goldtree together.
 
 **Note:** To use it correctly, open Goldleaf and connect the Switch with your PC before you open Goldtree.
+
+## Troubleshooting
+
+Always make sure you're using the latest release of Goldleaf/Goldtree and you read this section before opening an issue!
+
+**Zadig does not find my console.**
+
+- Make sure to test your USB ports and maybe a spare USB C cable (if you cant send a payload with it, it doesnt mean you can use it for USB stuff too).
+
+**I still can´t use the USB features.**
+
+- Make sure libubsK is installed.
+
+**Goldtree does not recognize the Switch.**
+
+- Try running it as admin (right click -> Run as Admin).
+
+**I have Goldleaf and Goldtree, but my Switch keeps freezing immediately after I clicked on the PC Drive.**
+
+- Make sure to use Goldleaf and Goldtree from the same release. Double-check if needed.
+- Also check if the drive names dont have special characters as they would lead to a freeze or crash too.
+
+**I get the error code "Error 0x291" and I´m using Atmosphere (Kosmos).**
+
+- Make sure you have the latest sigpatches installed (you need to add them on your own).
+
+**I get an error while I want to install an update.**
+
+- Make sure, you´re using the latest version of Goldleaf (and/or Goldtree).
+
+**I have problems using 3rd party tools to use the USB feature on Linux/macOS.**
+
+- Please get in touch with the Developer of that tool.
+
+**I tried a lot of stuff from above now, but I still have problems.**
+
+- Make sure you don´t have a "Goldleaf" folder on root of your sd card (delete it if it´s there). Also if in doubt, delete the Goldleaf folder in your switch folder and it will be created fresh with the first start of the Goldleaf.nro.
 
 ## Forwarding
 
@@ -132,7 +174,7 @@ This is an example JSON for Goldleaf settings:
         "menuItemSize": 80
     },
     "installs": {
-        "ignoreRequiredFwVersion": true
+        "ignoreRequiredFwVersion": false
     }
 }
 ```
@@ -149,7 +191,7 @@ So, via this configurations, UI's images, resources, element sizes and even tran
 
 - On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares.
 
-- Remote PC browsing in general seems to have several bugs, most of them related to the UI system.
+- Browsing (fast?) over certain (empty?) folders can sometimes have weird behavior, resulting into crashes.
 
 ## Contributing
 
@@ -163,7 +205,7 @@ Read this before making any new translations:
 
 - Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
 
-- UI (Plutonium) lacks special UTF16 characters, so some languages like Russian or Korean will not work, at least on the UI's current state.
+- Currently languages with special alphabets (like Russian or Arabic) are unsupported due to the lack of non-UTF-8 support for the JSON parser. THis is planned to be solved soon.
 
 ## Credits and support
 
@@ -187,6 +229,6 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - All the testers, for reporting bugs and helping a lot with the project's development.
 
-### Discord server and beta testing
+### Discord and beta testing
 
 If you would like to be more informed about my projects' status and support, you should check [my Discord server](https://discord.gg/3KpFyaH). It's a simple server for Nintendo hacking and homebrew, mainly focused on my projects. If you would like to be a beta-tester, then this is what you're looking for.
