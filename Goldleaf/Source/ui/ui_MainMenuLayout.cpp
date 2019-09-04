@@ -100,7 +100,11 @@ namespace ui
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(348), set::GetDictionaryEntry(349), {set::GetDictionaryEntry(111), set::GetDictionaryEntry(18)}, true);
             if(sopt != 0) return;
             if(acc::SelectUser()) mainapp->ShowNotification(set::GetDictionaryEntry(324));
-            else mainapp->ShowNotification(set::GetDictionaryEntry(350));
+            else
+            {
+                mainapp->ShowNotification(set::GetDictionaryEntry(350));
+                return;
+            }
         }
         mainapp->LoadMenuData(set::GetDictionaryEntry(41), "Accounts", set::GetDictionaryEntry(42));
         mainapp->GetAccountLayout()->Load();

@@ -49,9 +49,9 @@ namespace fs
     void CreateConcatenationFile(pu::String Path);
     void CreateDirectory(pu::String Path);
     void CopyFile(pu::String Path, pu::String NewPath);
-    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback);
+    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(double Done, double Total)> Callback);
     void CopyDirectory(pu::String Dir, pu::String NewDir);
-    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback);
+    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(double Done, double Total)> Callback);
     void DeleteFile(pu::String Path);
     void DeleteDirectory(pu::String Path);
     bool IsFileBinary(pu::String Path);

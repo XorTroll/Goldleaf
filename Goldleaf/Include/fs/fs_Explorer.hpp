@@ -31,9 +31,9 @@ namespace fs
             pu::String MakeFull(pu::String Path);
             bool IsFullPath(pu::String Path);
             void CopyFile(pu::String Path, pu::String NewPath);
-            void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback);
+            void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(double Done, double Total)> Callback);
             void CopyDirectory(pu::String Dir, pu::String NewDir);
-            void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback);
+            void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(double Done, double Total)> Callback);
             bool IsFileBinary(pu::String Path);
             std::vector<u8> ReadFile(pu::String Path);
             std::vector<pu::String> ReadFileLines(pu::String Path, u32 LineOffset, u32 LineCount);

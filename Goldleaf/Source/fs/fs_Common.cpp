@@ -67,7 +67,7 @@ namespace fs
         gexp->CopyFile(Path, NewPath);
     }
 
-    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback)
+    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(double Done, double Total)> Callback)
     {
         Explorer *gexp = GetExplorerForPath(Path);
         Explorer *ogexp = GetExplorerForPath(NewPath);
@@ -82,7 +82,7 @@ namespace fs
         gexp->CopyDirectory(Dir, NewDir);
     }
 
-    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback)
+    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(double Done, double Total)> Callback)
     {
         Explorer *gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectoryProgress(Dir, NewDir, Callback);

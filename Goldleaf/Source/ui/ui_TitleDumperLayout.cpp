@@ -209,9 +209,10 @@ namespace ui
             pu::String txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
             fs::CreateConcatenationFile(txmeta);
             this->ncaBar->SetVisible(true);
-            fs::CopyFileProgress(xmeta, txmeta, [&](u8 p)
+            fs::CopyFileProgress(xmeta, txmeta, [&](double done, double total)
             {
-                this->ncaBar->SetProgress(p);
+                this->ncaBar->SetMaxValue(total);
+                this->ncaBar->SetProgress(done);
                 mainapp->CallForRender();
             });
             this->ncaBar->SetVisible(false);
@@ -222,9 +223,10 @@ namespace ui
                 pu::String txprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
                 fs::CreateConcatenationFile(txprogram);
                 this->ncaBar->SetVisible(true);
-                fs::CopyFileProgress(xprogram, txprogram, [&](u8 p)
+                fs::CopyFileProgress(xprogram, txprogram, [&](double done, double total)
                 {
-                    this->ncaBar->SetProgress(p);
+                    this->ncaBar->SetMaxValue(total);
+                    this->ncaBar->SetProgress(done);
                     mainapp->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
@@ -236,9 +238,10 @@ namespace ui
                 pu::String txcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
                 fs::CreateConcatenationFile(txcontrol);
                 this->ncaBar->SetVisible(true);
-                fs::CopyFileProgress(xcontrol, txcontrol, [&](u8 p)
+                fs::CopyFileProgress(xcontrol, txcontrol, [&](double done, double total)
                 {
-                    this->ncaBar->SetProgress(p);
+                    this->ncaBar->SetMaxValue(total);
+                    this->ncaBar->SetProgress(done);
                     mainapp->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
@@ -250,9 +253,10 @@ namespace ui
                 pu::String txlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
                 fs::CreateConcatenationFile(txlinfo);
                 this->ncaBar->SetVisible(true);
-                fs::CopyFileProgress(xlinfo, txlinfo, [&](u8 p)
+                fs::CopyFileProgress(xlinfo, txlinfo, [&](double done, double total)
                 {
-                    this->ncaBar->SetProgress(p);
+                    this->ncaBar->SetMaxValue(total);
+                    this->ncaBar->SetProgress(done);
                     mainapp->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
@@ -264,9 +268,10 @@ namespace ui
                 pu::String txhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
                 fs::CreateConcatenationFile(txhoff);
                 this->ncaBar->SetVisible(true);
-                fs::CopyFileProgress(xhoff, txhoff, [&](u8 p)
+                fs::CopyFileProgress(xhoff, txhoff, [&](double done, double total)
                 {
-                    this->ncaBar->SetProgress(p);
+                    this->ncaBar->SetMaxValue(total);
+                    this->ncaBar->SetProgress(done);
                     mainapp->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
@@ -278,9 +283,10 @@ namespace ui
                 pu::String txdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
                 fs::CreateConcatenationFile(txdata);
                 this->ncaBar->SetVisible(true);
-                fs::CopyFileProgress(xdata, txdata, [&](u8 p)
+                fs::CopyFileProgress(xdata, txdata, [&](double done, double total)
                 {
-                    this->ncaBar->SetProgress(p);
+                    this->ncaBar->SetMaxValue(total);
+                    this->ncaBar->SetProgress(done);
                     mainapp->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);

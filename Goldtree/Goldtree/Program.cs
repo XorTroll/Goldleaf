@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Text;
+using System.Diagnostics;
+using System.Reflection;
 using libusbK;
 
 namespace gtree
@@ -65,7 +65,6 @@ namespace gtree
 
     public class Program
     {
-        public static readonly string Name = "Goldtree";
         public static readonly string Description = "Goldleaf's USB client for PC";
 
         public static readonly LogMode Log = new LogMode("Log", ConsoleColor.Cyan);
@@ -77,11 +76,13 @@ namespace gtree
 
         public static void Initialize()
         {
-            Console.Title = Name +  " - " + Description;
+            var name = Assembly.GetExecutingAssembly().GetName().Name;
+            var ver = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+            Console.Title = name + " v" + ver + " - " + Description;
             Console.WriteLine();
             Console.Write("    ");
             Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.Write(Name);
+            Console.Write(name + " v" + ver);
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.Write(" - ");
             Console.ForegroundColor = ConsoleColor.White;

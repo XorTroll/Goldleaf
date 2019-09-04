@@ -1,4 +1,4 @@
-# Changelog (dummy, to be filled, later used in release time)
+# Changelog
 
 - Remote PC
 
@@ -8,7 +8,7 @@
 
   - Added option to select a file directly on the remote PC tool (basically same system as on <=0.5 Goldleaf versions, for those who like the classic system!)
 
-  - Goldtree's messages were slightly changed to be more accurate.
+  - Goldtree's messages were slightly changed to be more accurate. Now it shows its version to avoid confusion between different executables.
 
 - NSP installs
 
@@ -38,9 +38,7 @@
 
   - Copying files from PC to SD which are over 4GB is now correctly handled, creating a concatenation file (see above) to correctly handle it.
 
-  - Goldleaf takes advantage now from hbloader v2.2.0's heap reservation, which reserved 128MB of heap for other applets. Goldleaf probably won't work without this trick, so its support is uncertain with old Atmosphere or other CFWs (unless it's launched overriding an application or from the forwarder)
-
-  - The forwarder was updated with hbloader's latest version.
+  - The forwarder was updated with hbloader's latest version, thus now the forwarder's version is 0.2.
 
 - User / accounts
 
@@ -73,3 +71,7 @@
   - Goldleaf now has been compiled with an experimental Plutonium branch which uses smart pointers instead of raw pointers aiming no memory leaks!
 
   - Now, Goldleaf also supports dutch language! Thanks a lot to **Mega** for helping with the translation!
+
+## Known bugs
+
+- Browsing (fast?) over certain (empty?) folders can sometimes have weird behavior, resulting into crashes.

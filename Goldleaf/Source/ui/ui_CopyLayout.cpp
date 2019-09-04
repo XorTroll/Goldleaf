@@ -22,9 +22,10 @@ namespace ui
     {
         if(Directory)
         {
-            fs::CopyDirectoryProgress(Path, NewPath, [&](u8 p)
+            fs::CopyDirectoryProgress(Path, NewPath, [&](double done, double total)
             {
-                this->copyBar->SetProgress(p);
+                this->copyBar->SetMaxValue(total);
+                this->copyBar->SetProgress(done);
                 mainapp->CallForRender();
             });
             mainapp->ShowNotification(set::GetDictionaryEntry(141));
@@ -36,9 +37,11 @@ namespace ui
                 int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
                 if(sopt < 0) return;
             }
-            fs::CopyFileProgress(Path, NewPath, [&](u8 p)
+            fs::DeleteFile(NewPath);
+            fs::CopyFileProgress(Path, NewPath, [&](double done, double total)
             {
-                this->copyBar->SetProgress(p);
+                this->copyBar->SetMaxValue(total);
+                this->copyBar->SetProgress(done);
                 mainapp->CallForRender();
             });
             mainapp->ShowNotification(set::GetDictionaryEntry(240));

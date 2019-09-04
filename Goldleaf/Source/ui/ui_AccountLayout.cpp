@@ -133,12 +133,14 @@ namespace ui
         auto linkedinfo = acc::GetUserLinkedInfo();
         pu::String str = set::GetDictionaryEntry(328) + " " + hos::FormatHex(linkedinfo.AccountId);
         str += "\n" + set::GetDictionaryEntry(329) + " " + hos::FormatHex(linkedinfo.NintendoAccountId);
-        auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(330), str, { set::GetDictionaryEntry(331), set::GetDictionaryEntry(234) }, true);
+        auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(330), str, { set::GetDictionaryEntry(331), set::GetDictionaryEntry(18) }, true);
         if(sopt != 0) return;
         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(332), set::GetDictionaryEntry(333), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
-        if(sopt < 0) return;
-        auto res = acc::UnlinkLocally();
-        if(res == 0) mainapp->ShowNotification(set::GetDictionaryEntry(334));
-        else HandleResult(res, set::GetDictionaryEntry(335));
+        if(sopt == 0)
+        {
+            auto res = acc::UnlinkLocally();
+            if(res == 0) mainapp->ShowNotification(set::GetDictionaryEntry(334));
+            else HandleResult(res, set::GetDictionaryEntry(335));
+        }
     }
 }

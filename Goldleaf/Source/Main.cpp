@@ -3,8 +3,14 @@
 #include <cstdlib>
 #include <ctime>
 
+extern char *fake_heap_end;
+void *new_heap_addr = NULL;
+
+static constexpr u64 HeapSize = 0x10000000;
+
 void Initialize()
 {
+    if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
     // TODO: Better way to handle this than exiting? User won't know what happened
 
     if(R_FAILED(ncm::Initialize())) exit(1);
@@ -55,6 +61,7 @@ void Finalize()
     ncmExit();
     nifmExit();
     pdmqryExit();
+    if(GetLaunchMode() == LaunchMode::Applet) svcSetHeapSize(&new_heap_addr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)new_heap_addr);
 }
 
 namespace ui

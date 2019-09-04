@@ -129,7 +129,7 @@ namespace fs
         }
     }
 
-    void Explorer::CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback)
+    void Explorer::CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(double Done, double Total)> Callback)
     {
         pu::String path = this->MakeFull(Path);
         auto ex = GetExplorerForMountName(GetPathRoot(NewPath));
@@ -144,8 +144,7 @@ namespace fs
             szrem -= rbytes;
             off += rbytes;
             ex->WriteFileBlock(NewPath, data, rbytes);
-            u8 perc = (u8)((double)((double)off / (double)fsize) * 100.0);
-            Callback(perc);
+            Callback((double)off, (double)fsize);
         }
     }
 
@@ -170,7 +169,7 @@ namespace fs
         }
     }
 
-    void Explorer::CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback)
+    void Explorer::CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(double Done, double Total)> Callback)
     {
         pu::String dir = this->MakeFull(Dir);
         pu::String ndir = this->MakeFull(NewDir);
