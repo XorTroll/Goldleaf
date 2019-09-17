@@ -282,7 +282,7 @@ namespace ui
         fs::CreateConcatenationFile(fout);
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
-        ok = nsp::BuildNew(outdir, fout, [&](u64 done, u64 total)
+        ok = nsp::GenerateFrom(outdir, fout, [&](u64 done, u64 total)
         {
             this->ncaBar->SetMaxValue((double)total);
             this->ncaBar->SetProgress((double)done);

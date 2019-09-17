@@ -26,15 +26,8 @@ namespace hos
 
     SetSysFirmwareVersion GetPendingUpdateInfo()
     {
-        bool found = false;
-        auto sysnand = fs::GetNANDSystemExplorer();
-        auto ncas = sysnand->GetFiles("Contents/placehld");
-        FILE *f = fopen("sdmc:/UpdateDemo.log", "a");
-        if(f)
-        {
-            fprintf(f, "NCA count: %d\n", ncas.size());
-            fclose(f);
-        }
+        auto sys = fs::GetNANDSystemExplorer();
+        auto ncas = sys->GetFiles("Contents/placehld");
         SetSysFirmwareVersion fwver = {0};
         for(auto &nca: ncas)
         {
@@ -42,22 +35,10 @@ namespace hos
             path.reserve(FS_MAX_PATH);
             FsFileSystem ncafs;
             auto rc = fsOpenFileSystemWithId(&ncafs, 0x0100000000000809, FsFileSystemType_ContentData, path.c_str());
-            FILE *f = fopen("sdmc:/UpdateDemo.log", "a");
-            if(f)
-            {
-                fprintf(f, "Result: 0x%X\n", rc);
-                fclose(f);
-            }
             if(R_SUCCEEDED(rc))
             {
                 fs::FileSystemExplorer fwfs("gncafwver", "...", &ncafs);
                 fwfs.ReadFileBlock("file", 0, sizeof(fwver), (u8*)&fwver);
-                FILE *f = fopen("sdmc:/UpdateDemo.log", "a");
-                if(f)
-                {
-                    fprintf(f, "Found system version NCA: %s\n", nca.AsUTF8().c_str());
-                    fclose(f);
-                }
                 break;
             }
         }
@@ -66,8 +47,8 @@ namespace hos
 
     void CleanPendingUpdate()
     {
-        auto sysnand = fs::GetNANDSystemExplorer();
-        sysnand->DeleteDirectory("Contents/placehld");
-        sysnand->CreateDirectory("Contents/placehld");
+        auto sys = fs::GetNANDSystemExplorer();
+        sys->DeleteDirectory("Contents/placehld");
+        sys->CreateDirectory("Contents/placehld");
     }
 }

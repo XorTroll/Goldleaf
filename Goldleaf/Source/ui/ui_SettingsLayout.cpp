@@ -69,7 +69,7 @@ namespace ui
         mainapp->LoadMenuHead(set::GetDictionaryEntry(359) + " " + Fw.display_version + "...");
         auto outnsp = sd->FullPathFor(GoldleafDir + "/dump/update/" + Fw.display_version + ".nsp");
         sd->DeleteFile(outnsp);
-        int r = nsp::Build(exp->FullPathFor(Input), outnsp, [&](double Done, double Total)
+        nsp::GenerateFrom(exp->FullPathFor(Input), outnsp, [&](u64 Done, u64 Total)
         {
             this->progressInfo->SetMaxValue((double)Total);
             this->progressInfo->SetProgress((double)Done);
@@ -78,7 +78,7 @@ namespace ui
         mainapp->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
         this->optsMenu->SetVisible(true);
         this->progressInfo->SetVisible(false);
-        mainapp->ShowNotification(set::GetDictionaryEntry(358) + " '" + outnsp + "'.  ---  " + std::to_string(r));
+        mainapp->ShowNotification(set::GetDictionaryEntry(358) + " '" + outnsp + "'.");
     }
 
     void SettingsLayout::HandleUpdate(pu::String Base, SetSysFirmwareVersion Fw)
