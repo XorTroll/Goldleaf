@@ -5,6 +5,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Vector;
 
 import com.sun.javafx.PlatformUtil;
@@ -12,7 +13,6 @@ import com.sun.javafx.PlatformUtil;
 public class FileSystem
 {
     public static final String HomeDrive = "Home";
-    public static final java.nio.file.FileSystem DefaultFs = FileSystems.getDefault();
 
     public static boolean isWindows()
     {
@@ -24,7 +24,8 @@ public class FileSystem
         Vector<String> drives = new Vector<String>();
         if(isWindows())
         {
-            for(Path root: DefaultFs.getRootDirectories())
+            java.nio.file.FileSystem fs = FileSystems.getDefault();
+            for(Path root: fs.getRootDirectories())
             {
                 try
                 {
@@ -47,11 +48,12 @@ public class FileSystem
     {
         if(isWindows())
         {
-            Path root = Path.of(drive + ":\\");
+            Path root = Paths.get(drive + ":\\");
             try
             {
                 FileStore store = Files.getFileStore(root);
-                return store.name();
+                String name = store.name();
+                return name;
             }
             catch(Exception e)
             {
