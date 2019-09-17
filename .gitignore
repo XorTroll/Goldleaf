@@ -15,3 +15,6 @@ hacbrewpack_temp/
 bin/
 obj/
 target/
+.settings/
+.classpath
+.project
