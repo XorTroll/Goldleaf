@@ -26,7 +26,7 @@ namespace dump
     void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, pu::String Path, std::function<void(double Done, double Total)> Callback);
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out);
     FsStorageId GetApplicationLocation(u64 ApplicationId);
-    pu::String GetTitleKeyData(u64 ApplicationId, bool ExportData);
+    void GenerateTicketCert(u64 ApplicationId);
     pu::String GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id);
     bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmMetaRecord *rec, u64 ApplicationId, NCAType Type, NcmNcaId *out);
 }

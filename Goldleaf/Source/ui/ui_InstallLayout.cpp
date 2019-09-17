@@ -172,19 +172,15 @@ namespace ui
                     info += "(7.0.0 - 8.0.1)";
                     break;
                 case 8:
-                    info += "(8.1.0 -)";
+                    info += "(8.1.0)";
+                    break;
+                case 9:
+                    info += "(9.0.0)";
                     break;
                 default:
                     info += set::GetDictionaryEntry(96);
                     break;
             }
-
-            /*
-            std::stringstream strm;
-            strm << std::setw(2) << std::setfill('0') << (int)masterkey;
-
-            info += " (master_key_" + strm.str() + ")";
-            */
 
             if(inst.HasTicket())
             {
@@ -230,10 +226,10 @@ namespace ui
                 HandleResult(rc, set::GetDictionaryEntry(251));
                 return;
             }
-            hos::LockAutoSleep();
             this->installText->SetText(set::GetDictionaryEntry(146));
             mainapp->CallForRender();
             this->installBar->SetVisible(true);
+            hos::LockAutoSleep();
             rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
             {
                 this->installBar->SetMaxValue(Total);
@@ -247,8 +243,8 @@ namespace ui
                 this->installBar->SetProgress(Done);
                 mainapp->CallForRender();
             });
+            hos::UnlockAutoSleep();
         }
-        hos::UnlockAutoSleep();
         this->installBar->SetVisible(false);
         mainapp->CallForRender();
         if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));

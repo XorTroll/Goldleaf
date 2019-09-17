@@ -18,4 +18,5 @@
 namespace nsp
 {
     int Build(pu::String ContentsDir, pu::String Out, std::function<void(u64, u64)> Callback);
+    bool BuildNew(pu::String Input, pu::String Out, std::function<void(u64, u64)> Callback);
 }

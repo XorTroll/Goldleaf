@@ -74,82 +74,74 @@ namespace dump
         return stid;
     }
 
-    pu::String GetTitleKeyData(u64 ApplicationId, bool ExportData)
+    void GenerateTicketCert(u64 ApplicationId)
     {
-        fsOpenBisStorage(&fatfs_bin, FsBisStorageId_System);
-        FATFS fs;
-        FIL save;
-        f_mount(&fs, "0", 1);
-        f_chdir("/save");
-        f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
-        pu::String tkey = "";
-        pu::String orid = "";
-        pu::String fappid = hos::FormatApplicationId(ApplicationId);
-        pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
-        u32 tmpsz = 0;
-        while(true)
+        auto rc = fsOpenBisStorage(&fatfs_bin, FsBisStorageId_System);
+        if(R_SUCCEEDED(rc))
         {
-            if(tkey != "") break;
-            u8 *tkdata = new u8[0x40000]();
-            FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
-            if(fr) break;
-            if(tmpsz == 0) break;
-            for(u32 i = 0; i < tmpsz; i += 0x4000)
+            auto exp = fs::GetSdCardExplorer();
+            FATFS fs;
+            FIL save;
+            f_mount(&fs, "0", 1);
+            f_chdir("/save");
+            f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
+            pu::String tkey;
+            pu::String orid;
+            pu::String fappid = hos::FormatApplicationId(ApplicationId);
+            pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/title/" + fappid;
+            u32 tmpsz = 0;
+            while(true)
             {
-                if(tkey != "") break;
-                for(u32 j = 0; j < (i + 0x4000); j += 0x400)
+                if(!tkey.empty()) break;
+                u8 *tkdata = fs::GetFileSystemOperationsBuffer();
+                FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
+                if(fr) break;
+                if(tmpsz == 0) break;
+                for(u32 i = 0; i < tmpsz; i += 0x4000)
                 {
-                    if(tkey != "") break;
-                    if(*reinterpret_cast<u32*>(&tkdata[j]) == 0x10004)
+                    if(!tkey.empty()) break;
+                    for(u32 j = 0; j < (i + 0x4000); j += 0x400)
                     {
-                        std::stringstream stid;
-                        std::stringstream srid;
-                        for(u32 k = 0; k < 0x10; k++)
+                        if(!tkey.empty()) break;
+                        if(hos::IsValidTicketSignature(*reinterpret_cast<u32*>(&tkdata[j])))
                         {
-                            u32 off = j + 0x2a0 + k;
-                            srid << std::setw(2) << std::setfill('0') << std::hex << (int)tkdata[off];
-                        }
-                        for(u32 k = 0; k < 0x8; k++)
-                        {
-                            u32 off = j + 0x2a0 + k;
-                            stid << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
-                        }
-                        std::stringstream stkey;
-                        for(u32 k = 0; k < 0x10; k++)
-                        {
-                            u32 off = j + 0x180 + k;
-                            stkey << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
-                        }
-                        pu::String tid = stid.str();
-                        pu::String rid = srid.str();
-                        pu::String etkey = stkey.str();
-                        if(fappid == tid)
-                        {
-                            orid = rid;
-                            if(ExportData)
+                            std::stringstream stid;
+                            std::stringstream srid;
+                            for(u32 k = 0; k < 0x10; k++)
                             {
-                                FILE *tikf = fopen((outdir + "/" + rid + ".tik").AsUTF8().c_str(), "wb");
-                                fwrite(&tkdata[j], 1, 0x400, tikf);
-                                fclose(tikf);
+                                u32 off = j + 0x2a0 + k;
+                                srid << std::setw(2) << std::setfill('0') << std::hex << (int)tkdata[off];
                             }
-                            tkey = etkey;
-                            break;
+                            for(u32 k = 0; k < 0x8; k++)
+                            {
+                                u32 off = j + 0x2a0 + k;
+                                stid << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
+                            }
+                            std::stringstream stkey;
+                            for(u32 k = 0; k < 0x10; k++)
+                            {
+                                u32 off = j + 0x180 + k;
+                                stkey << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
+                            }
+                            pu::String tid = stid.str();
+                            pu::String rid = srid.str();
+                            pu::String etkey = stkey.str();
+                            if(fappid == tid)
+                            {
+                                orid = rid;
+                                exp->WriteFileBlock(outdir + "/" + rid + ".tik", &tkdata[j], 0x400);
+                                tkey = etkey;
+                                break;
+                            }
                         }
                     }
                 }
             }
-            delete[] tkdata;
+            f_close(&save);
+            f_mount(NULL, "0", 1);
+            fsStorageClose(&fatfs_bin);
+            if(!tkey.empty()) exp->WriteFileBlock(outdir + "/" + orid + ".cert", const_cast<u8*>(es::CertData), es::CertSize);
         }
-        f_close(&save);
-        f_mount(NULL, "0", 1);
-        fsStorageClose(&fatfs_bin);
-        if(ExportData && (tkey != ""))
-        {
-            FILE *ceout = fopen((outdir + "/" + orid + ".cert").AsUTF8().c_str(), "wb");
-            fwrite(es::CertData, 1792, 1, ceout);
-            fclose(ceout);
-        }
-        return "";
     }
 
     pu::String GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id)

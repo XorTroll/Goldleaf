@@ -391,6 +391,11 @@ namespace hos
         return appid;
     }
 
+    u32 GetIdFromDLCApplicationId(u64 ApplicationId)
+    {
+        return (ApplicationId & 0xfff);
+    }
+
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId)
     {
         pu::String fappid = FormatApplicationId(ApplicationId);

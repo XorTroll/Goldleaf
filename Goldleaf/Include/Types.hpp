@@ -13,6 +13,7 @@
 #include <string>
 #include <switch.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <ByteBuffer.hpp>
 #include <json.hpp>
 #include <pu/Plutonium>

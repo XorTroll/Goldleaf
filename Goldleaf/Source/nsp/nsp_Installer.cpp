@@ -212,7 +212,7 @@ namespace nsp
         {
             u8 *tikbuf = new u8[stik]();
             nsys->ReadFileBlock("Contents/temp/" + tik, 0, stik, tikbuf);
-            es::ImportTicket(tikbuf, stik, es::CertData, 1792);
+            es::ImportTicket(tikbuf, stik, es::CertData, es::CertSize);
             delete[] tikbuf;
         }
         return rc;

@@ -20,6 +20,16 @@ namespace ui
 
     void UpdateLayout::StartUpdateSearch()
     {
+        nsp::BuildNew("sdmc:/switch/Goldleaf/title", "sdmc:/Dummy.nsp", [&](u64 done, u64 total)
+        {
+            this->downloadBar->SetMaxValue((double)total);
+            this->downloadBar->SetProgress((double)done);
+            mainapp->CallForRender();
+        });
+        return;
+
+
+
         if(!net::HasConnection())
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(304), { set::GetDictionaryEntry(234) }, true);

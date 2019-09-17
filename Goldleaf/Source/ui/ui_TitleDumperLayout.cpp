@@ -19,25 +19,24 @@ namespace ui
         this->Add(this->ncaBar);
     }
 
-    void TitleDumperLayout::StartDump(hos::Title &Target)
+    void TitleDumperLayout::StartDump(hos::Title &Target, bool HasTicket)
     {
         EnsureDirectories();
         mainapp->CallForRender();
         FsStorageId stid = static_cast<FsStorageId>(Target.Location);
         pu::String fappid = hos::FormatApplicationId(Target.ApplicationId);
-        pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/" + fappid;
+        pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/title/" + fappid;
         fs::CreateDirectory(outdir);
         this->dumpText->SetText(set::GetDictionaryEntry(192));
         mainapp->CallForRender();
-        pu::String tkey = dump::GetTitleKeyData(Target.ApplicationId, true);
+        if(HasTicket) dump::GenerateTicketCert(Target.ApplicationId);
         this->dumpText->SetText(set::GetDictionaryEntry(193));
         mainapp->CallForRender();
         NcmContentStorage cst;
         Result rc = ncmOpenContentStorage(stid, &cst);
         if(rc != 0)
         {
-            HandleResult(MAKERESULT(222, 2221), set::GetDictionaryEntry(198));
-            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             return;
         }
@@ -45,31 +44,17 @@ namespace ui
         rc = ncmOpenContentMetaDatabase(stid, &cmdb);
         if(rc != 0)
         {
-            HandleResult(MAKERESULT(222, 2222), set::GetDictionaryEntry(198));
-            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             serviceClose(&cst.s);
             return;
         }
         NcmMetaRecord mrec = Target.Record;
-        /*
-        bool ok = dump::GetMetaRecord(&cmdb, Target.ApplicationId, &mrec);
-        if(!ok)
-        {
-            HandleResult(MAKERESULT(222, 2223), set::GetDictionaryEntry(198));
-            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
-            mainapp->LoadLayout(mainapp->GetContentManagerLayout());
-            serviceClose(&cst.s);
-            serviceClose(&cmdb.s);
-            return;
-        }
-        */
         NcmNcaId meta;
         bool ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
         {
-            HandleResult(MAKERESULT(222, 2224), set::GetDictionaryEntry(198));
-            //HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             mainapp->LoadLayout(mainapp->GetContentManagerLayout());
             serviceClose(&cst.s);
             serviceClose(&cmdb.s);
@@ -293,18 +278,17 @@ namespace ui
                 xdata = txdata;
             }
         }
-        pu::String fout = "sdmc:/" + GoldleafDir + "/dump/" + fappid + ".nsp";
+        pu::String fout = "sdmc:/" + GoldleafDir + "/dump/title/" + fappid + ".nsp";
         fs::CreateConcatenationFile(fout);
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
-        int qi = nsp::Build(outdir, fout, [&](u64 done, u64 total)
+        ok = nsp::BuildNew(outdir, fout, [&](u64 done, u64 total)
         {
             this->ncaBar->SetMaxValue((double)total);
             this->ncaBar->SetProgress((double)done);
             mainapp->CallForRender();
         });
         hos::UnlockAutoSleep();
-        ok = (qi == 0);
         fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
         fs::DeleteDirectory(outdir);
         if(ok) mainapp->ShowNotification(set::GetDictionaryEntry(197) + " '" + fout + "'");

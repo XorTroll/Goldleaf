@@ -206,7 +206,7 @@ static void getIsAutomaticGameplayRecording(void) {
             nsExit();
         }
 
-        if (R_SUCCEEDED(rc) && (((g_applicationControlData.nacp.x3034_unk >> 8) & 0xFF) == 2)) g_isAutomaticGameplayRecording = 1;
+        if (R_SUCCEEDED(rc) && g_applicationControlData.nacp.videoCaptureMode == 2) g_isAutomaticGameplayRecording = 1;
     }
 }
 

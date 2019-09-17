@@ -22,7 +22,7 @@ namespace ui
         {
             pu::String name = set::GetDictionaryEntry(261);
             if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
-            if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263);
+            if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(this->tcontents[i].ApplicationId));
             auto subcnt = pu::ui::elm::MenuItem::New(name);
             subcnt->SetColor(gsets.CustomScheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
@@ -101,7 +101,7 @@ namespace ui
             stik = *it;
         }
 
-        if((idx == 0) && (cnt.Location == Storage::GameCart))
+        if(cnt.Location == Storage::GameCart)
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
@@ -148,7 +148,7 @@ namespace ui
             if(sopt == 0)
             {
                 mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
-                mainapp->GetTitleDumperLayout()->StartDump(cnt);
+                mainapp->GetTitleDumperLayout()->StartDump(cnt, hastik);
                 mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
             }

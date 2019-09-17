@@ -1,0 +1,13 @@
+JFXButton {
+    -fx-background-color: rgb(106, 204, 194);
+}
+
+JFXListView {
+    -fx-border-width: 0px;
+    -fx-background-color: rgb(246, 255, 247);
+}
+
+JFXTextArea {
+    -fx-font-family: Consolas;
+    -fx-text-fill: rgb(0, 77, 0);
+}

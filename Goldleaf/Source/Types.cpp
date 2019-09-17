@@ -128,14 +128,16 @@ u32 RandomFromRange(u32 Min, u32 Max)
 
 void EnsureDirectories()
 {
-    fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+    auto nsys = fs::GetNANDSystemExplorer();
+    auto sd = fs::GetSdCardExplorer();
     nsys->DeleteDirectory("Contents/temp");
     nsys->CreateDirectory("Contents/temp");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir);
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/meta");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/title");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/userdata");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/out");
+    sd->CreateDirectory(GoldleafDir);
+    sd->CreateDirectory(GoldleafDir + "/meta");
+    sd->CreateDirectory(GoldleafDir + "/title");
+    sd->CreateDirectory(GoldleafDir + "/dump");
+    sd->CreateDirectory(GoldleafDir + "/userdata");
+    sd->CreateDirectory(GoldleafDir + "/dump/temp");
+    sd->CreateDirectory(GoldleafDir + "/dump/update");
+    sd->CreateDirectory(GoldleafDir + "/dump/title");
 }

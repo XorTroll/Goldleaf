@@ -20,19 +20,9 @@
 
 namespace hos
 {
-    struct FwVersion
-    {
-        u8 Major;
-        u8 Minor;
-        u8 Micro;
-        std::string DisplayName;
-        std::string ToString();
-    };
-
     u32 GetBatteryLevel();
     bool IsCharging();
     std::string GetCurrentTime();
-    FwVersion GetFwVersion();
     
     template<typename N>
     inline std::string FormatHex(N Number)

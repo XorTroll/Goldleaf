@@ -21,4 +21,7 @@ namespace hos
 {
     pu::String ContentIdAsString(const NcmNcaId &ContentId);
     NcmNcaId StringAsContentId(pu::String ContentId);
+
+    SetSysFirmwareVersion GetPendingUpdateInfo();
+    void CleanPendingUpdate();
 }

@@ -20,7 +20,7 @@ namespace ui
             TitleDumperLayout();
             PU_SMART_CTOR(TitleDumperLayout)
 
-            void StartDump(hos::Title &Target);
+            void StartDump(hos::Title &Target, bool HasTicket);
         private:
             pu::ui::elm::TextBlock::Ref dumpText;
             pu::ui::elm::ProgressBar::Ref ncaBar;

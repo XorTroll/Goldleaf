@@ -7,9 +7,13 @@ endif
 TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/libnx/switch_rules
 
+VER_MAJOR	:= 0
+VER_MINOR	:= 7
+VER_MICRO	:= 1
+
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := 0.7
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
@@ -23,11 +27,11 @@ ROMFS       := RomFs
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
-			$(ARCH) $(DEFINES) $(CFLAGS)
+			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_MAJOR=$(VER_MAJOR) -DGOLDLEAF_MINOR=$(VER_MINOR) -DGOLDLEAF_MICRO=$(VER_MICRO) -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17 $(CXXFLAGS)
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
@@ -50,11 +54,19 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
 	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
 else
+#---------------------------------------------------------------------------------
 	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
 endif
+#---------------------------------------------------------------------------------
 
 export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
 export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
@@ -66,8 +78,6 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-
-export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
 ifeq ($(strip $(ICON)),)
 	icons := $(wildcard *.jpg)
@@ -87,7 +97,7 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(OUTPUT).nacp
+	export NROFLAGS += --nacp=$(CURDIR)/Output/$(TARGET).nacp
 endif
 
 ifneq ($(APP_TITLEID),)
@@ -98,22 +108,30 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) clean all
+
+#---------------------------------------------------------------------------------
+all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@[ -d $(CURDIR)/Output ] || mkdir -p $(CURDIR)/Output
-	@$(MAKE) -C ../Plutonium/Plutonium/
+	@[ -d Output ] || mkdir -p Output
+	@echo Goldleaf: Building Plutonium...
+	@$(MAKE) --no-print-directory -C ../Plutonium/Plutonium/
+	@echo Goldleaf: Plutonium compiled! Starting Goldleaf build...
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@echo Goldleaf: Done!
 
+#---------------------------------------------------------------------------------
 clean:
 	@echo Goldleaf: Cleaning...
 	@$(MAKE) clean -C ../Plutonium/Plutonium/
 	@rm -fr $(BUILD)
 	@rm -fr $(CURDIR)/Output
+	@echo Goldleaf: Done!
 
+#---------------------------------------------------------------------------------
 else
-
 .PHONY:	all
 
 DEPENDS	:=	$(OFILES:.o=.d)
@@ -130,6 +148,16 @@ $(OUTPUT).elf	:	$(OFILES)
 
 $(OFILES_SRC)	: $(HFILES_BIN)
 
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#---------------------------------------------------------------------------------
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
 -include $(DEPENDS)
 
+#---------------------------------------------------------------------------------------
 endif
+#---------------------------------------------------------------------------------------
