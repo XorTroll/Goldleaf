@@ -24,5 +24,5 @@ namespace ns
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count);
     Result DeleteApplicationRecord(u64 ApplicationId);
     Result CountApplicationContentMeta(u64 ApplicationId, u32 *out_Count);
-    Result PushLaunchVersion(u64 ApplicationId, u64 LaunchVersion);
+    Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion);
 }

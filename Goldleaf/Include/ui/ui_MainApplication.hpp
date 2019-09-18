@@ -19,10 +19,11 @@
 #include <ui/ui_FileContentLayout.hpp>
 #include <ui/ui_InstallLayout.hpp>
 #include <ui/ui_MainMenuLayout.hpp>
+#include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_PCExploreLayout.hpp>
+#include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_StorageContentsLayout.hpp>
-#include <ui/ui_SystemInfoLayout.hpp>
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
@@ -54,7 +55,8 @@ namespace ui
             void unusedTickets_Input(u64 Down, u64 Up, u64 Held);
             void account_Input(u64 Down, u64 Up, u64 Held);
             void amiibo_Input(u64 Down, u64 Up, u64 Held);
-            void sysInfo_Input(u64 Down, u64 Up, u64 Held);
+            void settings_Input(u64 Down, u64 Up, u64 Held);
+            void memory_Input(u64 Down, u64 Up, u64 Held);
             void about_Input(u64 Down, u64 Up, u64 Held);
             void userImage_OnClick();
             void helpImage_OnClick();
@@ -75,7 +77,8 @@ namespace ui
             UnusedTicketsLayout::Ref &GetUnusedTicketsLayout();
             AccountLayout::Ref &GetAccountLayout();
             AmiiboDumpLayout::Ref &GetAmiiboDumpLayout();
-            SystemInfoLayout::Ref &GetSystemInfoLayout();
+            SettingsLayout::Ref &GetSettingsLayout();
+            MemoryLayout::Ref &GetMemoryLayout();
             UpdateLayout::Ref &GetUpdateLayout();
             AboutLayout::Ref &GetAboutLayout();
         private:
@@ -101,7 +104,8 @@ namespace ui
             UnusedTicketsLayout::Ref unusedTickets;
             AccountLayout::Ref account;
             AmiiboDumpLayout::Ref amiibo;
-            SystemInfoLayout::Ref sysInfo;
+            SettingsLayout::Ref settings;
+            MemoryLayout::Ref memory;
             UpdateLayout::Ref update;
             AboutLayout::Ref about;
             pu::ui::elm::Image::Ref baseImage;

@@ -215,7 +215,7 @@ namespace ns
         return rc;
     }
 
-    Result PushLaunchVersion(u64 ApplicationId, u64 LaunchVersion)
+    Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion)
     {
         IpcCommand c;
         ipcInitialize(&c);
@@ -223,14 +223,16 @@ namespace ns
         {
             u64 Magic;
             u64 CmdId;
-            u64 Version;
             u64 ApplicationId;
+            u32 Version;
+            u32 Pad;
         } *raw;
         raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
         raw->Magic = SFCI_MAGIC;
         raw->CmdId = 36;
-        raw->Version = LaunchVersion;
         raw->ApplicationId = ApplicationId;
+        raw->Version = LaunchVersion;
+        raw->Pad = 0;
         Result rc = serviceIpcDispatch(&nsamsrv);
         if(R_SUCCEEDED(rc))
         {

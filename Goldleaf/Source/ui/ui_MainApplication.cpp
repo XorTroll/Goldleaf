@@ -1,5 +1,4 @@
 #include <ui/ui_MainApplication.hpp>
-#include <arpa/inet.h>
 
 extern set::Settings gsets;
 
@@ -83,8 +82,10 @@ namespace ui
         this->account->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->amiibo = AmiiboDumpLayout::New();
         this->amiibo->SetOnInput(std::bind(&MainApplication::amiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->sysInfo = SystemInfoLayout::New();
-        this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->settings = SettingsLayout::New();
+        this->settings->SetOnInput(std::bind(&MainApplication::settings_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->memory = MemoryLayout::New();
+        this->memory->SetOnInput(std::bind(&MainApplication::memory_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->update = UpdateLayout::New();
         this->about = AboutLayout::New();
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -103,7 +104,8 @@ namespace ui
         this->unusedTickets->SetBackgroundColor(gsets.CustomScheme.Background);
         this->account->SetBackgroundColor(gsets.CustomScheme.Background);
         this->amiibo->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->sysInfo->SetBackgroundColor(gsets.CustomScheme.Background);
+        this->settings->SetBackgroundColor(gsets.CustomScheme.Background);
+        this->memory->SetBackgroundColor(gsets.CustomScheme.Background);
         this->update->SetBackgroundColor(gsets.CustomScheme.Background);
         this->about->SetBackgroundColor(gsets.CustomScheme.Background);
         this->mainMenu->Add(this->baseImage);
@@ -121,7 +123,8 @@ namespace ui
         this->unusedTickets->Add(this->baseImage);
         this->account->Add(this->baseImage);
         this->amiibo->Add(this->baseImage);
-        this->sysInfo->Add(this->baseImage);
+        this->settings->Add(this->baseImage);
+        this->memory->Add(this->baseImage);
         this->update->Add(this->baseImage);
         this->about->Add(this->baseImage);
         this->mainMenu->Add(this->timeText);
@@ -139,7 +142,8 @@ namespace ui
         this->unusedTickets->Add(this->timeText);
         this->account->Add(this->timeText);
         this->amiibo->Add(this->timeText);
-        this->sysInfo->Add(this->timeText);
+        this->settings->Add(this->timeText);
+        this->memory->Add(this->timeText);
         this->update->Add(this->timeText);
         this->about->Add(this->timeText);
         this->mainMenu->Add(this->batteryText);
@@ -157,7 +161,8 @@ namespace ui
         this->unusedTickets->Add(this->batteryText);
         this->account->Add(this->batteryText);
         this->amiibo->Add(this->batteryText);
-        this->sysInfo->Add(this->batteryText);
+        this->settings->Add(this->batteryText);
+        this->memory->Add(this->batteryText);
         this->update->Add(this->batteryText);
         this->about->Add(this->batteryText);
         this->mainMenu->Add(this->batteryImage);
@@ -175,7 +180,8 @@ namespace ui
         this->unusedTickets->Add(this->batteryImage);
         this->account->Add(this->batteryImage);
         this->amiibo->Add(this->batteryImage);
-        this->sysInfo->Add(this->batteryImage);
+        this->settings->Add(this->batteryImage);
+        this->memory->Add(this->batteryImage);
         this->update->Add(this->batteryImage);
         this->about->Add(this->batteryImage);
         this->mainMenu->Add(this->batteryChargeImage);
@@ -193,7 +199,8 @@ namespace ui
         this->unusedTickets->Add(this->batteryChargeImage);
         this->account->Add(this->batteryChargeImage);
         this->amiibo->Add(this->batteryChargeImage);
-        this->sysInfo->Add(this->batteryChargeImage);
+        this->settings->Add(this->batteryChargeImage);
+        this->memory->Add(this->batteryChargeImage);
         this->update->Add(this->batteryChargeImage);
         this->about->Add(this->batteryChargeImage);
         this->mainMenu->Add(this->menuImage);
@@ -211,7 +218,8 @@ namespace ui
         this->unusedTickets->Add(this->menuImage);
         this->account->Add(this->menuImage);
         this->amiibo->Add(this->menuImage);
-        this->sysInfo->Add(this->menuImage);
+        this->settings->Add(this->menuImage);
+        this->memory->Add(this->menuImage);
         this->update->Add(this->menuImage);
         this->about->Add(this->menuImage);
         this->mainMenu->Add(this->usbImage);
@@ -229,7 +237,8 @@ namespace ui
         this->unusedTickets->Add(this->usbImage);
         this->account->Add(this->usbImage);
         this->amiibo->Add(this->usbImage);
-        this->sysInfo->Add(this->usbImage);
+        this->settings->Add(this->usbImage);
+        this->memory->Add(this->usbImage);
         this->update->Add(this->usbImage);
         this->about->Add(this->usbImage);
         this->mainMenu->Add(this->connImage);
@@ -247,7 +256,8 @@ namespace ui
         this->unusedTickets->Add(this->connImage);
         this->account->Add(this->connImage);
         this->amiibo->Add(this->connImage);
-        this->sysInfo->Add(this->connImage);
+        this->settings->Add(this->connImage);
+        this->memory->Add(this->connImage);
         this->update->Add(this->connImage);
         this->about->Add(this->connImage);
         this->mainMenu->Add(this->ipText);
@@ -265,7 +275,8 @@ namespace ui
         this->unusedTickets->Add(this->ipText);
         this->account->Add(this->ipText);
         this->amiibo->Add(this->ipText);
-        this->sysInfo->Add(this->ipText);
+        this->settings->Add(this->ipText);
+        this->memory->Add(this->ipText);
         this->update->Add(this->ipText);
         this->about->Add(this->ipText);
         this->mainMenu->Add(this->menuBanner);
@@ -284,7 +295,8 @@ namespace ui
         this->unusedTickets->Add(this->menuNameText);
         this->account->Add(this->menuNameText);
         this->amiibo->Add(this->menuNameText);
-        this->sysInfo->Add(this->menuNameText);
+        this->settings->Add(this->menuNameText);
+        this->memory->Add(this->menuNameText);
         this->update->Add(this->menuNameText);
         this->about->Add(this->menuNameText);
         this->mainMenu->Add(this->menuHeadText);
@@ -302,7 +314,8 @@ namespace ui
         this->unusedTickets->Add(this->menuHeadText);
         this->account->Add(this->menuHeadText);
         this->amiibo->Add(this->menuHeadText);
-        this->sysInfo->Add(this->menuHeadText);
+        this->settings->Add(this->menuHeadText);
+        this->memory->Add(this->menuHeadText);
         this->update->Add(this->menuHeadText);
         this->about->Add(this->menuHeadText);
         this->mainMenu->Add(this->userImage);
@@ -320,7 +333,8 @@ namespace ui
         this->unusedTickets->Add(this->userImage);
         this->account->Add(this->userImage);
         this->amiibo->Add(this->userImage);
-        this->sysInfo->Add(this->userImage);
+        this->settings->Add(this->userImage);
+        this->memory->Add(this->userImage);
         this->update->Add(this->userImage);
         this->about->Add(this->userImage);
         this->mainMenu->Add(this->helpImage);
@@ -338,7 +352,8 @@ namespace ui
         this->unusedTickets->Add(this->helpImage);
         this->account->Add(this->helpImage);
         this->amiibo->Add(this->helpImage);
-        this->sysInfo->Add(this->helpImage);
+        this->settings->Add(this->helpImage);
+        this->memory->Add(this->helpImage);
         this->update->Add(this->helpImage);
         this->about->Add(this->helpImage);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
@@ -637,12 +652,22 @@ namespace ui
         }
     }
 
-    void MainApplication::sysInfo_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::settings_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
+        }
+    }
+
+    void MainApplication::memory_Input(u64 Down, u64 Up, u64 Held)
+    {
+        if(Down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
+            this->LoadLayout(this->settings);
         }
     }
 
@@ -755,9 +780,14 @@ namespace ui
         return this->amiibo;
     }
 
-    SystemInfoLayout::Ref &MainApplication::GetSystemInfoLayout()
+    SettingsLayout::Ref &MainApplication::GetSettingsLayout()
     {
-        return this->sysInfo;
+        return this->settings;
+    }
+
+    MemoryLayout::Ref &MainApplication::GetMemoryLayout()
+    {
+        return this->memory;
     }
 
     UpdateLayout::Ref &MainApplication::GetUpdateLayout()

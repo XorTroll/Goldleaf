@@ -36,7 +36,6 @@ SOURCES		:=	Source
 DATA		:=	data
 INCLUDES	:=	Include
 EXEFS_SRC	:=	exefs_src
-
 # ROMFS	:=	romfs
 
 APP_TITLE := Goldleaf

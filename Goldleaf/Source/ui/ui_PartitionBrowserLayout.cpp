@@ -144,7 +144,8 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click()
     {
-        pu::String itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8().c_str();
+        if(this->elems.empty()) return;
+        pu::String itm = this->browseMenu->GetSelectedItem()->GetName();
         pu::String fullitm = this->gexp->FullPathFor(itm);
         pu::String pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->NavigateForward(fullitm))
@@ -274,7 +275,7 @@ namespace ui
                         if(sopt == 0)
                         {
                             auto btik = this->gexp->ReadFile(fullitm);
-                            Result rc = es::ImportTicket(btik.data(), btik.size(), es::CertData, 1792);
+                            Result rc = es::ImportTicket(btik.data(), btik.size(), es::CertData, es::CertSize);
                             if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(103));
                         }
                         break;

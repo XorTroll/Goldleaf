@@ -26,27 +26,9 @@ namespace hos
         int h = times->tm_hour;
         int min = times->tm_min;
         int s = times->tm_sec;
-        char timestr[0x10];
+        char timestr[0x10] = {0};
         sprintf(timestr, "%02d:%02d:%02d", h, min, s);
         return std::string(timestr);
-    }
-
-    FwVersion GetFwVersion()
-    {
-        FwVersion pfw = { 0, 0, 0, "" };
-        SetSysFirmwareVersion fw;
-        Result rc = setsysGetFirmwareVersion(&fw);
-        if(rc != 0) return pfw;
-        pfw.Major = fw.major;
-        pfw.Minor = fw.minor;
-        pfw.Micro = fw.micro;
-        pfw.DisplayName = std::string(fw.display_title);
-        return pfw;
-    }
-
-    std::string FwVersion::ToString()
-    {
-        return (std::to_string(this->Major) + "." + std::to_string(this->Minor) + "." + std::to_string(this->Micro));
     }
 
     std::string FormatHex128(u128 Number)
@@ -199,9 +181,9 @@ namespace hos
         MKEY_SET_IF(VERSION_EXACT(6,2,0), 6)
         MKEY_SET_IF(VERSION_BETWEEN(7,0,0,8,0,1), 7)
         MKEY_SET_IF(VERSION_EXACT(8,1,0), 8)
+        MKEY_SET_IF(VERSION_EXACT(9,0,0), 9)
 
-        // KeyGen = MasterKey + 1
-
+        // KeyGen = MasterKey + 1!
         return masterkey + 1;
     }
 }

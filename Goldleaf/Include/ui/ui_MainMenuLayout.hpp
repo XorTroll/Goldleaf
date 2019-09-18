@@ -25,7 +25,7 @@ namespace ui
             void webMenuItem_Click();
             void accountMenuItem_Click();
             void amiiboMenuItem_Click();
-            void sysinfoMenuItem_Click();
+            void settingsMenuItem_Click();
             void updateMenuItem_Click();
             void aboutMenuItem_Click();
         private:
@@ -35,7 +35,7 @@ namespace ui
             pu::ui::elm::MenuItem::Ref webMenuItem;
             pu::ui::elm::MenuItem::Ref accountMenuItem;
             pu::ui::elm::MenuItem::Ref amiiboMenuItem;
-            pu::ui::elm::MenuItem::Ref sysinfoMenuItem;
+            pu::ui::elm::MenuItem::Ref settingsMenuItem;
             pu::ui::elm::MenuItem::Ref updateMenuItem;
             pu::ui::elm::MenuItem::Ref aboutMenuItem;
     };

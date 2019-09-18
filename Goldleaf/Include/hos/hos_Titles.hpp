@@ -37,6 +37,11 @@ namespace hos
         ECDSA_SHA256 = 0x10005,
     };
 
+    inline constexpr bool IsValidTicketSignature(u32 RawValue)
+    {
+        return (RawValue >= static_cast<u32>(TicketSignature::RSA_4096_SHA1)) && (RawValue <= static_cast<u32>(TicketSignature::ECDSA_SHA256));
+    }
+
     enum class ApplicationIdMask
     {
         Official,
@@ -125,6 +130,7 @@ namespace hos
     std::string GetExportedIconPath(u64 ApplicationId);
     pu::String GetExportedNACPPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
+    u32 GetIdFromDLCApplicationId(u64 ApplicationId);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
     TicketData ReadTicket(pu::String Path);
     pu::String GetNACPName(NacpStruct *NACP);

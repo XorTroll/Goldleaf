@@ -32,10 +32,10 @@ namespace ui
         this->amiiboMenuItem->SetIcon(gsets.PathForResource("/Common/Amiibo.png"));
         this->amiiboMenuItem->SetColor(gsets.CustomScheme.Text);
         this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
-        this->sysinfoMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(7));
-        this->sysinfoMenuItem->SetIcon(gsets.PathForResource("/Common/Settings.png"));
-        this->sysinfoMenuItem->SetColor(gsets.CustomScheme.Text);
-        this->sysinfoMenuItem->AddOnClick(std::bind(&MainMenuLayout::sysinfoMenuItem_Click, this));
+        this->settingsMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(375));
+        this->settingsMenuItem->SetIcon(gsets.PathForResource("/Common/Settings.png"));
+        this->settingsMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->settingsMenuItem->AddOnClick(std::bind(&MainMenuLayout::settingsMenuItem_Click, this));
         this->updateMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(284));
         this->updateMenuItem->SetIcon(gsets.PathForResource("/Common/Update.png"));
         this->updateMenuItem->SetColor(gsets.CustomScheme.Text);
@@ -49,7 +49,7 @@ namespace ui
         this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->amiiboMenuItem);
-        this->optionMenu->AddItem(this->sysinfoMenuItem);
+        this->optionMenu->AddItem(this->settingsMenuItem);
         this->optionMenu->AddItem(this->updateMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
         this->Add(this->optionMenu);
@@ -120,11 +120,10 @@ namespace ui
         mainapp->LoadLayout(mainapp->GetMainMenuLayout());
     }
 
-    void MainMenuLayout::sysinfoMenuItem_Click()
+    void MainMenuLayout::settingsMenuItem_Click()
     {
-        mainapp->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
-        mainapp->GetSystemInfoLayout()->UpdateElements();
-        mainapp->LoadLayout(mainapp->GetSystemInfoLayout());
+        mainapp->LoadMenuData(set::GetDictionaryEntry(375), "Settings", set::GetDictionaryEntry(376));
+        mainapp->LoadLayout(mainapp->GetSettingsLayout());
     }
 
     void MainMenuLayout::updateMenuItem_Click()
