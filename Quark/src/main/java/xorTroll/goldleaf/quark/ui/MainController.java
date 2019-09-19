@@ -74,9 +74,9 @@ public class MainController
     private JFXToggleButton ShowLogsToggle;
 
     private PrintStream Logger;
-    private UIMain main;
+    private MainApplication main;
 
-    public void prepare(UIMain main, Task<Void> usbtask)
+    public void prepare(MainApplication main, Task<Void> usbtask)
     {
         this.main = main;
         refreshConfig();

@@ -8,17 +8,18 @@
 
 <img src="Screenshot-quark.png" alt="drawing" width="300"/>
 
+> Having any issues? Check [this help document](docs/FAQ.md) for help!
+
 # Table of contents
 
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
-3. [Remote PC system](#remote-pc-system)
-4. [Troubleshooting](#troubleshooting)
-5. [Forwarding](#forwarding)
-6. [Settings](#settings)
-7. [Known bugs](#known-bugs)
-8. [Contributing](#contributing)
-9. [Credits and support](#credits-and-support)
+3. [Quark and remote PC](#quark-and-remote-pc)
+4. [Forwarding](#forwarding)
+5. [Settings](#settings)
+6. [Known bugs](#known-bugs)
+7. [Contributing](#contributing)
+8. [Credits and support](#credits-and-support)
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
@@ -80,11 +81,11 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 **TL;DR:** **Always** try to avoid untrusted NSPs, and if you go ahead and install CDN NSPs with tickets, avoid going online, or use special tools such as 90DNS, or you'll be banned for sure.
 
-## Remote PC system - Quark
+## Quark and remote PC
 
 Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It should work on Windows, Linux or Mac.
 
-Only requirement for the tool to work is **JRE/JDK 8u60 or higher**.
+Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
 
 **One time setup**:
 
