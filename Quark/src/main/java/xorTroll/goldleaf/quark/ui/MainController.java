@@ -26,7 +26,6 @@ import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import xorTroll.goldleaf.quark.Main;
 
 public class MainController
 {
@@ -75,9 +74,9 @@ public class MainController
     private JFXToggleButton ShowLogsToggle;
 
     private PrintStream Logger;
-    private Main main;
+    private UIMain main;
 
-    public void prepare(Main main, Task<Void> usbtask)
+    public void prepare(UIMain main, Task<Void> usbtask)
     {
         this.main = main;
         refreshConfig();

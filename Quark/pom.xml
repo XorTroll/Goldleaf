@@ -13,118 +13,107 @@
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  <dependencies>
+    <dependencies>
   
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-controls</artifactId>
-          <version>11</version>
-          <classifier>linux</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-media</artifactId>
-          <version>11</version>
-          <classifier>linux</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-fxml</artifactId>
-          <version>11</version>
-          <classifier>linux</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-graphics</artifactId>
-          <version>11</version>
-          <classifier>linux</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <!-- openJFX Windows -->
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-controls</artifactId>
-          <version>11</version>
-          <classifier>win</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-media</artifactId>
-          <version>11</version>
-          <classifier>win</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-fxml</artifactId>
-          <version>11</version>
-          <classifier>win</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-graphics</artifactId>
-          <version>11</version>
-          <classifier>win</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <!-- openJFX MAC -->
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-controls</artifactId>
-          <version>11</version>
-          <classifier>mac</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-media</artifactId>
-          <version>11</version>
-          <classifier>mac</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-fxml</artifactId>
-          <version>11</version>
-          <classifier>mac</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-graphics</artifactId>
-          <version>11</version>
-          <classifier>mac</classifier>
-          <scope>compile</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>com.jfoenix</groupId>
-          <artifactId>jfoenix</artifactId>
-          <version>8.0.8</version>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>11</version>
+            <classifier>linux</classifier>
+            <scope>compile</scope>
         </dependency>
-      <!-- https://mvnrepository.com/artifact/org.usb4java/usb4java -->
-      <dependency>
-          <groupId>org.usb4java</groupId>
-          <artifactId>usb4java</artifactId>
-          <version>1.2.0</version>         <!-- Must be 1.2.0 for macOS lower than Mojave -->
-          <scope>compile</scope>
-      </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>11</version>
+            <classifier>linux</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>11</version>
+            <classifier>linux</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>11</version>
+            <classifier>linux</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <!-- openJFX Windows -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>11</version>
+            <classifier>win</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>11</version>
+            <classifier>win</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>11</version>
+            <classifier>win</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>11</version>
+            <classifier>win</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <!-- openJFX MAC -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>11</version>
+            <classifier>mac</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>11</version>
+            <classifier>mac</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>11</version>
+            <classifier>mac</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>11</version>
+            <classifier>mac</classifier>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jfoenix</groupId>
+            <artifactId>jfoenix</artifactId>
+            <version>9.0.9</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.usb4java/usb4java -->
+        <dependency>
+            <groupId>org.usb4java</groupId>
+            <artifactId>usb4java</artifactId>
+            <version>1.2.0</version>         <!-- Must be 1.2.0 for macOS lower than Mojave -->
+            <scope>compile</scope>
+        </dependency>
   </dependencies>
 
   <build>

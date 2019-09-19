@@ -1,12 +1,12 @@
-![Logo](Goldleaf/RomFs/Logo.png)
+<img src="Goldleaf/RomFs/Logo.png" alt="drawing" width="400"/>
 
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
-
-[![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
-
-[![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
+
+<img src="Screenshot-gleaf.jpg" alt="drawing" width="400"/>
+
+<img src="Screenshot-quark.png" alt="drawing" width="300"/>
 
 # Table of contents
 
@@ -25,7 +25,7 @@
 <p>
 <a href="https://www.patreon.com/xortroll"><img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" height="50" width="220"></a>
 <br>
-<b>If you like my work, consider becoming a patron and supporting it!</b>
+<b>Do you like my work? Become a patron and supporting it!</b>
 </p>
 
 ## Features
@@ -105,40 +105,6 @@ Only requirement for the tool to work is **JRE/JDK 8u60 or higher**.
 8. Done. Now you can use Goldleaf and Quark to directly access your PC!
 
 **Note:** To use it correctly, make sure you open Goldleaf and connect the Switch with your PC before you launch Quark. Nevertheless, Quark will warn when USB connection is gone or no USB connection is found.
-
-## Troubleshooting
-
-Always make sure you're using the latest release of **Goldleaf and Quark** and you read this section before opening an issue!
-
-### FAQ
-
-**Zadig does not find my console.**
-
-- Make sure to test your USB ports and maybe a spare USB-C cable.
-
-**I still can't use the USB features.**
-
-- Make sure libubsK is installed correctly.
-
-**I have Goldleaf and Quark opened, but my Switch keeps freezing immediately after I clicked on the remote PC system.**
-
-- Make sure to use the latest release of both Goldleaf and Quark. Double-check if needed.
-
-**I got the error code 0x291 using Atmosphere (Kosmos).**
-
-- Make sure you have the latest sigpatches installed (you need to add them on your own).
-
-**I get an error while I want to install an update.**
-
-- Make sure, you´re using the latest version of Goldleaf (and Quark, if using remote PC system).
-
-**I have problems using 3rd party tools to use the USB feature on Linux/macOS.**
-
-- Please get in touch with the responsible developer/team of that tool. Quark is the tool developed as part of Goldleaf. All the other clients are always welcome, but they aren't our responsibility.
-
-**I tried a lot of stuff from above now, but I still have problems.**
-
-- Do you happen to use an exFAT-formatted SD card? **NEVER DO SO!** It's buggy and unneccessary, and easily can lead to FS corruption, what can mean losing anything you have in the SD card.
 
 ## Forwarding
 

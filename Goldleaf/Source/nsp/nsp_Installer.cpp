@@ -207,13 +207,11 @@ namespace nsp
         srecs.push_back(csrecord);
         ns::DeleteApplicationRecord(baseappid);
         rc = ns::PushApplicationRecord(baseappid, 3, srecs.data(), srecs.size() * sizeof(ns::ContentStorageRecord));
-        if(rc != 0) return rc;
         if(stik > 0)
         {
-            u8 *tikbuf = new u8[stik]();
+            u8 *tikbuf = fs::GetFileSystemOperationsBuffer();
             nsys->ReadFileBlock("Contents/temp/" + tik, 0, stik, tikbuf);
-            es::ImportTicket(tikbuf, stik, es::CertData, es::CertSize);
-            delete[] tikbuf;
+            rc = es::ImportTicket(tikbuf, stik, es::CertData, es::CertSize);
         }
         return rc;
     }

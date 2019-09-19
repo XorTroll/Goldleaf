@@ -19,7 +19,7 @@ namespace es
         u8 RId[0x10];
     } PACKED;
 
-    static constexpr u32 CertSize = 1972;
+    static constexpr size_t CertSize = 1972;
 
     static const u8 CertData[CertSize] =
     {
