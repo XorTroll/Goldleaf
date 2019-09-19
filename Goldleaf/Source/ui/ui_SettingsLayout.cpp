@@ -34,9 +34,9 @@ namespace ui
     void SettingsLayout::optsConfig_Click()
     {
         pu::String msg = set::GetDictionaryEntry(354) + ":\n";
-        msg += pu::String("\n" + set::GetDictionaryEntry(355) + ": ") + (gsets.IgnoreRequiredFirmwareVersion ? "Yes" : "No");
+        msg += pu::String("\n" + set::GetDictionaryEntry(355) + ": ") + (gsets.IgnoreRequiredFirmwareVersion ? set::GetDictionaryEntry(111) : set::GetDictionaryEntry(112));
         if(!gsets.ExternalRomFs.empty()) msg += "\n" + set::GetDictionaryEntry(356) + ": 'SdCard:/" + gsets.ExternalRomFs + "'";
-        mainapp->CreateShowDialog(set::GetDictionaryEntry(357), msg, {"Ok"}, true);
+        mainapp->CreateShowDialog(set::GetDictionaryEntry(357), msg, { set::GetDictionaryEntry(234) }, true);
     }
 
     void SettingsLayout::ExportUpdateToDirectory(pu::String Input, SetSysFirmwareVersion Fw)
@@ -83,7 +83,7 @@ namespace ui
 
     void SettingsLayout::HandleUpdate(pu::String Base, SetSysFirmwareVersion Fw)
     {
-        auto sopt2 = mainapp->CreateShowDialog(set::GetDictionaryEntry(360), set::GetDictionaryEntry(361), { set::GetDictionaryEntry(377), set::GetDictionaryEntry(53), "Cancel"}, true);
+        auto sopt2 = mainapp->CreateShowDialog(set::GetDictionaryEntry(360), set::GetDictionaryEntry(361), { set::GetDictionaryEntry(377), set::GetDictionaryEntry(53), set::GetDictionaryEntry(18)}, true);
         if(sopt2 == 0) ExportUpdateToDirectory(Base, Fw);
         else if(sopt2 == 1) ExportUpdateToNSP(Base, Fw);
     }
@@ -107,7 +107,7 @@ namespace ui
         }
         else msg += "\n" + set::GetDictionaryEntry(367);
 
-        std::vector<pu::String> opts = {"Ok", set::GetDictionaryEntry(368)};
+        std::vector<pu::String> opts = {set::GetDictionaryEntry(234), set::GetDictionaryEntry(368)};
         if(pendingpresent)
         {
             opts.push_back(set::GetDictionaryEntry(369));
@@ -119,7 +119,7 @@ namespace ui
         else if(sopt == 1) this->HandleUpdate("Contents/registered", basefw);
         else if(sopt == 2)
         {
-            auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(371), set::GetDictionaryEntry(372) + "\n" + set::GetDictionaryEntry(373), {"Yes", "Cancel"}, true);
+            auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(371), set::GetDictionaryEntry(372) + "\n" + set::GetDictionaryEntry(373), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt == 0)
             {
                 hos::CleanPendingUpdate();

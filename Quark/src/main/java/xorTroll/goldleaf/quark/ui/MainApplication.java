@@ -31,8 +31,7 @@ import xorTroll.goldleaf.quark.ui.MainController;
 
 public class MainApplication extends Application
 {
-    public static final Version QuarkVer = new Version(0, 1, 0);
-    public static final Version ExpectedGoldleafVer = new Version(0, 7, 0);
+    public static final Version QuarkVer = new Version(0, 2, 0);
 
     public MainController controller;
     public Stage stage;

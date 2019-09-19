@@ -4,9 +4,7 @@
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
 
-<img src="Screenshot-gleaf.jpg" alt="drawing" width="400"/>
-
-<img src="Screenshot-quark.png" alt="drawing" width="300"/>
+<img src="Screenshot-gleaf.jpg" alt="drawing" width="400"/> <img src="Screenshot-quark.png" alt="drawing" width="300"/>
 
 > Having any issues? Check [this help document](docs/FAQ.md) for help!
 

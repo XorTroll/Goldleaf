@@ -279,6 +279,7 @@ namespace fs
     u8 *GetFileSystemOperationsBuffer()
     {
         if(opsbuf == NULL) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
+        memset(opsbuf, 0, opsbufsz);
         return opsbuf;
     }
 

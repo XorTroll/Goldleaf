@@ -6,7 +6,7 @@
   <groupId>xorTroll.goldleaf.quark</groupId>
   <artifactId>Quark</artifactId>
 
-  <version>0.1</version>
+  <version>0.2</version>
   <name>Quark</name>
 
   <properties>
@@ -18,28 +18,28 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>linux</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>linux</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>linux</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>linux</classifier>
             <scope>compile</scope>
         </dependency>
@@ -47,28 +47,28 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>win</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>win</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>win</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>win</classifier>
             <scope>compile</scope>
         </dependency>
@@ -76,28 +76,28 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>mac</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>mac</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>mac</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>11.0.2</version>
+            <version>11</version>
             <classifier>mac</classifier>
             <scope>compile</scope>
         </dependency>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>com.jfoenix</groupId>
             <artifactId>jfoenix</artifactId>
-            <version>9.0.9</version>
+            <version>8.0.8</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.usb4java/usb4java -->
         <dependency>
