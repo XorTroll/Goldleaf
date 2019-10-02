@@ -22,13 +22,6 @@
 #include <hos/hos_Content.hpp>
 #include <fs/fs_Explorer.hpp>
 
-#include <ui/ui_MainApplication.hpp>
-
-namespace ui
-{
-    extern MainApplication::Ref mainapp;
-}
-
 namespace hos
 {
     pu::String ContentIdAsString(const NcmNcaId &NCAId)

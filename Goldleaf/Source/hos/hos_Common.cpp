@@ -184,11 +184,6 @@ namespace hos
         if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
     }
 
-    #define VERSION_EXACT(a,b,c) (hosversionGet() == MAKEHOSVERSION(a,b,c))
-    #define VERSION_BETWEEN(a,b,c,d,e,f) ((hosversionGet() >= MAKEHOSVERSION(a,b,c)) && (hosversionGet() <= MAKEHOSVERSION(d,e,f)))
-
-    #define MKEY_SET_IF(expression, kgen) if(expression) { masterkey = kgen; }
-
     u8 ComputeSystemKeyGeneration()
     {
         FsStorage boot0;
