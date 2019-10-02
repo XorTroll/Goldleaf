@@ -29,9 +29,17 @@
 
 namespace hos
 {
+    struct PendingUpdateVersion
+    {
+        u32 Major;
+        u32 Minor;
+        u32 Micro;
+    };
+
     pu::String ContentIdAsString(const NcmNcaId &ContentId);
     NcmNcaId StringAsContentId(pu::String ContentId);
 
-    SetSysFirmwareVersion GetPendingUpdateInfo();
+    bool GetPendingUpdateInfo(PendingUpdateVersion *out);
+    SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver);
     void CleanPendingUpdate();
 }

@@ -9,7 +9,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 VER_MAJOR	:= 0
 VER_MINOR	:= 7
-VER_MICRO	:= 2
+VER_MICRO	:= 3
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll

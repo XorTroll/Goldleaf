@@ -23,6 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern set::Settings gsets;
+extern bool gupdated;
 
 namespace ui
 {
@@ -41,7 +42,7 @@ namespace ui
 
     void UpdateLayout::StartUpdateSearch()
     {
-        if(!net::HasConnection())
+        if((!net::HasConnection()) || gupdated)
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(304), { set::GetDictionaryEntry(234) }, true);
             mainapp->UnloadMenuData();
@@ -69,16 +70,17 @@ namespace ui
             {
                 std::string baseurl = "https://github.com/XorTroll/Goldleaf/releases/download/" + latestid + "/Goldleaf";
                 fs::CreateDirectory("sdmc:/switch/Goldleaf");
-                fs::DeleteFile("sdmc:/switch/Goldleaf/Goldleaf.nro");
+                fs::DeleteFile(TempGoldleafUpdateNro);
                 this->infoText->SetText(set::GetDictionaryEntry(309));
                 mainapp->CallForRender();
                 this->downloadBar->SetVisible(true);
-                net::RetrieveToFile(baseurl + ".nro", "sdmc:/switch/Goldleaf/Goldleaf.nro", [&](double Done, double Total)
+                net::RetrieveToFile(baseurl + ".nro", TempGoldleafUpdateNro, [&](double Done, double Total)
                 {
                     this->downloadBar->SetMaxValue(Total);
                     this->downloadBar->SetProgress(Done);
                     mainapp->CallForRender();
                 });
+                if(fs::IsFile(TempGoldleafUpdateNro)) gupdated = true;
                 this->downloadBar->SetVisible(false);
                 mainapp->CallForRender();
                 sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(310), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);

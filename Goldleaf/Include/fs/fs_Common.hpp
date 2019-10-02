@@ -64,6 +64,8 @@ namespace fs
     void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(double Done, double Total)> Callback);
     void DeleteFile(pu::String Path);
     void DeleteDirectory(pu::String Path);
+    void RenameFile(pu::String Old, pu::String New);
+    void RenameDirectory(pu::String Old, pu::String New);
     bool IsFileBinary(pu::String Path);
     void WriteFile(pu::String Path, std::vector<u8> Data);
     u64 GetFileSize(pu::String Path);

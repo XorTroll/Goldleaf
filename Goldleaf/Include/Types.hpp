@@ -83,6 +83,7 @@ struct Version
 };
 
 static const std::string GoldleafDir = "switch/Goldleaf";
+static const std::string TempGoldleafUpdateNro = "sdmc:/" + GoldleafDir + "/UpdateTemp.nro";
 
 ExecutableMode GetExecutableMode();
 LaunchMode GetLaunchMode();

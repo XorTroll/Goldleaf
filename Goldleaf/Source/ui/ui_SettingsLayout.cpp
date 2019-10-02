@@ -116,14 +116,14 @@ namespace ui
         pu::String msg = set::GetDictionaryEntry(362) + ":\n";
         msg += pu::String("\n" + set::GetDictionaryEntry(363) + ": ") + fwver.display_version + " (" + fwver.display_title + ")";
         msg += pu::String("\n" + set::GetDictionaryEntry(364) + ": '") + fwver.version_hash + "'";
+        msg += pu::String("\n" + set::GetDictionaryEntry(95) + " ") + std::to_string(hos::ComputeSystemKeyGeneration());
         msg += "\n\n" + set::GetDictionaryEntry(365) + ":\n";
-        auto basefw = fwver;
-        fwver = hos::GetPendingUpdateInfo();
-        bool pendingpresent = ((fwver.major != 0) && (fwver.display_title[0] != '\0'));
+        hos::PendingUpdateVersion pupd = {};
+        bool pendingpresent = hos::GetPendingUpdateInfo(&pupd);
+        auto pendfwver = hos::ConvertPendingUpdateVersion(pupd);
         if(pendingpresent)
         {
-            msg += pu::String("\n" + set::GetDictionaryEntry(363) + ": ") + fwver.display_version + " (" + fwver.display_title + ")";
-            msg += pu::String("\n" + set::GetDictionaryEntry(364) + ": '") + fwver.version_hash + "'";
+            msg += pu::String("\n" + set::GetDictionaryEntry(363) + ": ") + std::to_string(pupd.Major) + "." + std::to_string(pupd.Minor) + "." + std::to_string(pupd.Micro);
             msg += "\n" + set::GetDictionaryEntry(366);
         }
         else msg += "\n" + set::GetDictionaryEntry(367);
@@ -137,7 +137,7 @@ namespace ui
 
         auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(360), msg, opts, false);
         if(sopt == 0) return;
-        else if(sopt == 1) this->HandleUpdate("Contents/registered", basefw);
+        else if(sopt == 1) this->HandleUpdate("Contents/registered", fwver);
         else if(sopt == 2)
         {
             auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(371), set::GetDictionaryEntry(372) + "\n" + set::GetDictionaryEntry(373), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
@@ -147,7 +147,7 @@ namespace ui
                 mainapp->ShowNotification(set::GetDictionaryEntry(374));
             }
         }
-        else if(sopt == 3) this->HandleUpdate("Contents/placehld", fwver);
+        else if(sopt == 3) this->HandleUpdate("Contents/placehld", pendfwver);
     }
 
     void SettingsLayout::optsMemory_Click()

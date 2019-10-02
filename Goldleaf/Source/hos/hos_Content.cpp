@@ -22,6 +22,13 @@
 #include <hos/hos_Content.hpp>
 #include <fs/fs_Explorer.hpp>
 
+#include <ui/ui_MainApplication.hpp>
+
+namespace ui
+{
+    extern MainApplication::Ref mainapp;
+}
+
 namespace hos
 {
     pu::String ContentIdAsString(const NcmNcaId &NCAId)
@@ -45,24 +52,44 @@ namespace hos
         return nid;
     }
 
-    SetSysFirmwareVersion GetPendingUpdateInfo()
+    bool GetPendingUpdateInfo(PendingUpdateVersion *out)
     {
         auto sys = fs::GetNANDSystemExplorer();
         auto ncas = sys->GetFiles("Contents/placehld");
-        SetSysFirmwareVersion fwver = {0};
+        bool found = false;
         for(auto &nca: ncas)
         {
             std::string path = "@SystemContent://placehld/" + nca.AsUTF8();
             path.reserve(FS_MAX_PATH);
             FsFileSystem ncafs;
-            auto rc = fsOpenFileSystemWithId(&ncafs, 0x0100000000000809, FsFileSystemType_ContentData, path.c_str());
+            auto rc = fsOpenFileSystemWithId(&ncafs, 0, FsFileSystemType_ContentMeta, path.c_str());
             if(R_SUCCEEDED(rc))
             {
-                fs::FileSystemExplorer fwfs("gncafwver", "...", &ncafs);
-                fwfs.ReadFileBlock("file", 0, sizeof(fwver), (u8*)&fwver);
-                break;
+                fs::FileSystemExplorer fwfs("gpendupd", "...", &ncafs);
+                auto fs = fwfs.GetContents();
+                for(auto &f: fs)
+                {
+                    u32 rawver = 0;
+                    fwfs.ReadFileBlock(f, 8, sizeof(u32), (u8*)&rawver);
+                    out->Major = (u8)((rawver >> 26) & 0x3f);
+                    out->Minor = (u8)((rawver >> 20) & 0x3f);
+                    out->Micro = (u8)((rawver >> 16) & 0x3f);
+                    found = true;
+                    break; // We just want to read the first CNMT NCA we succeed mounting :P
+                }
+                if(found) break;
             }
         }
+        return found;
+    }
+
+    SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver)
+    {
+        SetSysFirmwareVersion fwver = {};
+        fwver.major = ver.Major;
+        fwver.minor = ver.Minor;
+        fwver.micro = ver.Micro;
+        sprintf(fwver.display_version, "%d.%d.%d", ver.Major, ver.Minor, ver.Micro);
         return fwver;
     }
 

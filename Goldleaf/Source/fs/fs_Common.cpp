@@ -121,6 +121,18 @@ namespace fs
         if(exp != NULL) exp->DeleteDirectory(Path);
     }
 
+    void RenameFile(pu::String Old, pu::String New)
+    {
+        auto exp = GetExplorerForPath(Old);
+        if(exp != NULL) exp->RenameFile(Old, New);
+    }
+
+    void RenameDirectory(pu::String Old, pu::String New)
+    {
+        auto exp = GetExplorerForPath(Old);
+        if(exp != NULL) exp->RenameDirectory(Old, New);
+    }
+
     bool IsFileBinary(pu::String Path)
     {
         if(GetFileSize(Path) == 0) return true;

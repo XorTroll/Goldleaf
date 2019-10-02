@@ -90,13 +90,21 @@ namespace ui
     extern MainApplication::Ref mainapp;
 }
 
-int main()
+bool gupdated = false;
+
+int main(int argc, char **argv)
 {
     Initialize();
 
     ui::mainapp = ui::MainApplication::New();
     ui::mainapp->ShowWithFadeIn();
     
+    if(gupdated)
+    {
+        romfsExit();
+        fs::DeleteFile(argv[0]);
+        fs::RenameFile(TempGoldleafUpdateNro, argv[0]);
+    }
     Finalize();
     return 0;
 }
