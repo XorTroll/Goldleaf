@@ -3,7 +3,7 @@
     "Chemin invalide",
     "NCA invalide (peut signifier des sigpatches manquants ou un microprogramme trop bas)",
     "PFS0 non valide (NSP)",
-    "Erreur standard C / C ++",
+    "Erreur standard C/C++",
     "Il n'y a pas assez d'espace pour mener à bien la tâche",
     "Les métadonnées NCA n'ont pas pu être localisées dans le NSP",
     "Les métadonnées n'ont pas pu être localisées dans la NCA",
@@ -11,5 +11,5 @@
     "Un autre fichier ou répertoire du même nom existe déjà",
     "Impossible de trouver le contenu du titre",
     "Impossible de construire le PFS0 (NSP)",
-    "Génération de clé invalide (La version de la console est trop basse)"
+    "Génération de clé invalide (la version de la console est trop basse)"
 ]
