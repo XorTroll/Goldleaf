@@ -27,10 +27,13 @@ import java.util.Enumeration;
 import java.util.Optional;
 import java.util.Vector;
 
-import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXAlert;
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialogLayout;
 
+import club.minnced.discord.rpc.DiscordEventHandlers;
+import club.minnced.discord.rpc.DiscordRPC;
+import club.minnced.discord.rpc.DiscordRichPresence;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -41,14 +44,13 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
 import xorTroll.goldleaf.quark.Config;
 import xorTroll.goldleaf.quark.Version;
+import xorTroll.goldleaf.quark.fs.FileSystem;
 import xorTroll.goldleaf.quark.usb.Command;
 import xorTroll.goldleaf.quark.usb.USBInterface;
-import xorTroll.goldleaf.quark.fs.FileSystem;
-import xorTroll.goldleaf.quark.ui.MainController;
 
 public class MainApplication extends Application
 {
@@ -475,12 +477,43 @@ public class MainApplication extends Application
             }
         };
 
+        Task<Void> rpctask = new Task<Void>()
+        {
+            @Override
+            protected Void call() throws Exception
+            {
+                DiscordRPC rpc = DiscordRPC.INSTANCE;
+                DiscordEventHandlers handlers = new DiscordEventHandlers();
+                rpc.Discord_Initialize("584769559441965134", handlers, true, "");
+                DiscordRichPresence presence = new DiscordRichPresence();
+                presence.startTimestamp = System.currentTimeMillis() / 1000;
+                presence.details = "Details";
+                presence.largeImageKey = "icon";
+                presence.largeImageText = "Quark PC tool";
+                rpc.Discord_UpdatePresence(presence);
+
+                while(!Thread.currentThread().isInterrupted())
+                {
+                    rpc.Discord_RunCallbacks();
+                    try
+                    {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ignored) {}
+                }
+                return null;
+            }
+        };
+
         controller.prepare(this, usbtask);
         stage.show();
 
         Thread usb = new Thread(usbtask);
         usb.setDaemon(true);
         usb.start();
+
+        Thread rpc = new Thread(rpctask);
+        rpc.setDaemon(true);
+        rpc.start();
     }
     
     public static void main(String[] args)
