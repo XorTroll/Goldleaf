@@ -169,12 +169,14 @@ namespace acc
         } in;
         memcpy(&in.UserId, &UserId, sizeof(AccountUid));
 
-        Service *srv_out;
+        Handle handle_out  = INVALID_HANDLE;
         Result rc = serviceDispatchIn(&susrv, 205, in,
-            .out_num_objects = 1,
-            .out_objects = srv_out,
+            .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
+            .out_handles = &handle_out,
         );
-        *out_Editor = ProfileEditor(*srv_out);
+        Service srv;
+        serviceCreate(&srv, handle_out);
+        *out_Editor = ProfileEditor(srv);
 
         return rc;
     }
@@ -186,12 +188,14 @@ namespace acc
         } in;
         memcpy(&in.UserId, &UserId, sizeof(AccountUid));
 
-        Service *srv_out;
+        Handle handle_out = INVALID_HANDLE;
         Result rc = serviceDispatchIn(&susrv, 250, in,
-            .out_num_objects = 1,
-            .out_objects = srv_out,
+            .out_handle_attrs = { SfOutHandleAttr_HipcCopy },
+            .out_handles = &handle_out,
         );
-        *out_Admin = BaasAdministrator(*srv_out);
+        Service srv;
+        serviceCreate(&srv, handle_out);
+        *out_Admin = BaasAdministrator(srv);
 
         return rc;
     }
