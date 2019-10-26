@@ -23,20 +23,42 @@
 #include <cstring>
 #include <Types.hpp>
 #include <ByteBuffer.hpp>
-#include <ncm/ncm_Types.hpp>
 
 namespace ncm
 {
+    struct PackagedContentInfo
+    {
+        u8 hash[0x20];
+        NcmContentInfo content_info;
+    } PACKED;
+
+    struct PackagedContentMetaHeader
+    {
+        u64 title_id;
+        u32 version;
+        u8 type;
+        u8 _0xd;
+        u16 extended_header_size;
+        u16 content_count;
+        u16 content_meta_count;
+        u8 attributes;
+        u8 storage_id;
+        u8 install_type;
+        bool comitted;
+        u32 required_system_version;
+        u32 _0x1c;
+    };
+
     class ContentMeta
     {
         public:
             ContentMeta();
             ContentMeta(u8 *Data, size_t Size);
             ~ContentMeta();
-            ContentMetaHeader GetContentMetaHeader();
-            NcmMetaRecord GetContentMetaKey();
-            std::vector<ContentRecord> GetContentRecords();
-            void GetInstallContentMeta(ByteBuffer &CNMTBuffer, ContentRecord &CNMTRecord, bool IgnoreVersion);
+            PackagedContentMetaHeader GetPackagedContentMetaHeader();
+            NcmContentMetaKey GetContentMetaKey();
+            std::vector<NcmContentInfo> GetContentInfos();
+            void GetInstallContentMeta(ByteBuffer &CNMTBuffer, NcmContentInfo &CNMTRecord, bool IgnoreVersion);
         private:
             ByteBuffer buf;
     };

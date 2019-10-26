@@ -26,23 +26,23 @@
 
 namespace acc
 {
-    static u128 selected_user = 0;
+    static AccountUid selected_user;
 
-    u128 GetSelectedUser()
+    AccountUid GetSelectedUser()
     {
         return selected_user;
     }
 
-    void SetSelectedUser(u128 User)
+    void SetSelectedUser(AccountUid User)
     {
         selected_user = User;
     }
 
     bool SelectFromPreselectedUser()
     {
-        u128 tmpuser = 0;
+        AccountUid tmpuser = {0,0};
         auto res = accountGetPreselectedUser(&tmpuser);
-        if(R_SUCCEEDED(res) && (tmpuser != 0))
+        if(R_SUCCEEDED(res) && (accountUidIsValid(&tmpuser)))
         {
             selected_user = tmpuser;
             return true;
@@ -52,8 +52,8 @@ namespace acc
 
     bool SelectUser()
     {
-        u128 user = LaunchPlayerSelect();
-        if(user != 0)
+        AccountUid user = LaunchPlayerSelect();
+        if(accountUidIsValid(&user))
         {
             selected_user = user;
             return true;
@@ -61,9 +61,9 @@ namespace acc
         return false;
     }
 
-    u128 LaunchPlayerSelect()
+    AccountUid LaunchPlayerSelect()
     {
-        u128 out_id = 0;
+        AccountUid out_id = {0,0};
         LibAppletArgs args;
         libappletArgsCreate(&args, 0x10000);
         u8 st_in[0xA0] = {0};
@@ -74,7 +74,7 @@ namespace acc
         if(R_SUCCEEDED(res))
         {
             u64 lres = *(u64*)st_out;
-            u128 uid = *(u128*)&st_out[8];
+            AccountUid uid = *(AccountUid*)&st_out[8];
             if(lres == 0) out_id = uid;
         }
         
@@ -85,16 +85,16 @@ namespace acc
     {
         AccountProfile prof;
         auto res = accountGetProfile(&prof, selected_user);
-        if(res == 0)
+        if(R_SUCCEEDED(res))
         {
             AccountProfileBase pbase = {};
             AccountUserData udata = {};
             res = accountProfileGet(&prof, &udata, &pbase);
-            if(res == 0)
+            if(R_SUCCEEDED(res))
             {
                 ProfileEditor editor;
                 res = GetProfileEditor(selected_user, &editor);
-                if(res == 0)
+                if(R_SUCCEEDED(res))
                 {
                     cb(&pbase, &udata);
                     editor.Store(&pbase, &udata);
@@ -110,16 +110,16 @@ namespace acc
     {
         AccountProfile prof;
         auto res = accountGetProfile(&prof, selected_user);
-        if(res == 0)
+        if(R_SUCCEEDED(res))
         {
             AccountProfileBase pbase = {};
             AccountUserData udata = {};
             res = accountProfileGet(&prof, &udata, &pbase);
-            if(res == 0)
+            if(R_SUCCEEDED(res))
             {
                 ProfileEditor editor;
                 res = GetProfileEditor(selected_user, &editor);
-                if(res == 0) editor.StoreWithImage(&pbase, &udata, JPEG, JPEG_size);
+                if(R_SUCCEEDED(res)) editor.StoreWithImage(&pbase, &udata, JPEG, JPEG_size);
                 editor.Close();
             }
             accountProfileClose(&prof);
@@ -131,16 +131,16 @@ namespace acc
     {
         AccountProfile prof;
         auto res = accountGetProfile(&prof, selected_user);
-        if(res == 0)
+        if(R_SUCCEEDED(res))
         {
-            size_t iconsize = 0;
+            u32 iconsize = 0;
             accountProfileGetImageSize(&prof, &iconsize);
             if(iconsize > 0)
             {
                 u8 *icon = new u8[iconsize]();
-                size_t tmpsz;
+                u32 tmpsz;
                 res = accountProfileLoadImage(&prof, icon, iconsize, &tmpsz);
-                if(res == 0)
+                if(R_SUCCEEDED(res))
                 {
                     std::string iconpth = GetCachedUserIcon();
                     fs::DeleteFile(iconpth);
@@ -159,7 +159,7 @@ namespace acc
 
     std::string GetCachedUserIcon()
     {
-        return "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(selected_user) + ".jpg";
+        return "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(*(u128*)&selected_user) + ".jpg";
     }
 
     bool IsLinked()

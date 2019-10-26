@@ -20,252 +20,128 @@
 */
 
 #include <ns/ns_Service.hpp>
+#include "service_guard.h"
 
-static Service nsgisrv;
-static Service nsamsrv;
-static u64 nscnt = 0;
+static Service g_nsGetterSrv;
+static Service g_nsAppManSrv;
 
 namespace ns
 {
-    Result Initialize()
-    {
-        atomicIncrement64(&nscnt);
-        Result rc = 0;
-        if(!serviceIsActive(&nsgisrv) && !serviceIsActive(&nsamsrv))
-        {
-            if(kernelAbove300())
-            {
-                rc = smGetService(&nsgisrv, "ns:am2");
-                if(R_FAILED(rc)) return rc;
-                IpcCommand c;
-                ipcInitialize(&c);
-                struct Raw
-                {
-                    u64 Magic;
-                    u64 CmdId;
-                } *raw;
-                raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-                raw->Magic = SFCI_MAGIC;
-                raw->CmdId = 7996;
-                rc = serviceIpcDispatch(&nsgisrv);
-                if(R_SUCCEEDED(rc))
-                {
-                    IpcParsedCommand r;
-                    ipcParse(&r);
-                    struct Parsed
-                    {
-                        u64 Magic;
-                        u64 Result;
-                    } *resp = (struct Parsed*)r.Raw;
-                    rc = resp->Result;
-                    if(R_SUCCEEDED(rc)) serviceCreate(&nsamsrv, r.Handles[0]);
-                }
-            }
-            else rc = smGetService(&nsamsrv, "ns:am");
-        }
+
+    static Result _nsextGetSession(Service* srv, Service* srv_out, u32 cmd_id);
+
+    NX_GENERATE_SERVICE_GUARD(nsext);
+
+    Result _nsextInitialize(void) {
+        Result rc=0;
+
+        if(hosversionBefore(3,0,0))
+            return smGetService(&g_nsAppManSrv, "ns:am");
+
+        rc = smGetService(&g_nsGetterSrv, "ns:am2");//TODO: Support the other services?(Only useful when ns:am2 isn't accessible)
+        if (R_FAILED(rc)) return rc;
+
+        rc = _nsextGetSession(&g_nsGetterSrv, &g_nsAppManSrv, 7996);
+
+        if (R_FAILED(rc)) serviceClose(&g_nsGetterSrv);
+
         return rc;
     }
 
-    void Finalize()
-    {
-        if(atomicDecrement64(&nscnt) == 0)
-        {
-            serviceClose(&nsamsrv);
-            if(kernelAbove300()) serviceClose(&nsgisrv);
-        }
+    void _nsextCleanup(void) {
+        serviceClose(&g_nsAppManSrv);
+        if(hosversionBefore(3,0,0)) return;
+
+        serviceClose(&g_nsGetterSrv);
+    }
+
+    static Result _nsextGetSession(Service* srv, Service* srv_out, u32 cmd_id) {
+        return serviceDispatch(srv, cmd_id,
+            .out_num_objects = 1,
+            .out_objects = srv_out,
+        );
     }
 
     bool HasInitialized()
     {
-        return serviceIsActive(&nsamsrv);
+        return serviceIsActive(&g_nsAppManSrv);
     }
 
     Result DeleteApplicationCompletely(u64 ApplicationId)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            u64 ApplicationId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 5;
-        raw->ApplicationId = ApplicationId;
-        Result rc = serviceIpcDispatch(&nsamsrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+        struct {
+            u64 title_id;
+        } in = { ApplicationId };
+        return serviceDispatchIn(&g_nsAppManSrv, 5, in);
     }
 
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddSendBuffer(&c, Records, RecordsSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            u8 LastModifiedEvent;
-            u8 Pad[0x7];
-            u64 ApplicationId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 16;
-        raw->LastModifiedEvent = LastModifiedEvent;
-        raw->ApplicationId = ApplicationId;
-        Result rc = serviceIpcDispatch(&nsamsrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+        struct {
+            u8 last_modified_event;
+            u8 padding[0x7];
+            u64 title_id;
+        } in = { LastModifiedEvent, {0}, ApplicationId };
+        
+        return serviceDispatchIn(&g_nsAppManSrv, 16, in,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
+            .buffers = { { Records, RecordsSize } });
     }
 
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, Out, OutBufferSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            u64 Offset;
-            u64 ApplicationId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 17;
-        raw->Offset = Offset;
-        raw->ApplicationId = ApplicationId;
-        Result rc = serviceIpcDispatch(&nsamsrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u32 Count;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Count = resp->Count;
-        }
+        struct {
+            u64 offset;
+            u64 titleID;
+        } in = { Offset, ApplicationId };
+
+        struct {
+            u32 entries_read;
+        } out;
+
+        Result rc = serviceDispatchInOut(&g_nsAppManSrv, 17, in, out,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
+            .buffers = { { Out, OutBufferSize } });
+        
+        if (R_SUCCEEDED(rc) && out_Count) *out_Count = out.entries_read;
+
         return rc;
     }
 
     Result DeleteApplicationRecord(u64 ApplicationId)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            u64 ApplicationId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 27;
-        raw->ApplicationId = ApplicationId;
-        Result rc = serviceIpcDispatch(&nsamsrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+        struct {
+            u64 titleID;
+        } in = { ApplicationId };
+        
+        return serviceDispatchIn(&g_nsAppManSrv, 27, in);
     }
 
     Result CountApplicationContentMeta(u64 ApplicationId, u32 *out_Count)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            u64 ApplicationId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 600;
-        raw->ApplicationId = ApplicationId;
-        Result rc = serviceIpcDispatch(&nsamsrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u32 Count;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Count = resp->Count;
-        }
+        struct {
+            u64 titleId;
+        } in = { ApplicationId };
+
+        struct {
+            u32 count;
+        } out;
+
+        Result rc = serviceDispatchInOut(&g_nsAppManSrv, 600, in, out);
+
+        if (R_SUCCEEDED(rc) && out_Count) *out_Count = out.count;
+
         return rc;
     }
 
     Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            u64 ApplicationId;
-            u32 Version;
-            u32 Pad;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 36;
-        raw->ApplicationId = ApplicationId;
-        raw->Version = LaunchVersion;
-        raw->Pad = 0;
-        Result rc = serviceIpcDispatch(&nsamsrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+        struct {
+            u64 titleID;
+            u32 version;
+            u32 padding;
+        } in = { ApplicationId, LaunchVersion, 0 };
+        
+        return serviceDispatchIn(&g_nsAppManSrv, 36, in);
     }
 }

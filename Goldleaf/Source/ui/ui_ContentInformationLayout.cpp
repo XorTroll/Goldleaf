@@ -63,19 +63,19 @@ namespace ui
         if(fs::IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
         switch(cnt.Type)
         {
-            case ncm::ContentMetaType::Application:
+            case NcmContentMetaType_Application:
                 msg += set::GetDictionaryEntry(171);
                 break;
-            case ncm::ContentMetaType::AddOnContent:
+            case NcmContentMetaType_AddOnContent:
                 msg += set::GetDictionaryEntry(172);
                 break;
-            case ncm::ContentMetaType::Patch:
+            case NcmContentMetaType_Patch:
                 msg += set::GetDictionaryEntry(173);
                 break;
-            case ncm::ContentMetaType::SystemProgram:
+            case NcmContentMetaType_SystemProgram:
                 msg += set::GetDictionaryEntry(174);
                 break;
-            case ncm::ContentMetaType::SystemData:
+            case NcmContentMetaType_SystemData:
                 msg += set::GetDictionaryEntry(175);
                 break;
             default:
@@ -94,7 +94,7 @@ namespace ui
             if(stats.TotalPlaySeconds == 0) msg += "\n" + set::GetDictionaryEntry(351) + "\n";
             else 
             {
-                if(uid != 0)
+                if(accountUidIsValid(&uid))
                 {
                     stats = cnt.GetUserPlayStats(uid);
                     msg += "\n" + set::GetDictionaryEntry(337);
@@ -202,7 +202,7 @@ namespace ui
     {
         this->tcontents.clear();
         this->tcontents.push_back(Content);
-        std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Content.Location);
+        std::vector<hos::Title> tts = hos::SearchTitles(NcmContentMetaType_Unknown, Content.Location);
         for(u32 i = 0; i < tts.size(); i++)
         {
             if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);

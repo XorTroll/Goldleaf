@@ -98,7 +98,7 @@ namespace ui
             usericon = "Accounts";
         }
         
-        mainapp->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + pu::String(pbase.username), deficon);
+        mainapp->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + pu::String(pbase.nickname), deficon);
         this->ReloadItems();
     }
 
@@ -109,7 +109,7 @@ namespace ui
         {
             auto rc = acc::EditUser([&](AccountProfileBase *pbase, AccountUserData *udata)
             {
-                strcpy(pbase->username, name.AsUTF8().c_str());
+                strcpy(pbase->nickname, name.AsUTF8().c_str());
             });
             if(rc == 0)
             {
@@ -122,7 +122,7 @@ namespace ui
 
     void AccountLayout::optsIcon_Click()
     {
-        std::string iconpth = "/" + GoldleafDir + "/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
+        std::string iconpth = "/" + GoldleafDir + "/userdata/" + hos::FormatHex128(*(u128*)&this->uid) + ".jpg";
         mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(217) + "\n\'SdCard:" + iconpth + "\'", { set::GetDictionaryEntry(234) }, false, "sdmc:" + iconpth);
     }
 

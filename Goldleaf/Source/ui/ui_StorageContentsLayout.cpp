@@ -56,7 +56,7 @@ namespace ui
             this->contentsMenu->ClearItems();
             this->contents.clear();
         }
-        std::vector<hos::Title> cnts = hos::SearchTitles(ncm::ContentMetaType::Any, Location);
+        std::vector<hos::Title> cnts = hos::SearchTitles(NcmContentMetaType_Unknown, Location);
         if(!cnts.empty()) for(u32 i = 0; i < cnts.size(); i++)
         {
             hos::Title cnt = cnts[i];

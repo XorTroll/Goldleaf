@@ -54,7 +54,7 @@ namespace acc
     void Finalize();
     bool HasInitialized();
 
-    Result DeleteUser(u128 UserId);
-    Result GetProfileEditor(u128 UserId, ProfileEditor *out_Editor);
-    Result GetBaasAccountAdministrator(u128 UserId, BaasAdministrator *out_Admin);
+    Result DeleteUser(AccountUid UserId);
+    Result GetProfileEditor(AccountUid UserId, ProfileEditor *out_Editor);
+    Result GetBaasAccountAdministrator(AccountUid UserId, BaasAdministrator *out_Admin);
 }

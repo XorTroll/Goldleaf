@@ -28,11 +28,11 @@ namespace nfp
     Result Initialize();
     bool IsReady();
     Result Open();
-    NfpuTagInfo GetTagInfo();
-    NfpuRegisterInfo GetRegisterInfo();
-    NfpuCommonInfo GetCommonInfo();
-    NfpuModelInfo GetModelInfo();
-    Result DumpToEmuiibo(NfpuTagInfo &tag, NfpuRegisterInfo &reg, NfpuCommonInfo &common, NfpuModelInfo &model);
+    NfpTagInfo GetTagInfo();
+    NfpRegisterInfo GetRegisterInfo();
+    NfpCommonInfo GetCommonInfo();
+    NfpModelInfo GetModelInfo();
+    Result DumpToEmuiibo(NfpTagInfo &tag, NfpRegisterInfo &reg, NfpCommonInfo &common, NfpModelInfo &model);
     void Close();
     void Finalize();
 }

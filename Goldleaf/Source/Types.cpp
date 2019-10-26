@@ -117,19 +117,21 @@ bool IsAtmosphere()
 
 bool IsReiNX()
 {
+    SmServiceName rnxSrv = { "rnx" };
     Handle tmph = 0;
-    Result rc = smRegisterService(&tmph, "rnx", false, 1);
+    Result rc = smRegisterService(&tmph, rnxSrv, false, 1);
     if(R_FAILED(rc)) return true;
-    smUnregisterService("rnx");
+    smUnregisterService(rnxSrv);
     return false;
 }
 
 bool IsSXOS()
 {
+    SmServiceName txSrv = { "tx" };
     Handle tmph = 0;
-    Result rc = smRegisterService(&tmph, "tx", false, 1);
+    Result rc = smRegisterService(&tmph, txSrv, false, 1);
     if(R_FAILED(rc)) return true;
-    smUnregisterService("tx");
+    smUnregisterService(txSrv);
     return false;
 }
 

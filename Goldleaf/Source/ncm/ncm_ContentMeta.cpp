@@ -25,7 +25,7 @@ namespace ncm
 {
     ContentMeta::ContentMeta()
     {
-        buf.Resize(sizeof(ContentMetaHeader));
+        buf.Resize(sizeof(PackagedContentMetaHeader));
     }
 
     ContentMeta::ContentMeta(u8* Data, size_t Size) : buf(Size)
@@ -38,55 +38,58 @@ namespace ncm
     {
     }
 
-    ContentMetaHeader ContentMeta::GetContentMetaHeader()
+    PackagedContentMetaHeader ContentMeta::GetPackagedContentMetaHeader()
     {
-        return buf.Read<ContentMetaHeader>(0);
+        return buf.Read<PackagedContentMetaHeader>(0);
     }
 
-    NcmMetaRecord ContentMeta::GetContentMetaKey()
+    NcmContentMetaKey ContentMeta::GetContentMetaKey()
     {
-        NcmMetaRecord metaRecord;
-        ContentMetaHeader contentMetaHeader = this->GetContentMetaHeader();
-        memset(&metaRecord, 0, sizeof(NcmMetaRecord));
-        metaRecord.titleId = contentMetaHeader.ApplicationId;
-        metaRecord.version = contentMetaHeader.TitleVersion;
-        metaRecord.type = static_cast<u8>(contentMetaHeader.Type);
+        NcmContentMetaKey metaRecord;
+        PackagedContentMetaHeader contentMetaHeader = this->GetPackagedContentMetaHeader();
+        memset(&metaRecord, 0, sizeof(NcmContentMetaKey));
+        metaRecord.title_id = contentMetaHeader.title_id;
+        metaRecord.version = contentMetaHeader.version;
+        metaRecord.type = static_cast<NcmContentMetaType>(contentMetaHeader.type);
         return metaRecord;
     }
 
-    std::vector<ContentRecord> ContentMeta::GetContentRecords()
+    std::vector<NcmContentInfo> ContentMeta::GetContentInfos()
     {
-        ContentMetaHeader contentMetaHeader = this->GetContentMetaHeader();
-        std::vector<ContentRecord> contentRecords;
-        HashedContentRecord *hashedContentRecords = (HashedContentRecord*)(buf.GetData() + sizeof(ContentMetaHeader) + contentMetaHeader.ExtendedHeaderSize);
-        for(u32 i = 0; i < contentMetaHeader.ContentCount; i++)
+        PackagedContentMetaHeader contentMetaHeader = this->GetPackagedContentMetaHeader();
+        std::vector<NcmContentInfo> contentInfos;
+        PackagedContentInfo* packagedContentInfos = (PackagedContentInfo*)(buf.GetData() + sizeof(PackagedContentMetaHeader) + contentMetaHeader.extended_header_size);
+        for (unsigned int i = 0; i < contentMetaHeader.content_count; i++)
         {
-            HashedContentRecord hashedContentRecord = hashedContentRecords[i];
-            if(static_cast<u8>(hashedContentRecord.Record.Type) <= 5) contentRecords.push_back(hashedContentRecord.Record); 
+            PackagedContentInfo packagedContentInfo = packagedContentInfos[i];
+            if (static_cast<u8>(packagedContentInfo.content_info.content_type) <= 5) contentInfos.push_back(packagedContentInfo.content_info);
         }
-        return contentRecords;
+
+        return contentInfos;
     }
 
-    void ContentMeta::GetInstallContentMeta(ByteBuffer &CNMTBuffer, ContentRecord &CNMTRecord, bool IgnoreVersion)
+    void ContentMeta::GetInstallContentMeta(ByteBuffer &installContentMetaBuffer, NcmContentInfo &cnmtNcmContentInfo, bool ignoreReqFirmVersion)
     {
-        ContentMetaHeader contentMetaHeader = this->GetContentMetaHeader();
-        std::vector<ContentRecord> contentRecords = this->GetContentRecords();
-        InstallContentMetaHeader installContentMetaHeader;
-        installContentMetaHeader.ExtendedHeaderSize = contentMetaHeader.ExtendedHeaderSize;
-        installContentMetaHeader.ContentCount = contentRecords.size() + 1;
-        installContentMetaHeader.ContentMetaCount = contentMetaHeader.ContentMetaCount;
-        CNMTBuffer.Append<InstallContentMetaHeader>(installContentMetaHeader);
-        CNMTBuffer.Resize(CNMTBuffer.GetSize() + contentMetaHeader.ExtendedHeaderSize);
-        auto *ExtendedHeaderSourceBytes = buf.GetData() + sizeof(ContentMetaHeader);
-        u8 *installExtendedHeaderStart = CNMTBuffer.GetData() + sizeof(InstallContentMetaHeader);
-        memcpy(installExtendedHeaderStart, ExtendedHeaderSourceBytes, contentMetaHeader.ExtendedHeaderSize);
-        if(IgnoreVersion && ((contentMetaHeader.Type == ContentMetaType::Application) || (contentMetaHeader.Type == ContentMetaType::Patch))) CNMTBuffer.Write<u32>(0, sizeof(InstallContentMetaHeader) + 8);
-        CNMTBuffer.Append<ContentRecord>(CNMTRecord);
-        for(auto &contentRecord : contentRecords) CNMTBuffer.Append<ContentRecord>(contentRecord);
-        if(contentMetaHeader.Type == ContentMetaType::Patch)
+        PackagedContentMetaHeader packagedContentMetaHeader = this->GetPackagedContentMetaHeader();
+        std::vector<NcmContentInfo> contentInfos = this->GetContentInfos();
+        NcmContentMetaHeader contentMetaHeader;
+        contentMetaHeader.extended_header_size = packagedContentMetaHeader.extended_header_size;
+        contentMetaHeader.content_count = contentInfos.size() + 1;
+        contentMetaHeader.content_meta_count = packagedContentMetaHeader.content_meta_count;
+        installContentMetaBuffer.Append<NcmContentMetaHeader>(contentMetaHeader);
+        installContentMetaBuffer.Resize(installContentMetaBuffer.GetSize() + contentMetaHeader.extended_header_size);
+        auto* extendedHeaderSourceBytes = buf.GetData() + sizeof(PackagedContentMetaHeader);
+        u8* installExtendedHeaderStart = installContentMetaBuffer.GetData() + sizeof(NcmContentMetaHeader);
+        memcpy(installExtendedHeaderStart, extendedHeaderSourceBytes, contentMetaHeader.extended_header_size);
+        if (ignoreReqFirmVersion && (packagedContentMetaHeader.type == NcmContentMetaType_Application || packagedContentMetaHeader.type == NcmContentMetaType_Patch))
+            installContentMetaBuffer.Write<u32>(0, sizeof(NcmContentMetaHeader) + 8);
+        installContentMetaBuffer.Append<NcmContentInfo>(cnmtNcmContentInfo);
+        for (auto& contentInfo : contentInfos)
+            installContentMetaBuffer.Append<NcmContentInfo>(contentInfo);
+        if (packagedContentMetaHeader.type == NcmContentMetaType_Patch)
         {
-            PatchMetaExtendedHeader *patchMetaExtendedHeader = (PatchMetaExtendedHeader*)ExtendedHeaderSourceBytes;
-            CNMTBuffer.Resize(CNMTBuffer.GetSize() + patchMetaExtendedHeader->ExtendedDataSize);
+            NcmPatchMetaExtendedHeader* patchMetaExtendedHeader = (NcmPatchMetaExtendedHeader*)extendedHeaderSourceBytes;
+            installContentMetaBuffer.Resize(installContentMetaBuffer.GetSize() + patchMetaExtendedHeader->extended_data_size);
         }
     }
 }

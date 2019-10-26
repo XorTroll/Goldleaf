@@ -85,13 +85,13 @@ namespace ui
             pu::String info = set::GetDictionaryEntry(82) + "\n\n";
             switch(inst.GetContentMetaType())
             {
-                case ncm::ContentMetaType::Application:
+                case NcmContentMetaType_Application:
                     info += set::GetDictionaryEntry(83);
                     break;
-                case ncm::ContentMetaType::Patch:
+                case NcmContentMetaType_Patch:
                     info += set::GetDictionaryEntry(84);
                     break;
-                case ncm::ContentMetaType::AddOnContent:
+                case NcmContentMetaType_AddOnContent:
                     info += set::GetDictionaryEntry(85);
                     break;
                 default:
@@ -136,25 +136,25 @@ namespace ui
             info += set::GetDictionaryEntry(93) + " ";
             for(u32 i = 0; i < NCAs.size(); i++)
             {
-                ncm::ContentType t = NCAs[i].Type;
+                NcmContentType t = (NcmContentType)NCAs[i].content_type;
                 switch(t)
                 {
-                    case ncm::ContentType::Control:
+                    case NcmContentType_Control:
                         info += set::GetDictionaryEntry(166);
                         break;
-                    case ncm::ContentType::Data:
+                    case NcmContentType_Data:
                         info += set::GetDictionaryEntry(165);
                         break;
-                    case ncm::ContentType::LegalInformation:
+                    case NcmContentType_LegalInformation:
                         info += set::GetDictionaryEntry(168);
                         break;
-                    case ncm::ContentType::Meta:
+                    case NcmContentType_Meta:
                         info += set::GetDictionaryEntry(163);
                         break;
-                    case ncm::ContentType::OfflineHtml:
+                    case NcmContentType_HtmlDocument:
                         info += set::GetDictionaryEntry(167);
                         break;
-                    case ncm::ContentType::Program:
+                    case NcmContentType_Program:
                         info += set::GetDictionaryEntry(164);
                         break;
                     default:
@@ -251,11 +251,11 @@ namespace ui
             mainapp->CallForRender();
             this->installBar->SetVisible(true);
             hos::LockAutoSleep();
-            rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
+            rc = inst.WriteContents([&](NcmContentInfo Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
             {
                 this->installBar->SetMaxValue(Total);
-                pu::String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
-                if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
+                pu::String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.content_id);
+                if(Record.content_type == NcmContentType_Meta) name += ".cnmt";
                 u64 speed = (u64)BytesSec;
                 u64 size = (u64)(Total - Done);
                 u64 secstime = size / speed;

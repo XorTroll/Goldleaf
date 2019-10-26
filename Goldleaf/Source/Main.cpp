@@ -34,7 +34,6 @@ void Initialize()
     if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
     // TODO: Better way to handle this than exiting? User won't know what happened
 
-    if(R_FAILED(ncm::Initialize())) exit(1);
     if(R_FAILED(acc::Initialize())) exit(1);
     if(R_FAILED(accountInitialize())) exit(1);
     if(R_FAILED(ncmInitialize())) exit(1);
@@ -78,7 +77,6 @@ void Finalize()
     nsExit();
     accountExit();
     acc::Finalize();
-    ncm::Finalize();
     ncmExit();
     nifmExit();
     pdmqryExit();

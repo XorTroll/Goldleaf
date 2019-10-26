@@ -100,11 +100,11 @@ namespace ui
                     this->downloadBar->SetVisible(false);
                     this->infoText->SetText(set::GetDictionaryEntry(312));
                     mainapp->CallForRender();
-                    if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, GOLDLEAF_APPID))
+                    if(hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::SdCard, GOLDLEAF_APPID))
                     {
                         this->infoText->SetText(set::GetDictionaryEntry(313));
                         mainapp->CallForRender();
-                        auto titles = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
+                        auto titles = hos::SearchTitles(NcmContentMetaType_Unknown, Storage::SdCard);
                         for(u32 i = 0; i < titles.size(); i++)
                         {
                             if(titles[i].ApplicationId == GOLDLEAF_APPID)
@@ -114,11 +114,11 @@ namespace ui
                             }
                         }
                     }
-                    else if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, GOLDLEAF_APPID))
+                    else if(hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::NANDUser, GOLDLEAF_APPID))
                     {
                         this->infoText->SetText(set::GetDictionaryEntry(313));
                         mainapp->CallForRender();
-                        auto titles = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
+                        auto titles = hos::SearchTitles(NcmContentMetaType_Unknown, Storage::NANDUser);
                         for(u32 i = 0; i < titles.size(); i++)
                         {
                             if(titles[i].ApplicationId == GOLDLEAF_APPID)

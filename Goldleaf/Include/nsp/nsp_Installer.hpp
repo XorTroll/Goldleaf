@@ -31,7 +31,7 @@
 #include <fs/fs_Explorer.hpp>
 #include <hos/hos_Content.hpp>
 #include <hos/hos_Titles.hpp>
-#include <ncm/ncm_Service.hpp>
+#include <switch/services/ncm.h>
 
 namespace nsp
 {
@@ -42,15 +42,15 @@ namespace nsp
             ~Installer();
             Result PrepareInstallation();
             Result PreProcessContents();
-            ncm::ContentMetaType GetContentMetaType();
+            NcmContentMetaType GetContentMetaType();
             u64 GetApplicationId();
             std::string GetExportedIconPath();
             NacpStruct *GetNACP();
             bool HasTicket();
             hos::TicketData GetTicketData();
             u8 GetKeyGeneration();
-            std::vector<ncm::ContentRecord> GetNCAs();
-            Result WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite);
+            std::vector<NcmContentInfo> GetNCAs();
+            Result WriteContents(std::function<void(NcmContentInfo Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite);
             void FinalizeInstallation();
         private:
             PFS0 nspentry;
@@ -60,11 +60,11 @@ namespace nsp
             ncm::ContentMeta cnmt;
             FsStorageId storage;
             ByteBuffer ccnmt;
-            NcmMetaRecord mrec;
+            NcmContentMetaKey mrec;
             u64 baseappid;
             u64 stik;
             pu::String tik;
-            std::vector<ncm::ContentRecord> ncas;
+            std::vector<NcmContentInfo> ncas;
             pu::String icon;
     };
 }

@@ -30,10 +30,10 @@ FsStorage fatfs_bin;
 
 namespace dump
 {
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, pu::String Path, std::function<void(double Done, double Total)> Callback)
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmContentId NCAId, pu::String Path, std::function<void(double Done, double Total)> Callback)
     {
-        u64 ncasize = 0;
-        ncmContentStorageGetSize(ncst, &NCAId, &ncasize);
+        s64 ncasize = 0;
+        ncmContentStorageGetSizeFromContentId(ncst, &ncasize, &NCAId);
         u64 szrem = ncasize;
         FILE *f = fopen(Path.AsUTF8().c_str(), "wb");
         u64 off = 0;
@@ -42,7 +42,7 @@ namespace dump
         while(szrem)
         {
             u64 rsize = std::min(rmax, szrem);
-            if(ncmContentStorageReadContentIdFile(ncst, &NCAId, off, data, rsize) != 0) break;
+            if(ncmContentStorageReadContentIdFile(ncst, data, off, &NCAId, rsize) != 0) break;
             fwrite(data, 1, rsize, f);
             szrem -= rsize;
             off += rsize;
@@ -51,21 +51,21 @@ namespace dump
         fclose(f);
     }
 
-    bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out)
+    bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmContentMetaKey *out)
     {
-        size_t size = sizeof(NcmMetaRecord) * hos::MaxTitleCount;
-        NcmMetaRecord *metas = new NcmMetaRecord[hos::MaxTitleCount]();
-        u32 total = 0;
-        u32 written = 0;
+        size_t size = sizeof(NcmContentMetaKey) * hos::MaxTitleCount;
+        NcmContentMetaKey *metas = new NcmContentMetaKey[hos::MaxTitleCount]();
+        s32 total = 0;
+        s32 written = 0;
         bool got = false;
-        Result rc = ncmContentMetaDatabaseList(metadb, 0, ApplicationId, 0, U64_MAX, metas, size, &written, &total);
+        Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, size, NcmContentMetaType_Unknown, ApplicationId, 0, U64_MAX, NcmContentInstallType_Full);
         if((rc == 0) && (written > 0)) 
         {
-            for(u32 i = 0; i < written; i++)
+            for(s32 i = 0; i < written; i++)
             {
-                if(metas[i].titleId == ApplicationId)
+                if(metas[i].title_id == ApplicationId)
                 {
-                    memcpy(out, &metas[i], sizeof(NcmMetaRecord));
+                    memcpy(out, &metas[i], sizeof(NcmContentMetaKey));
                     got = true;
                     break;
                 }
@@ -79,15 +79,15 @@ namespace dump
     {
         FsStorageId stid = FsStorageId_None;
         NcmContentMetaDatabase cmdb;
-        ncmOpenContentMetaDatabase(FsStorageId_SdCard, &cmdb);
-        NcmMetaRecord rec;
+        ncmOpenContentMetaDatabase(&cmdb, FsStorageId_SdCard);
+        NcmContentMetaKey rec;
         bool ok = GetMetaRecord(&cmdb, ApplicationId, &rec);
         if(ok) stid = FsStorageId_SdCard;
         else
         {
             serviceClose(&cmdb.s);
-            ncmOpenContentMetaDatabase(FsStorageId_NandUser, &cmdb);
-            NcmMetaRecord rec;
+            ncmOpenContentMetaDatabase(&cmdb, FsStorageId_NandUser);
+            NcmContentMetaKey rec;
             bool ok = GetMetaRecord(&cmdb, ApplicationId, &rec);
             if(ok) stid = FsStorageId_NandUser;
         }
@@ -165,16 +165,16 @@ namespace dump
         }
     }
 
-    pu::String GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id)
+    pu::String GetContentIdPath(NcmContentStorage *st, NcmContentId *Id)
     {
         char out[FS_MAX_PATH] = { 0 };
-        Result rc = ncmContentStorageGetPath(st, Id, out, FS_MAX_PATH);
+        Result rc = ncmContentStorageGetPath(st, out, FS_MAX_PATH, Id);
         pu::String sst = "";
         if(rc == 0) sst = pu::String(out);
         return sst;
     }
 
-    bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmMetaRecord *rec, u64 ApplicationId, NCAType Type, NcmNcaId *out)
+    bool GetContentId(NcmContentMetaDatabase *cmdb, NcmContentMetaKey *rec, u64 ApplicationId, NCAType Type, NcmContentId *out)
     {
         NcmContentType ctype = NcmContentType_Program;
         switch(Type)
@@ -183,22 +183,22 @@ namespace dump
                 ctype = NcmContentType_Program;
                 break;
             case NCAType::Control:
-                ctype = NcmContentType_Icon;
+                ctype = NcmContentType_Control;
                 break;
             case NCAType::Meta:
-                ctype = NcmContentType_CNMT;
+                ctype = NcmContentType_Meta;
                 break;
             case NCAType::LegalInfo:
-                ctype = NcmContentType_Info;
+                ctype = NcmContentType_LegalInformation;
                 break;
             case NCAType::OfflineHtml:
-                ctype = NcmContentType_Doc;
+                ctype = NcmContentType_HtmlDocument;
                 break;
             case NCAType::Data:
                 ctype = NcmContentType_Data;
                 break;
         }
-        Result rc = ncmContentMetaDatabaseGetContentIdByType(cmdb, ctype, rec, out);
+        Result rc = ncmContentMetaDatabaseGetContentIdByType(cmdb, out, rec, ctype);
         return (rc == 0);
     }
 }

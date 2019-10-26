@@ -32,11 +32,11 @@ namespace acc
         u64 NintendoAccountId;  
     };
 
-    u128 GetSelectedUser();
-    void SetSelectedUser(u128 User);
+    AccountUid GetSelectedUser();
+    void SetSelectedUser(AccountUid User);
     bool SelectFromPreselectedUser();
     bool SelectUser();
-    u128 LaunchPlayerSelect();
+    AccountUid LaunchPlayerSelect();
     Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb);
     Result EditUserIcon(u8 *JPEG, size_t JPEG_size);
     void CacheSelectedUserIcon();

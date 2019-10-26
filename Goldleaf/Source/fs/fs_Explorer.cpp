@@ -554,14 +554,14 @@ namespace fs
     u64 SdCardExplorer::GetTotalSpace()
     {
         u64 sz = 0;
-        fsFsGetTotalSpace(fsdevGetDefaultFileSystem(), "/", &sz);
+        fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sdmc"), "/", &sz);
         return sz;
     }
 
     u64 SdCardExplorer::GetFreeSpace()
     {
         u64 sz = 0;
-        fsFsGetFreeSpace(fsdevGetDefaultFileSystem(), "/", &sz);
+        fsFsGetFreeSpace(fsdevGetDeviceFileSystem("sdmc"), "/", &sz);
         return sz;
     }
 

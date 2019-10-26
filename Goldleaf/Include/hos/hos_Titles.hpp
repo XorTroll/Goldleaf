@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <Types.hpp>
-#include <ncm/ncm_Service.hpp>
+#include <switch/services/ncm.h>
 #include <ns/ns_Service.hpp>
 #include <es/es_Service.hpp>
 
@@ -61,8 +61,8 @@ namespace hos
 
     struct ContentId
     {
-        ncm::ContentType Type;
-        NcmNcaId NCAId;
+        NcmContentType Type;
+        NcmContentId NCAId;
         Storage Location;
         bool Empty;
         u64 Size;
@@ -94,9 +94,9 @@ namespace hos
     struct Title
     {
         u64 ApplicationId;
-        ncm::ContentMetaType Type;
+        NcmContentMetaType Type;
         u32 Version;
-        NcmMetaRecord Record;
+        NcmContentMetaKey Record;
         Storage Location;
         
         NacpStruct *TryGetNACP();
@@ -108,7 +108,7 @@ namespace hos
         bool IsDLC();
         bool CheckBase(Title &Other);
         TitlePlayStats GetGlobalPlayStats();
-        TitlePlayStats GetUserPlayStats(u128 UserId);
+        TitlePlayStats GetUserPlayStats(AccountUid UserId);
     };
 
     struct Ticket
@@ -131,15 +131,15 @@ namespace hos
     static constexpr u32 MaxTitleCount = 64000;
 
     std::string FormatApplicationId(u64 ApplicationId);
-    std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
+    std::vector<Title> SearchTitles(NcmContentMetaType Type, Storage Location);
     Title Locate(u64 ApplicationId);
-    bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId);
+    bool ExistsTitle(NcmContentMetaType Type, Storage Location, u64 ApplicationId);
     std::vector<Ticket> GetAllTickets();
     Result RemoveTitle(Title &ToRemove);
     Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
     pu::String GetExportedNACPPath(u64 ApplicationId);
-    u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
+    u64 GetBaseApplicationId(u64 ApplicationId, NcmContentMetaType Type);
     u32 GetIdFromDLCApplicationId(u64 ApplicationId);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
     TicketData ReadTicket(pu::String Path);

@@ -21,265 +21,132 @@
 
 #include <es/es_Service.hpp>
 #include <cstring>
+#include "service_guard.h"
 
-static Service essrv;
-static u64 escnt = 0;
+static Service g_esSrv;
 
 namespace es
 {
-    Result Initialize()
-    {
-        atomicIncrement64(&escnt);
-        if(serviceIsActive(&essrv)) return 0;
-        return smGetService(&essrv, "es");
+    NX_GENERATE_SERVICE_GUARD(es);
+    
+    Result _esInitialize(void) {
+        return smGetService(&g_esSrv, "es");
     }
 
-    void Finalize()
-    {
-        if(atomicDecrement64(&escnt) == 0) serviceClose(&essrv);
+    void _esCleanup(void) {
+        serviceClose(&g_esSrv);
     }
 
     bool HasInitialized()
     {
-        return serviceIsActive(&essrv);
+        return serviceIsActive(&g_esSrv);
     }
 
     Result ImportTicket(void const *Ticket, size_t TicketSize, void const *Cert, size_t CertSize)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddSendBuffer(&c, Ticket, TicketSize, BufferType_Normal);
-        ipcAddSendBuffer(&c, Cert, CertSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 1;
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+        return serviceDispatch(&g_esSrv, 1,
+            .buffer_attrs = {
+                SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
+                SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
+            },
+            .buffers = {
+                { Ticket,   TicketSize },
+                { Cert,  CertSize },
+            },
+        );
     }
 
     Result DeleteTicket(const RightsId *RId, size_t RIdSize)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddSendBuffer(&c, RId, RIdSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 3;
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+        return serviceDispatch(&g_esSrv, 3,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
+            .buffers = { { RId, RIdSize }, },
+        );
     }
 
     Result GetTitleKey(const RightsId *RId, u8 *out_Key, size_t out_KeySize)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, out_Key, out_KeySize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
+        struct {
             RightsId RId;
-            u32 KeyGen;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 8;
-        raw->KeyGen = 0;
-        memcpy(&raw->RId, RId, sizeof(RightsId));
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-        }
-        return rc;
+            u32 KeyGen; 
+        } in;
+        memcpy(&in.RId, RId, sizeof(RightsId));
+        in.KeyGen = 0;
+        return serviceDispatchIn(&g_esSrv, 8, in,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
+            .buffers = { { out_Key, out_KeySize } },
+        );
     }
 
     Result CountCommonTicket(u32 *out_Count)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 9;
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u32 Count;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Count = resp->Count;
-        }
+        struct {
+            u32 num_tickets;
+        } out;
+
+        Result rc = serviceDispatchOut(&g_esSrv, 9, out);
+        if (R_SUCCEEDED(rc) && out_Count) *out_Count = out.num_tickets;
+        
         return rc;
     }
 
     Result CountPersonalizedTicket(u32 *out_Count)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 10;
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u32 Count;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Count = resp->Count;
-        }
+        struct {
+            u32 num_tickets;
+        } out;
+
+        Result rc = serviceDispatchOut(&g_esSrv, 10, out);
+        if (R_SUCCEEDED(rc) && out_Count) *out_Count = out.num_tickets;
+        
         return rc;
     }
 
     Result ListCommonTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, out_Ids, out_IdsSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 11;
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u32 Written;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Written = resp->Written;
-        }
+        struct {
+            u32 num_rights_ids_written;
+        } out;
+        
+        Result rc = serviceDispatchOut(&g_esSrv, 11, out,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
+            .buffers = { { out_Ids, out_IdsSize } },
+        );
+        if (R_SUCCEEDED(rc) && out_Written) *out_Written = out.num_rights_ids_written;
+        
         return rc;
     }
 
     Result ListPersonalizedTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, out_Ids, out_IdsSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 12;
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u32 Written;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Written = resp->Written;
-        }
+        struct {
+            u32 num_rights_ids_written;
+        } out;
+        
+        Result rc = serviceDispatchOut(&g_esSrv, 12, out,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
+            .buffers = { { out_Ids, out_IdsSize } },
+        );
+        if (R_SUCCEEDED(rc) && out_Written) *out_Written = out.num_rights_ids_written;
+        
         return rc;
     }
 
     Result GetCommonTicketData(const RightsId *RId, void *out_Data, size_t out_DataSize, u64 *out_Unk)
     {
-        IpcCommand c;
-        ipcInitialize(&c);
-        ipcAddRecvBuffer(&c, out_Data, out_DataSize, BufferType_Normal);
-        struct Raw
-        {
-            u64 Magic;
-            u64 CmdId;
-            RightsId RId;
-        } *raw;
-        raw = (struct Raw*)ipcPrepareHeader(&c, sizeof(*raw));
-        raw->Magic = SFCI_MAGIC;
-        raw->CmdId = 16;
-        memcpy(&raw->RId, RId, sizeof(RightsId));
-        Result rc = serviceIpcDispatch(&essrv);
-        if(R_SUCCEEDED(rc))
-        {
-            IpcParsedCommand r;
-            ipcParse(&r);
-            struct Parsed
-            {
-                u64 Magic;
-                u64 Result;
-                u64 Unknown;
-            } *resp = (struct Parsed*)r.Raw;
-            rc = resp->Result;
-            if(R_SUCCEEDED(rc)) *out_Unk = resp->Unknown;
-        }
+        struct {
+            RightsId rightsId;
+        } in;
+        memcpy(&in.rightsId, RId, sizeof(RightsId));
+
+        struct {
+            u64 unk;
+        } out;
+
+        Result rc = serviceDispatchInOut(&g_esSrv, 16, in, out,
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
+            .buffers = { { out_Data, out_DataSize } },
+        );
         return rc;
     }
 }

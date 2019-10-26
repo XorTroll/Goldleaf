@@ -50,7 +50,7 @@ namespace set
     {
         Settings gset;
         u64 lcode = 0;
-        s32 lang = 1;
+        SetLanguage lang = SetLanguage_ENUS;
         setGetSystemLanguage(&lcode);
         setMakeLanguage(lcode, &lang);
         switch(lang)

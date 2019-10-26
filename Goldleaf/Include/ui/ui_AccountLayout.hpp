@@ -39,6 +39,6 @@ namespace ui
             void optsServicesInfo_Click();
         private:
             pu::ui::elm::Menu::Ref optsMenu;
-            u128 uid;
+            AccountUid uid;
     };
 }

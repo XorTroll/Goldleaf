@@ -28,10 +28,11 @@ namespace nfp
 {
     bool IsEmuiiboPresent()
     {
+        SmServiceName emuSrv = { "nfp:emu" };
         Handle tmph = 0;
-        Result rc = smRegisterService(&tmph, "nfp:emu", false, 1);
+        Result rc = smRegisterService(&tmph, emuSrv, false, 1);
         if(R_FAILED(rc)) return true;
-        smUnregisterService("nfp:emu");
+        smUnregisterService(emuSrv);
         return false;
     }
 

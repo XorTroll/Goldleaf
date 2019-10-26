@@ -39,11 +39,11 @@ namespace hos
     {
         pu::String path;
         NcmContentStorage cst;
-        Result rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
+        Result rc = ncmOpenContentStorage(&cst, static_cast<FsStorageId>(this->Location));
         if(rc == 0)
         {
             char pout[FS_MAX_PATH] = { 0 };
-            rc = ncmContentStorageGetPath(&cst, &this->NCAId, pout, FS_MAX_PATH);
+            rc = ncmContentStorageGetPath(&cst, pout, FS_MAX_PATH, &this->NCAId);
             if(rc == 0) path = pu::String(pout);
         }
         serviceClose(&cst.s);
@@ -65,7 +65,7 @@ namespace hos
         NacpStruct *nacp = NULL;
         NsApplicationControlData *ctdata = new NsApplicationControlData;
         size_t acsz = 0;
-        Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
+        Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
             nacp = new NacpStruct();
@@ -73,7 +73,7 @@ namespace hos
         }
         else
         {
-            rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
+            rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
                 nacp = new NacpStruct();
@@ -89,7 +89,7 @@ namespace hos
         u8 *icon = NULL;
         NsApplicationControlData *ctdata = new NsApplicationControlData();
         size_t acsz = 0;
-        Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
+        Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
             icon = new u8[0x20000]();
@@ -97,7 +97,7 @@ namespace hos
         }
         else
         {
-            rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
+            rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
                 icon = new u8[0x20000]();
@@ -139,25 +139,25 @@ namespace hos
         memset(&cnts, 0, sizeof(cnts));
         NcmContentMetaDatabase metadb;
         NcmContentStorage cst;
-        Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(this->Location), &metadb);
+        Result rc = ncmOpenContentMetaDatabase(&metadb, static_cast<FsStorageId>(this->Location));
         if(rc == 0)
         {
-            rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
+            rc = ncmOpenContentStorage(&cst, static_cast<FsStorageId>(this->Location));
             if(rc == 0) for(u32 i = 0; i < 6; i++)
             {
                 ContentId cntid;
                 memset(&cntid, 0, sizeof(cntid));
-                cntid.Type = static_cast<ncm::ContentType>(i);
+                cntid.Type = static_cast<NcmContentType>(i);
                 cntid.Empty = true;
                 cntid.Size = 0;
                 cntid.Location = this->Location;
-                NcmNcaId ncaid;
-                rc = ncmContentMetaDatabaseGetContentIdByType(&metadb, (NcmContentType)i, &this->Record, &ncaid);
+                NcmContentId ncaid;
+                rc = ncmContentMetaDatabaseGetContentIdByType(&metadb, &ncaid, &this->Record, (NcmContentType)i);
                 if(rc == 0)
                 {
                     cntid.Empty = false;
                     cntid.NCAId = ncaid;
-                    ncmContentStorageGetSize(&cst, &ncaid, &cntid.Size);
+                    ncmContentStorageGetSizeFromContentId(&cst, (s64*)&cntid.Size, &ncaid);
                 }
                 if(i == 0) cnts.Meta = cntid;
                 else if(i == 1) cnts.Program = cntid;
@@ -174,17 +174,17 @@ namespace hos
 
     bool Title::IsBaseTitle()
     {
-        return ((!this->IsUpdate()) && (!this->IsDLC()) &&(this->Type != ncm::ContentMetaType::SystemUpdate) && (this->Type != ncm::ContentMetaType::Delta));
+        return ((!this->IsUpdate()) && (!this->IsDLC()) &&(this->Type != NcmContentMetaType_SystemUpdate) && (this->Type != NcmContentMetaType_Delta));
     }
 
     bool Title::IsUpdate()
     {
-        return (this->Type == ncm::ContentMetaType::Patch);
+        return (this->Type == NcmContentMetaType_Patch);
     }
 
     bool Title::IsDLC()
     {
-        return (this->Type == ncm::ContentMetaType::AddOnContent);
+        return (this->Type == NcmContentMetaType_AddOnContent);
     }
 
     bool Title::CheckBase(Title &Other)
@@ -209,7 +209,7 @@ namespace hos
         return ProcessFromPdm(pdmstats);
     }
     
-    TitlePlayStats Title::GetUserPlayStats(u128 UserId)
+    TitlePlayStats Title::GetUserPlayStats(AccountUid UserId)
     {
         PdmPlayStatistics pdmstats;
         pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId, &pdmstats);
@@ -241,29 +241,29 @@ namespace hos
         return strm.str();
     }
 
-    std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location)
+    std::vector<Title> SearchTitles(NcmContentMetaType Type, Storage Location)
     {
         std::vector<Title> titles;
         NcmContentMetaDatabase metadb;
-        Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(Location), &metadb);
+        Result rc = ncmOpenContentMetaDatabase(&metadb, static_cast<FsStorageId>(Location));
         if(rc == 0)
         {
-            size_t srecs = MaxTitleCount * sizeof(NcmMetaRecord);
-            NcmMetaRecord *recs = new NcmMetaRecord[MaxTitleCount]();
-            u32 wrt = 0;
-            u32 total = 0;
-            rc = ncmContentMetaDatabaseList(&metadb, static_cast<u32>(Type), 0, 0, UINT64_MAX, recs, srecs, &wrt, &total);
+            size_t srecs = MaxTitleCount * sizeof(NcmContentMetaKey);
+            NcmContentMetaKey *recs = new NcmContentMetaKey[MaxTitleCount]();
+            s32 wrt = 0;
+            s32 total = 0;
+            rc = ncmContentMetaDatabaseList(&metadb, &total, &wrt, recs, srecs, NcmContentMetaType_Unknown, 0, 0, U64_MAX, NcmContentInstallType_Full);
             if((rc == 0) && (wrt > 0))
             {
                 titles.reserve(wrt);
-                for(u32 i = 0; i < wrt; i++)
+                for(s32 i = 0; i < wrt; i++)
                 {
                     Title t = {};
-                    t.ApplicationId = recs[i].titleId;
-                    t.Type = static_cast<ncm::ContentMetaType>(recs[i].type);
+                    t.ApplicationId = recs[i].title_id;
+                    t.Type = static_cast<NcmContentMetaType>(recs[i].type);
                     t.Version = recs[i].version;
                     t.Location = Location;
-                    memcpy(&t.Record, &recs[i], sizeof(NcmMetaRecord));
+                    memcpy(&t.Record, &recs[i], sizeof(NcmContentMetaKey));
                     titles.push_back(t);
                 }
             }
@@ -288,21 +288,21 @@ namespace hos
         }
 
         Title tit = {};
-        std::vector<Title> titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDSystem);
+        std::vector<Title> titles = SearchTitles(NcmContentMetaType_Unknown, Storage::NANDSystem);
         
         _TMP_FIND_LOCATE
 
         if(tit.ApplicationId == 0)
         {
             titles.clear();
-            titles = SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
+            titles = SearchTitles(NcmContentMetaType_Unknown, Storage::NANDUser);
             
             _TMP_FIND_LOCATE
         }
         if(tit.ApplicationId == 0)
         {
             titles.clear();
-            titles = SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
+            titles = SearchTitles(NcmContentMetaType_Unknown, Storage::SdCard);
 
             _TMP_FIND_LOCATE
         }
@@ -310,7 +310,7 @@ namespace hos
         return tit;
     }
 
-    bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId)
+    bool ExistsTitle(NcmContentMetaType Type, Storage Location, u64 ApplicationId)
     {
         std::vector<Title> ts = SearchTitles(Type, Location);
 
@@ -326,7 +326,7 @@ namespace hos
     {
         auto cnts = ToRemove.GetContents();
         NcmContentStorage cst;
-        Result rc = ncmOpenContentStorage(static_cast<FsStorageId>(ToRemove.Location), &cst);
+        Result rc = ncmOpenContentStorage(&cst, static_cast<FsStorageId>(ToRemove.Location));
         if(rc == 0)
         {
             if(!cnts.Meta.Empty) ncmContentStorageDelete(&cst, &cnts.Meta.NCAId);
@@ -338,7 +338,7 @@ namespace hos
         }
         serviceClose(&cst.s);
         NcmContentMetaDatabase metadb;
-        rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(ToRemove.Location), &metadb);
+        rc = ncmOpenContentMetaDatabase(&metadb, static_cast<FsStorageId>(ToRemove.Location));
         if(rc == 0)
         {
             rc = ncmContentMetaDatabaseRemove(&metadb, &ToRemove.Record);
@@ -394,15 +394,15 @@ namespace hos
         return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".nacp";
     }
 
-    u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
+    u64 GetBaseApplicationId(u64 ApplicationId, NcmContentMetaType Type)
     {
         u64 appid = ApplicationId;
         switch(Type)
         {
-            case ncm::ContentMetaType::Patch:
+            case NcmContentMetaType_Patch:
                 appid = (ApplicationId ^ 0x800);
                 break;
-            case ncm::ContentMetaType::AddOnContent:
+            case NcmContentMetaType_AddOnContent:
                 appid = ((ApplicationId ^ 0x1000) & ~0xfff);
                 break;
             default:

@@ -97,7 +97,7 @@ namespace ui
             bool preisch;
             bool hasusb;
             u32 connstate;
-            u128 seluser;
+            AccountUid seluser;
             pu::String pretime;
             bool vfirst;
             MainMenuLayout::Ref mainMenu;

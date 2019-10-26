@@ -116,7 +116,8 @@ namespace ui
 
     void MainMenuLayout::accountMenuItem_Click()
     {
-        if(acc::GetSelectedUser() == 0)
+        AccountUid uid = acc::GetSelectedUser();
+        if(!accountUidIsValid(&uid))
         {
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(348), set::GetDictionaryEntry(349), {set::GetDictionaryEntry(111), set::GetDictionaryEntry(18)}, true);
             if(sopt != 0) return;

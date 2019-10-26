@@ -36,7 +36,7 @@ namespace ui
         if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
         pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
-        this->seluser = 0;
+        this->seluser = {0, 0};
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
@@ -457,10 +457,10 @@ namespace ui
         }
         else this->ipText->SetText("");
         auto user = acc::GetSelectedUser();
-        if(user != this->seluser)
+        if(user.uid[0] != this->seluser.uid[0] && user.uid[1] != this->seluser.uid[1])
         {
             this->seluser = user;
-            if(this->seluser == 0) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+            if(!accountUidIsValid(&this->seluser)) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
             else
             {
                 auto usericon = acc::GetCachedUserIcon();

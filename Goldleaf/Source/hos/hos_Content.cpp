@@ -24,7 +24,7 @@
 
 namespace hos
 {
-    pu::String ContentIdAsString(const NcmNcaId &NCAId)
+    pu::String ContentIdAsString(const NcmContentId &NCAId)
     {
         char idstr[FS_MAX_PATH] = {0};
         u64 lower = __bswap64(*(u64*)NCAId.c);
@@ -33,9 +33,9 @@ namespace hos
         return pu::String(idstr);
     }
 
-    NcmNcaId StringAsContentId(pu::String NCAId)
+    NcmContentId StringAsContentId(pu::String NCAId)
     {
-        NcmNcaId nid = {0};
+        NcmContentId nid = {0};
         char lower[0x20] = {0};
         char upper[0x20] = {0};
         memcpy(lower, NCAId.AsUTF8().c_str(), 16);

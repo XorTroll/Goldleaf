@@ -70,7 +70,7 @@ namespace fs
 
     void CreateConcatenationFile(pu::String Path)
     {
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FS_CREATE_BIG_FILE);
+        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
     }
 
     void CreateDirectory(pu::String Path)

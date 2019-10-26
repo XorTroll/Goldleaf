@@ -25,7 +25,7 @@
 #include <cstring>
 #include <switch.h>
 #include <Types.hpp>
-#include <ncm/ncm_Types.hpp>
+#include <ncm/ncm_ContentMeta.hpp>
 
 namespace hos
 {
@@ -36,8 +36,8 @@ namespace hos
         u32 Micro;
     };
 
-    pu::String ContentIdAsString(const NcmNcaId &ContentId);
-    NcmNcaId StringAsContentId(pu::String ContentId);
+    pu::String ContentIdAsString(const NcmContentId &ContentId);
+    NcmContentId StringAsContentId(pu::String ContentId);
 
     bool GetPendingUpdateInfo(PendingUpdateVersion *out);
     SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver);

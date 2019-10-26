@@ -387,8 +387,8 @@ namespace ui
                 switch(sopt)
                 {
                     case 0:
-                        u128 uid = acc::GetSelectedUser();
-                        if(uid == 0) return;
+                        AccountUid uid = acc::GetSelectedUser();
+                        if(!accountUidIsValid(&uid)) return;
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(122), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0) return;
 

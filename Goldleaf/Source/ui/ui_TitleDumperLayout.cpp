@@ -54,7 +54,7 @@ namespace ui
         this->dumpText->SetText(set::GetDictionaryEntry(193));
         mainapp->CallForRender();
         NcmContentStorage cst;
-        Result rc = ncmOpenContentStorage(stid, &cst);
+        Result rc = ncmOpenContentStorage(&cst, stid);
         if(rc != 0)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
@@ -62,7 +62,7 @@ namespace ui
             return;
         }
         NcmContentMetaDatabase cmdb;
-        rc = ncmOpenContentMetaDatabase(stid, &cmdb);
+        rc = ncmOpenContentMetaDatabase(&cmdb, stid);
         if(rc != 0)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
@@ -70,9 +70,9 @@ namespace ui
             serviceClose(&cst.s);
             return;
         }
-        NcmMetaRecord mrec = Target.Record;
-        NcmNcaId meta;
-        bool ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
+        NcmContentMetaKey mrec = Target.Record;
+        NcmContentId meta;
+        bool ok = dump::GetContentId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
@@ -81,33 +81,33 @@ namespace ui
             serviceClose(&cmdb.s);
             return;
         }
-        pu::String smeta = dump::GetNCAIdPath(&cst, &meta);
-        NcmNcaId program;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
+        pu::String smeta = dump::GetContentIdPath(&cst, &meta);
+        NcmContentId program;
+        ok = dump::GetContentId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
         bool hasprogram = ok;
         pu::String sprogram;
-        if(ok) sprogram = dump::GetNCAIdPath(&cst, &program);
-        NcmNcaId control;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
+        if(ok) sprogram = dump::GetContentIdPath(&cst, &program);
+        NcmContentId control;
+        ok = dump::GetContentId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
         bool hascontrol = ok;
         pu::String scontrol;
-        if(ok) scontrol = dump::GetNCAIdPath(&cst, &control);
-        NcmNcaId linfo;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
+        if(ok) scontrol = dump::GetContentIdPath(&cst, &control);
+        NcmContentId linfo;
+        ok = dump::GetContentId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
         bool haslinfo = ok;
         pu::String slinfo;
-        if(ok) slinfo = dump::GetNCAIdPath(&cst, &linfo);
-        NcmNcaId hoff;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::OfflineHtml, &hoff);
+        if(ok) slinfo = dump::GetContentIdPath(&cst, &linfo);
+        NcmContentId hoff;
+        ok = dump::GetContentId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::OfflineHtml, &hoff);
         bool hashoff = ok;
         pu::String shoff;
-        if(ok) shoff = dump::GetNCAIdPath(&cst, &hoff);
+        if(ok) shoff = dump::GetContentIdPath(&cst, &hoff);
 
-        NcmNcaId data;
-        ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Data, &data);
+        NcmContentId data;
+        ok = dump::GetContentId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Data, &data);
         bool hasdata = ok;
         pu::String sdata;
-        if(ok) sdata = dump::GetNCAIdPath(&cst, &data);
+        if(ok) sdata = dump::GetContentIdPath(&cst, &data);
 
         hos::LockAutoSleep();
 
