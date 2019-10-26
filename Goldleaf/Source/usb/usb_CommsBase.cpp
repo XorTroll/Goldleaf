@@ -51,8 +51,10 @@ namespace usb::comms
 
     static Result _usbCommsWrite(usbCommsInterface *interface, const void* buffer, size_t size, size_t *transferredSize);
 
-    static void _usbCommsUpdateInterfaceDescriptor(struct usb_interface_descriptor *desc, const UsbCommsInterfaceInfo *info) {
-        if (info != NULL) {
+    static void _usbCommsUpdateInterfaceDescriptor(struct usb_interface_descriptor *desc, const UsbCommsInterfaceInfo *info)
+    {
+        if (info != NULL)
+        {
             desc->bInterfaceClass = info->bInterfaceClass;
             desc->bInterfaceSubClass = info->bInterfaceSubClass;
             desc->bInterfaceProtocol = info->bInterfaceProtocol;
@@ -64,15 +66,22 @@ namespace usb::comms
         Result rc = 0;
         rwlockWriteLock(&g_usbCommsLock);
         
-        if (g_usbCommsInitialized) {
+        if (g_usbCommsInitialized)
+        {
             rc = MAKERESULT(Module_Libnx, LibnxError_AlreadyInitialized); 
-        } else if (num_interfaces > TotalInterfaces) {
+        }
+        else if (num_interfaces > TotalInterfaces)
+        {
             rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
-        } else {
+        }
+        else
+        {
             rc = usbDsInitialize();
             
-            if (R_SUCCEEDED(rc)) {
-                if (hosversionAtLeast(5,0,0)) {
+            if (R_SUCCEEDED(rc))
+            {
+                if (hosversionAtLeast(5,0,0))
+                {
                     u8 iManufacturer, iProduct, iSerialNumber;
                     static const u16 supported_langs[1] = {0x0409};
                     // Send language descriptor
@@ -136,8 +145,10 @@ namespace usb::comms
                     if (R_SUCCEEDED(rc)) rc = usbDsSetBinaryObjectStore(bos, sizeof(bos));
                 }
                 
-                if (R_SUCCEEDED(rc)) {
-                    for (u32 i = 0; i < num_interfaces; i++) {
+                if (R_SUCCEEDED(rc))
+                {
+                    for (u32 i = 0; i < num_interfaces; i++)
+                    {
                         usbCommsInterface *intf = &g_usbCommsInterfaces[i];
                         rwlockWriteLock(&intf->lock);
                         rwlockWriteLock(&intf->lock_in);
@@ -146,23 +157,27 @@ namespace usb::comms
                         rwlockWriteUnlock(&intf->lock_out);
                         rwlockWriteUnlock(&intf->lock_in);
                         rwlockWriteUnlock(&intf->lock);
-                        if (R_FAILED(rc)) {
+                        if (R_FAILED(rc))
+                        {
                             break;
                         }
                     }
                 }
             }
             
-            if (R_SUCCEEDED(rc) && hosversionAtLeast(5,0,0)) {
+            if (R_SUCCEEDED(rc) && hosversionAtLeast(5,0,0))
+            {
                 rc = usbDsEnable();
             }
             
-            if (R_FAILED(rc)) {
+            if (R_FAILED(rc))
+            {
                 Exit();
             }
         }
         
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(rc))
+        {
             g_usbCommsInitialized = true;
             g_usbCommsErrorHandling = false;
         }
@@ -179,7 +194,8 @@ namespace usb::comms
     static void _usbCommsInterfaceFree(usbCommsInterface *interface)
     {
         rwlockWriteLock(&interface->lock);
-        if (!interface->initialized) {
+        if (!interface->initialized)
+        {
             rwlockWriteUnlock(&interface->lock);
             return;
         }
@@ -224,7 +240,8 @@ namespace usb::comms
 
     static Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info)
     {
-        if (hosversionAtLeast(5,0,0)) {
+        if (hosversionAtLeast(5,0,0))
+        {
             return _usbCommsInterfaceInit5x(intf_ind, info);
         } else {
             return _usbCommsInterfaceInit1x(intf_ind, info);
@@ -277,12 +294,14 @@ namespace usb::comms
         interface->endpoint_in_buffer = new (std::align_val_t(0x1000)) u8[0x1000]();
         if (interface->endpoint_in_buffer==NULL) rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
 
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(rc))
+        {
             interface->endpoint_out_buffer = new (std::align_val_t(0x1000)) u8[0x1000]();
             if (interface->endpoint_out_buffer==NULL) rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
         }
 
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(rc))
+        {
             memset(interface->endpoint_in_buffer, 0, 0x1000);
             memset(interface->endpoint_out_buffer, 0, 0x1000);
         }
@@ -379,12 +398,14 @@ namespace usb::comms
         interface->endpoint_in_buffer = new (std::align_val_t(0x1000)) u8[0x1000]();
         if (interface->endpoint_in_buffer==NULL) rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
 
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(rc))
+        {
             interface->endpoint_out_buffer = new (std::align_val_t(0x1000)) u8[0x1000]();
             if (interface->endpoint_out_buffer==NULL) rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
         }
 
-        if (R_SUCCEEDED(rc)) {
+        if (R_SUCCEEDED(rc))
+        {
             memset(interface->endpoint_in_buffer, 0, 0x1000);
             memset(interface->endpoint_out_buffer, 0, 0x1000);
         }
@@ -408,7 +429,8 @@ namespace usb::comms
         return rc;
     }
 
-    void usbCommsSetErrorHandling(bool flag) {
+    void usbCommsSetErrorHandling(bool flag)
+    {
         g_usbCommsErrorHandling = flag;
     }
 

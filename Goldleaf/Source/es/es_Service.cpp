@@ -29,11 +29,13 @@ namespace es
 {
     NX_GENERATE_SERVICE_GUARD(es);
     
-    Result _esInitialize(void) {
+    Result _esInitialize(void)
+    {
         return smGetService(&g_esSrv, "es");
     }
 
-    void _esCleanup(void) {
+    void _esCleanup(void)
+    {
         serviceClose(&g_esSrv);
     }
 
@@ -66,7 +68,8 @@ namespace es
 
     Result GetTitleKey(const RightsId *RId, u8 *out_Key, size_t out_KeySize)
     {
-        struct {
+        struct
+        {
             RightsId RId;
             u32 KeyGen; 
         } in;
@@ -80,7 +83,8 @@ namespace es
 
     Result CountCommonTicket(u32 *out_Count)
     {
-        struct {
+        struct
+        {
             u32 num_tickets;
         } out;
 
@@ -92,7 +96,8 @@ namespace es
 
     Result CountPersonalizedTicket(u32 *out_Count)
     {
-        struct {
+        struct
+        {
             u32 num_tickets;
         } out;
 
@@ -104,7 +109,8 @@ namespace es
 
     Result ListCommonTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize)
     {
-        struct {
+        struct
+        {
             u32 num_rights_ids_written;
         } out;
         
@@ -119,7 +125,8 @@ namespace es
 
     Result ListPersonalizedTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize)
     {
-        struct {
+        struct
+        {
             u32 num_rights_ids_written;
         } out;
         
@@ -134,12 +141,14 @@ namespace es
 
     Result GetCommonTicketData(const RightsId *RId, void *out_Data, size_t out_DataSize, u64 *out_Unk)
     {
-        struct {
+        struct
+        {
             RightsId rightsId;
         } in;
         memcpy(&in.rightsId, RId, sizeof(RightsId));
 
-        struct {
+        struct
+        {
             u64 unk;
         } out;
 

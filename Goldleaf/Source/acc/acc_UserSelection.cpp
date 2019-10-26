@@ -166,7 +166,7 @@ namespace acc
     {
         acc::BaasAdministrator admin;
         auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
-        if(res == 0)
+        if(R_SUCCEEDED(res))
         {
             bool linked = false;
             admin.IsLinkedWithNintendoAccount(&linked);
@@ -180,7 +180,7 @@ namespace acc
     {
         acc::BaasAdministrator admin;
         auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
-        if(res == 0)
+        if(R_SUCCEEDED(res))
         {
             bool linked = false;
             admin.IsLinkedWithNintendoAccount(&linked);

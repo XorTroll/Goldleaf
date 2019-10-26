@@ -14,7 +14,8 @@ NX_INLINE bool serviceGuardBeginInit(ServiceGuard* g)
 
 NX_INLINE Result serviceGuardEndInit(ServiceGuard* g, Result rc, void (*cleanupFunc)(void))
 {
-    if (R_FAILED(rc)) {
+    if (R_FAILED(rc))
+    {
         cleanupFunc();
         --g->refCount;
     }

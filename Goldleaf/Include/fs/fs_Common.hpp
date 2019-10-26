@@ -43,7 +43,8 @@ namespace fs
     static constexpr u64 Size4GB = 0x100000000;
 
     // Only used for testing / development
-    #define QUICK_LOG(fmt, ...) { \
+    #define QUICK_LOG(fmt, ...)\
+    { \
         FILE *f = fopen("sdmc:/QuickGleaf.log", "a"); \
         if(f) \
         { \

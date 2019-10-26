@@ -32,7 +32,8 @@ namespace ns
 
     NX_GENERATE_SERVICE_GUARD(nsext);
 
-    Result _nsextInitialize(void) {
+    Result _nsextInitialize(void)
+    {
         Result rc=0;
 
         if(hosversionBefore(3,0,0))
@@ -48,14 +49,16 @@ namespace ns
         return rc;
     }
 
-    void _nsextCleanup(void) {
+    void _nsextCleanup(void)
+    {
         serviceClose(&g_nsAppManSrv);
         if(hosversionBefore(3,0,0)) return;
 
         serviceClose(&g_nsGetterSrv);
     }
 
-    static Result _nsextGetSession(Service* srv, Service* srv_out, u32 cmd_id) {
+    static Result _nsextGetSession(Service* srv, Service* srv_out, u32 cmd_id)
+    {
         return serviceDispatch(srv, cmd_id,
             .out_num_objects = 1,
             .out_objects = srv_out,
@@ -69,18 +72,20 @@ namespace ns
 
     Result DeleteApplicationCompletely(u64 ApplicationId)
     {
-        struct {
-            u64 title_id;
+        struct
+        {
+            u64 appId;
         } in = { ApplicationId };
         return serviceDispatchIn(&g_nsAppManSrv, 5, in);
     }
 
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize)
     {
-        struct {
+        struct
+        {
             u8 last_modified_event;
             u8 padding[0x7];
-            u64 title_id;
+            u64 appId;
         } in = { LastModifiedEvent, {0}, ApplicationId };
         
         return serviceDispatchIn(&g_nsAppManSrv, 16, in,
@@ -90,12 +95,14 @@ namespace ns
 
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count)
     {
-        struct {
+        struct
+        {
             u64 offset;
-            u64 titleID;
+            u64 appId;
         } in = { Offset, ApplicationId };
 
-        struct {
+        struct
+        {
             u32 entries_read;
         } out;
 
@@ -110,8 +117,9 @@ namespace ns
 
     Result DeleteApplicationRecord(u64 ApplicationId)
     {
-        struct {
-            u64 titleID;
+        struct
+        {
+            u64 appId;
         } in = { ApplicationId };
         
         return serviceDispatchIn(&g_nsAppManSrv, 27, in);
@@ -119,11 +127,13 @@ namespace ns
 
     Result CountApplicationContentMeta(u64 ApplicationId, u32 *out_Count)
     {
-        struct {
-            u64 titleId;
+        struct
+        {
+            u64 appId;
         } in = { ApplicationId };
 
-        struct {
+        struct
+        {
             u32 count;
         } out;
 
@@ -136,8 +146,9 @@ namespace ns
 
     Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion)
     {
-        struct {
-            u64 titleID;
+        struct
+        {
+            u64 appId;
             u32 version;
             u32 padding;
         } in = { ApplicationId, LaunchVersion, 0 };
