@@ -85,6 +85,8 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option.It should work on Windows, Linux or Mac.
 
+**Note:** To use it correctly, make sure you open Goldleaf and connect the Switch with your PC before you launch Quark. Nevertheless, Quark will warn when USB connection is gone or no USB connection is found.
+
 ## Quark on Windows
 
 Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
@@ -124,8 +126,6 @@ Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
 4. Enter your Sudo password when promted and press enter
 
 5. Done. Now you can use Goldleaf and Quark to directly access your PC!
-
-**Note:** To use it correctly, make sure you open Goldleaf and connect the Switch with your PC before you launch Quark. Nevertheless, Quark will warn when USB connection is gone or no USB connection is found.
 
 ## Forwarding
 
