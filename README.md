@@ -13,6 +13,8 @@
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
 3. [Quark and remote PC](#quark-and-remote-pc)
+   - [Windows Instructions](#quark-on-windows)
+   - [Linux Instructions](#quark-on-linux)
 4. [Forwarding](#forwarding)
 5. [Settings](#settings)
 6. [Known bugs](#known-bugs)
@@ -81,7 +83,9 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 ## Quark and remote PC
 
-Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It should work on Windows, Linux or Mac.
+Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option.It should work on Windows, Linux or Mac.
+
+## Quark on Windows
 
 Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
 
@@ -102,6 +106,24 @@ Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
 7. Click on the button below "Install WCID Driver" or "Replace Driver"
 
 8. Done. Now you can use Goldleaf and Quark to directly access your PC!
+
+## Quark on Linux
+
+Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option.
+
+Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
+
+**One time setup**:
+
+1. Install OpenJDK or openJavaFX, both can be installed
+
+2. Open Goldleaf and connect your Switch via USB with your PC
+
+3. Open Terminal window at Quark.jar loacation and type "sudo java -jar Quark.jar" sudo is important
+
+4. Enter your Sudo password when promted and press enter
+
+5. Done. Now you can use Goldleaf and Quark to directly access your PC!
 
 **Note:** To use it correctly, make sure you open Goldleaf and connect the Switch with your PC before you launch Quark. Nevertheless, Quark will warn when USB connection is gone or no USB connection is found.
 
