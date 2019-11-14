@@ -1,0 +1,37 @@
+
+name: Build Goldleaf
+
+on: [push]
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Update repo.
+      run: |
+        git submodule update --init --recursive
+        
+    - name: Install devkitpro
+      run: |
+        wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
+        sudo dpkg -i devkitpro-pacman.deb
+        sudo dkp-pacman -S $(dkp-pacman -Ssq switch-*) --noconfirm
+        
+    - name: Building Goldleaf
+      run: |
+        echo ##########################
+        echo #     SETTING PATH       #
+        echo ##########################
+        echo
+        export DEVKITPRO=/opt/devkitpro
+        export DEVKITARM=${DEVKITPRO}/devkitARM
+        export DEVKITPPC=${DEVKITPRO}/devkitPPC
+        export PATH=${DEVKITPRO}/tools/bin:$PATH
+        make -C Goldleaf/
+        
+    - uses: actions/upload-artifact@master
+      with:
+        name: Goldleaf
+        path: Goldleaf/Output/Goldleaf.nro
