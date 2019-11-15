@@ -29,7 +29,7 @@ jobs:
         export DEVKITARM=${DEVKITPRO}/devkitARM
         export DEVKITPPC=${DEVKITPRO}/devkitPPC
         export PATH=${DEVKITPRO}/tools/bin:$PATH
-        make -C Goldleaf/
+        make -C Goldleaf/ -j$(nproc)
         
     - uses: actions/upload-artifact@master
       with:
