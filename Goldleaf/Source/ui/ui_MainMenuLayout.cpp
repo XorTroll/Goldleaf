@@ -91,11 +91,6 @@ namespace ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
-        if(GetCurrentApplicationId() != GOLDLEAF_APPID)
-        {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(5), set::GetDictionaryEntry(292), { set::GetDictionaryEntry(234) }, true);
-            return;
-        }
         pu::String out = AskForText(set::GetDictionaryEntry(38), "https://");
         if(out.empty()) return;
         else
