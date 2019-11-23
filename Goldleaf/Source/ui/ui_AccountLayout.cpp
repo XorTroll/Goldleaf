@@ -144,6 +144,8 @@ namespace ui
                 mainapp->ShowNotification(set::GetDictionaryEntry(219));
                 mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+
+                acc::SetSelectedUser(0);
             }
             else HandleResult(rc, set::GetDictionaryEntry(220));
         }
