@@ -92,21 +92,6 @@ namespace net
         fclose(f);
         socketExit();
     }
-
-    bool CheckVersionDiff()
-    {
-        bool diff = false;
-        if(HasConnection())
-        {
-            std::string js = RetrieveContent("https://api.github.com/repos/xortroll/goldleaf/releases", "application/json");
-            JSON j = JSON::parse(js);
-            std::string latestid = j[0]["tag_name"].get<std::string>();
-            Version latestv = Version::FromString(latestid);
-            Version currentv = Version::FromString("0.3");
-            diff = latestv.IsLower(currentv);
-        }
-        return diff;
-    }
     
     bool HasConnection()
     {

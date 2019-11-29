@@ -106,7 +106,7 @@ namespace ui
         WebCommonConfig web;
         webPageCreate(&web, out.AsUTF8().c_str());
         WebCommonReply wout;
-        webConfigShow(&web, &wout);  
+        webConfigShow(&web, &wout);
     }
 
     void MainMenuLayout::accountMenuItem_Click()

@@ -36,10 +36,10 @@ namespace fs
             pu::String GetMountName();
             pu::String GetCwd();
             pu::String GetPresentableCwd();
-            pu::String FullPathFor(pu::String Path);
-            pu::String FullPresentablePathFor(pu::String Path);
-            pu::String MakeFull(pu::String Path);
-            bool IsFullPath(pu::String Path);
+            inline pu::String FullPathFor(pu::String Path);
+            inline pu::String FullPresentablePathFor(pu::String Path);
+            inline pu::String MakeFull(pu::String Path);
+            inline bool IsFullPath(pu::String Path);
             void CopyFile(pu::String Path, pu::String NewPath);
             void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(double Done, double Total)> Callback);
             void CopyDirectory(pu::String Dir, pu::String NewDir);
@@ -73,6 +73,33 @@ namespace fs
             pu::String mntname;
             pu::String ecwd;
     };
+
+    pu::String Explorer::FullPathFor(pu::String Path)
+    {
+        pu::String fpath = this->ecwd;
+        if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
+        fpath += Path;
+        return fpath;
+    }
+
+    pu::String Explorer::FullPresentablePathFor(pu::String Path)
+    {
+        pu::String pcwd = this->GetPresentableCwd();
+        pu::String fpath = pcwd;
+        if(pcwd.substr(pcwd.length() - 1) != "/") fpath += "/";
+        fpath += Path;
+        return fpath;
+    }
+
+    pu::String Explorer::MakeFull(pu::String Path)
+    {
+        return (this->IsFullPath(Path) ? Path : this->FullPathFor(Path));
+    }
+
+    bool Explorer::IsFullPath(pu::String Path)
+    {
+        return (Path.find(":/") != pu::String::npos);
+    }
 
     class StdExplorer : public Explorer
     {

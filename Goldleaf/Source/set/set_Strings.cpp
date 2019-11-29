@@ -51,14 +51,20 @@ namespace set
                 break;
         }
         pdict += ".json";
-        std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));
         MainDictionary.DictLanguage = gsets.CustomLanguage;
-        MainDictionary.Strings = JSON::parse(ifs);
-        ifs.close();
-        ifs.open(gsets.PathForResource("/Language/Errors/" + pdict));
+        std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));
+        if(ifs.good())
+        {
+            try { MainDictionary.Strings = JSON::parse(ifs); } catch(std::exception&) {}
+            ifs.close();
+        }
         Errors.DictLanguage = gsets.CustomLanguage;
-        Errors.Strings = JSON::parse(ifs);
-        ifs.close();
+        ifs.open(gsets.PathForResource("/Language/Errors/" + pdict));
+        if(ifs.good())
+        {
+            try { Errors.Strings = JSON::parse(ifs); } catch(std::exception&) {}
+            ifs.close();
+        }
     }
     
     pu::String GetDictionaryEntry(u32 Index)

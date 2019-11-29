@@ -13,7 +13,9 @@ VER_MICRO	:= 3
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)
+
+# "-dev" prefix is appended when a new version has started development, and when it's close to release, the actual version number is increased.
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
 APP_TITLEID	:= 050032A5CF12E000
 
 TARGET      := Goldleaf
@@ -31,7 +33,7 @@ CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DGOLDLEAF_MAJOR=$(VER_MAJOR) -DGOLDLEAF_MINOR=$(VER_MINOR) -DGOLDLEAF_MICRO=$(VER_MICRO) -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

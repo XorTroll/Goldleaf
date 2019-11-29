@@ -38,7 +38,7 @@ namespace fs
     static NANDExplorer *enss = NULL;
     static USBPCDriveExplorer *epcdrv = NULL;
 
-    bool InternalCaseCompare(pu::String a, pu::String b)
+    static bool InternalCaseCompare(pu::String a, pu::String b)
     {
         std::transform(a.begin(), a.end(), a.begin(), ::tolower);
         std::transform(b.begin(), b.end(), b.begin(), ::tolower);
@@ -75,16 +75,17 @@ namespace fs
 
     std::vector<pu::String> Explorer::GetContents()
     {
-        std::vector<pu::String> all;
-        std::vector<pu::String> dirs = this->GetDirectories(this->ecwd);
-        std::vector<pu::String> files = this->GetFiles(this->ecwd);
-        if(dirs.empty() && files.empty()) return all;
+        auto dirs = this->GetDirectories(this->ecwd);
+        auto files = this->GetFiles(this->ecwd);
+
         if(!dirs.empty()) std::sort(dirs.begin(), dirs.end(), InternalCaseCompare);
-        if(!files.empty()) std::sort(files.begin(), files.end(), InternalCaseCompare);
-        all.reserve(dirs.size() + files.size());
-        all.insert(all.end(), dirs.begin(), dirs.end());
-        all.insert(all.end(), files.begin(), files.end());
-        return all;
+        if(!files.empty())
+        {
+            std::sort(files.begin(), files.end(), InternalCaseCompare);
+            dirs.insert(dirs.end(), files.begin(), files.end());
+        }
+
+        return dirs;
     }
 
     pu::String Explorer::GetMountName()
@@ -103,33 +104,6 @@ namespace fs
         u32 mntrootsize = this->mntname.length() + 2;
         pu::String cwdnoroot = this->ecwd.substr(mntrootsize);
         return this->dspname + ":/" + cwdnoroot;
-    }
-
-    pu::String Explorer::FullPathFor(pu::String Path)
-    {
-        pu::String fpath = this->ecwd;
-        if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    pu::String Explorer::FullPresentablePathFor(pu::String Path)
-    {
-        pu::String pcwd = this->GetPresentableCwd();
-        pu::String fpath = pcwd;
-        if(pcwd.substr(pcwd.length() - 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    pu::String Explorer::MakeFull(pu::String Path)
-    {
-        return (this->IsFullPath(Path) ? Path : this->FullPathFor(Path));
-    }
-
-    bool Explorer::IsFullPath(pu::String Path)
-    {
-        return (Path.find(":/") != pu::String::npos);
     }
 
     void Explorer::CopyFile(pu::String Path, pu::String NewPath)
@@ -196,19 +170,9 @@ namespace fs
         pu::String ndir = this->MakeFull(NewDir);
         this->CreateDirectory(ndir);
         auto dirs = this->GetDirectories(dir);
-        if(!dirs.empty()) for(u32 i = 0; i < dirs.size(); i++)
-        {
-            pu::String dfrom = dir + "/" + dirs[i];
-            pu::String dto = ndir + "/" + dirs[i];
-            this->CopyDirectoryProgress(dfrom, dto, Callback);
-        }
+        for(auto &cdir: dirs) this->CopyDirectoryProgress(dir + "/" + cdir, ndir + "/" + cdir, Callback);
         auto files = this->GetFiles(dir);
-        if(!files.empty()) for(u32 i = 0; i < files.size(); i++)
-        {
-            pu::String dfrom = dir + "/" + files[i];
-            pu::String dto = ndir + "/" + files[i];
-            this->CopyFileProgress(dfrom, dto, Callback);
-        }
+        for(auto &cfile: files) this->CopyFileProgress(dir + "/" + cfile, ndir + "/" + cfile, Callback);
     }
 
     bool Explorer::IsFileBinary(pu::String Path)
@@ -218,7 +182,7 @@ namespace fs
         bool bin = false;
         u64 fsize = this->GetFileSize(path);
         if(fsize == 0) return true;
-        u64 toread = std::min(fsize, (u64)0x200); // 0x200 like GodMode9
+        u64 toread = std::min(fsize, (u64)0x200); // 0x200, like GodMode9
         u8 *ptr = GetFileSystemOperationsBuffer();
         u64 rsize = this->ReadFileBlock(path, 0, toread, ptr);
         for(u32 i = 0; i < rsize; i++)
@@ -307,8 +271,8 @@ namespace fs
         std::vector<pu::String> sdata;
         pu::String path = this->MakeFull(Path);
         u64 sz = this->GetFileSize(path);
-        u64 off = (16 * LineOffset);
-        u64 rsz = (16 * LineCount);
+        u64 off = 16 * LineOffset;
+        u64 rsz = 16 * LineCount;
         if(off >= sz) return sdata;
         u64 rrsz = std::min(sz, rsz);
         if((off + rsz) > sz) rrsz = rsz - ((off + rsz) - sz);
@@ -365,17 +329,9 @@ namespace fs
         u64 sz = 0;
         pu::String path = this->MakeFull(Path);
         auto dirs = this->GetDirectories(path);
-        if(!dirs.empty()) for(u32 i = 0; i < dirs.size(); i++)
-        {
-            pu::String pd = path + "/" + dirs[i];
-            sz += this->GetDirectorySize(pd);
-        }
+        for(auto &dir: dirs) sz += this->GetDirectorySize(path + "/" + dir);
         auto files = this->GetFiles(path);
-        if(!files.empty()) for(u32 i = 0; i < files.size(); i++)
-        {
-            pu::String pd = path + "/" + files[i];
-            sz += this->GetFileSize(pd);
-        }
+        for(auto &file: files) sz += this->GetFileSize(path + "/" + file);
         return sz;
     }
 
@@ -409,11 +365,11 @@ namespace fs
             {
                 dt = readdir(dp);
                 if(dt == NULL) break;
-                pu::String ent = pu::String(dt->d_name);
+                std::string ent = dt->d_name;
                 if(this->IsDirectory(path + "/" + ent)) dirs.push_back(ent);
             }
+            closedir(dp);
         }
-        closedir(dp);
         return dirs;
     }
 
@@ -429,11 +385,11 @@ namespace fs
             {
                 dt = readdir(dp);
                 if(dt == NULL) break;
-                pu::String ent = pu::String(dt->d_name);
+                std::string ent = dt->d_name;
                 if(this->IsFile(path + "/" + ent)) files.push_back(ent);
             }
+            closedir(dp);
         }
-        closedir(dp);
         return files;
     }
 
@@ -503,8 +459,8 @@ namespace fs
         {
             fseek(f, Offset, SEEK_SET);
             rsz = fread(Out, 1, Size, f);
+            fclose(f);
         }
-        fclose(f);
         return rsz;
     }
 

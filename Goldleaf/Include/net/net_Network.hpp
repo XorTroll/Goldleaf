@@ -27,6 +27,5 @@ namespace net
 {
     std::string RetrieveContent(std::string URL, std::string MIMEType = "");
     void RetrieveToFile(std::string URL, std::string Path, std::function<void(double Done, double Total)> Callback);
-    bool CheckVersionDiff();
     bool HasConnection();
 }
