@@ -73,9 +73,9 @@ Always keep in mind that installing NSPs can be a very easy way to get banned. I
 
 Tickets represent a game purchase, but technically speaking, you can't boot a title if the ticket isn't present (in case the title requires the ticket).
 
-NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Standard-crypto titles aren't offical (usually reconverted content to avoid importing tickets).
+NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Standard-crypto titles aren't official (usually reconverted content to avoid importing tickets).
 
-Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access titles' content which require a ticket. Otherwise, they are undecryptable, hence unlaunchable by the system.
+Goldleaf will display whether a ticket is present or not, and if so, its titlekey. Titlekeys are required to decrypt and access titles' content which require a ticket. Otherwise, they are undecryptable, hence unlaunchable by the system.
 
 **TL;DR:** **Always** try to avoid untrusted NSPs, and if you go ahead and install CDN NSPs with tickets, avoid going online, or use special tools such as 90DNS, or you'll be banned for sure.
 
@@ -109,7 +109,7 @@ Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
 
 Goldleaf is released along with a NSP, in order to launch Goldleaf as an installed title, and take advantage of extra RAM and features such as web browsing.
 
-The NSP is a forwarder since **0.6**, what means that, instead of having Goldleaf's source inside the NSP, it simply loads the NRO from the SD card, meaning that only the NRO should be updated instead of having to reinstall the NSP.
+The NSP is a forwarder since **0.6**, which means that, instead of having Goldleaf's source inside the NSP, it simply loads the NRO from the SD card, meaning that only the NRO should be updated instead of having to reinstall the NSP.
 
 Goldleaf's forwarding code tries to locate Goldleaf (`Goldleaf.nro`) in `sd:/switch/` and `sd:/switch/Goldleaf/`. If it isn't found, an error message will be displayed.
 
@@ -147,11 +147,11 @@ If a certain attribute isn't present Goldleaf will use default values. For color
 
 Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/FileSystem/FileDataFont.ttf` resource font, if `romfsReplace` is true and `romfsReplacePath` is, for instance, `/switch/Goldleaf/testromfs`, Goldleaf will look if `sd:/switch/Goldleaf/testromfs/FileSystem/FileDataFont.ttf` exists and use it if so, otherwise will use RomFs's one.
 
-So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets which will be added in future updates.
+So, via this configuration, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets which will be added in future updates.
 
 ## Known bugs
 
-- On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on that specific versions. Any non-7.x firmware doesn't have this issue.
+- On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmware due to a weird USB bug present on those specific versions. Any non-7.x firmware don't have this issue.
 
 - Apparently, after browsing (more than 4 times?) and then browsing (specific?) empty directories crashes Goldleaf. This issue is strangely common and needs to be looked into.
 
