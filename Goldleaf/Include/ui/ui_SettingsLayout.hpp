@@ -31,9 +31,9 @@ namespace ui
             SettingsLayout();
             PU_SMART_CTOR(SettingsLayout)
 
-            void ExportUpdateToDirectory(pu::String Input, SetSysFirmwareVersion Fw);
-            void ExportUpdateToNSP(pu::String Input, SetSysFirmwareVersion Fw);
-            void HandleUpdate(pu::String Base, SetSysFirmwareVersion Fw);
+            void ExportUpdateToDirectory(String Input, SetSysFirmwareVersion Fw);
+            void ExportUpdateToNSP(String Input, SetSysFirmwareVersion Fw);
+            void HandleUpdate(String Base, SetSysFirmwareVersion Fw);
             void optsConfig_Click();
             void optsFirmware_Click();
             void optsMemory_Click();

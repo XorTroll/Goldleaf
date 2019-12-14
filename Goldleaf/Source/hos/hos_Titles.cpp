@@ -30,21 +30,21 @@
 
 namespace hos
 {
-    pu::String ContentId::GetFileName()
+    String ContentId::GetFileName()
     {
         return hos::ContentIdAsString(this->NCAId) + ".nca";
     }
 
-    pu::String ContentId::GetFullPath()
+    String ContentId::GetFullPath()
     {
-        pu::String path;
+        String path;
         NcmContentStorage cst;
-        Result rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
+        Result rc = ncmOpenContentStorage(&cst, static_cast<NcmStorageId>(this->Location));
         if(rc == 0)
         {
             char pout[FS_MAX_PATH] = { 0 };
-            rc = ncmContentStorageGetPath(&cst, &this->NCAId, pout, FS_MAX_PATH);
-            if(rc == 0) path = pu::String(pout);
+            rc = ncmContentStorageGetPath(&cst, pout, FS_MAX_PATH, &this->NCAId);
+            if(rc == 0) path = String(pout);
         }
         serviceClose(&cst.s);
         return path;
@@ -55,7 +55,7 @@ namespace hos
         return (this->Meta.Size + this->Program.Size + this->Data.Size + this->Control.Size + this->HtmlDocument.Size + this->LegalInfo.Size);
     }
 
-    pu::String TitleContents::GetFormattedTotalSize()
+    String TitleContents::GetFormattedTotalSize()
     {
         return fs::FormatSize(this->GetTotalSize());
     }
@@ -65,7 +65,7 @@ namespace hos
         NacpStruct *nacp = NULL;
         NsApplicationControlData *ctdata = new NsApplicationControlData;
         size_t acsz = 0;
-        Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
+        Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
             nacp = new NacpStruct();
@@ -73,7 +73,7 @@ namespace hos
         }
         else
         {
-            rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
+            rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
                 nacp = new NacpStruct();
@@ -89,7 +89,7 @@ namespace hos
         u8 *icon = NULL;
         NsApplicationControlData *ctdata = new NsApplicationControlData();
         size_t acsz = 0;
-        Result rc = nsGetApplicationControlData(1, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
+        Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
         if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
         {
             icon = new u8[0x20000]();
@@ -97,7 +97,7 @@ namespace hos
         }
         else
         {
-            rc = nsGetApplicationControlData(1, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
+            rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->ApplicationId, this->Type), ctdata, sizeof(NsApplicationControlData), &acsz);
             if((rc == 0) && !(acsz < sizeof(ctdata->nacp)))
             {
                 icon = new u8[0x20000]();
@@ -111,12 +111,12 @@ namespace hos
     bool Title::DumpControlData()
     {
         bool hicon = false;
-        pu::String fappid = FormatApplicationId(this->ApplicationId);
+        String fappid = FormatApplicationId(this->ApplicationId);
         NacpStruct *nacp = this->TryGetNACP();
         auto sdexp = fs::GetSdCardExplorer();
         if(nacp != NULL)
         {
-            pu::String fnacp = GoldleafDir + "/title/" + fappid + ".nacp";
+            String fnacp = consts::Root + "/title/" + fappid + ".nacp";
             sdexp->DeleteFile(fnacp);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
             delete nacp;
@@ -124,7 +124,7 @@ namespace hos
         u8 *jpg = this->TryGetIcon();
         if(jpg != NULL)
         {
-            pu::String fjpg = GoldleafDir + "/title/" + fappid + ".jpg";
+            String fjpg = consts::Root + "/title/" + fappid + ".jpg";
             sdexp->DeleteFile(fjpg);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
             delete[] jpg;
@@ -139,10 +139,10 @@ namespace hos
         memset(&cnts, 0, sizeof(cnts));
         NcmContentMetaDatabase metadb;
         NcmContentStorage cst;
-        Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(this->Location), &metadb);
+        Result rc = ncmOpenContentMetaDatabase(&metadb, static_cast<NcmStorageId>(this->Location));
         if(rc == 0)
         {
-            rc = ncmOpenContentStorage(static_cast<FsStorageId>(this->Location), &cst);
+            rc = ncmOpenContentStorage(&cst, static_cast<NcmStorageId>(this->Location));
             if(rc == 0) for(u32 i = 0; i < 6; i++)
             {
                 ContentId cntid;
@@ -151,13 +151,15 @@ namespace hos
                 cntid.Empty = true;
                 cntid.Size = 0;
                 cntid.Location = this->Location;
-                NcmNcaId ncaid;
-                rc = ncmContentMetaDatabaseGetContentIdByType(&metadb, (NcmContentType)i, &this->Record, &ncaid);
+                NcmContentId ncaid;
+                rc = ncmContentMetaDatabaseGetContentIdByType(&metadb, &ncaid, &this->Record, (NcmContentType)i);
                 if(rc == 0)
                 {
                     cntid.Empty = false;
                     cntid.NCAId = ncaid;
-                    ncmContentStorageGetSize(&cst, &ncaid, &cntid.Size);
+                    s64 tmpsize = 0;
+                    ncmContentStorageGetSizeFromContentId(&cst, &tmpsize, &ncaid);
+                    cntid.Size = (u64)tmpsize;
                 }
                 if(i == 0) cnts.Meta = cntid;
                 else if(i == 1) cnts.Program = cntid;
@@ -209,7 +211,7 @@ namespace hos
         return ProcessFromPdm(pdmstats);
     }
     
-    TitlePlayStats Title::GetUserPlayStats(u128 UserId)
+    TitlePlayStats Title::GetUserPlayStats(AccountUid UserId)
     {
         PdmPlayStatistics pdmstats;
         pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId, &pdmstats);
@@ -226,11 +228,11 @@ namespace hos
         return __bswap64(*(u64*)(this->RId.RId + 8));
     }
 
-    pu::String Ticket::ToString()
+    String Ticket::ToString()
     {
         u64 appid = this->GetApplicationId();
         u64 kgen = this->GetKeyGeneration();
-        pu::String tostr = FormatApplicationId(appid) + FormatApplicationId(kgen);
+        String tostr = FormatApplicationId(appid) + FormatApplicationId(kgen);
         return tostr;
     }
 
@@ -245,25 +247,24 @@ namespace hos
     {
         std::vector<Title> titles;
         NcmContentMetaDatabase metadb;
-        Result rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(Location), &metadb);
+        Result rc = ncmOpenContentMetaDatabase(&metadb, static_cast<NcmStorageId>(Location));
         if(rc == 0)
         {
-            size_t srecs = MaxTitleCount * sizeof(NcmMetaRecord);
-            NcmMetaRecord *recs = new NcmMetaRecord[MaxTitleCount]();
-            u32 wrt = 0;
-            u32 total = 0;
-            rc = ncmContentMetaDatabaseList(&metadb, static_cast<u32>(Type), 0, 0, UINT64_MAX, recs, srecs, &wrt, &total);
+            NcmContentMetaKey *recs = new NcmContentMetaKey[MaxTitleCount]();
+            s32 wrt = 0;
+            s32 total = 0;
+            rc = ncmContentMetaDatabaseList(&metadb, &total, &wrt, recs, MaxTitleCount, static_cast<NcmContentMetaType>(Type), 0, 0, U64_MAX, NcmContentInstallType_Full);
             if((rc == 0) && (wrt > 0))
             {
                 titles.reserve(wrt);
-                for(u32 i = 0; i < wrt; i++)
+                for(s32 i = 0; i < wrt; i++)
                 {
                     Title t = {};
-                    t.ApplicationId = recs[i].titleId;
+                    t.ApplicationId = recs[i].id;
                     t.Type = static_cast<ncm::ContentMetaType>(recs[i].type);
                     t.Version = recs[i].version;
                     t.Location = Location;
-                    memcpy(&t.Record, &recs[i], sizeof(NcmMetaRecord));
+                    memcpy(&t.Record, &recs[i], sizeof(NcmContentMetaKey));
                     titles.push_back(t);
                 }
             }
@@ -326,7 +327,7 @@ namespace hos
     {
         auto cnts = ToRemove.GetContents();
         NcmContentStorage cst;
-        Result rc = ncmOpenContentStorage(static_cast<FsStorageId>(ToRemove.Location), &cst);
+        Result rc = ncmOpenContentStorage(&cst, static_cast<NcmStorageId>(ToRemove.Location));
         if(rc == 0)
         {
             if(!cnts.Meta.Empty) ncmContentStorageDelete(&cst, &cnts.Meta.NCAId);
@@ -338,7 +339,7 @@ namespace hos
         }
         serviceClose(&cst.s);
         NcmContentMetaDatabase metadb;
-        rc = ncmOpenContentMetaDatabase(static_cast<FsStorageId>(ToRemove.Location), &metadb);
+        rc = ncmOpenContentMetaDatabase(&metadb, static_cast<NcmStorageId>(ToRemove.Location));
         if(rc == 0)
         {
             rc = ncmContentMetaDatabaseRemove(&metadb, &ToRemove.Record);
@@ -386,12 +387,12 @@ namespace hos
 
     std::string GetExportedIconPath(u64 ApplicationId)
     {
-        return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".jpg";
+        return "sdmc:/" + consts::Root + "/title/" + FormatApplicationId(ApplicationId) + ".jpg";
     }
 
-    pu::String GetExportedNACPPath(u64 ApplicationId)
+    String GetExportedNACPPath(u64 ApplicationId)
     {
-        return "sdmc:/" + GoldleafDir + "/title/" + FormatApplicationId(ApplicationId) + ".nacp";
+        return "sdmc:/" + consts::Root + "/title/" + FormatApplicationId(ApplicationId) + ".nacp";
     }
 
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
@@ -419,14 +420,14 @@ namespace hos
 
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId)
     {
-        pu::String fappid = FormatApplicationId(ApplicationId);
-        pu::String ids = fappid.substr(0, 2);
+        String fappid = FormatApplicationId(ApplicationId);
+        String ids = fappid.substr(0, 2);
         if(ids == "01") return ApplicationIdMask::Official;
         else if(ids == "05") return ApplicationIdMask::Homebrew;
         return ApplicationIdMask::Invalid;
     }
 
-    TicketData ReadTicket(pu::String Path)
+    TicketData ReadTicket(String Path)
     {
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
         TicketData tik;
@@ -478,26 +479,26 @@ namespace hos
         return tik;
     }
 
-    pu::String GetNACPName(NacpStruct *NACP)
+    String GetNACPName(NacpStruct *NACP)
     {
         NacpLanguageEntry *lent;
         nacpGetLanguageEntry(NACP, &lent);
-        pu::String ret;
-        if(lent != NULL) ret = pu::String(lent->name);
+        String ret;
+        if(lent != NULL) ret = String(lent->name);
         return ret;
     }
 
-    pu::String GetNACPAuthor(NacpStruct *NACP)
+    String GetNACPAuthor(NacpStruct *NACP)
     {
         NacpLanguageEntry *lent;
         nacpGetLanguageEntry(NACP, &lent);
-        pu::String ret;
-        if(lent != NULL) ret = pu::String(lent->author);
+        String ret;
+        if(lent != NULL) ret = String(lent->author);
         return ret;
     }
 
-    pu::String GetNACPVersion(NacpStruct *NACP)
+    String GetNACPVersion(NacpStruct *NACP)
     {
-        return pu::String(NACP->version);
+        return String(NACP->display_version);
     }
 }

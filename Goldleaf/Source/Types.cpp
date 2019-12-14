@@ -22,9 +22,16 @@
 #include <Types.hpp>
 #include <fs/fs_Explorer.hpp>
 
-pu::String Version::AsString()
+namespace consts
 {
-    pu::String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
+    std::string Root = "switch/Goldleaf";
+    std::string Log = Root + "/Goldleaf.log";
+    std::string TempUpdatePath = Root + "/UpdateTemp.nro";
+}
+
+String Version::AsString()
+{
+    String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
     if(this->BugFix > 0)
     {
         txt += "." + std::to_string(this->BugFix);
@@ -32,16 +39,16 @@ pu::String Version::AsString()
     return txt;
 }
 
-Version Version::FromString(pu::String StrVersion)
+Version Version::FromString(String StrVersion)
 {
-    pu::String strv = StrVersion;
+    String strv = StrVersion;
     Version v;
     memset(&v, 0, sizeof(v));
     size_t pos = 0;
-    pu::String token;
+    String token;
     u32 c = 0;
-    pu::String delimiter = ".";
-    while((pos = strv.find(delimiter)) != pu::String::npos)
+    String delimiter = ".";
+    while((pos = strv.find(delimiter)) != String::npos)
     {
         token = strv.substr(0, pos);
         if(c == 0) v.Major = std::stoi(token);
@@ -99,9 +106,9 @@ LaunchMode GetLaunchMode()
     return mode;
 }
 
-pu::String GetVersion()
+String GetVersion()
 {
-    return pu::String(GOLDLEAF_VERSION);
+    return String(GOLDLEAF_VERSION);
 }
 
 u64 GetApplicationId()
@@ -115,28 +122,10 @@ bool IsAtmosphere()
     return R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &tmpc));
 }
 
-bool IsReiNX()
-{
-    Handle tmph = 0;
-    Result rc = smRegisterService(&tmph, "rnx", false, 1);
-    if(R_FAILED(rc)) return true;
-    smUnregisterService("rnx");
-    return false;
-}
-
-bool IsSXOS()
-{
-    Handle tmph = 0;
-    Result rc = smRegisterService(&tmph, "tx", false, 1);
-    if(R_FAILED(rc)) return true;
-    smUnregisterService("tx");
-    return false;
-}
-
 u64 GetCurrentApplicationId()
 {
     u64 appid = 0;
-    svcGetInfo(&appid, InfoType_TitleId, CUR_PROCESS_HANDLE, 0);
+    svcGetInfo(&appid, InfoType_ProgramId, CUR_PROCESS_HANDLE, 0);
     return appid;
 }
 
@@ -153,12 +142,12 @@ void EnsureDirectories()
     auto sd = fs::GetSdCardExplorer();
     nsys->DeleteDirectory("Contents/temp");
     nsys->CreateDirectory("Contents/temp");
-    sd->CreateDirectory(GoldleafDir);
-    sd->CreateDirectory(GoldleafDir + "/meta");
-    sd->CreateDirectory(GoldleafDir + "/title");
-    sd->CreateDirectory(GoldleafDir + "/dump");
-    sd->CreateDirectory(GoldleafDir + "/userdata");
-    sd->CreateDirectory(GoldleafDir + "/dump/temp");
-    sd->CreateDirectory(GoldleafDir + "/dump/update");
-    sd->CreateDirectory(GoldleafDir + "/dump/title");
+    sd->CreateDirectory(consts::Root);
+    sd->CreateDirectory(consts::Root + "/meta");
+    sd->CreateDirectory(consts::Root + "/title");
+    sd->CreateDirectory(consts::Root + "/dump");
+    sd->CreateDirectory(consts::Root + "/userdata");
+    sd->CreateDirectory(consts::Root + "/dump/temp");
+    sd->CreateDirectory(consts::Root + "/dump/update");
+    sd->CreateDirectory(consts::Root + "/dump/title");
 }

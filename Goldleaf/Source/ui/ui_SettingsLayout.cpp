@@ -22,12 +22,11 @@
 #include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     SettingsLayout::SettingsLayout() : pu::ui::Layout()
     {
         this->optsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -54,20 +53,20 @@ namespace ui
 
     void SettingsLayout::optsConfig_Click()
     {
-        pu::String msg = set::GetDictionaryEntry(354) + ":\n";
-        msg += pu::String("\n" + set::GetDictionaryEntry(355) + ": ") + (gsets.IgnoreRequiredFirmwareVersion ? set::GetDictionaryEntry(111) : set::GetDictionaryEntry(112));
+        String msg = set::GetDictionaryEntry(354) + ":\n";
+        msg += String("\n" + set::GetDictionaryEntry(355) + ": ") + (gsets.IgnoreRequiredFirmwareVersion ? set::GetDictionaryEntry(111) : set::GetDictionaryEntry(112));
         if(!gsets.ExternalRomFs.empty()) msg += "\n" + set::GetDictionaryEntry(356) + ": 'SdCard:/" + gsets.ExternalRomFs + "'";
         mainapp->CreateShowDialog(set::GetDictionaryEntry(357), msg, { set::GetDictionaryEntry(234) }, true);
     }
 
-    void SettingsLayout::ExportUpdateToDirectory(pu::String Input, SetSysFirmwareVersion Fw)
+    void SettingsLayout::ExportUpdateToDirectory(String Input, SetSysFirmwareVersion Fw)
     {
         auto sd = fs::GetSdCardExplorer();
         auto exp = fs::GetNANDSystemExplorer();
         this->optsMenu->SetVisible(false);
         this->progressInfo->SetVisible(true);
         mainapp->LoadMenuHead(set::GetDictionaryEntry(359) + " " + Fw.display_version + "...");
-        auto outdir = sd->FullPathFor(GoldleafDir + "/dump/update/" + Fw.display_version);
+        auto outdir = sd->FullPathFor(consts::Root + "/dump/update/" + Fw.display_version);
         sd->DeleteDirectory(outdir);
         exp->CopyDirectoryProgress(Input, outdir, [&](double Done, double Total)
         {
@@ -81,14 +80,14 @@ namespace ui
         mainapp->ShowNotification(set::GetDictionaryEntry(358) + " '" + outdir + "'.");
     }
 
-    void SettingsLayout::ExportUpdateToNSP(pu::String Input, SetSysFirmwareVersion Fw)
+    void SettingsLayout::ExportUpdateToNSP(String Input, SetSysFirmwareVersion Fw)
     {
         auto sd = fs::GetSdCardExplorer();
         auto exp = fs::GetNANDSystemExplorer();
         this->optsMenu->SetVisible(false);
         this->progressInfo->SetVisible(true);
         mainapp->LoadMenuHead(set::GetDictionaryEntry(359) + " " + Fw.display_version + "...");
-        auto outnsp = sd->FullPathFor(GoldleafDir + "/dump/update/" + Fw.display_version + ".nsp");
+        auto outnsp = sd->FullPathFor(consts::Root + "/dump/update/" + Fw.display_version + ".nsp");
         sd->DeleteFile(outnsp);
         nsp::GenerateFrom(exp->FullPathFor(Input), outnsp, [&](u64 Done, u64 Total)
         {
@@ -102,7 +101,7 @@ namespace ui
         mainapp->ShowNotification(set::GetDictionaryEntry(358) + " '" + outnsp + "'.");
     }
 
-    void SettingsLayout::HandleUpdate(pu::String Base, SetSysFirmwareVersion Fw)
+    void SettingsLayout::HandleUpdate(String Base, SetSysFirmwareVersion Fw)
     {
         auto sopt2 = mainapp->CreateShowDialog(set::GetDictionaryEntry(360), set::GetDictionaryEntry(361), { set::GetDictionaryEntry(377), set::GetDictionaryEntry(53), set::GetDictionaryEntry(18)}, true);
         if(sopt2 == 0) ExportUpdateToDirectory(Base, Fw);
@@ -113,22 +112,22 @@ namespace ui
     {
         SetSysFirmwareVersion fwver = {};
         setsysGetFirmwareVersion(&fwver);
-        pu::String msg = set::GetDictionaryEntry(362) + ":\n";
-        msg += pu::String("\n" + set::GetDictionaryEntry(363) + ": ") + fwver.display_version + " (" + fwver.display_title + ")";
-        msg += pu::String("\n" + set::GetDictionaryEntry(364) + ": '") + fwver.version_hash + "'";
-        msg += pu::String("\n" + set::GetDictionaryEntry(95) + " ") + std::to_string(hos::ComputeSystemKeyGeneration());
+        String msg = set::GetDictionaryEntry(362) + ":\n";
+        msg += String("\n" + set::GetDictionaryEntry(363) + ": ") + fwver.display_version + " (" + fwver.display_title + ")";
+        msg += String("\n" + set::GetDictionaryEntry(364) + ": '") + fwver.version_hash + "'";
+        msg += String("\n" + set::GetDictionaryEntry(95) + " ") + std::to_string(hos::ComputeSystemKeyGeneration());
         msg += "\n\n" + set::GetDictionaryEntry(365) + ":\n";
         hos::PendingUpdateVersion pupd = {};
         bool pendingpresent = hos::GetPendingUpdateInfo(&pupd);
         auto pendfwver = hos::ConvertPendingUpdateVersion(pupd);
         if(pendingpresent)
         {
-            msg += pu::String("\n" + set::GetDictionaryEntry(363) + ": ") + std::to_string(pupd.Major) + "." + std::to_string(pupd.Minor) + "." + std::to_string(pupd.Micro);
+            msg += String("\n" + set::GetDictionaryEntry(363) + ": ") + std::to_string(pupd.Major) + "." + std::to_string(pupd.Minor) + "." + std::to_string(pupd.Micro);
             msg += "\n" + set::GetDictionaryEntry(366);
         }
         else msg += "\n" + set::GetDictionaryEntry(367);
 
-        std::vector<pu::String> opts = {set::GetDictionaryEntry(234), set::GetDictionaryEntry(368)};
+        std::vector<String> opts = {set::GetDictionaryEntry(234), set::GetDictionaryEntry(368)};
         if(pendingpresent)
         {
             opts.push_back(set::GetDictionaryEntry(369));

@@ -43,7 +43,7 @@ namespace nsp
     struct PFS0File
     {
         PFS0FileEntry Entry;
-        pu::String Name;
+        String Name;
     };
 
     static constexpr u32 Magic = 0x30534650;

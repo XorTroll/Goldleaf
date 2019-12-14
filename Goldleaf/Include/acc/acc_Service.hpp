@@ -24,37 +24,15 @@
 
 namespace acc
 {
-    class ProfileEditor
-    {
-        public:
-            ProfileEditor();
-            ProfileEditor(Service Srv);
-            Result Store(AccountProfileBase *PBase, AccountUserData *UData);
-            Result StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG, size_t JPEGSize);
-            void Close();
-        private:
-            Service srv;
-    };
+    Result DeleteUser(AccountUid uid);
 
-    class BaasAdministrator
-    {
-        public:
-            BaasAdministrator();
-            BaasAdministrator(Service Srv);
-            Result IsLinkedWithNintendoAccount(bool *out);
-            Result DeleteRegistrationInfoLocally();
-            Result GetAccountId(u64 *out_AId);
-            Result GetNintendoAccountId(u64 *out_NAId);
-            void Close();
-        private:
-            Service srv;
-    };
+    Result GetProfileEditor(AccountUid uid, Service *out_srv);
+    Result ProfileEditor_Store(Service *srv, AccountProfileBase base, AccountUserData udata);
+    Result ProfileEditor_StoreWithImage(Service *srv, AccountProfileBase base, AccountUserData udata, u8 *jpg, size_t jpgsize);
 
-    Result Initialize();
-    void Finalize();
-    bool HasInitialized();
-
-    Result DeleteUser(u128 UserId);
-    Result GetProfileEditor(u128 UserId, ProfileEditor *out_Editor);
-    Result GetBaasAccountAdministrator(u128 UserId, BaasAdministrator *out_Admin);
+    Result GetBaasAccountAdministrator(AccountUid uid, Service *out_srv);
+    Result BaasAdministrator_IsLinkedWithNintendoAccount(Service *srv, bool *out);
+    Result BaasAdministrator_DeleteRegistrationInfoLocally(Service *srv);
+    Result BaasAdministrator_GetAccountId(Service *srv, u64 *out_id);
+    Result BaasAdministrator_GetNintendoAccountId(Service *srv, u64 *out_id);
 }

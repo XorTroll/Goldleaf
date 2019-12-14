@@ -40,12 +40,12 @@ namespace err
     struct Error
     {
         Result OSError;
-        pu::String Module;
-        pu::String Description;
+        String Module;
+        String Description;
         u32 DescIndex;
     };
 
-    static const std::vector<pu::String> Modules =
+    static const std::vector<String> Modules =
     {
         "(...)",
         "Applet",

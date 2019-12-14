@@ -36,8 +36,8 @@ namespace hos
         u32 Micro;
     };
 
-    pu::String ContentIdAsString(const NcmNcaId &ContentId);
-    NcmNcaId StringAsContentId(pu::String ContentId);
+    String ContentIdAsString(const NcmContentId &ContentId);
+    NcmContentId StringAsContentId(String ContentId);
 
     bool GetPendingUpdateInfo(PendingUpdateVersion *out);
     SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver);

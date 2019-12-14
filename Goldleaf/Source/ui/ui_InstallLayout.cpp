@@ -23,12 +23,11 @@
 #include <ui/ui_MainApplication.hpp>
 #include <iomanip>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     InstallLayout::InstallLayout() : pu::ui::Layout()
     {
         this->installText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
@@ -40,7 +39,7 @@ namespace ui
         this->Add(this->installBar);
     }
 
-    void InstallLayout::StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation)
+    void InstallLayout::StartInstall(String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation)
     {
         nsp::Installer inst(Path, Exp, Location);
 
@@ -82,7 +81,7 @@ namespace ui
         if(OmitConfirmation) doinstall = true;
         else
         {
-            pu::String info = set::GetDictionaryEntry(82) + "\n\n";
+            String info = set::GetDictionaryEntry(82) + "\n\n";
             switch(inst.GetContentMetaType())
             {
                 case ncm::ContentMetaType::Application:
@@ -115,7 +114,7 @@ namespace ui
             info += "\n" + set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(inst.GetApplicationId());
             info += "\n\n";
             auto NACP = inst.GetNACP();
-            if(NACP->version[0] != '\0')
+            if(NACP->display_version[0] != '\0')
             {
                 NacpLanguageEntry *lent;
                 nacpGetLanguageEntry(NACP, &lent);
@@ -129,7 +128,7 @@ namespace ui
                 info += "\n" + set::GetDictionaryEntry(92) + " ";
                 info += lent->author;
                 info += "\n" + set::GetDictionaryEntry(109) + " ";
-                info += NACP->version;
+                info += NACP->display_version;
                 info += "\n\n";
             }
             auto NCAs = inst.GetNCAs();
@@ -254,7 +253,7 @@ namespace ui
             rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
             {
                 this->installBar->SetMaxValue(Total);
-                pu::String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
+                String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
                 if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
                 u64 speed = (u64)BytesSec;
                 u64 size = (u64)(Total - Done);

@@ -22,12 +22,11 @@
 #include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     MemoryLayout::MemoryLayout() : pu::ui::Layout()
     {
         this->sdText = pu::ui::elm::TextBlock::New(125, 300, set::GetDictionaryEntry(19), 35);

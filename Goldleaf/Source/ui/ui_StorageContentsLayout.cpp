@@ -22,12 +22,11 @@
 #include <ui/ui_StorageContentsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     StorageContentsLayout::StorageContentsLayout()
     {
         this->contentsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -90,7 +89,7 @@ namespace ui
             for(u32 i = 0; i < this->contents.size(); i++)
             {
                 NacpStruct *nacp = this->contents[i].TryGetNACP();
-                pu::String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
+                String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
                 if(nacp != NULL)
                 {
                     name = hos::GetNACPName(nacp);

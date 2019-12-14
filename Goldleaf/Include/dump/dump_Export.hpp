@@ -33,10 +33,10 @@ namespace dump
         Data,
     };
 
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmNcaId NCAId, pu::String Path, std::function<void(double Done, double Total)> Callback);
-    bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmMetaRecord *out);
-    FsStorageId GetApplicationLocation(u64 ApplicationId);
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmContentId NCAId, String Path, std::function<void(double Done, double Total)> Callback);
+    bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmContentMetaKey *out);
+    NcmStorageId GetApplicationLocation(u64 ApplicationId);
     void GenerateTicketCert(u64 ApplicationId);
-    pu::String GetNCAIdPath(NcmContentStorage *st, NcmNcaId *Id);
-    bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmMetaRecord *rec, u64 ApplicationId, NCAType Type, NcmNcaId *out);
+    String GetNCAIdPath(NcmContentStorage *st, NcmContentId *Id);
+    bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmContentMetaKey *rec, u64 ApplicationId, NCAType Type, NcmContentId *out);
 }

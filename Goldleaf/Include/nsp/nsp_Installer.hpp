@@ -26,19 +26,19 @@
 #include <memory>
 #include <Types.hpp>
 #include <nsp/nsp_PFS0.hpp>
+#include <ncm/ncm_ContentMeta.hpp>
 #include <es/es_Service.hpp>
 #include <ns/ns_Service.hpp>
 #include <fs/fs_Explorer.hpp>
 #include <hos/hos_Content.hpp>
 #include <hos/hos_Titles.hpp>
-#include <ncm/ncm_Service.hpp>
 
 namespace nsp
 {
     class Installer
     {
         public:
-            Installer(pu::String Path, fs::Explorer *Exp, Storage Location);
+            Installer(String Path, fs::Explorer *Exp, Storage Location);
             ~Installer();
             Result PrepareInstallation();
             Result PreProcessContents();
@@ -58,13 +58,13 @@ namespace nsp
             u8 keygen;
             hos::TicketData entrytik;
             ncm::ContentMeta cnmt;
-            FsStorageId storage;
+            NcmStorageId storage;
             ByteBuffer ccnmt;
-            NcmMetaRecord mrec;
+            NcmContentMetaKey mrec;
             u64 baseappid;
             u64 stik;
-            pu::String tik;
+            String tik;
             std::vector<ncm::ContentRecord> ncas;
-            pu::String icon;
+            String icon;
     };
 }

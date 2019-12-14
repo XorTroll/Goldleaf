@@ -49,7 +49,7 @@ namespace set
         void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar);
     };
 
-    static const std::string SettingsFile = "sdmc:/" + GoldleafDir + "/settings.json";
+    static const std::string SettingsFile = "sdmc:/" + consts::Root + "/settings.json";
 
     Settings ProcessSettings();
     bool Exists();

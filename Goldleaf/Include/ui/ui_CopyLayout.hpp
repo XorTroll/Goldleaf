@@ -31,7 +31,7 @@ namespace ui
             CopyLayout();
             PU_SMART_CTOR(CopyLayout)
 
-            void StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp);
+            void StartCopy(String Path, String NewPath, bool Directory, fs::Explorer *Exp);
         private:
             fs::Explorer *gexp;
             pu::ui::elm::TextBlock::Ref infoText;

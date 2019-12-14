@@ -22,10 +22,12 @@
 #pragma once
 #include <Types.hpp>
 
-namespace nfp
+namespace nfp::emu
 {
+    constexpr SmServiceName EmuServiceName = smEncodeName("nfp:emu");
+
     bool IsEmuiiboPresent();
 
-    Result EmuInitialize();
-    void EmuFinalize();
+    Result Initialize();
+    void Finalize();
 }

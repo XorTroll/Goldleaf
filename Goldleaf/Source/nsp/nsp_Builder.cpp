@@ -29,7 +29,7 @@
 
 namespace nsp
 {
-    bool GenerateFrom(pu::String Input, pu::String Out, std::function<void(u64, u64)> Callback)
+    bool GenerateFrom(String Input, String Out, std::function<void(u64, u64)> Callback)
     {
         auto exp = fs::GetExplorerForPath(Input);
         auto files = exp->GetFiles(Input);

@@ -20,7 +20,8 @@
 */
 
 #pragma once
-#include <usb/usb_Communications.hpp>
+#include <Types.hpp>
+#include <usb/usb_Detail.hpp>
 
 namespace usb
 {
@@ -41,7 +42,23 @@ namespace usb
         GetSpecialPathCount,
         GetSpecialPath,
         SelectFile,
-        Max,
+
+        Startup,
+
+        OpenFile,
+        FileRead,
+        FileWrite,
+        FileGetSize,
+        CloseFile,
+
+        OpenDirectory,
+        DirectoryGetEntryCount,
+        DirectoryGetFileCount,
+        DirectoryGetDirectoryCount,
+        DirectoryReadEntry,
+        DirectoryReadFile,
+        DirectoryReadDirectory,
+        CloseDirectory
     };
 
     static constexpr u32 InputMagic = 0x49434C47; // GLCI
@@ -62,9 +79,9 @@ namespace usb
         InCommandBlock(CommandId CmdId);
         void Write32(u32 Value);
         void Write64(u64 Value);
-        void WriteString(pu::String Value);
+        void WriteString(String Value);
         void WriteBuffer(void *Buf, size_t Size);
-        void Send();
+        Result Send();
     };
 
     struct OutCommandBlock
@@ -78,7 +95,7 @@ namespace usb
         bool IsValid();
         u32 Read32();
         u64 Read64();
-        pu::String ReadString();
+        String ReadString();
         void ReadBuffer(void *Buf, size_t Size);
     };
 
@@ -142,25 +159,25 @@ namespace usb
     class InString : public CommandArgument
     {
         public:
-            InString(pu::String Value);
+            InString(String Value);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
         private:
-            pu::String val;
+            String val;
     };
 
     class OutString : public CommandArgument
     {
         public:
-            OutString(pu::String &Value);
+            OutString(String &Value);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
         private:
-            pu::String &val;
+            String &val;
     };
 
     class InBuffer : public CommandArgument
@@ -189,17 +206,21 @@ namespace usb
             size_t sz;
     };
 
-    template<CommandId CmdId, typename ...Args>
-    Result ProcessCommand(Args &&...CmdArgs)
+    template<CommandId id, typename ...Args>
+    Result ProcessCommand(Args &&...args)
     {
-        InCommandBlock block(CmdId);
-        (CmdArgs.ProcessIn(block), ...);
-        block.Send();
-        (CmdArgs.ProcessAfterIn(), ...);
-        OutCommandBlock outblock;
-        if(outblock.IsValid()) (CmdArgs.ProcessOut(outblock), ...);
-        outblock.Cleanup();
-        if(outblock.IsValid()) (CmdArgs.ProcessAfterOut(), ...);
-        return outblock.res;
+        InCommandBlock block(id);
+        (args.ProcessIn(block), ...);
+        auto rc = block.Send();
+        if(R_SUCCEEDED(rc))
+        {
+            (args.ProcessAfterIn(), ...);
+            OutCommandBlock outblock;
+            if(outblock.IsValid()) (args.ProcessOut(outblock), ...);
+            outblock.Cleanup();
+            if(outblock.IsValid()) (args.ProcessAfterOut(), ...);
+            rc = outblock.res;
+        }
+        return rc;
     }
 }

@@ -31,7 +31,7 @@ namespace ui
             FileContentLayout();
             PU_SMART_CTOR(FileContentLayout)
 
-            void LoadFile(pu::String PPath, pu::String Path, fs::Explorer *Exp, bool Hex);
+            void LoadFile(String PPath, String Path, fs::Explorer *Exp, bool Hex);
             void Update();
             void ScrollUp();
             void ScrollDown();
@@ -39,7 +39,7 @@ namespace ui
             u32 loffset;
             u32 rlines;
             bool mode;
-            pu::String pth;
+            String pth;
             pu::ui::elm::TextBlock::Ref cntText;
             fs::Explorer *gexp;
     };

@@ -24,11 +24,11 @@
 
 namespace ui
 {
-    void SetClipboard(pu::String Path);
+    void SetClipboard(String Path);
     void ClearClipboard();
     bool ClipboardEmpty();
     bool ClipboardNotEmpty();
-    void ShowPowerTasksDialog(pu::String Title, pu::String Message);
-    pu::String AskForText(pu::String Guide = "", pu::String Initial = "", int MaxSize = -1);
-    void HandleResult(Result OSError, pu::String Context);
+    void ShowPowerTasksDialog(String Title, String Message);
+    String AskForText(String Guide = "", String Initial = "", int MaxSize = -1);
+    void HandleResult(Result OSError, String Context);
 }

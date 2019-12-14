@@ -22,12 +22,11 @@
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     TitleDumperLayout::TitleDumperLayout()
     {
         this->dumpText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
@@ -44,9 +43,9 @@ namespace ui
     {
         EnsureDirectories();
         mainapp->CallForRender();
-        FsStorageId stid = static_cast<FsStorageId>(Target.Location);
-        pu::String fappid = hos::FormatApplicationId(Target.ApplicationId);
-        pu::String outdir = "sdmc:/" + GoldleafDir + "/dump/title/" + fappid;
+        NcmStorageId stid = static_cast<NcmStorageId>(Target.Location);
+        String fappid = hos::FormatApplicationId(Target.ApplicationId);
+        String outdir = "sdmc:/" + consts::Root + "/dump/title/" + fappid;
         fs::CreateDirectory(outdir);
         this->dumpText->SetText(set::GetDictionaryEntry(192));
         mainapp->CallForRender();
@@ -54,7 +53,7 @@ namespace ui
         this->dumpText->SetText(set::GetDictionaryEntry(193));
         mainapp->CallForRender();
         NcmContentStorage cst;
-        Result rc = ncmOpenContentStorage(stid, &cst);
+        Result rc = ncmOpenContentStorage(&cst, stid);
         if(rc != 0)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
@@ -62,7 +61,7 @@ namespace ui
             return;
         }
         NcmContentMetaDatabase cmdb;
-        rc = ncmOpenContentMetaDatabase(stid, &cmdb);
+        rc = ncmOpenContentMetaDatabase(&cmdb, stid);
         if(rc != 0)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
@@ -70,8 +69,8 @@ namespace ui
             serviceClose(&cst.s);
             return;
         }
-        NcmMetaRecord mrec = Target.Record;
-        NcmNcaId meta;
+        NcmContentMetaKey mrec = Target.Record;
+        NcmContentId meta;
         bool ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
         {
@@ -81,43 +80,43 @@ namespace ui
             serviceClose(&cmdb.s);
             return;
         }
-        pu::String smeta = dump::GetNCAIdPath(&cst, &meta);
-        NcmNcaId program;
+        String smeta = dump::GetNCAIdPath(&cst, &meta);
+        NcmContentId program;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Program, &program);
         bool hasprogram = ok;
-        pu::String sprogram;
+        String sprogram;
         if(ok) sprogram = dump::GetNCAIdPath(&cst, &program);
-        NcmNcaId control;
+        NcmContentId control;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Control, &control);
         bool hascontrol = ok;
-        pu::String scontrol;
+        String scontrol;
         if(ok) scontrol = dump::GetNCAIdPath(&cst, &control);
-        NcmNcaId linfo;
+        NcmContentId linfo;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::LegalInfo, &linfo);
         bool haslinfo = ok;
-        pu::String slinfo;
+        String slinfo;
         if(ok) slinfo = dump::GetNCAIdPath(&cst, &linfo);
-        NcmNcaId hoff;
+        NcmContentId hoff;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::OfflineHtml, &hoff);
         bool hashoff = ok;
-        pu::String shoff;
+        String shoff;
         if(ok) shoff = dump::GetNCAIdPath(&cst, &hoff);
 
-        NcmNcaId data;
+        NcmContentId data;
         ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Data, &data);
         bool hasdata = ok;
-        pu::String sdata;
+        String sdata;
         if(ok) sdata = dump::GetNCAIdPath(&cst, &data);
 
         hos::LockAutoSleep();
 
-        pu::String xprogram = sprogram;
-        pu::String xmeta = smeta;
-        pu::String xcontrol = scontrol;
-        pu::String xlinfo = slinfo;
-        pu::String xhoff = shoff;
-        pu::String xdata = sdata;
-        if(stid == FsStorageId_SdCard)
+        String xprogram = sprogram;
+        String xmeta = smeta;
+        String xcontrol = scontrol;
+        String xlinfo = slinfo;
+        String xhoff = shoff;
+        String xdata = sdata;
+        if(stid == NcmStorageId_SdCard)
         {
             this->dumpText->SetText(set::GetDictionaryEntry(194));
             xmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
@@ -199,8 +198,8 @@ namespace ui
         else
         {
             fs::Explorer *nexp = NULL;
-            if(stid == FsStorageId_NandSystem) nexp = fs::GetNANDSystemExplorer();
-            else if(stid == FsStorageId_NandUser) nexp = fs::GetNANDUserExplorer();
+            if(stid == NcmStorageId_BuiltInSystem) nexp = fs::GetNANDSystemExplorer();
+            else if(stid == NcmStorageId_BuiltInUser) nexp = fs::GetNANDUserExplorer();
             else
             {
                 HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
@@ -212,7 +211,7 @@ namespace ui
             }
             this->dumpText->SetText(set::GetDictionaryEntry(195));
             xmeta = nexp->FullPathFor("Contents/" + xmeta.substr(15));
-            pu::String txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
+            String txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
             fs::CreateConcatenationFile(txmeta);
             this->ncaBar->SetVisible(true);
             fs::CopyFileProgress(xmeta, txmeta, [&](double done, double total)
@@ -226,7 +225,7 @@ namespace ui
             if(hasprogram)
             {
                 xprogram = nexp->FullPathFor("Contents/" + xprogram.substr(15));
-                pu::String txprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
+                String txprogram = outdir + "/" + hos::ContentIdAsString(program) + ".nca";
                 fs::CreateConcatenationFile(txprogram);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xprogram, txprogram, [&](double done, double total)
@@ -241,7 +240,7 @@ namespace ui
             if(hascontrol)
             {
                 xcontrol = nexp->FullPathFor("Contents/" + xcontrol.substr(15));
-                pu::String txcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
+                String txcontrol = outdir + "/" + hos::ContentIdAsString(control) + ".nca";
                 fs::CreateConcatenationFile(txcontrol);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xcontrol, txcontrol, [&](double done, double total)
@@ -256,7 +255,7 @@ namespace ui
             if(haslinfo)
             {
                 xlinfo = nexp->FullPathFor("Contents/" + xlinfo.substr(15));
-                pu::String txlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
+                String txlinfo = outdir + "/" + hos::ContentIdAsString(linfo) + ".nca";
                 fs::CreateConcatenationFile(txlinfo);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xlinfo, txlinfo, [&](double done, double total)
@@ -271,7 +270,7 @@ namespace ui
             if(hashoff)
             {
                 xhoff = nexp->FullPathFor("Contents/" + xhoff.substr(15));
-                pu::String txhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
+                String txhoff = outdir + "/" + hos::ContentIdAsString(hoff) + ".nca";
                 fs::CreateConcatenationFile(txhoff);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xhoff, txhoff, [&](double done, double total)
@@ -286,7 +285,7 @@ namespace ui
             if(hasdata)
             {
                 xdata = nexp->FullPathFor("Contents/" + xdata.substr(15));
-                pu::String txdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
+                String txdata = outdir + "/" + hos::ContentIdAsString(data) + ".nca";
                 fs::CreateConcatenationFile(txdata);
                 this->ncaBar->SetVisible(true);
                 fs::CopyFileProgress(xdata, txdata, [&](double done, double total)
@@ -299,7 +298,7 @@ namespace ui
                 xdata = txdata;
             }
         }
-        pu::String fout = "sdmc:/" + GoldleafDir + "/dump/title/" + fappid + ".nsp";
+        String fout = "sdmc:/" + consts::Root + "/dump/title/" + fappid + ".nsp";
         fs::CreateConcatenationFile(fout);
         this->ncaBar->SetVisible(true);
         this->dumpText->SetText(set::GetDictionaryEntry(196));
@@ -310,13 +309,13 @@ namespace ui
             mainapp->CallForRender();
         });
         hos::UnlockAutoSleep();
-        fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
+        fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump/temp");
         fs::DeleteDirectory(outdir);
         if(ok) mainapp->ShowNotification(set::GetDictionaryEntry(197) + " '" + fout + "'");
         else
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotBuildNSP), set::GetDictionaryEntry(198));
-            fs::DeleteDirectory("sdmc:/" + GoldleafDir + "/dump");
+            fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump");
             EnsureDirectories();
         }
         serviceClose(&cst.s);

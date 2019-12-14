@@ -28,7 +28,7 @@
 #include <es/es_Service.hpp>
 #include <hos/hos_Titles.hpp>
 #include <hos/hos_Common.hpp>
-#include <ncm/ncm_Service.hpp>
+#include <ncm/ncm_Types.hpp>
 #include <net/net_Network.hpp>
 #include <nfp/nfp_Amiibo.hpp>
 #include <nfp/nfp_Emuiibo.hpp>

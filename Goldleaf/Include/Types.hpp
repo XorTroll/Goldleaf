@@ -29,6 +29,33 @@
 #include <pu/Plutonium>
 
 using JSON = nlohmann::json;
+template<typename ...Args>
+using ResultWith = std::tuple<Result, Args...>;
+
+using String = pu::String;
+
+template<typename ...Args>
+inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)
+{
+    return std::make_tuple(res, std::forward<Args>(args)...);
+}
+
+namespace result
+{
+    namespace module
+    {
+        static constexpr u32 Goldleaf = 356;
+        static constexpr u32 Errno = 357;
+        static constexpr u32 ExGUSB = 358;
+    }
+}
+
+namespace consts
+{
+    extern std::string Root;
+    extern std::string Log;
+    extern std::string TempUpdatePath;
+}
 
 enum class ExecutableMode
 {
@@ -75,24 +102,39 @@ struct Version
     u32 Minor;
     s32 BugFix;
 
-    pu::String AsString();
-    static Version FromString(pu::String StrVersion);
+    String AsString();
+    static Version FromString(String StrVersion);
     bool IsLower(Version Other);
     bool IsHigher(Version Other);
     bool IsEqual(Version Other);
 };
 
-static const std::string GoldleafDir = "switch/Goldleaf";
-static const std::string TempGoldleafUpdateNro = "sdmc:/" + GoldleafDir + "/UpdateTemp.nro";
+namespace logging
+{
+    template<typename ...Args>
+    void FileLogFmt(FILE *file, String fmt, Args &...args)
+    {
+        fprintf(file, (fmt.AsUTF8() + "\n").c_str(), args...);
+    }
+
+    template<typename ...Args>
+    void LogFmt(String fmt, Args &...args)
+    {
+        FILE *f = fopen((consts::Log).c_str(), "a");
+        if(f)
+        {
+            FileLogFmt(f, fmt, args...);
+            fclose(f);
+        }
+    }
+}
 
 ExecutableMode GetExecutableMode();
 LaunchMode GetLaunchMode();
-pu::String GetVersion();
+String GetVersion();
 u64 GetApplicationId();
 bool HasKeyFile();
 bool IsAtmosphere();
-bool IsReiNX();
-bool IsSXOS();
 u64 GetCurrentApplicationId();
 u32 RandomFromRange(u32 Min, u32 Max);
 void EnsureDirectories();

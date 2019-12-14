@@ -24,6 +24,8 @@ package xorTroll.goldleaf.quark.usb;
 import java.util.Optional;
 import org.usb4java.*;
 
+import xorTroll.goldleaf.quark.Version;
+
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -34,6 +36,8 @@ public class USBInterface
     public DeviceHandle usbDeviceHandle;
     public Object usbLock;
     public int usbInterface;
+    public boolean isDevVersion;
+    public Version productVersion;
 
     public static final short VendorId = 0x057E;
     public static final short ProductId = 0x3000;
@@ -112,6 +116,42 @@ public class USBInterface
                         res = LibUsb.setConfiguration(intf.usbDeviceHandle, 1);
                         if(res == LibUsb.SUCCESS)
                         {
+                            intf.isDevVersion = false;
+                            intf.productVersion = null;
+                            DeviceDescriptor dtor = new DeviceDescriptor();
+                            res = LibUsb.getDeviceDescriptor(intf.usbDevice, dtor);
+                            if(res == LibUsb.SUCCESS)
+                            {
+                                String product = LibUsb.getStringDescriptor(intf.usbDeviceHandle, dtor.iProduct());
+                                System.out.println("USB Product: '" + product + "'");
+                                if(product.contains("Goldleaf"))
+                                {
+                                    String serialno = LibUsb.getStringDescriptor(intf.usbDeviceHandle, dtor.iSerialNumber());
+                                    System.out.println("USB Serial number: '" + serialno + "'");
+                                    if(serialno.endsWith("-dev"))
+                                    {
+                                        intf.isDevVersion = true;
+                                        serialno = serialno.substring(0, serialno.length() - 4);
+                                    }
+                                    try
+                                    {
+                                        String[] verparts = serialno.split("[.]");
+                                        if(verparts.length >= 2)
+                                        {
+                                            int major = Integer.parseInt(verparts[0]);
+                                            int minor = Integer.parseInt(verparts[1]);
+                                            int micro = 0;
+                                            if(verparts.length >= 3) micro = Integer.parseInt(verparts[2]);
+                                            intf.productVersion = new Version(major, minor, micro);
+                                        }
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        System.out.println(e.getClass().getName() + " -> " + e.getMessage());
+                                    }
+                                }
+                            }
+
                             res = LibUsb.claimInterface(intf.usbDeviceHandle, intf.usbInterface);
                             if(res == LibUsb.SUCCESS) return Optional.of(intf);
                         }

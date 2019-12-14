@@ -34,7 +34,7 @@ namespace ncm
             ContentMeta(u8 *Data, size_t Size);
             ~ContentMeta();
             ContentMetaHeader GetContentMetaHeader();
-            NcmMetaRecord GetContentMetaKey();
+            NcmContentMetaKey GetContentMetaKey();
             std::vector<ContentRecord> GetContentRecords();
             void GetInstallContentMeta(ByteBuffer &CNMTBuffer, ContentRecord &CNMTRecord, bool IgnoreVersion);
         private:

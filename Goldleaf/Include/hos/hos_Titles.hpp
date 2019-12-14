@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <Types.hpp>
-#include <ncm/ncm_Service.hpp>
+#include <ncm/ncm_Types.hpp> 
 #include <ns/ns_Service.hpp>
 #include <es/es_Service.hpp>
 
@@ -62,13 +62,13 @@ namespace hos
     struct ContentId
     {
         ncm::ContentType Type;
-        NcmNcaId NCAId;
+        NcmContentId NCAId;
         Storage Location;
         bool Empty;
         u64 Size;
 
-        pu::String GetFileName();
-        pu::String GetFullPath();
+        String GetFileName();
+        String GetFullPath();
     };
 
     struct TitleContents
@@ -81,7 +81,7 @@ namespace hos
         ContentId LegalInfo;
 
         u64 GetTotalSize();
-        pu::String GetFormattedTotalSize();
+        String GetFormattedTotalSize();
     };
 
     struct TitlePlayStats
@@ -96,7 +96,7 @@ namespace hos
         u64 ApplicationId;
         ncm::ContentMetaType Type;
         u32 Version;
-        NcmMetaRecord Record;
+        NcmContentMetaKey Record;
         Storage Location;
         
         NacpStruct *TryGetNACP();
@@ -108,7 +108,7 @@ namespace hos
         bool IsDLC();
         bool CheckBase(Title &Other);
         TitlePlayStats GetGlobalPlayStats();
-        TitlePlayStats GetUserPlayStats(u128 UserId);
+        TitlePlayStats GetUserPlayStats(AccountUid UserId);
     };
 
     struct Ticket
@@ -118,7 +118,7 @@ namespace hos
 
         u64 GetApplicationId();
         u64 GetKeyGeneration();
-        pu::String ToString();
+        String ToString();
     };
 
     struct TicketData
@@ -138,12 +138,12 @@ namespace hos
     Result RemoveTitle(Title &ToRemove);
     Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
-    pu::String GetExportedNACPPath(u64 ApplicationId);
+    String GetExportedNACPPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
     u32 GetIdFromDLCApplicationId(u64 ApplicationId);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
-    TicketData ReadTicket(pu::String Path);
-    pu::String GetNACPName(NacpStruct *NACP);
-    pu::String GetNACPAuthor(NacpStruct *NACP);
-    pu::String GetNACPVersion(NacpStruct *NACP);
+    TicketData ReadTicket(String Path);
+    String GetNACPName(NacpStruct *NACP);
+    String GetNACPAuthor(NacpStruct *NACP);
+    String GetNACPVersion(NacpStruct *NACP);
 }

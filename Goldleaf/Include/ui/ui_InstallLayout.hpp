@@ -31,7 +31,7 @@ namespace ui
             InstallLayout();
             PU_SMART_CTOR(InstallLayout)
 
-            void StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation = false);
+            void StartInstall(String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation = false);
         private:
             pu::ui::elm::TextBlock::Ref installText;
             pu::ui::elm::ProgressBar::Ref installBar;

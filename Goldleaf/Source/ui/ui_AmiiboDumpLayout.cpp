@@ -22,12 +22,11 @@
 #include <ui/ui_AmiiboDumpLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     AmiiboDumpLayout::AmiiboDumpLayout() : pu::ui::Layout()
     {
         this->infoText = pu::ui::elm::TextBlock::New(150, 320, "-");
@@ -55,7 +54,7 @@ namespace ui
                 auto common = nfp::GetCommonInfo();
                 auto reg = nfp::GetRegisterInfo();
 
-                auto name = pu::String(reg.amiibo_name);
+                auto name = String(reg.amiibo_name);
                 auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(283), set::GetDictionaryEntry(317) + " '" + name + "'?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112) }, true);
                 if(sopt == 0)
                 {

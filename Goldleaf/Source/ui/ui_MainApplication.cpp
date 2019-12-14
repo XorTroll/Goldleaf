@@ -21,22 +21,18 @@
 
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    MainApplication::Ref mainapp;
+    extern String clipboard;
 
-    extern pu::String clipboard;
-
-    MainApplication::MainApplication() : pu::ui::Application()
+    void MainApplication::OnLoad()
     {
-        gsets = set::ProcessSettings();
-        set::Initialize();
-        if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
         pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
-        this->seluser = 0;
+        this->seluser = {};
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
@@ -87,8 +83,6 @@ namespace ui
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->pcExplore = PCExploreLayout::New();
         this->pcExplore->SetOnInput(std::bind(&MainApplication::pcExplore_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->usbDrives = USBDrivesLayout::New();
-        this->usbDrives->SetOnInput(std::bind(&MainApplication::usbDrives_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->nspInstall = InstallLayout::New();
         this->contentInformation = ContentInformationLayout::New();
         this->contentInformation->SetOnInput(std::bind(&MainApplication::contentInformation_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -114,7 +108,6 @@ namespace ui
         this->browser->SetBackgroundColor(gsets.CustomScheme.Background);
         this->exploreMenu->SetBackgroundColor(gsets.CustomScheme.Background);
         this->pcExplore->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->usbDrives->SetBackgroundColor(gsets.CustomScheme.Background);
         this->fileContent->SetBackgroundColor(gsets.CustomScheme.Background);
         this->copy->SetBackgroundColor(gsets.CustomScheme.Background);
         this->nspInstall->SetBackgroundColor(gsets.CustomScheme.Background);
@@ -133,7 +126,6 @@ namespace ui
         this->browser->Add(this->baseImage);
         this->exploreMenu->Add(this->baseImage);
         this->pcExplore->Add(this->baseImage);
-        this->usbDrives->Add(this->baseImage);
         this->fileContent->Add(this->baseImage);
         this->copy->Add(this->baseImage);
         this->nspInstall->Add(this->baseImage);
@@ -152,7 +144,6 @@ namespace ui
         this->browser->Add(this->timeText);
         this->exploreMenu->Add(this->timeText);
         this->pcExplore->Add(this->timeText);
-        this->usbDrives->Add(this->timeText);
         this->fileContent->Add(this->timeText);
         this->copy->Add(this->timeText);
         this->nspInstall->Add(this->timeText);
@@ -171,7 +162,6 @@ namespace ui
         this->browser->Add(this->batteryText);
         this->exploreMenu->Add(this->batteryText);
         this->pcExplore->Add(this->batteryText);
-        this->usbDrives->Add(this->batteryText);
         this->fileContent->Add(this->batteryText);
         this->copy->Add(this->batteryText);
         this->nspInstall->Add(this->batteryText);
@@ -190,7 +180,6 @@ namespace ui
         this->browser->Add(this->batteryImage);
         this->exploreMenu->Add(this->batteryImage);
         this->pcExplore->Add(this->batteryImage);
-        this->usbDrives->Add(this->batteryImage);
         this->fileContent->Add(this->batteryImage);
         this->copy->Add(this->batteryImage);
         this->nspInstall->Add(this->batteryImage);
@@ -209,7 +198,6 @@ namespace ui
         this->browser->Add(this->batteryChargeImage);
         this->exploreMenu->Add(this->batteryChargeImage);
         this->pcExplore->Add(this->batteryChargeImage);
-        this->usbDrives->Add(this->batteryChargeImage);
         this->fileContent->Add(this->batteryChargeImage);
         this->copy->Add(this->batteryChargeImage);
         this->nspInstall->Add(this->batteryChargeImage);
@@ -228,7 +216,6 @@ namespace ui
         this->browser->Add(this->menuImage);
         this->exploreMenu->Add(this->menuImage);
         this->pcExplore->Add(this->menuImage);
-        this->usbDrives->Add(this->menuImage);
         this->fileContent->Add(this->menuImage);
         this->copy->Add(this->menuImage);
         this->nspInstall->Add(this->menuImage);
@@ -247,7 +234,6 @@ namespace ui
         this->browser->Add(this->usbImage);
         this->exploreMenu->Add(this->usbImage);
         this->pcExplore->Add(this->usbImage);
-        this->usbDrives->Add(this->usbImage);
         this->fileContent->Add(this->usbImage);
         this->copy->Add(this->usbImage);
         this->nspInstall->Add(this->usbImage);
@@ -266,7 +252,6 @@ namespace ui
         this->browser->Add(this->connImage);
         this->exploreMenu->Add(this->connImage);
         this->pcExplore->Add(this->connImage);
-        this->usbDrives->Add(this->connImage);
         this->fileContent->Add(this->connImage);
         this->copy->Add(this->connImage);
         this->nspInstall->Add(this->connImage);
@@ -285,7 +270,6 @@ namespace ui
         this->browser->Add(this->ipText);
         this->exploreMenu->Add(this->ipText);
         this->pcExplore->Add(this->ipText);
-        this->usbDrives->Add(this->ipText);
         this->fileContent->Add(this->ipText);
         this->copy->Add(this->ipText);
         this->nspInstall->Add(this->ipText);
@@ -305,7 +289,6 @@ namespace ui
         this->browser->Add(this->menuNameText);
         this->exploreMenu->Add(this->menuNameText);
         this->pcExplore->Add(this->menuNameText);
-        this->usbDrives->Add(this->menuNameText);
         this->fileContent->Add(this->menuNameText);
         this->copy->Add(this->menuNameText);
         this->nspInstall->Add(this->menuNameText);
@@ -324,7 +307,6 @@ namespace ui
         this->browser->Add(this->menuHeadText);
         this->exploreMenu->Add(this->menuHeadText);
         this->pcExplore->Add(this->menuHeadText);
-        this->usbDrives->Add(this->menuHeadText);
         this->fileContent->Add(this->menuHeadText);
         this->copy->Add(this->menuHeadText);
         this->nspInstall->Add(this->menuHeadText);
@@ -343,7 +325,6 @@ namespace ui
         this->browser->Add(this->userImage);
         this->exploreMenu->Add(this->userImage);
         this->pcExplore->Add(this->userImage);
-        this->usbDrives->Add(this->userImage);
         this->fileContent->Add(this->userImage);
         this->copy->Add(this->userImage);
         this->nspInstall->Add(this->userImage);
@@ -362,7 +343,6 @@ namespace ui
         this->browser->Add(this->helpImage);
         this->exploreMenu->Add(this->helpImage);
         this->pcExplore->Add(this->helpImage);
-        this->usbDrives->Add(this->helpImage);
         this->fileContent->Add(this->helpImage);
         this->copy->Add(this->helpImage);
         this->nspInstall->Add(this->helpImage);
@@ -384,7 +364,7 @@ namespace ui
         this->start = std::chrono::steady_clock::now();
     }
 
-    void MainApplication::ShowNotification(pu::String Text)
+    void MainApplication::ShowNotification(String Text)
     {
         this->EndOverlay();
         this->toast->SetText(Text);
@@ -393,6 +373,7 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
+        /*
         if(!this->welcomeshown)
         {
             auto tnow = std::chrono::steady_clock::now();
@@ -403,8 +384,9 @@ namespace ui
                 this->welcomeshown = true;
             }
         }
+        */
 
-        pu::String dtime = hos::GetCurrentTime();
+        String dtime = hos::GetCurrentTime();
         u32 blv = hos::GetBatteryLevel();
         bool isch = hos::IsCharging();
         if((this->preblv != blv) || this->vfirst)
@@ -435,7 +417,7 @@ namespace ui
             this->pretime = dtime;
         }
         if(this->vfirst) this->vfirst = false;
-        this->hasusb = usb::IsStatePlugged();
+        this->hasusb = usb::detail::IsStateOk();
         this->usbImage->SetVisible(this->hasusb);
         u32 connstr = 0;
         Result rc = nifmGetInternetConnectionStatus(NULL, &connstr, NULL);
@@ -453,14 +435,14 @@ namespace ui
             u32 ip = gethostid();
             char sip[0x20] = {0};
             inet_ntop(AF_INET, &ip, sip, 0x20);
-            this->ipText->SetText(pu::String(sip));
+            this->ipText->SetText(String(sip));
         }
         else this->ipText->SetText("");
         auto user = acc::GetSelectedUser();
-        if(user != this->seluser)
+        if(!acc::UidCompare(&user, &this->seluser))
         {
             this->seluser = user;
-            if(this->seluser == 0) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+            if(!accountUidIsValid(&this->seluser)) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
             else
             {
                 auto usericon = acc::GetCachedUserIcon();
@@ -472,7 +454,7 @@ namespace ui
         }
     }
 
-    void MainApplication::LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon)
+    void MainApplication::LoadMenuData(String Name, std::string ImageName, String TempHead, bool CommonIcon)
     {
         if(this->menuImage != NULL)
         {
@@ -494,7 +476,7 @@ namespace ui
         }
     }
 
-    void MainApplication::LoadMenuHead(pu::String Head)
+    void MainApplication::LoadMenuHead(String Head)
     {
         if(this->menuHeadText != NULL) this->menuHeadText->SetText(Head);
     }
@@ -527,7 +509,7 @@ namespace ui
                 if(cdir) fsicon = gsets.PathForResource("/FileSystem/Directory.png");
                 else
                 {
-                    pu::String ext = fs::GetExtension(clipboard);
+                    String ext = fs::GetExtension(clipboard);
                     if(ext == "nsp") fsicon = gsets.PathForResource("/FileSystem/NSP.png");
                     else if(ext == "nro") fsicon = gsets.PathForResource("/FileSystem/NRO.png");
                     else if(ext == "tik") fsicon = gsets.PathForResource("/FileSystem/TIK.png");
@@ -539,7 +521,7 @@ namespace ui
                 int sopt = this->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
                 if(sopt == 0)
                 {
-                    pu::String cname = fs::GetFileName(clipboard);
+                    String cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
                     this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer());
                     mainapp->LoadLayout(this->browser);
@@ -551,11 +533,11 @@ namespace ui
         }
         else if(Down & KEY_L)
         {
-            pu::String cfile = AskForText(set::GetDictionaryEntry(225), "");
+            String cfile = AskForText(set::GetDictionaryEntry(225), "");
             if(cfile != "")
             {
-                pu::String ffile = this->browser->GetExplorer()->FullPathFor(cfile);
-                pu::String pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
+                String ffile = this->browser->GetExplorer()->FullPathFor(cfile);
+                String pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
                 if(this->browser->GetExplorer()->IsFile(ffile) || this->browser->GetExplorer()->IsDirectory(ffile)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
                 else
                 {
@@ -567,11 +549,11 @@ namespace ui
         }
         else if(Down & KEY_R)
         {
-            pu::String cdir = AskForText(set::GetDictionaryEntry(250), "");
+            String cdir = AskForText(set::GetDictionaryEntry(250), "");
             if(cdir != "")
             {
-                pu::String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
-                pu::String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
+                String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
+                String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
                 if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
                 else
                 {
@@ -593,16 +575,6 @@ namespace ui
     }
 
     void MainApplication::pcExplore_Input(u64 Down, u64 Up, u64 Held)
-    {
-        if(Down & KEY_B)
-        {
-            this->UnloadMenuData();
-            this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-            this->LoadLayout(this->exploreMenu);
-        }
-    }
-
-    void MainApplication::usbDrives_Input(u64 Down, u64 Up, u64 Held)
     {
         if(Down & KEY_B)
         {
@@ -756,11 +728,6 @@ namespace ui
         return this->pcExplore;
     }
 
-    USBDrivesLayout::Ref &MainApplication::GetUSBDrivesLayout()
-    {
-        return this->usbDrives;
-    }
-
     InstallLayout::Ref &MainApplication::GetInstallLayout()
     {
         return this->nspInstall;
@@ -821,10 +788,10 @@ namespace ui
         return this->about;
     }
 
-    void UpdateClipboard(pu::String Path)
+    void UpdateClipboard(String Path)
     {
         SetClipboard(Path);
-        pu::String copymsg;
+        String copymsg;
         if(mainapp->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
         else copymsg = set::GetDictionaryEntry(258);
         mainapp->ShowNotification(copymsg);

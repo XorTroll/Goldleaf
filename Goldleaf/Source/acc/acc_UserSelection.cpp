@@ -26,25 +26,35 @@
 
 namespace acc
 {
-    static u128 selected_user = 0;
+    static AccountUid selected_user;
 
-    u128 GetSelectedUser()
+    AccountUid GetSelectedUser()
     {
         return selected_user;
     }
 
-    void SetSelectedUser(u128 User)
+    bool HasUser()
     {
-        selected_user = User;
+        return accountUidIsValid(&selected_user);
+    }
+
+    void SetSelectedUser(AccountUid uid)
+    {
+        memcpy(&selected_user, &uid, sizeof(uid));
+    }
+
+    void ResetSelectedUser()
+    {
+        selected_user = {};
     }
 
     bool SelectFromPreselectedUser()
     {
-        u128 tmpuser = 0;
+        AccountUid tmpuser = {};
         auto res = accountGetPreselectedUser(&tmpuser);
-        if(R_SUCCEEDED(res) && (tmpuser != 0))
+        if(R_SUCCEEDED(res) && accountUidIsValid(&tmpuser))
         {
-            selected_user = tmpuser;
+            SetSelectedUser(tmpuser);
             return true;
         }
         return false;
@@ -52,18 +62,18 @@ namespace acc
 
     bool SelectUser()
     {
-        u128 user = LaunchPlayerSelect();
-        if(user != 0)
+        AccountUid user = LaunchPlayerSelect();
+        if(accountUidIsValid(&user))
         {
-            selected_user = user;
+            SetSelectedUser(user);
             return true;
         }
         return false;
     }
 
-    u128 LaunchPlayerSelect()
+    AccountUid LaunchPlayerSelect()
     {
-        u128 out_id = 0;
+        AccountUid out_id = {};
         LibAppletArgs args;
         libappletArgsCreate(&args, 0x10000);
         u8 st_in[0xA0] = {0};
@@ -74,8 +84,8 @@ namespace acc
         if(R_SUCCEEDED(res))
         {
             u64 lres = *(u64*)st_out;
-            u128 uid = *(u128*)&st_out[8];
-            if(lres == 0) out_id = uid;
+            AccountUid *uid_ptr = (AccountUid*)&st_out[8];
+            if(lres == 0) memcpy(&out_id, uid_ptr, sizeof(out_id));
         }
         
         return out_id;
@@ -84,47 +94,50 @@ namespace acc
     Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb)
     {
         AccountProfile prof;
-        auto res = accountGetProfile(&prof, selected_user);
-        if(res == 0)
+        auto rc = accountGetProfile(&prof, selected_user);
+        if(R_SUCCEEDED(rc))
         {
             AccountProfileBase pbase = {};
             AccountUserData udata = {};
-            res = accountProfileGet(&prof, &udata, &pbase);
-            if(res == 0)
+            rc = accountProfileGet(&prof, &udata, &pbase);
+            if(R_SUCCEEDED(rc))
             {
-                ProfileEditor editor;
-                res = GetProfileEditor(selected_user, &editor);
-                if(res == 0)
+                Service editor;
+                rc = GetProfileEditor(selected_user, &editor);
+                if(R_SUCCEEDED(rc))
                 {
                     cb(&pbase, &udata);
-                    editor.Store(&pbase, &udata);
+                    rc = ProfileEditor_Store(&editor, pbase, udata);
+                    serviceClose(&editor);
                 }
-                editor.Close();
             }
             accountProfileClose(&prof);
         }
-        return res;
+        return rc;
     }
 
-    Result EditUserIcon(u8 *JPEG, size_t JPEG_size)
+    Result EditUserIcon(u8 *jpg, size_t size)
     {
         AccountProfile prof;
-        auto res = accountGetProfile(&prof, selected_user);
-        if(res == 0)
+        auto rc = accountGetProfile(&prof, selected_user);
+        if(R_SUCCEEDED(rc))
         {
             AccountProfileBase pbase = {};
             AccountUserData udata = {};
-            res = accountProfileGet(&prof, &udata, &pbase);
-            if(res == 0)
+            rc = accountProfileGet(&prof, &udata, &pbase);
+            if(R_SUCCEEDED(rc))
             {
-                ProfileEditor editor;
-                res = GetProfileEditor(selected_user, &editor);
-                if(res == 0) editor.StoreWithImage(&pbase, &udata, JPEG, JPEG_size);
-                editor.Close();
+                Service editor;
+                rc = GetProfileEditor(selected_user, &editor);
+                if(R_SUCCEEDED(rc))
+                {
+                    rc = ProfileEditor_StoreWithImage(&editor, pbase, udata, jpg, size);
+                    serviceClose(&editor);
+                }
             }
             accountProfileClose(&prof);
         }
-        return res;
+        return rc;
     }
 
     void CacheSelectedUserIcon()
@@ -133,12 +146,12 @@ namespace acc
         auto res = accountGetProfile(&prof, selected_user);
         if(res == 0)
         {
-            size_t iconsize = 0;
+            u32 iconsize = 0;
             accountProfileGetImageSize(&prof, &iconsize);
             if(iconsize > 0)
             {
                 u8 *icon = new u8[iconsize]();
-                size_t tmpsz;
+                u32 tmpsz;
                 res = accountProfileLoadImage(&prof, icon, iconsize, &tmpsz);
                 if(res == 0)
                 {
@@ -159,47 +172,46 @@ namespace acc
 
     std::string GetCachedUserIcon()
     {
-        return "sdmc:/" + GoldleafDir + "/userdata/" + hos::FormatHex128(selected_user) + ".jpg";
+        return "sdmc:/" + consts::Root + "/userdata/" + hos::FormatHex128(selected_user) + ".jpg";
     }
 
     bool IsLinked()
     {
-        acc::BaasAdministrator admin;
-        auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
-        if(res == 0)
+        bool linked = false;
+        Service baas;
+        auto rc = GetBaasAccountAdministrator(selected_user, &baas);
+        if(R_SUCCEEDED(rc))
         {
-            bool linked = false;
-            admin.IsLinkedWithNintendoAccount(&linked);
-            admin.Close();
-            return linked;
+            BaasAdministrator_IsLinkedWithNintendoAccount(&baas, &linked);
+            serviceClose(&baas);
         }
-        return false;
+        return linked;
     }
 
     Result UnlinkLocally()
     {
-        acc::BaasAdministrator admin;
-        auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
-        if(res == 0)
+        Service baas;
+        auto rc = GetBaasAccountAdministrator(selected_user, &baas);
+        if(R_SUCCEEDED(rc))
         {
             bool linked = false;
-            admin.IsLinkedWithNintendoAccount(&linked);
-            if(linked) res = admin.DeleteRegistrationInfoLocally();
-            admin.Close();
+            rc = BaasAdministrator_IsLinkedWithNintendoAccount(&baas, &linked);
+            if(R_SUCCEEDED(rc) && linked) rc = BaasAdministrator_DeleteRegistrationInfoLocally(&baas);
+            serviceClose(&baas);
         }
-        return res;
+        return rc;
     }
 
     LinkedAccountInfo GetUserLinkedInfo()
     {
         LinkedAccountInfo info = {};
-        acc::BaasAdministrator admin;
-        auto res = acc::GetBaasAccountAdministrator(selected_user, &admin);
-        if(res == 0)
+        Service baas;
+        auto rc = GetBaasAccountAdministrator(selected_user, &baas);
+        if(R_SUCCEEDED(rc))
         {
-            res = admin.GetAccountId(&info.AccountId);
-            if(res == 0) res = admin.GetNintendoAccountId(&info.NintendoAccountId);
-            admin.Close();
+            BaasAdministrator_GetAccountId(&baas, &info.AccountId);
+            BaasAdministrator_GetNintendoAccountId(&baas, &info.NintendoAccountId);
+            serviceClose(&baas);
         }
         return info;
     }

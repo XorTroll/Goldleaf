@@ -22,12 +22,11 @@
 #include <ui/ui_MainMenuLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     MainMenuLayout::MainMenuLayout() : pu::ui::Layout()
     {
         this->optionMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -91,7 +90,7 @@ namespace ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
-        pu::String out = AskForText(set::GetDictionaryEntry(38), "https://");
+        String out = AskForText(set::GetDictionaryEntry(38), "https://");
         if(out.empty()) return;
         else
         {
@@ -111,7 +110,7 @@ namespace ui
 
     void MainMenuLayout::accountMenuItem_Click()
     {
-        if(acc::GetSelectedUser() == 0)
+        if(acc::HasUser())
         {
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(348), set::GetDictionaryEntry(349), {set::GetDictionaryEntry(111), set::GetDictionaryEntry(18)}, true);
             if(sopt != 0) return;
@@ -151,10 +150,10 @@ namespace ui
 
     void MainMenuLayout::aboutMenuItem_Click()
     {
-        pu::String exmode = set::GetDictionaryEntry(288);
+        String exmode = set::GetDictionaryEntry(288);
         if(GetExecutableMode() == ExecutableMode::NSO) exmode = set::GetDictionaryEntry(289);
 
-        pu::String lmode;
+        String lmode;
         if(GetLaunchMode() == LaunchMode::Applet) lmode = set::GetDictionaryEntry(290);
         if(GetLaunchMode() == LaunchMode::Application) lmode = set::GetDictionaryEntry(291);
 

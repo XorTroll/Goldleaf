@@ -22,12 +22,11 @@
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     PCExploreLayout::PCExploreLayout() : pu::ui::Layout()
     {
         this->pathsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -48,8 +47,8 @@ namespace ui
         {
             for(u32 i = 0; i < drivecount; i++)
             {
-                pu::String label;
-                pu::String path;
+                String label;
+                String path;
                 u32 sztmp = 0;
                 rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(sztmp), usb::Out32(sztmp));
                 if(R_SUCCEEDED(rc))
@@ -64,8 +63,8 @@ namespace ui
         {
             for(u32 i = 0; i < pathcount; i++)
             {
-                pu::String name;
-                pu::String path;
+                String name;
+                String path;
                 rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::In32(i), usb::OutString(name), usb::OutString(path));
                 if(R_SUCCEEDED(rc))
                 {
@@ -100,7 +99,7 @@ namespace ui
 
     void PCExploreLayout::fileSelect_Click()
     {
-        pu::String selfile;
+        String selfile;
         auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selfile));
         if(R_SUCCEEDED(rc)) mainapp->GetBrowserLayout()->HandleFileDirectly(selfile);
     }

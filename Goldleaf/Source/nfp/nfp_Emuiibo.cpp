@@ -21,30 +21,30 @@
 
 #include <nfp/nfp_Emuiibo.hpp>
 
-static Service emusrv;
-static u64 emucnt = 0;
-
-namespace nfp
+namespace nfp::emu
 {
+    static Service nfpemu_srv;
+    static u64 nfpemu_refcnt = 0;
+
     bool IsEmuiiboPresent()
     {
         Handle tmph = 0;
-        Result rc = smRegisterService(&tmph, "nfp:emu", false, 1);
+        auto rc = smRegisterService(&tmph, EmuServiceName, false, 1);
         if(R_FAILED(rc)) return true;
-        smUnregisterService("nfp:emu");
+        smUnregisterService(EmuServiceName);
         return false;
     }
 
-    Result EmuInitialize()
+    Result Initialize()
     {
-        if(IsEmuiiboPresent()) return LibnxError_NotFound;
-        atomicIncrement64(&emucnt);
-        if(serviceIsActive(&emusrv)) return 0;
-        return smGetService(&emusrv, "nfp:emu");
+        if(IsEmuiiboPresent()) return MAKERESULT(Module_Libnx, LibnxError_NotFound);
+        atomicIncrement64(&nfpemu_refcnt);
+        if(serviceIsActive(&nfpemu_srv)) return 0;
+        return smGetService(&nfpemu_srv, "nfp:emu");
     }
 
-    void EmuFinalize()
+    void Finalize()
     {
-        if(atomicDecrement64(&emucnt) == 0) serviceClose(&emusrv);
+        if(atomicDecrement64(&nfpemu_refcnt) == 0) serviceClose(&nfpemu_srv);
     }
 }

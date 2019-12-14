@@ -22,12 +22,11 @@
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout()
     {
         this->ticketsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -69,7 +68,7 @@ namespace ui
             {
                 hos::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
-                pu::String tname = hos::FormatApplicationId(tappid);
+                String tname = hos::FormatApplicationId(tappid);
                 auto itm = pu::ui::elm::MenuItem::New(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
                 itm->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
@@ -83,7 +82,7 @@ namespace ui
     void UnusedTicketsLayout::tickets_Click()
     {
         hos::Ticket seltick = this->tickets[this->ticketsMenu->GetSelectedIndex()];
-        pu::String info = set::GetDictionaryEntry(201) + "\n\n\n";
+        String info = set::GetDictionaryEntry(201) + "\n\n\n";
         u64 tappid = seltick.GetApplicationId();
         info += set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(tappid);
         info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(seltick.GetKeyGeneration() + 1);

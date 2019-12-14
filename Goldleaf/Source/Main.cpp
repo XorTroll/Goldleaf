@@ -23,34 +23,62 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 extern char *fake_heap_end;
 void *new_heap_addr = NULL;
 
+ui::MainApplication::Ref mainapp;
+set::Settings gsets;
+bool gupdated = false;
+
 static constexpr u64 HeapSize = 0x10000000;
+
+void Finalize();
+
+void Panic(std::string msg)
+{
+    consoleInit(NULL);
+    std::cout << std::endl;
+    std::cout << "Goldleaf - panic (critical error)" << std::endl;
+    std::cout << "Panic error: " << msg << std::endl;
+    std::cout << std::endl;
+    std::cout << "Press any key to exit Goldleaf..." << std::endl;
+    consoleUpdate(NULL);
+
+    while(true)
+    {
+        hidScanInput();
+        if(hidKeysDown(CONTROLLER_P1_AUTO)) break;
+    }
+
+    consoleExit(NULL);
+    Finalize();
+    exit(0);
+}
 
 void Initialize()
 {
-    if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
-    // TODO: Better way to handle this than exiting? User won't know what happened
+    // if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
 
-    if(R_FAILED(ncm::Initialize())) exit(1);
-    if(R_FAILED(acc::Initialize())) exit(1);
-    if(R_FAILED(accountInitialize())) exit(1);
-    if(R_FAILED(ncmInitialize())) exit(1);
-    if(R_FAILED(ns::Initialize())) exit(1);
-    if(R_FAILED(nsInitialize())) exit(1);
-    if(R_FAILED(es::Initialize())) exit(1);
-    if(R_FAILED(psmInitialize())) exit(1);
-    if(R_FAILED(setInitialize())) exit(1);
-    if(R_FAILED(setsysInitialize())) exit(1);
-    if(R_FAILED(usb::comms::Initialize())) exit(1);
-    if(R_FAILED(splInitialize())) exit(1);
-    if(R_FAILED(bpcInitialize())) exit(1);
-    if(R_FAILED(nifmInitialize())) exit(1);
-    if(R_FAILED(pdmqryInitialize())) exit(1);
+    if(R_FAILED(accountInitialize(AccountServiceType_Administrator))) Panic("acc:su");
+    if(R_FAILED(ncmInitialize())) Panic("ncm");
+    if(R_FAILED(nsInitialize())) Panic("ns");
+    if(R_FAILED(es::Initialize())) Panic("es");
+    if(R_FAILED(psmInitialize())) Panic("psm");
+    if(R_FAILED(setInitialize())) Panic("set");
+    if(R_FAILED(setsysInitialize())) Panic("set:sys");
+    if(R_FAILED(usb::detail::Initialize())) Panic("usb:ds");
+    if(R_FAILED(splInitialize())) Panic("spl");
+    if(R_FAILED(bpcInitialize())) Panic("bpc");
+    if(R_FAILED(nifmInitialize(NifmServiceType_Admin))) Panic("nifm:a");
+    if(R_FAILED(pdmqryInitialize())) Panic("pdm:qry");
     srand(time(NULL));
     EnsureDirectories();
+
+    gsets = set::ProcessSettings();
+    set::Initialize();
+    if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
 }
 
 void Finalize()
@@ -67,44 +95,41 @@ void Finalize()
     delete nusr;
     delete prif;
     delete sdcd;
+
     bpcExit();
     splExit();
-    usb::comms::Exit();
+    usb::detail::Exit();
     setsysExit();
     setExit();
     psmExit();
     es::Finalize();
-    ns::Finalize();
     nsExit();
     accountExit();
-    acc::Finalize();
-    ncm::Finalize();
     ncmExit();
     nifmExit();
     pdmqryExit();
-    if(GetLaunchMode() == LaunchMode::Applet) svcSetHeapSize(&new_heap_addr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)new_heap_addr);
-}
 
-namespace ui
-{
-    extern MainApplication::Ref mainapp;
+    // if(GetLaunchMode() == LaunchMode::Applet) svcSetHeapSize(&new_heap_addr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)new_heap_addr);
 }
-
-bool gupdated = false;
 
 int main(int argc, char **argv)
 {
     Initialize();
 
-    ui::mainapp = ui::MainApplication::New();
-    ui::mainapp->ShowWithFadeIn();
+    auto renderer = pu::ui::render::Renderer::New(SDL_INIT_EVERYTHING, pu::ui::render::RendererInitOptions::RendererEverything, pu::ui::render::RendererHardwareFlags);
+    mainapp = ui::MainApplication::New(renderer);
+
+    mainapp->Prepare();
+    mainapp->Show();
     
+    // If Goldleaf updated itself in this session...
     if(gupdated)
     {
         romfsExit();
         fs::DeleteFile(argv[0]);
-        fs::RenameFile(TempGoldleafUpdateNro, argv[0]);
+        fs::RenameFile(consts::TempUpdatePath, argv[0]);
     }
+
     Finalize();
     return 0;
 }

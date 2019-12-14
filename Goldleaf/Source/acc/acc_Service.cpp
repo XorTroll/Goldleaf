@@ -20,320 +20,69 @@
 */
 
 #include <acc/acc_Service.hpp>
-#include <cstring>
-
-static Service susrv;
-static u64 sucnt = 0;
 
 namespace acc
 {
-    ProfileEditor::ProfileEditor()
+    Result DeleteUser(AccountUid uid)
     {
+        return serviceDispatchIn(accountGetServiceSession(), 203, uid);
     }
 
-    ProfileEditor::ProfileEditor(Service Srv)
+    Result GetProfileEditor(AccountUid uid, Service *out_srv)
     {
-        this->srv = Srv;
+        return serviceDispatchIn(accountGetServiceSession(), 205, uid,
+            .out_num_objects = 1,
+            .out_objects = out_srv,
+        );
     }
 
-    Result ProfileEditor::Store(AccountProfileBase *PBase, AccountUserData *UData)
+    Result ProfileEditor_Store(Service *srv, AccountProfileBase base, AccountUserData udata)
     {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        ipcAddSendStatic(&cmd, UData, sizeof(AccountUserData), 0);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-            AccountProfileBase PBase;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 100;
-        memcpy(&iraw->PBase, PBase, sizeof(AccountProfileBase));
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-        }
-        return rc;
+        return serviceDispatchIn(srv, 100, base,
+            .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_In | SfBufferAttr_HipcPointer },
+            .buffers = { { &udata, sizeof(udata) } },
+        );
     }
 
-    Result ProfileEditor::StoreWithImage(AccountProfileBase *PBase, AccountUserData *UData, u8 *JPEG, size_t JPEGSize)
+    Result ProfileEditor_StoreWithImage(Service *srv, AccountProfileBase base, AccountUserData udata, u8 *jpg, size_t jpgsize)
     {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        ipcAddSendStatic(&cmd, UData, sizeof(AccountUserData), 0);
-        ipcAddSendBuffer(&cmd, JPEG, JPEGSize, BufferType_Normal);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-            AccountProfileBase PBase;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 101;
-        memcpy(&iraw->PBase, PBase, sizeof(AccountProfileBase));
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-        }
-        return rc;
+        return serviceDispatchIn(srv, 101, base,
+            .buffer_attrs = {
+                SfBufferAttr_FixedSize | SfBufferAttr_In | SfBufferAttr_HipcPointer,
+                SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
+            },
+            .buffers = {
+                { &udata, sizeof(udata) },
+                { jpg, jpgsize },
+            },
+        );
     }
 
-    void ProfileEditor::Close()
+    Result GetBaasAccountAdministrator(AccountUid uid, Service *out_srv)
     {
-        serviceClose(&this->srv);
+        return serviceDispatchIn(accountGetServiceSession(), 250, uid,
+            .out_num_objects = 1,
+            .out_objects = out_srv,
+        );
     }
 
-    BaasAdministrator::BaasAdministrator()
+    Result BaasAdministrator_IsLinkedWithNintendoAccount(Service *srv, bool *out)
     {
+        return serviceDispatchOut(srv, 250, *out);
     }
 
-    BaasAdministrator::BaasAdministrator(Service Srv)
+    Result BaasAdministrator_DeleteRegistrationInfoLocally(Service *srv)
     {
-        this->srv = Srv;
+        return serviceDispatch(srv, 203);
     }
 
-    Result BaasAdministrator::IsLinkedWithNintendoAccount(bool *out)
+    Result BaasAdministrator_GetAccountId(Service *srv, u64 *out_id)
     {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 250;
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-                bool Linked;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-            if(R_SUCCEEDED(rc)) *out = oraw->Linked;
-        }
-        return rc;
+        return serviceDispatchOut(srv, 1, *out_id);
     }
 
-    Result BaasAdministrator::DeleteRegistrationInfoLocally()
+    Result BaasAdministrator_GetNintendoAccountId(Service *srv, u64 *out_id)
     {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 203;
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-        }
-        return rc;
-    }
-
-    Result BaasAdministrator::GetAccountId(u64 *out_AId)
-    {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 1;
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-                u64 AId;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-            if(R_SUCCEEDED(rc)) *out_AId = oraw->AId;
-        }
-        return rc;
-    }
-
-    Result BaasAdministrator::GetNintendoAccountId(u64 *out_NAId)
-    {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 120;
-        Result rc = serviceIpcDispatch(&this->srv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-                u64 NAId;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-            if(R_SUCCEEDED(rc)) *out_NAId = oraw->NAId;
-        }
-        return rc;
-    }
-
-    void BaasAdministrator::Close()
-    {
-        serviceClose(&this->srv);
-    }
-
-    Result Initialize()
-    {
-        atomicIncrement64(&sucnt);
-        if(serviceIsActive(&susrv)) return 0;
-        return smGetService(&susrv, "acc:su");
-    }
-
-    void Finalize()
-    {
-        if(atomicDecrement64(&sucnt) == 0) serviceClose(&susrv);
-    }
-
-    bool HasInitialized()
-    {
-        return serviceIsActive(&susrv);
-    }
-
-    Result DeleteUser(u128 UserId)
-    {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-            u128 UserId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 203;
-        iraw->UserId = UserId;
-        Result rc = serviceIpcDispatch(&susrv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-        }
-        return rc;
-    }
-
-    Result GetProfileEditor(u128 UserId, ProfileEditor *out_Editor)
-    {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-            u128 UserId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 205;
-        iraw->UserId = UserId;
-        Result rc = serviceIpcDispatch(&susrv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-            if(rc == 0)
-            {
-                Service srv;
-                serviceCreate(&srv, pcmd.Handles[0]);
-                *out_Editor = ProfileEditor(srv);
-            }
-        }
-        return rc;
-    }
-
-    Result GetBaasAccountAdministrator(u128 UserId, BaasAdministrator *out_Admin)
-    {
-        IpcCommand cmd;
-        ipcInitialize(&cmd);
-        struct InRaw
-        {
-            u64 Magic;
-            u64 CommandId;
-            u128 UserId;
-        } *iraw = (InRaw*)ipcPrepareHeader(&cmd, sizeof(*iraw));
-        iraw->Magic = SFCI_MAGIC;
-        iraw->CommandId = 250;
-        iraw->UserId = UserId;
-        Result rc = serviceIpcDispatch(&susrv);
-        if(rc == 0)
-        {
-            IpcParsedCommand pcmd;
-            ipcParse(&pcmd);
-            struct OutRaw
-            {
-                u64 Magic;
-                u64 ResultCode;
-            } *oraw = (OutRaw*)pcmd.Raw;
-            rc = oraw->ResultCode;
-            if(rc == 0)
-            {
-                Service srv;
-                serviceCreate(&srv, pcmd.Handles[0]);
-                *out_Admin = BaasAdministrator(srv);
-            }
-        }
-        return rc;
+        return serviceDispatchOut(srv, 120, *out_id);
     }
 }

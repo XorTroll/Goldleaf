@@ -52,9 +52,9 @@ namespace hos
         return std::string(timestr);
     }
 
-    std::string FormatHex128(u128 Number)
+    std::string FormatHex128(AccountUid Number)
     {
-        u8 *ptr = (u8*)&Number;
+        u8 *ptr = (u8*)Number.uid;
         std::stringstream strm;
         for(u32 i = 0; i < 16; i++) strm << std::hex << std::uppercase << (int)ptr[i];
         return strm.str();
@@ -157,7 +157,7 @@ namespace hos
         operator delete[](block, std::align_val_t(0x1000));
     }
 
-    void PayloadProcess(pu::String Path)
+    void PayloadProcess(String Path)
     {
         u8 *block = new (std::align_val_t(0x1000)) u8[MaxPayloadSize]();
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
@@ -187,7 +187,7 @@ namespace hos
     u8 ComputeSystemKeyGeneration()
     {
         FsStorage boot0;
-        auto rc = fsOpenBisStorage(&boot0, FsBisStorageId_Boot0);
+        auto rc = fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root);
         if(R_SUCCEEDED(rc))
         {
             u32 keygen_ver = 0;

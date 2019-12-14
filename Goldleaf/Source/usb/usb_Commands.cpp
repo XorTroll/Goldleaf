@@ -20,7 +20,7 @@
 */
 
 #include <usb/usb_Commands.hpp>
-#include <usb/usb_Communications.hpp>
+#include <cstring>
 
 namespace usb
 {
@@ -42,7 +42,7 @@ namespace usb
         WriteBuffer(&Value, sizeof(u64));
     }
 
-    void InCommandBlock::WriteString(pu::String Value)
+    void InCommandBlock::WriteString(String Value)
     {
         Write32(Value.length());
         WriteBuffer((char16_t*)Value.AsUTF16().c_str(), Value.length() * sizeof(char16_t));
@@ -54,19 +54,23 @@ namespace usb
         base.position += Size;
     }
 
-    void InCommandBlock::Send()
+    Result InCommandBlock::Send()
     {
-        WriteSimple(base.blockbuf, BlockSize);
+        auto rc = detail::Write(this->base.blockbuf, BlockSize);
         operator delete[](base.blockbuf, std::align_val_t(0x1000));
+        return rc;
     }
 
     OutCommandBlock::OutCommandBlock()
     {
         base.position = 0;
         base.blockbuf = new(std::align_val_t(0x1000)) u8[BlockSize]();
-        ReadSimple(base.blockbuf, BlockSize);
-        magic = Read32();
-        res = Read32();
+        res = detail::Read(base.blockbuf, BlockSize);
+        if(R_SUCCEEDED(res))
+        {
+            magic = Read32();
+            res = Read32();
+        }
     }
 
     void OutCommandBlock::Cleanup()
@@ -94,12 +98,12 @@ namespace usb
         return val;
     }
 
-    pu::String OutCommandBlock::ReadString()
+    String OutCommandBlock::ReadString()
     {
         u32 len = Read32();
         char16_t *str = new char16_t[len + 1]();
         ReadBuffer(str, len * sizeof(char16_t));
-        pu::String nstr(str);
+        String nstr(str);
         delete[] str;
         return nstr;
     }
@@ -194,7 +198,7 @@ namespace usb
     {
     }
 
-    InString::InString(pu::String Value) : val(Value)
+    InString::InString(String Value) : val(Value)
     {
     }
 
@@ -215,7 +219,7 @@ namespace usb
     {
     }
 
-    OutString::OutString(pu::String &Value) : val(Value)
+    OutString::OutString(String &Value) : val(Value)
     {
     }
 
@@ -248,7 +252,7 @@ namespace usb
     {
         u8 *alignbuf = new (std::align_val_t(0x1000)) u8[sz]();
         memcpy(alignbuf, buf, sz);
-        WriteSimple(alignbuf, sz);
+        detail::Write(alignbuf, sz);
         operator delete[](alignbuf, std::align_val_t(0x1000));
     }
 
@@ -279,7 +283,7 @@ namespace usb
     void OutBuffer::ProcessAfterOut()
     {
         u8 *alignbuf = new (std::align_val_t(0x1000)) u8[sz]();
-        ReadSimple(alignbuf, sz);
+        detail::Read(alignbuf, sz);
         memcpy(buf, alignbuf, sz);
         operator delete[](alignbuf, std::align_val_t(0x1000));
     }

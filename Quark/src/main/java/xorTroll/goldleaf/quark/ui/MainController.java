@@ -165,7 +165,7 @@ public class MainController
                 }
             }
         });
-        ShowLogsToggle.setSelected(false);
+        ShowLogsToggle.setSelected(true);
         LogArea.visibleProperty().bind(ShowLogsToggle.selectedProperty());
         Logger = new PrintStream(new UILogger(LogArea));
         System.setOut(Logger);

@@ -41,45 +41,45 @@ namespace fs
     static u8 *opsbuf = NULL;
     static size_t opsbufsz = 0x800000;
 
-    bool Exists(pu::String Path)
+    bool Exists(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) return exp->Exists(Path);
         return false;
     }
 
-    bool IsFile(pu::String Path)
+    bool IsFile(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) return exp->IsFile(Path);
         return false;
     }
 
-    bool IsDirectory(pu::String Path)
+    bool IsDirectory(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) return exp->IsDirectory(Path);
         return false;
     }
 
-    void CreateFile(pu::String Path)
+    void CreateFile(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) exp->CreateFile(Path);
     }
 
-    void CreateConcatenationFile(pu::String Path)
+    void CreateConcatenationFile(String Path)
     {
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FS_CREATE_BIG_FILE);
+        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
     }
 
-    void CreateDirectory(pu::String Path)
+    void CreateDirectory(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) exp->CreateDirectory(Path);
     }
 
-    void CopyFile(pu::String Path, pu::String NewPath)
+    void CopyFile(String Path, String NewPath)
     {
         Explorer *gexp = GetExplorerForPath(Path);
         Explorer *ogexp = GetExplorerForPath(NewPath);
@@ -88,7 +88,7 @@ namespace fs
         gexp->CopyFile(Path, NewPath);
     }
 
-    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(double Done, double Total)> Callback)
+    void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
     {
         Explorer *gexp = GetExplorerForPath(Path);
         Explorer *ogexp = GetExplorerForPath(NewPath);
@@ -97,43 +97,43 @@ namespace fs
         gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 
-    void CopyDirectory(pu::String Dir, pu::String NewDir)
+    void CopyDirectory(String Dir, String NewDir)
     {
         Explorer *gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectory(Dir, NewDir);
     }
 
-    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(double Done, double Total)> Callback)
+    void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
     {
         Explorer *gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
     }
 
-    void DeleteFile(pu::String Path)
+    void DeleteFile(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) exp->DeleteFile(Path);
     }
 
-    void DeleteDirectory(pu::String Path)
+    void DeleteDirectory(String Path)
     {
         auto exp = GetExplorerForPath(Path);
         if(exp != NULL) exp->DeleteDirectory(Path);
     }
 
-    void RenameFile(pu::String Old, pu::String New)
+    void RenameFile(String Old, String New)
     {
         auto exp = GetExplorerForPath(Old);
         if(exp != NULL) exp->RenameFile(Old, New);
     }
 
-    void RenameDirectory(pu::String Old, pu::String New)
+    void RenameDirectory(String Old, String New)
     {
         auto exp = GetExplorerForPath(Old);
         if(exp != NULL) exp->RenameDirectory(Old, New);
     }
 
-    bool IsFileBinary(pu::String Path)
+    bool IsFileBinary(String Path)
     {
         if(GetFileSize(Path) == 0) return true;
         bool bin = false;
@@ -154,14 +154,14 @@ namespace fs
         return bin;
     }
 
-    void WriteFile(pu::String Path, std::vector<u8> Data)
+    void WriteFile(String Path, std::vector<u8> Data)
     {
         auto exp = GetExplorerForPath(Path);
         exp->DeleteFile(Path);
         exp->WriteFileBlock(Path, Data.data(), Data.size());
     }
 
-    u64 GetFileSize(pu::String Path)
+    u64 GetFileSize(String Path)
     {
         u64 sz = 0;
         FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
@@ -175,7 +175,7 @@ namespace fs
         return sz;
     }
 
-    u64 GetDirectorySize(pu::String Path)
+    u64 GetDirectorySize(String Path)
     {
         u64 sz = 0;
         DIR *d = opendir(Path.AsUTF8().c_str());
@@ -186,8 +186,8 @@ namespace fs
             {
                 dent = readdir(d);
                 if(dent == NULL) break;
-                pu::String nd = dent->d_name;
-                pu::String pd = Path + "/" + nd;
+                String nd = dent->d_name;
+                String pd = Path + "/" + nd;
                 if(fs::IsFile(pd)) sz += GetFileSize(pd);
                 else sz += GetDirectorySize(pd);
             }
@@ -196,27 +196,27 @@ namespace fs
         return sz;
     }
 
-    pu::String GetFileName(pu::String Path)
+    String GetFileName(String Path)
     {
         return Path.substr(Path.find_last_of("/\\") + 1);
     }
 
-    pu::String GetBaseDirectory(pu::String Path)
+    String GetBaseDirectory(String Path)
     {
         return Path.substr(0, Path.find_last_of("/\\"));
     }
 
-    pu::String GetExtension(pu::String Path)
+    String GetExtension(String Path)
     {
         return Path.substr(Path.find_last_of(".") + 1);
     }
 
-    pu::String GetPathRoot(pu::String Path)
+    String GetPathRoot(String Path)
     {
         return Path.substr(0, Path.find_first_of(":"));
     }
 
-    pu::String GetPathWithoutRoot(pu::String Path)
+    String GetPathWithoutRoot(String Path)
     {
         return Path.substr(Path.find_first_of(":") + 1);
     }
@@ -273,9 +273,9 @@ namespace fs
         return space;
     }
 
-    pu::String FormatSize(u64 Bytes)
+    String FormatSize(u64 Bytes)
     {
-        pu::String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
+        String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
         if(Bytes == 0) return "0" + sufs[0];
         u32 plc = floor((log(Bytes) / log(1024)));
         double btnum = (double)(Bytes / pow(1024, plc));
@@ -285,9 +285,9 @@ namespace fs
         return (strm.str() + sufs[plc]);
     }
 
-    pu::String SearchForFileInPath(pu::String Base, pu::String Extension)
+    String SearchForFileInPath(String Base, String Extension)
     {
-        pu::String path;
+        String path;
         DIR *dp = opendir(Base.AsUTF8().c_str());
         if(dp)
         {
@@ -296,8 +296,8 @@ namespace fs
             {
                 dt = readdir(dp);
                 if(dt == NULL) break;
-                pu::String pth = pu::String(dt->d_name);
-                pu::String seq = pth.substr(pth.length() - Extension.length());
+                String pth = String(dt->d_name);
+                String seq = pth.substr(pth.length() - Extension.length());
                 if(seq == Extension)
                 {
                     path = pth;

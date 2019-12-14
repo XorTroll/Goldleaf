@@ -88,7 +88,7 @@ namespace ncm
 
     struct ContentRecord
     {
-        NcmNcaId ContentId;
+        NcmContentId ContentId;
         u8 Size[0x6];
         ContentType Type;
         u8 IdOffset;

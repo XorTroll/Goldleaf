@@ -35,8 +35,8 @@ namespace ui
             void path_Click();
             void fileSelect_Click();
         private:
-            std::vector<pu::String> names;
-            std::vector<pu::String> paths;
+            std::vector<String> names;
+            std::vector<String> paths;
             pu::ui::elm::Menu::Ref pathsMenu;
             std::vector<pu::ui::elm::MenuItem::Ref> pathItems;
     };

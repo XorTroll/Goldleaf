@@ -33,7 +33,7 @@ namespace ns
 
     struct ContentStorageRecord
     {
-        NcmMetaRecord Record;
+        NcmContentMetaKey Record;
         u64 StorageId;
     } PACKED;
 }

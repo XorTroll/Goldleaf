@@ -22,12 +22,11 @@
 #include <ui/ui_CopyLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     CopyLayout::CopyLayout()
     {
         this->infoText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
@@ -39,7 +38,7 @@ namespace ui
         this->Add(this->copyBar);
     }
 
-    void CopyLayout::StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp)
+    void CopyLayout::StartCopy(String Path, String NewPath, bool Directory, fs::Explorer *Exp)
     {
         if(Directory)
         {

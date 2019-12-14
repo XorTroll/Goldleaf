@@ -42,14 +42,14 @@ namespace hos
         return strm.str();
     }
 
-    std::string FormatHex128(u128 Number);
+    std::string FormatHex128(AccountUid Number);
     std::string DoubleToString(double Number);
     std::string FormatTime(u64 Seconds);
     u64 GetSdCardFreeSpaceForInstalls();
     u64 GetNANDFreeSpaceForInstalls();
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
     void IRAMClear();
-    void PayloadProcess(pu::String Path);
+    void PayloadProcess(String Path);
     void LockAutoSleep();
     void UnlockAutoSleep();
     u8 ComputeSystemKeyGeneration();

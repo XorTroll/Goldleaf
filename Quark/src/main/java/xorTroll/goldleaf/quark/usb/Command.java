@@ -45,8 +45,7 @@ public class Command
         Rename(11),
         GetSpecialPathCount(12),
         GetSpecialPath(13),
-        SelectFile(14),
-        Startup(15);
+        SelectFile(14);
 
         private int id;
 

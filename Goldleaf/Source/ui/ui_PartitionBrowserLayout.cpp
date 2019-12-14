@@ -22,11 +22,11 @@
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
     std::vector<u32> expidxstack;
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout()
@@ -71,7 +71,7 @@ namespace ui
         if(Update) this->UpdateElements();
     }
     
-    void PartitionBrowserLayout::ChangePartitionPCDrive(pu::String Mount, bool Update)
+    void PartitionBrowserLayout::ChangePartitionPCDrive(String Mount, bool Update)
     {
         this->gexp = fs::GetUSBPCDriveExplorer(Mount);
         if(Update) this->UpdateElements();
@@ -94,14 +94,14 @@ namespace ui
             this->dirEmptyText->SetVisible(false);
             for(u32 i = 0; i < this->elems.size(); i++)
             {
-                pu::String itm = this->elems[i];
+                String itm = this->elems[i];
                 bool isdir = this->gexp->IsDirectory(itm);
                 auto mitm = pu::ui::elm::MenuItem::New(itm);
                 mitm->SetColor(gsets.CustomScheme.Text);
                 if(isdir) mitm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));
                 else
                 {
-                    pu::String ext = fs::GetExtension(itm);
+                    String ext = fs::GetExtension(itm);
                     if(ext == "nsp") mitm->SetIcon(gsets.PathForResource("/FileSystem/NSP.png"));
                     else if(ext == "nro") mitm->SetIcon(gsets.PathForResource("/FileSystem/NRO.png"));
                     else if(ext == "tik") mitm->SetIcon(gsets.PathForResource("/FileSystem/TIK.png"));
@@ -133,7 +133,7 @@ namespace ui
         }
     }
 
-    void PartitionBrowserLayout::HandleFileDirectly(pu::String Path)
+    void PartitionBrowserLayout::HandleFileDirectly(String Path)
     {
         auto dir = fs::GetBaseDirectory(Path);
         auto fname = fs::GetFileName(Path);
@@ -166,9 +166,9 @@ namespace ui
     void PartitionBrowserLayout::fsItems_Click()
     {
         if(this->elems.empty()) return;
-        pu::String itm = this->browseMenu->GetSelectedItem()->GetName();
-        pu::String fullitm = this->gexp->FullPathFor(itm);
-        pu::String pfullitm = this->gexp->FullPresentablePathFor(itm);
+        String itm = this->browseMenu->GetSelectedItem()->GetName();
+        String fullitm = this->gexp->FullPathFor(itm);
+        String pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->NavigateForward(fullitm))
         {
             expidxstack.push_back(this->browseMenu->GetSelectedIndex());
@@ -176,8 +176,8 @@ namespace ui
         }
         else
         {
-            pu::String ext = fs::GetExtension(itm);
-            pu::String msg = set::GetDictionaryEntry(52) + " ";
+            String ext = fs::GetExtension(itm);
+            String msg = set::GetDictionaryEntry(52) + " ";
             if(ext == "nsp") msg += set::GetDictionaryEntry(53);
             else if(ext == "nro") msg += set::GetDictionaryEntry(54);
             else if(ext == "tik") msg += set::GetDictionaryEntry(55);
@@ -187,7 +187,7 @@ namespace ui
             else if((ext == "jpg") || (ext == "jpeg")) msg += set::GetDictionaryEntry(59);
             else msg += set::GetDictionaryEntry(270);
             msg += "\n\n" + set::GetDictionaryEntry(64) + " " + fs::FormatSize(this->gexp->GetFileSize(fullitm));
-            std::vector<pu::String> vopts;
+            std::vector<String> vopts;
             u32 copt = 5;
             bool ibin = this->gexp->IsFileBinary(fullitm);
             if(ext == "nsp")
@@ -318,7 +318,7 @@ namespace ui
                         while(true)
                         {
                             index = arg.find(" ", index);
-                            if(index == pu::String::npos) break;
+                            if(index == String::npos) break;
                             arg.replace(index, 1, "(_)");
                         }
                         envSetNextLoad(ntnro.c_str(), arg.c_str());
@@ -344,15 +344,15 @@ namespace ui
                         u8 *rnacp = (u8*)snacp;
                         NacpLanguageEntry *lent = NULL;
                         nacpGetLanguageEntry(snacp, &lent);
-                        pu::String name = set::GetDictionaryEntry(106);
-                        pu::String author = set::GetDictionaryEntry(107);
-                        pu::String version = pu::String(snacp->version);
+                        String name = set::GetDictionaryEntry(106);
+                        String author = set::GetDictionaryEntry(107);
+                        String version = String(snacp->display_version);
                         if(lent != NULL)
                         {
-                            name = pu::String(lent->name);
-                            author = pu::String(lent->author);
+                            name = String(lent->name);
+                            author = String(lent->author);
                         }
-                        pu::String msg = set::GetDictionaryEntry(108) + "\n\n";
+                        String msg = set::GetDictionaryEntry(108) + "\n\n";
                         msg += set::GetDictionaryEntry(91) + " " + name;
                         msg += "\n" + set::GetDictionaryEntry(92) + " " + author;
                         msg += "\n" + set::GetDictionaryEntry(109) + " " + version;
@@ -387,8 +387,7 @@ namespace ui
                 switch(sopt)
                 {
                     case 0:
-                        u128 uid = acc::GetSelectedUser();
-                        if(uid == 0) return;
+                        if(!acc::HasUser()) return;
                         sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(121), set::GetDictionaryEntry(122), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
                         if(sopt < 0) return;
 
@@ -451,11 +450,11 @@ namespace ui
             }
             else if(osopt == renopt)
             {
-                pu::String kbdt = AskForText(set::GetDictionaryEntry(130), itm);
+                String kbdt = AskForText(set::GetDictionaryEntry(130), itm);
                 if(kbdt != "")
                 {
                     if(kbdt == itm) return;
-                    pu::String newren = kbdt;
+                    String newren = kbdt;
                     if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(254));
                     else if(this->WarnNANDWriteAccess())
                     {
@@ -475,22 +474,22 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click_Y()
     {
-        pu::String itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8().c_str();
-        pu::String fullitm = this->gexp->FullPathFor(itm);
-        pu::String pfullitm = this->gexp->FullPresentablePathFor(itm);
+        String itm = this->browseMenu->GetSelectedItem()->GetName().AsUTF8().c_str();
+        String fullitm = this->gexp->FullPathFor(itm);
+        String pfullitm = this->gexp->FullPresentablePathFor(itm);
         if(this->gexp->IsDirectory(fullitm))
         {
             auto files = this->gexp->GetFiles(fullitm);
-            std::vector<pu::String> nsps;
+            std::vector<String> nsps;
             for(u32 i = 0; i < files.size(); i++)
             {
                 auto path = fullitm + "/" + files[i];
                 if(fs::GetExtension(path) == "nsp") nsps.push_back(files[i]);
             }
-            std::vector<pu::String> extraopts = { set::GetDictionaryEntry(281) };
+            std::vector<String> extraopts = { set::GetDictionaryEntry(281) };
             if(!nsps.empty()) extraopts.push_back(set::GetDictionaryEntry(282));
             extraopts.push_back(set::GetDictionaryEntry(18));
-            pu::String msg = set::GetDictionaryEntry(134);
+            String msg = set::GetDictionaryEntry(134);
             msg += "\n\n" + set::GetDictionaryEntry(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(135), msg, { set::GetDictionaryEntry(73), set::GetDictionaryEntry(74), set::GetDictionaryEntry(75), set::GetDictionaryEntry(280), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
@@ -511,11 +510,11 @@ namespace ui
                     break;
                 case 2:
                     {
-                        pu::String kbdt = AskForText(set::GetDictionaryEntry(238), itm);
+                        String kbdt = AskForText(set::GetDictionaryEntry(238), itm);
                         if(kbdt != "")
                         {
                             if(kbdt == itm) return;
-                            pu::String newren = this->gexp->FullPathFor(kbdt);
+                            String newren = this->gexp->FullPathFor(kbdt);
                             if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(254));
                             else if(this->WarnNANDWriteAccess())
                             {

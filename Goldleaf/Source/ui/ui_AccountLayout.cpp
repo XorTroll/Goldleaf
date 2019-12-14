@@ -22,12 +22,11 @@
 #include <ui/ui_AccountLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     AccountLayout::AccountLayout() : pu::ui::Layout()
     {
         this->optsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -98,18 +97,18 @@ namespace ui
             usericon = "Accounts";
         }
         
-        mainapp->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + pu::String(pbase.username), deficon);
+        mainapp->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + String(pbase.nickname), deficon);
         this->ReloadItems();
     }
 
     void AccountLayout::optsRename_Click()
     {
-        pu::String name = AskForText(set::GetDictionaryEntry(213), "", 10);
+        String name = AskForText(set::GetDictionaryEntry(213), "", 10);
         if(!name.empty())
         {
             auto rc = acc::EditUser([&](AccountProfileBase *pbase, AccountUserData *udata)
             {
-                strcpy(pbase->username, name.AsUTF8().c_str());
+                strcpy(pbase->nickname, name.AsUTF8().c_str());
             });
             if(rc == 0)
             {
@@ -122,7 +121,7 @@ namespace ui
 
     void AccountLayout::optsIcon_Click()
     {
-        std::string iconpth = "/" + GoldleafDir + "/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
+        std::string iconpth = "/" + consts::Root + "/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
         mainapp->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(217) + "\n\'SdCard:" + iconpth + "\'", { set::GetDictionaryEntry(234) }, false, "sdmc:" + iconpth);
     }
 
@@ -145,7 +144,7 @@ namespace ui
                 mainapp->UnloadMenuData();
                 mainapp->LoadLayout(mainapp->GetMainMenuLayout());
 
-                acc::SetSelectedUser(0);
+                acc::ResetSelectedUser();
             }
             else HandleResult(rc, set::GetDictionaryEntry(220));
         }
@@ -154,7 +153,7 @@ namespace ui
     void AccountLayout::optsServicesInfo_Click()
     {
         auto linkedinfo = acc::GetUserLinkedInfo();
-        pu::String str = set::GetDictionaryEntry(328) + " " + hos::FormatHex(linkedinfo.AccountId);
+        String str = set::GetDictionaryEntry(328) + " " + hos::FormatHex(linkedinfo.AccountId);
         str += "\n" + set::GetDictionaryEntry(329) + " " + hos::FormatHex(linkedinfo.NintendoAccountId);
         auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(330), str, { set::GetDictionaryEntry(331), set::GetDictionaryEntry(18) }, true);
         if(sopt != 0) return;

@@ -25,10 +25,6 @@
 
 namespace ns
 {
-    Result Initialize();
-    void Finalize();
-    bool HasInitialized();
-    
     Result DeleteApplicationCompletely(u64 ApplicationId);
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize);
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count);

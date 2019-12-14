@@ -43,12 +43,12 @@ namespace ncm
         return buf.Read<ContentMetaHeader>(0);
     }
 
-    NcmMetaRecord ContentMeta::GetContentMetaKey()
+    NcmContentMetaKey ContentMeta::GetContentMetaKey()
     {
-        NcmMetaRecord metaRecord;
+        NcmContentMetaKey metaRecord;
         ContentMetaHeader contentMetaHeader = this->GetContentMetaHeader();
-        memset(&metaRecord, 0, sizeof(NcmMetaRecord));
-        metaRecord.titleId = contentMetaHeader.ApplicationId;
+        memset(&metaRecord, 0, sizeof(NcmContentMetaKey));
+        metaRecord.id = contentMetaHeader.ApplicationId;
         metaRecord.version = contentMetaHeader.TitleVersion;
         metaRecord.type = static_cast<u8>(contentMetaHeader.Type);
         return metaRecord;

@@ -34,6 +34,6 @@ namespace set
     static Dictionary Errors;
     
     void Initialize();
-    pu::String GetDictionaryEntry(u32 Index);
-    pu::String GetErrorEntry(u32 Index);
+    String GetDictionaryEntry(u32 Index);
+    String GetErrorEntry(u32 Index);
 }

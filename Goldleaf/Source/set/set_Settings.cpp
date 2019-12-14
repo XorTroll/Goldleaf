@@ -50,44 +50,32 @@ namespace set
     {
         Settings gset;
         u64 lcode = 0;
-        s32 lang = 1;
+        SetLanguage lang = SetLanguage_ENUS;
         setGetSystemLanguage(&lcode);
         setMakeLanguage(lcode, &lang);
         switch(lang)
         {
-            // case 0:
-            case 1:
-            case 12:
+            case SetLanguage_ENUS:
+            case SetLanguage_ENGB:
                 gset.CustomLanguage = Language::English;
                 break;
-            case 2:
-            case 13:
+            case SetLanguage_FR:
+            case SetLanguage_FRCA:
                 gset.CustomLanguage = Language::French;
                 break;
-            case 3:
+            case SetLanguage_DE:
                 gset.CustomLanguage = Language::German;
                 break;
-            case 4:
+            case SetLanguage_IT:
                 gset.CustomLanguage = Language::Italian;
                 break;
-            case 5:
-            case 14:
+            case SetLanguage_ES:
+            case SetLanguage_ES419:
                 gset.CustomLanguage = Language::Spanish;
                 break;
-            /*
-            case 6:
-            case 7:
-            */
-            case 8:
+            case SetLanguage_NL:
                 gset.CustomLanguage = Language::Dutch;
                 break;
-            /*
-            case 9:
-            case 10:
-            case 11:
-            case 15:
-            case 16:    
-            */
             default:
                 gset.CustomLanguage = Language::English;
                 break;

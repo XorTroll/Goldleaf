@@ -38,7 +38,6 @@
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
-#include <ui/ui_USBDrivesLayout.hpp>
 
 #include <ui/ui_ClickableImage.hpp>
 
@@ -47,18 +46,19 @@ namespace ui
     class MainApplication : public pu::ui::Application
     {
         public:
-            MainApplication();
+            using Application::Application;
             PU_SMART_CTOR(MainApplication)
 
-            void ShowNotification(pu::String Text);
+            void OnLoad() override;
+
+            void ShowNotification(String Text);
             void UpdateValues();
-            void LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon = true);
-            void LoadMenuHead(pu::String Head);
+            void LoadMenuData(String Name, std::string ImageName, String TempHead, bool CommonIcon = true);
+            void LoadMenuHead(String Head);
             void UnloadMenuData();
             void browser_Input(u64 Down, u64 Up, u64 Held);
             void exploreMenu_Input(u64 Down, u64 Up, u64 Held);
             void pcExplore_Input(u64 Down, u64 Up, u64 Held);
-            void usbDrives_Input(u64 Down, u64 Up, u64 Held);
             void fileContent_Input(u64 Down, u64 Up, u64 Held);
             void contentInformation_Input(u64 Down, u64 Up, u64 Held);
             void storageContents_Input(u64 Down, u64 Up, u64 Held);
@@ -71,7 +71,7 @@ namespace ui
             void about_Input(u64 Down, u64 Up, u64 Held);
             void userImage_OnClick();
             void helpImage_OnClick();
-            void ReloadUser(u128 User);
+            void ReloadUser(AccountUid User);
             void OnInput(u64 Down, u64 Up, u64 Held);
             MainMenuLayout::Ref &GetMainMenuLayout();
             PartitionBrowserLayout::Ref &GetBrowserLayout();
@@ -79,7 +79,6 @@ namespace ui
             CopyLayout::Ref &GetCopyLayout();
             ExploreMenuLayout::Ref &GetExploreMenuLayout();
             PCExploreLayout::Ref &GetPCExploreLayout();
-            USBDrivesLayout::Ref &GetUSBDrivesLayout();
             InstallLayout::Ref &GetInstallLayout();
             ContentInformationLayout::Ref &GetContentInformationLayout();
             StorageContentsLayout::Ref &GetStorageContentsLayout();
@@ -97,8 +96,8 @@ namespace ui
             bool preisch;
             bool hasusb;
             u32 connstate;
-            u128 seluser;
-            pu::String pretime;
+            AccountUid seluser;
+            String pretime;
             bool vfirst;
             MainMenuLayout::Ref mainMenu;
             PartitionBrowserLayout::Ref browser;
@@ -106,7 +105,6 @@ namespace ui
             CopyLayout::Ref copy;
             ExploreMenuLayout::Ref exploreMenu;
             PCExploreLayout::Ref pcExplore;
-            USBDrivesLayout::Ref usbDrives;
             InstallLayout::Ref nspInstall;
             ContentInformationLayout::Ref contentInformation;
             StorageContentsLayout::Ref storageContents;
@@ -141,5 +139,5 @@ namespace ui
     static const ColorScheme DefaultLight = { { 124, 199, 239, 255 }, { 196, 224, 239, 255 }, { 168, 214, 237, 255 }, { 15, 15, 15, 255 } };
     static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
 
-    void UpdateClipboard(pu::String Path);
+    void UpdateClipboard(String Path);
 }

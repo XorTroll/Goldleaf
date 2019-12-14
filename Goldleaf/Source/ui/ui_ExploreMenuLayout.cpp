@@ -22,12 +22,11 @@
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication::Ref mainapp;
-
     ExploreMenuLayout::ExploreMenuLayout() : pu::ui::Layout()
     {
         this->mountsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
@@ -75,7 +74,7 @@ namespace ui
 
     void ExploreMenuLayout::pcDrive_Click()
     {
-        if(usb::IsStateNotReady())
+        if(!usb::detail::IsStateOk())
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(299), set::GetDictionaryEntry(300), { set::GetDictionaryEntry(234) }, true);
             return;
