@@ -26,7 +26,7 @@
 
 namespace acc
 {
-    static AccountUid selected_user;
+    static AccountUid selected_user = {};
 
     AccountUid GetSelectedUser()
     {
@@ -51,8 +51,8 @@ namespace acc
     bool SelectFromPreselectedUser()
     {
         AccountUid tmpuser = {};
-        auto res = accountGetPreselectedUser(&tmpuser);
-        if(R_SUCCEEDED(res) && accountUidIsValid(&tmpuser))
+        auto rc = accountGetPreselectedUser(&tmpuser);
+        if(R_SUCCEEDED(rc) && accountUidIsValid(&tmpuser))
         {
             SetSelectedUser(tmpuser);
             return true;

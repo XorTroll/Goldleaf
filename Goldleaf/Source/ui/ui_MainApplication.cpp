@@ -691,11 +691,7 @@ namespace ui
 
     void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
     {
-        if((Down & KEY_MINUS) && (GetCurrentApplicationId() != GOLDLEAF_APPID))
-        {
-            // Don't allow closing if Goldleaf forwarder!
-            this->CloseWithFadeOut();
-        }
+        if(Down & KEY_MINUS) this->CloseWithFadeOut();
         else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
         else if(Down & KEY_PLUS) this->helpImage_OnClick();
     }

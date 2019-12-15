@@ -35,14 +35,14 @@ namespace nsp
         {
             this->ok = true;
             u64 strtoff = sizeof(PFS0Header) + (sizeof(PFS0FileEntry) * this->header.FileCount);
-            this->stringtable = new u8[this->header.StringTableSize];
+            this->stringtable = new u8[this->header.StringTableSize]();
             this->headersize = strtoff + this->header.StringTableSize;
             Exp->ReadFileBlock(this->path, strtoff, this->header.StringTableSize, this->stringtable);
             this->files.reserve(this->header.FileCount);
             for(u32 i = 0; i < this->header.FileCount; i++)
             {
                 u64 offset = sizeof(PFS0Header) + (i * sizeof(PFS0FileEntry));
-                PFS0FileEntry ent;
+                PFS0FileEntry ent = {};
                 memset(&ent, 0, sizeof(ent));
                 Exp->ReadFileBlock(this->path, offset, sizeof(ent), (u8*)&ent);
                 String name;
@@ -52,7 +52,7 @@ namespace nsp
                     if(ch == '\0') break;
                     name += ch;
                 }
-                PFS0File fl;
+                PFS0File fl = {};
                 fl.Entry = ent;
                 fl.Name = name;
                 this->files.push_back(fl);
@@ -72,6 +72,7 @@ namespace nsp
 
     String PFS0::GetFile(u32 Index)
     {
+        if(Index >= this->files.size()) return "";
         return this->files[Index].Name;
     }
 
@@ -83,7 +84,7 @@ namespace nsp
     std::vector<String> PFS0::GetFiles()
     {
         std::vector<String> pfiles;
-        for(u32 i = 0; i < this->files.size(); i++) pfiles.push_back(this->files[i].Name);
+        for(auto &file: this->files) pfiles.push_back(file.Name);
         return pfiles;
     }
 
@@ -99,11 +100,13 @@ namespace nsp
 
     u64 PFS0::GetFileSize(u32 Index)
     {
+        if(Index >= this->files.size()) return 0;
         return this->files[Index].Entry.Size;
     }
 
     void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, String Path)
     {
+        if(Index >= this->files.size()) return;
         u64 fsize = this->GetFileSize(Index);
         u64 rsize = fs::GetFileSystemOperationsBufferSize();
         u8 *bdata = fs::GetFileSystemOperationsBuffer();
@@ -124,13 +127,10 @@ namespace nsp
     u32 PFS0::GetFileIndexByName(String File)
     {
         u32 idx = 0;
-        for(u32 i = 0; i < this->files.size(); i++)
+        for(auto &file: this->files)
         {
-            if(strcasecmp(this->files[i].Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0)
-            {
-                idx = i;
-                break;
-            }
+            if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0) break;
+            idx++;
         }
         return idx;
     }

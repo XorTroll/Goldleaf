@@ -100,9 +100,10 @@ struct Version
 {
     u32 Major;
     u32 Minor;
-    s32 BugFix;
+    s32 Micro;
 
     String AsString();
+    static Version MakeVersion(u32 major, u32 minor, u32 micro);
     static Version FromString(String StrVersion);
     bool IsLower(Version Other);
     bool IsHigher(Version Other);

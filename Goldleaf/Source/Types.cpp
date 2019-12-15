@@ -32,11 +32,13 @@ namespace consts
 String Version::AsString()
 {
     String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
-    if(this->BugFix > 0)
-    {
-        txt += "." + std::to_string(this->BugFix);
-    }
+    if(this->Micro > 0) txt += "." + std::to_string(this->Micro);
     return txt;
+}
+
+Version Version::MakeVersion(u32 major, u32 minor, u32 micro)
+{
+    return { major, minor, (s32)micro };
 }
 
 Version Version::FromString(String StrVersion)
@@ -53,23 +55,25 @@ Version Version::FromString(String StrVersion)
         token = strv.substr(0, pos);
         if(c == 0) v.Major = std::stoi(token);
         else if(c == 1) v.Minor = std::stoi(token);
-        else if(c == 2) v.BugFix = std::stoi(token);
+        else if(c == 2) v.Micro = std::stoi(token);
         strv.erase(0, pos + delimiter.length());
         c++;
     }
     if(c == 0) v.Major = std::stoi(strv);
     else if(c == 1) v.Minor = std::stoi(strv);
-    else if(c == 2) v.BugFix = std::stoi(strv);
+    else if(c == 2) v.Micro = std::stoi(strv);
     return v;
 }
 
 bool Version::IsLower(Version Other)
 {
-    bool low = false;
-    if(this->Major > Other.Major) low = true;
-    else if(this->Minor > Other.Minor) low = true;
-    else if(this->BugFix > Other.BugFix) low = true;
-    return low;
+    if(this->Major > Other.Major) return true;
+    else if(this->Major == Other.Major)
+    {
+        if(this->Minor > Other.Minor) return true;
+        else if(this->Minor == Other.Minor) if(this->Micro > Other.Micro) return true;
+    }
+    return false;
 }
 
 bool Version::IsHigher(Version Other)
@@ -79,7 +83,7 @@ bool Version::IsHigher(Version Other)
 
 bool Version::IsEqual(Version Other)
 {
-    return ((this->Major == Other.Major) && (this->Minor == Other.Minor) && (this->BugFix == Other.BugFix));
+    return ((this->Major == Other.Major) && (this->Minor == Other.Minor) && (this->Micro == Other.Micro));
 }
 
 ExecutableMode GetExecutableMode()
@@ -109,11 +113,6 @@ LaunchMode GetLaunchMode()
 String GetVersion()
 {
     return String(GOLDLEAF_VERSION);
-}
-
-u64 GetApplicationId()
-{
-    return GOLDLEAF_APPID;
 }
 
 bool IsAtmosphere()

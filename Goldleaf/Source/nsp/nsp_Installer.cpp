@@ -288,9 +288,8 @@ namespace nsp
         std::vector<String> ncanames;
         std::vector<u64> ncasizes;
         std::vector<u32> ncaidxs;
-        for(u32 i = 0; i < ncas.size(); i++)
+        for(auto &rnca: ncas)
         {
-            ncm::ContentRecord rnca = ncas[i];
             NcmContentId curid = rnca.ContentId;
             String ncaname = hos::ContentIdAsString(curid);
             if(rnca.Type == ncm::ContentType::Meta) ncaname += ".cnmt";
@@ -313,7 +312,8 @@ namespace nsp
             NcmContentStorage cst;
             ncmOpenContentStorage(&cst, storage);
 
-            NcmPlaceHolderId plhdid = *(NcmPlaceHolderId*)&curid;
+            NcmPlaceHolderId plhdid = {};
+            memcpy(plhdid.uuid.uuid, curid.c, sizeof(curid.c));
             
             ncmContentStorageDeletePlaceHolder(&cst, &plhdid);
             ncmContentStorageCreatePlaceHolder(&cst, &curid, &plhdid, ncasize);

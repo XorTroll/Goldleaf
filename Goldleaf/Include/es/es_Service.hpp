@@ -26,7 +26,7 @@
 namespace es
 {
     Result Initialize();
-    void Finalize();
+    void Exit();
     bool HasInitialized();
 
     Result ImportTicket(void const *Ticket, size_t TicketSize, void const *Cert, size_t CertSize);

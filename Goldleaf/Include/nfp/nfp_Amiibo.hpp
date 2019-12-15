@@ -34,5 +34,5 @@ namespace nfp
     NfpModelInfo GetModelInfo();
     Result DumpToEmuiibo(NfpTagInfo &tag, NfpRegisterInfo &reg, NfpCommonInfo &common, NfpModelInfo &model);
     void Close();
-    void Finalize();
+    void Exit();
 }

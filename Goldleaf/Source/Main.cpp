@@ -34,7 +34,7 @@ bool gupdated = false;
 
 static constexpr u64 HeapSize = 0x10000000;
 
-void Finalize();
+void Exit();
 
 void Panic(std::string msg)
 {
@@ -56,15 +56,13 @@ void Panic(std::string msg)
     }
 
     consoleExit(NULL);
-    Finalize();
+    Exit();
     exit(0);
     */
 }
 
 void Initialize()
 {
-    if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
-    
     if(R_FAILED(accountInitialize(AccountServiceType_Administrator))) Panic("acc:su");
     if(R_FAILED(ncmInitialize())) Panic("ncm");
     if(R_FAILED(nsInitialize())) Panic("ns");
@@ -81,7 +79,7 @@ void Initialize()
     EnsureDirectories();
 }
 
-void Finalize()
+void Exit()
 {
     auto fsopsbuf = fs::GetFileSystemOperationsBuffer();
     operator delete[](fsopsbuf, std::align_val_t(0x1000));
@@ -102,14 +100,12 @@ void Finalize()
     setsysExit();
     setExit();
     psmExit();
-    es::Finalize();
+    es::Exit();
     nsExit();
     accountExit();
     ncmExit();
     nifmExit();
     pdmqryExit();
-
-    if(GetLaunchMode() == LaunchMode::Applet) svcSetHeapSize(&new_heap_addr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)new_heap_addr);
 }
 
 int main(int argc, char **argv)
@@ -120,7 +116,7 @@ int main(int argc, char **argv)
     mainapp = ui::MainApplication::New(renderer);
 
     mainapp->Prepare();
-    mainapp->Show();
+    mainapp->ShowWithFadeIn();
     
     // If Goldleaf updated itself in this session...
     if(gupdated)
@@ -130,6 +126,6 @@ int main(int argc, char **argv)
         fs::RenameFile(consts::TempUpdatePath, argv[0]);
     }
 
-    Finalize();
+    Exit();
     return 0;
 }

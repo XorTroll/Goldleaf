@@ -29,5 +29,7 @@ namespace nfp::emu
     bool IsEmuiiboPresent();
 
     Result Initialize();
-    void Finalize();
+    void Exit();
+
+    // TODO: implement emuiibo 0.4.0's commands
 }

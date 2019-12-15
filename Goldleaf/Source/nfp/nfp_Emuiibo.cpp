@@ -43,7 +43,7 @@ namespace nfp::emu
         return smGetService(&nfpemu_srv, "nfp:emu");
     }
 
-    void Finalize()
+    void Exit()
     {
         if(atomicDecrement64(&nfpemu_refcnt) == 0) serviceClose(&nfpemu_srv);
     }

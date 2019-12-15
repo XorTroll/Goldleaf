@@ -34,7 +34,7 @@ namespace es
         return smGetService(&es_srv, "es");
     }
 
-    void Finalize()
+    void Exit()
     {
         if(atomicDecrement64(&es_refcnt) == 0) serviceClose(&es_srv);
     }

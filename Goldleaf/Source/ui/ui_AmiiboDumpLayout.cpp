@@ -65,6 +65,6 @@ namespace ui
                 nfp::Close();
             }
         }
-        nfp::Finalize();
+        nfp::Exit();
     }
 }

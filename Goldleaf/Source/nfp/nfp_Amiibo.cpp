@@ -165,7 +165,7 @@ namespace nfp
         nfpUnmount(&dhandle);
     }
 
-    void Finalize()
+    void Exit()
     {
         if(!init) return;
         nfpStopDetection(&dhandle);

@@ -43,7 +43,7 @@ namespace ui
 
     void UpdateLayout::StartUpdateSearch()
     {
-        if((!net::HasConnection()) || gupdated)
+        if(!net::HasConnection() || gupdated)
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(304), { set::GetDictionaryEntry(234) }, true);
             mainapp->UnloadMenuData();
@@ -59,7 +59,7 @@ namespace ui
         this->infoText->SetText(set::GetDictionaryEntry(306));
         mainapp->CallForRender();
         Version latestv = Version::FromString(latestid);
-        Version currentv = Version::FromString(GOLDLEAF_VERSION); // Defined in Makefile
+        Version currentv = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO); // Defined in Makefile
         if(latestv.IsEqual(currentv))
         {
             mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(307), { set::GetDictionaryEntry(234) }, true);
@@ -69,13 +69,13 @@ namespace ui
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(308), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt == 0)
             {
-                std::string baseurl = "https://github.com/XorTroll/Goldleaf/releases/download/" + latestid + "/Goldleaf";
+                std::string newnro = "https://github.com/XorTroll/Goldleaf/releases/download/" + latestid + "/Goldleaf.nro";
                 fs::CreateDirectory("sdmc:/switch/Goldleaf");
                 fs::DeleteFile(consts::TempUpdatePath);
                 this->infoText->SetText(set::GetDictionaryEntry(309));
                 mainapp->CallForRender();
                 this->downloadBar->SetVisible(true);
-                net::RetrieveToFile(baseurl + ".nro", consts::TempUpdatePath, [&](double Done, double Total)
+                net::RetrieveToFile(newnro, consts::TempUpdatePath, [&](double Done, double Total)
                 {
                     this->downloadBar->SetMaxValue(Total);
                     this->downloadBar->SetProgress(Done);
@@ -84,71 +84,7 @@ namespace ui
                 if(fs::IsFile(consts::TempUpdatePath)) gupdated = true;
                 this->downloadBar->SetVisible(false);
                 mainapp->CallForRender();
-                sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(310), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
-                if(sopt == 0)
-                {
-                    std::string nspfile = "sdmc:/switch/Goldleaf/Goldleaf.nsp";
-                    fs::DeleteFile(nspfile);
-                    this->infoText->SetText(set::GetDictionaryEntry(311));
-                    mainapp->CallForRender();
-                    this->downloadBar->SetVisible(true);
-                    net::RetrieveToFile(baseurl + ".nsp", nspfile, [&](double Done, double Total)
-                    {
-                        this->downloadBar->SetMaxValue(Total);
-                        this->downloadBar->SetProgress(Done);
-                        mainapp->CallForRender();
-                    });
-                    this->downloadBar->SetVisible(false);
-                    this->infoText->SetText(set::GetDictionaryEntry(312));
-                    mainapp->CallForRender();
-                    if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, GOLDLEAF_APPID))
-                    {
-                        this->infoText->SetText(set::GetDictionaryEntry(313));
-                        mainapp->CallForRender();
-                        auto titles = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::SdCard);
-                        for(u32 i = 0; i < titles.size(); i++)
-                        {
-                            if(titles[i].ApplicationId == GOLDLEAF_APPID)
-                            {
-                                hos::RemoveTitle(titles[i]);
-                                break;
-                            }
-                        }
-                    }
-                    else if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, GOLDLEAF_APPID))
-                    {
-                        this->infoText->SetText(set::GetDictionaryEntry(313));
-                        mainapp->CallForRender();
-                        auto titles = hos::SearchTitles(ncm::ContentMetaType::Any, Storage::NANDUser);
-                        for(u32 i = 0; i < titles.size(); i++)
-                        {
-                            if(titles[i].ApplicationId == GOLDLEAF_APPID)
-                            {
-                                hos::RemoveTitle(titles[i]);
-                                break;
-                            }
-                        }
-                    }
-                    this->infoText->SetText(set::GetDictionaryEntry(312));
-                    mainapp->CallForRender();
-                    sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(78), { set::GetDictionaryEntry(19), set::GetDictionaryEntry(79), set::GetDictionaryEntry(18) }, true);
-                    if(sopt < 0) return;
-                    Storage dst = Storage::SdCard;
-                    if(sopt == 0) dst = Storage::SdCard;
-                    else if(sopt == 1) dst = Storage::NANDUser;
-                    u64 fsize = fs::GetFileSize(nspfile);
-                    u64 rsize = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
-                    if(rsize < fsize)
-                    {
-                        HandleResult(err::Make(err::ErrorDescription::NotEnoughSize), set::GetDictionaryEntry(251));
-                        return;
-                    }
-                    mainapp->LoadLayout(mainapp->GetInstallLayout());
-                    mainapp->GetInstallLayout()->StartInstall(nspfile, fs::GetSdCardExplorer(), dst);
-                    mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
-                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-                }
-                else mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
+                mainapp->ShowNotification(set::GetDictionaryEntry(314) + " " + set::GetDictionaryEntry(315));
             }
         }
         else if(latestv.IsHigher(currentv)) mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(316), { set::GetDictionaryEntry(234) }, true);

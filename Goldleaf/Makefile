@@ -51,9 +51,8 @@ VER_MICRO	:= 0
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
-# "-dev" prefix is appended when a new version has started development.
+# "-dev" prefix is manually appended when a new version has started development.
 APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
-APP_TITLEID	:= 050032A5CF12E000
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -64,7 +63,7 @@ CFLAGS	:=	-g -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags`
-CFLAGS	+=	-DGOLDLEAF_MAJOR=$(VER_MAJOR) -DGOLDLEAF_MINOR=$(VER_MINOR) -DGOLDLEAF_MICRO=$(VER_MICRO) -DGOLDLEAF_VERSION=\"$(APP_VERSION)\" -DGOLDLEAF_APPID=0x$(APP_TITLEID)
+CFLAGS	+=	-DGOLDLEAF_MAJOR=$(VER_MAJOR) -DGOLDLEAF_MINOR=$(VER_MINOR) -DGOLDLEAF_MICRO=$(VER_MICRO) -DGOLDLEAF_VERSION=\"$(APP_VERSION)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
