@@ -38,6 +38,9 @@ void Finalize();
 
 void Panic(std::string msg)
 {
+    // TODO: non-console panic!
+
+    /*
     consoleInit(NULL);
     std::cout << std::endl;
     std::cout << "Goldleaf - panic (critical error)" << std::endl;
@@ -55,12 +58,13 @@ void Panic(std::string msg)
     consoleExit(NULL);
     Finalize();
     exit(0);
+    */
 }
 
 void Initialize()
 {
-    // if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
-
+    if((GetLaunchMode() == LaunchMode::Applet) && R_SUCCEEDED(svcSetHeapSize(&new_heap_addr, HeapSize))) fake_heap_end = (char*)new_heap_addr + HeapSize;
+    
     if(R_FAILED(accountInitialize(AccountServiceType_Administrator))) Panic("acc:su");
     if(R_FAILED(ncmInitialize())) Panic("ncm");
     if(R_FAILED(nsInitialize())) Panic("ns");
@@ -75,10 +79,6 @@ void Initialize()
     if(R_FAILED(pdmqryInitialize())) Panic("pdm:qry");
     srand(time(NULL));
     EnsureDirectories();
-
-    gsets = set::ProcessSettings();
-    set::Initialize();
-    if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
 }
 
 void Finalize()
@@ -109,14 +109,14 @@ void Finalize()
     nifmExit();
     pdmqryExit();
 
-    // if(GetLaunchMode() == LaunchMode::Applet) svcSetHeapSize(&new_heap_addr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)new_heap_addr);
+    if(GetLaunchMode() == LaunchMode::Applet) svcSetHeapSize(&new_heap_addr, ((u8*)envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*)new_heap_addr);
 }
 
 int main(int argc, char **argv)
 {
     Initialize();
 
-    auto renderer = pu::ui::render::Renderer::New(SDL_INIT_EVERYTHING, pu::ui::render::RendererInitOptions::RendererEverything, pu::ui::render::RendererHardwareFlags);
+    auto renderer = pu::ui::render::Renderer::New(SDL_INIT_EVERYTHING, pu::ui::render::RendererInitOptions::RendererNoSound, pu::ui::render::RendererHardwareFlags);
     mainapp = ui::MainApplication::New(renderer);
 
     mainapp->Prepare();

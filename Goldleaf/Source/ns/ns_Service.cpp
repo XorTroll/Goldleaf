@@ -30,7 +30,7 @@ namespace ns
 
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize)
     {
-        struct
+        const struct
         {
             u8 last_modified_event;
             u8 padding[0x7];
@@ -45,14 +45,14 @@ namespace ns
 
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count)
     {
-        struct
+        const struct
         {
             u64 offset;
             u64 appId;
         } in = { Offset, ApplicationId };
 
         return serviceDispatchInOut(nsGetServiceSession_ApplicationManagerInterface(), 17, in, *out_Count,
-            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
+            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
             .buffers = { { Out, OutBufferSize } },
         );
     }
@@ -69,12 +69,11 @@ namespace ns
 
     Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion)
     {
-        struct
+        const struct
         {
             u64 appId;
             u32 version;
-            u32 padding;
-        } in = { ApplicationId, LaunchVersion, 0 };
+        } in = { ApplicationId, LaunchVersion };
         
         return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 36, in);
     }

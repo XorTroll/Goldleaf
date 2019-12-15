@@ -112,18 +112,12 @@ struct Version
 namespace logging
 {
     template<typename ...Args>
-    void FileLogFmt(FILE *file, String fmt, Args &...args)
+    void LogFmt(String fmt, Args &&...args)
     {
-        fprintf(file, (fmt.AsUTF8() + "\n").c_str(), args...);
-    }
-
-    template<typename ...Args>
-    void LogFmt(String fmt, Args &...args)
-    {
-        FILE *f = fopen((consts::Log).c_str(), "a");
+        FILE *f = fopen(("sdmc:/" + consts::Log).c_str(), "a+");
         if(f)
         {
-            FileLogFmt(f, fmt, args...);
+            fprintf(f, (fmt.AsUTF8() + "\n").c_str(), args...);
             fclose(f);
         }
     }

@@ -30,6 +30,10 @@ namespace ui
 
     void MainApplication::OnLoad()
     {
+        gsets = set::ProcessSettings();
+        set::Initialize();
+        if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
+
         pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
         this->seluser = {};
@@ -359,7 +363,7 @@ namespace ui
         this->about->Add(this->helpImage);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->LoadLayout(this->mainMenu);   
+        this->LoadLayout(this->mainMenu);
         this->welcomeshown = false;
         this->start = std::chrono::steady_clock::now();
     }
@@ -373,7 +377,6 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
-        /*
         if(!this->welcomeshown)
         {
             auto tnow = std::chrono::steady_clock::now();
@@ -384,7 +387,6 @@ namespace ui
                 this->welcomeshown = true;
             }
         }
-        */
 
         String dtime = hos::GetCurrentTime();
         u32 blv = hos::GetBatteryLevel();

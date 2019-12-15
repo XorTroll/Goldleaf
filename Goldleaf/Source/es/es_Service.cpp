@@ -52,8 +52,8 @@ namespace es
                 SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
             },
             .buffers = {
-                { Ticket,   TicketSize },
-                { Cert,  CertSize },
+                { Ticket, TicketSize },
+                { Cert, CertSize },
             },
         );
     }
