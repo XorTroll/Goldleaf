@@ -490,9 +490,9 @@ namespace ui
         this->menuHeadText->SetVisible(false);
     }
 
-    void MainApplication::browser_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::browser_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             if(this->browser->GoBack()) this->browser->UpdateElements(-1);
             else
@@ -502,7 +502,7 @@ namespace ui
                 this->LoadLayout(this->exploreMenu);
             }
         }
-        else if(Down & KEY_X)
+        else if(down & KEY_X)
         {
             if(clipboard != "")
             {
@@ -533,7 +533,7 @@ namespace ui
             }
             else this->ShowNotification(set::GetDictionaryEntry(224));
         }
-        else if(Down & KEY_L)
+        else if(down & KEY_L)
         {
             String cfile = AskForText(set::GetDictionaryEntry(225), "");
             if(cfile != "")
@@ -549,7 +549,7 @@ namespace ui
                 }
             }
         }
-        else if(Down & KEY_R)
+        else if(down & KEY_R)
         {
             String cdir = AskForText(set::GetDictionaryEntry(250), "");
             if(cdir != "")
@@ -567,18 +567,18 @@ namespace ui
         }
     }
 
-    void MainApplication::exploreMenu_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::exploreMenu_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::pcExplore_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::pcExplore_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
@@ -586,79 +586,79 @@ namespace ui
         }
     }
 
-    void MainApplication::fileContent_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::fileContent_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->browser);
-        else if((Down & KEY_DDOWN) || (Down & KEY_LSTICK_DOWN) || (Held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
-        else if((Down & KEY_DUP) || (Down & KEY_LSTICK_UP) || (Held & KEY_RSTICK_UP)) this->fileContent->ScrollUp();
+        if(down & KEY_B) this->LoadLayout(this->browser);
+        else if((down & KEY_DDOWN) || (down & KEY_LSTICK_DOWN) || (held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
+        else if((down & KEY_DUP) || (down & KEY_LSTICK_UP) || (held & KEY_RSTICK_UP)) this->fileContent->ScrollUp();
     }
 
-    void MainApplication::contentInformation_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::contentInformation_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(189));
             this->LoadLayout(this->storageContents);
         }
     }
 
-    void MainApplication::storageContents_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::storageContents_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(33));
             this->LoadLayout(this->contentManager);
         }
     }
 
-    void MainApplication::contentManager_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::contentManager_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::unusedTickets_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::unusedTickets_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::account_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::account_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::amiibo_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::amiibo_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::settings_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::settings_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::memory_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::memory_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
@@ -666,9 +666,9 @@ namespace ui
         }
     }
 
-    void MainApplication::about_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::about_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
@@ -689,11 +689,11 @@ namespace ui
         this->CreateShowDialog(set::GetDictionaryEntry(162), set::GetDictionaryEntry(342) + "\n\n" + set::GetDictionaryEntry(343) + "\n" + set::GetDictionaryEntry(344) + "\n" + set::GetDictionaryEntry(345) + "\n" + set::GetDictionaryEntry(346) + "\n" + set::GetDictionaryEntry(347), {set::GetDictionaryEntry(234)}, false);
     }
 
-    void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
+    void MainApplication::OnInput(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_MINUS) this->CloseWithFadeOut();
-        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
-        else if(Down & KEY_PLUS) this->helpImage_OnClick();
+        if(down & KEY_MINUS) this->CloseWithFadeOut();
+        else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
+        else if(down & KEY_PLUS) this->helpImage_OnClick();
     }
 
     MainMenuLayout::Ref &MainApplication::GetMainMenuLayout()

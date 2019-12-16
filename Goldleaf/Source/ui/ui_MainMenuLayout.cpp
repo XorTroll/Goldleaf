@@ -52,6 +52,10 @@ namespace ui
         this->amiiboMenuItem->SetIcon(gsets.PathForResource("/Common/Amiibo.png"));
         this->amiiboMenuItem->SetColor(gsets.CustomScheme.Text);
         this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
+        this->emuiiboMenuItem = pu::ui::elm::MenuItem::New("emuiibo management");
+        this->emuiiboMenuItem->SetIcon(gsets.PathForResource("/Common/Amiibo.png"));
+        this->emuiiboMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->emuiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::emuiiboMenuItem_Click, this));
         this->settingsMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(375));
         this->settingsMenuItem->SetIcon(gsets.PathForResource("/Common/Settings.png"));
         this->settingsMenuItem->SetColor(gsets.CustomScheme.Text);
@@ -69,6 +73,7 @@ namespace ui
         this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->amiiboMenuItem);
+        this->optionMenu->AddItem(this->emuiiboMenuItem);
         this->optionMenu->AddItem(this->settingsMenuItem);
         this->optionMenu->AddItem(this->updateMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
@@ -128,6 +133,63 @@ namespace ui
 
     void MainMenuLayout::amiiboMenuItem_Click()
     {
+        mainapp->LoadMenuData(set::GetDictionaryEntry(283), "Amiibo", set::GetDictionaryEntry(301));
+        mainapp->LoadLayout(mainapp->GetAmiiboDumpLayout());
+        mainapp->GetAmiiboDumpLayout()->StartDump();
+        mainapp->UnloadMenuData();
+        mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+    }
+
+    void MainMenuLayout::emuiiboMenuItem_Click()
+    {
+        if(nfp::emu::IsEmuiiboAccessible())
+        {
+            auto rc = nfp::emu::Initialize();
+            if(R_SUCCEEDED(rc))
+            {
+                nfp::emu::Version v;
+                auto rc = nfp::emu::GetVersion(&v);
+                if(R_SUCCEEDED(rc))
+                {
+                    Version otherv = Version::MakeVersion(v.major, v.minor, v.micro);
+                    if(otherv.IsLower(Version::MakeVersion(0, 4, 0))) mainapp->ShowNotification("Only emuiibo 0.4.0 or newer is supported.");
+                    else
+                    {
+                        nfp::emu::EmulationStatus status;
+                        rc = nfp::emu::GetStatus(&status);
+                        if(R_SUCCEEDED(rc))
+                        {
+                            if(!nfp::emu::StatusIsOn(status))
+                            {
+                                auto sopt = mainapp->CreateShowDialog("emuiibo activation", "emuiibo is currently deactivated.\nWould you like to activate it?", { "Yes", "Cancel" }, true);
+                                if(sopt == 0)
+                                {
+                                    rc = nfp::emu::SetEmulationOnForever();
+                                    mainapp->ShowNotification("emuiibo was activated. Select this menu again.");
+                                }
+                            }
+                            else
+                            {
+                                char amiibo[FS_MAX_PATH] = {0};
+                                rc = nfp::emu::GetCurrentAmiibo(amiibo, FS_MAX_PATH);
+                                mainapp->ShowNotification(String("Current amiibo: ") + amiibo);
+                                auto id = nfp::emu::GetAmiiboIdFromPath(amiibo);
+                                mainapp->ShowNotification(String("Amiibo ID: ") + id);
+                                auto img = nfp::emu::SaveAmiiboImageById(id);
+                                mainapp->ShowNotification(String("Amiibo ID image: ") + img);
+                                mainapp->CreateShowDialog("Amiibo", String("Current selected amiibo: ") + amiibo, {"Ok"}, true, img.AsUTF8());
+                            }
+                        }
+                    }
+                }
+                nfp::emu::Exit();
+            }
+            if(R_FAILED(rc)) mainapp->ShowNotification("Result failed: " + hos::FormatHex(rc));
+        }
+        else mainapp->ShowNotification("emuiibo isn't present or loaded.");
+
+        return;
+
         mainapp->LoadMenuData(set::GetDictionaryEntry(283), "Amiibo", set::GetDictionaryEntry(301));
         mainapp->LoadLayout(mainapp->GetAmiiboDumpLayout());
         mainapp->GetAmiiboDumpLayout()->StartDump();

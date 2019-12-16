@@ -20,21 +20,73 @@
 */
 
 #include <ui/ui_MainApplication.hpp>
-#include <sys/stat.h>
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
 
 extern char *fake_heap_end;
 void *new_heap_addr = NULL;
+extern char** __system_argv;
 
 ui::MainApplication::Ref mainapp;
 set::Settings gsets;
 bool gupdated = false;
 
-static constexpr u64 HeapSize = 0x10000000;
+alignas(16) u8 __nx_exception_stack[0x1000];
+u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
+
+u64 GetBaseAddress()
+{
+    u32 p;
+    MemoryInfo info;
+
+    // Find the memory region in which the function itself is stored.
+    // The start of it will be the base address the homebrew was mapped to.
+    svcQueryMemory(&info, &p, (u64) &GetBaseAddress);
+
+    return info.addr;
+}
+
+struct StackFrame
+{
+    u64 fp;     // Frame Pointer (Pointer to previous stack frame)
+    u64 lr;     // Link Register (Return address)
+};
+
+void UnwindStack(u64 *outStackTrace, s32 *outStackTraceSize, size_t maxStackTraceSize, u64 currFp)
+{
+    for (size_t i = 0; i < maxStackTraceSize; i++) {
+        if (currFp == 0 || currFp % sizeof(u64) != 0)
+            break;
+        
+        auto currTrace = reinterpret_cast<StackFrame*>(currFp); 
+        outStackTrace[(*outStackTraceSize)++] = currTrace->lr;
+        currFp = currTrace->fp;
+    }
+}
 
 void Exit();
+
+extern "C"
+{
+    void __libnx_exception_handler(ThreadExceptionDump *context)
+    {
+        u64 stackTrace[0x20] = {0};
+        s32 stackTraceSize = 0;
+        UnwindStack(stackTrace, &stackTraceSize, 0x20, context->fp.x);
+        auto baseaddr = GetBaseAddress();
+        auto pcstr = hos::FormatHex(context->pc.x - baseaddr);
+
+        auto fname = "report_" + std::to_string(rand()) + ".log";
+        String crashtxt = "\nGoldleaf crash report\n\n";
+        crashtxt += String(" - Goldleaf version: ") + GOLDLEAF_VERSION + "\n - Current time: " + hos::GetCurrentTime() + "\n - Crash address: " + pcstr;
+        std::ofstream ofs("sdmc:/" + consts::Root + "/crash/" + fname);
+        if(ofs.good())
+        {
+            ofs << crashtxt.AsUTF8();
+            ofs.close();
+        }
+
+        Exit();
+    }
+}
 
 void Panic(std::string msg)
 {
@@ -81,6 +133,14 @@ void Initialize()
 
 void Exit()
 {
+    // If Goldleaf updated itself in this session...
+    if(gupdated)
+    {
+        romfsExit();
+        fs::DeleteFile(__system_argv[0]);
+        fs::RenameFile(consts::TempUpdatePath, __system_argv[0]);
+    }
+
     auto fsopsbuf = fs::GetFileSystemOperationsBuffer();
     operator delete[](fsopsbuf, std::align_val_t(0x1000));
     auto nsys = fs::GetNANDSystemExplorer();
@@ -106,9 +166,10 @@ void Exit()
     ncmExit();
     nifmExit();
     pdmqryExit();
+    Close();
 }
 
-int main(int argc, char **argv)
+int main()
 {
     Initialize();
 
@@ -117,14 +178,6 @@ int main(int argc, char **argv)
 
     mainapp->Prepare();
     mainapp->ShowWithFadeIn();
-    
-    // If Goldleaf updated itself in this session...
-    if(gupdated)
-    {
-        romfsExit();
-        fs::DeleteFile(argv[0]);
-        fs::RenameFile(consts::TempUpdatePath, argv[0]);
-    }
 
     Exit();
     return 0;

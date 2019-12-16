@@ -20,7 +20,7 @@
 */
 
 #include <ui/ui_ClickableImage.hpp>
-#include <fs/fs_Common.hpp>
+#include <sys/stat.h>
 
 namespace ui
 {
@@ -94,7 +94,8 @@ namespace ui
     {
         if(this->ntex != NULL) pu::ui::render::DeleteTexture(this->ntex);
         this->ntex = NULL;
-        if(fs::IsFile(Image))
+        struct stat st;
+        if((stat(Image.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFREG))
         {
             this->img = Image;
             this->ntex = pu::ui::render::LoadImage(Image.AsUTF8());
@@ -118,7 +119,7 @@ namespace ui
         Drawer->RenderTexture(this->ntex, X, Y, { -1, w, h, -1 });
     }
 
-    void ClickableImage::OnInput(u64 Down, u64 Up, u64 Held, pu::ui::Touch Pos)
+    void ClickableImage::OnInput(u64 down, u64 up, u64 held, pu::ui::Touch Pos)
     {
         if(touched)
         {

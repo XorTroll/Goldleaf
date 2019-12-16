@@ -45,7 +45,7 @@ namespace ui
             bool IsImageValid();
             void SetOnClick(std::function<void()> Callback);
             void OnRender(pu::ui::render::Renderer::Ref &Drawer, s32 X, s32 Y);
-            void OnInput(u64 Down, u64 Up, u64 Held, pu::ui::Touch Pos);
+            void OnInput(u64 down, u64 up, u64 held, pu::ui::Touch Pos);
         protected:
             String img;
             pu::ui::render::NativeTexture ntex;

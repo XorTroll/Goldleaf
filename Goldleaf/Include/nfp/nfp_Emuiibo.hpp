@@ -24,12 +24,61 @@
 
 namespace nfp::emu
 {
-    constexpr SmServiceName EmuServiceName = smEncodeName("nfp:emu");
+    #define NFP_EMU_SERVICE "nfp:emu"
 
-    bool IsEmuiiboPresent();
+    constexpr SmServiceName ServiceName = smEncodeName(NFP_EMU_SERVICE);
+
+    bool IsEmuiiboAccessible();
 
     Result Initialize();
     void Exit();
+
+    namespace result
+    {
+        constexpr u32 Module = 352;
+
+        constexpr Result ResultNoAmiiboLoaded = MAKERESULT(Module, 1);
+        constexpr Result ResultUnableToMove = MAKERESULT(Module, 2);
+        constexpr Result ResultStatusOff = MAKERESULT(Module, 3);
+    }
+
+    enum class EmulationStatus : u32
+    {
+        OnForever,
+        OnOnce,
+        Off
+    };
+
+    NX_CONSTEXPR bool StatusIsOn(EmulationStatus status)
+    {
+        return status != EmulationStatus::Off;
+    }
+
+    struct Version
+    {
+        u8 major;
+        u8 minor;
+        u8 micro;
+        bool dev_build;
+    };
+
+    static_assert(sizeof(Version) == sizeof(u32), "Invalid nfp:emu Version!");
+
+    Result GetCurrentAmiibo(char *out, size_t out_len);
+    Result SetCustomAmiibo(const char *path);
+    Result HasCustomAmiibo(bool *out_has);
+    Result ResetCustomAmiibo();
+    Result SetEmulationOnForever();
+    Result SetEmulationOnOnce();
+    Result SetEmulationOff();
+    Result MoveToNextAmiibo();
+    Result GetStatus(EmulationStatus *out);
+    Result Refresh();
+    Result GetVersion(Version *out_ver);
+
+    String SaveAmiiboImageById(String id);
+
+    String GetAmiiboIdFromPath(String amiibo);
 
     // TODO: implement emuiibo 0.4.0's commands
 }

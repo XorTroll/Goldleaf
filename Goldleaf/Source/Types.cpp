@@ -26,6 +26,7 @@ namespace consts
 {
     std::string Root = "switch/Goldleaf";
     std::string Log = Root + "/Goldleaf.log";
+    std::string CrashesDir = Root + "/crash";
     std::string TempUpdatePath = Root + "/UpdateTemp.nro";
 }
 
@@ -145,8 +146,16 @@ void EnsureDirectories()
     sd->CreateDirectory(consts::Root + "/meta");
     sd->CreateDirectory(consts::Root + "/title");
     sd->CreateDirectory(consts::Root + "/dump");
+    sd->CreateDirectory(consts::Root + "/crash");
+    sd->CreateDirectory(consts::Root + "/amiibocache");
     sd->CreateDirectory(consts::Root + "/userdata");
     sd->CreateDirectory(consts::Root + "/dump/temp");
     sd->CreateDirectory(consts::Root + "/dump/update");
     sd->CreateDirectory(consts::Root + "/dump/title");
+}
+
+void Close()
+{
+    if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
+    else exit(0);
 }

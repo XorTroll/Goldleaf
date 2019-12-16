@@ -133,3 +133,4 @@ bool IsAtmosphere();
 u64 GetCurrentApplicationId();
 u32 RandomFromRange(u32 Min, u32 Max);
 void EnsureDirectories();
+void Close();

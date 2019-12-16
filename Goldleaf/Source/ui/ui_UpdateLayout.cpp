@@ -39,17 +39,9 @@ namespace ui
         this->Add(this->downloadBar);
     }
 
-    #define _TEST_LOG(strexpr) mainapp->CreateShowDialog("Test", strexpr, {"K"}, true);
-
     void UpdateLayout::StartUpdateSearch()
     {
-        if(!net::HasConnection() || gupdated)
-        {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(304), { set::GetDictionaryEntry(234) }, true);
-            mainapp->UnloadMenuData();
-            mainapp->LoadLayout(mainapp->GetMainMenuLayout());
-            return;
-        }
+        if(gupdated) return;
         this->downloadBar->SetVisible(false);
         this->infoText->SetText(set::GetDictionaryEntry(305));
         mainapp->CallForRender();
@@ -60,10 +52,7 @@ namespace ui
         mainapp->CallForRender();
         Version latestv = Version::FromString(latestid);
         Version currentv = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO); // Defined in Makefile
-        if(latestv.IsEqual(currentv))
-        {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(307), { set::GetDictionaryEntry(234) }, true);
-        }
+        if(latestv.IsEqual(currentv)) mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(307), { set::GetDictionaryEntry(234) }, true);
         else if(latestv.IsLower(currentv))
         {
             int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(308), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
