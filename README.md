@@ -189,6 +189,8 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - shchmue and blawar for the system to get tickets from system save data without breaking anything, found in [Lockpick](https://github.com/shchmue/Lockpick).
 
+- WerWolv for the help with custom exception handling, avoiding those frustrating fatals.
+
 - Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou) and [FuryBaguette](https://github.com/FuryBaguette) for French, and [LoOkYe](https://github.com/lookye) and C4Phoenix for German.
 
 - All the testers, for reporting bugs and helping a lot with the project's development.

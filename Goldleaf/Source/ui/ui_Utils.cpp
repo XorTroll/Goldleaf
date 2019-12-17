@@ -53,15 +53,9 @@ namespace ui
     {
         int sopt = mainapp->CreateShowDialog(Title, Message, { set::GetDictionaryEntry(233), set::GetDictionaryEntry(232), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
-        else switch(sopt)
-        {
-            case 0:
-                bpcShutdownSystem();
-                break;
-            case 1:
-                bpcRebootSystem();
-                break;
-        }
+        spsmInitialize();
+        spsmShutdown(sopt == 1);
+        spsmExit();
     }
 
     String AskForText(String Guide, String Initial, int MaxSize)

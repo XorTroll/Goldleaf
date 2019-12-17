@@ -40,6 +40,15 @@ inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)
     return std::make_tuple(res, std::forward<Args>(args)...);
 }
 
+// Thanks SciresM
+#define R_TRY(res_expr) \
+({ \
+    const Result _tmp_r_try_rc = res_expr; \
+    if (R_FAILED(_tmp_r_try_rc)) { \
+        return _tmp_r_try_rc; \
+    } \
+})
+
 namespace result
 {
     namespace module
@@ -133,4 +142,8 @@ bool IsAtmosphere();
 u64 GetCurrentApplicationId();
 u32 RandomFromRange(u32 Min, u32 Max);
 void EnsureDirectories();
+Result Initialize();
 void Close();
+
+// Exit calls Close!
+void Exit();

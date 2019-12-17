@@ -57,7 +57,7 @@ APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -Wl,-wrap,fatalThrow
 
 CFLAGS	:=	-g -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)

@@ -21,12 +21,16 @@
 
 #include <Types.hpp>
 #include <fs/fs_Explorer.hpp>
+#include <usb/usb_Detail.hpp>
+#include <es/es_Service.hpp>
+
+extern char** __system_argv;
+extern bool gupdated;
 
 namespace consts
 {
     std::string Root = "switch/Goldleaf";
     std::string Log = Root + "/Goldleaf.log";
-    std::string CrashesDir = Root + "/crash";
     std::string TempUpdatePath = Root + "/UpdateTemp.nro";
 }
 
@@ -146,7 +150,7 @@ void EnsureDirectories()
     sd->CreateDirectory(consts::Root + "/meta");
     sd->CreateDirectory(consts::Root + "/title");
     sd->CreateDirectory(consts::Root + "/dump");
-    sd->CreateDirectory(consts::Root + "/crash");
+    sd->CreateDirectory(consts::Root + "/reports");
     sd->CreateDirectory(consts::Root + "/amiibocache");
     sd->CreateDirectory(consts::Root + "/userdata");
     sd->CreateDirectory(consts::Root + "/dump/temp");
@@ -158,4 +162,61 @@ void Close()
 {
     if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
     else exit(0);
+}
+
+Result Initialize()
+{
+    srand(time(NULL));
+    EnsureDirectories();
+
+    R_TRY(accountInitialize(AccountServiceType_Administrator));
+    R_TRY(ncmInitialize());
+    R_TRY(nsInitialize());
+    R_TRY(es::Initialize());
+    R_TRY(psmInitialize());
+    R_TRY(setInitialize());
+    R_TRY(setsysInitialize());
+    R_TRY(usb::detail::Initialize());
+    R_TRY(splInitialize());
+    R_TRY(nifmInitialize(NifmServiceType_Admin));
+    R_TRY(pdmqryInitialize());
+
+    return 0;
+}
+
+void Exit()
+{
+    // If Goldleaf updated itself in this session...
+    if(gupdated)
+    {
+        romfsExit();
+        fs::DeleteFile(__system_argv[0]);
+        fs::RenameFile(consts::TempUpdatePath, __system_argv[0]);
+    }
+
+    auto fsopsbuf = fs::GetFileSystemOperationsBuffer();
+    operator delete[](fsopsbuf, std::align_val_t(0x1000));
+    auto nsys = fs::GetNANDSystemExplorer();
+    auto nsfe = fs::GetNANDSafeExplorer();
+    auto nusr = fs::GetNANDUserExplorer();
+    auto prif = fs::GetPRODINFOFExplorer();
+    auto sdcd = fs::GetSdCardExplorer();
+    delete nsys;
+    delete nsfe;
+    delete nusr;
+    delete prif;
+    delete sdcd;
+
+    splExit();
+    usb::detail::Exit();
+    setsysExit();
+    setExit();
+    psmExit();
+    es::Exit();
+    nsExit();
+    accountExit();
+    ncmExit();
+    nifmExit();
+    pdmqryExit();
+    Close();
 }
