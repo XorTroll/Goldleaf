@@ -2,10 +2,20 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll, emerged from Adubbz's work with Tinfoil
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    This project is licensed under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -20,19 +30,9 @@
 
 namespace hos
 {
-    struct FwVersion
-    {
-        u8 Major;
-        u8 Minor;
-        u8 Micro;
-        std::string DisplayName;
-        std::string ToString();
-    };
-
     u32 GetBatteryLevel();
     bool IsCharging();
     std::string GetCurrentTime();
-    FwVersion GetFwVersion();
     
     template<typename N>
     inline std::string FormatHex(N Number)
@@ -42,14 +42,14 @@ namespace hos
         return strm.str();
     }
 
-    std::string FormatHex128(u128 Number);
+    std::string FormatHex128(AccountUid Number);
     std::string DoubleToString(double Number);
     std::string FormatTime(u64 Seconds);
     u64 GetSdCardFreeSpaceForInstalls();
     u64 GetNANDFreeSpaceForInstalls();
     void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
     void IRAMClear();
-    void PayloadProcess(pu::String Path);
+    void PayloadProcess(String Path);
     void LockAutoSleep();
     void UnlockAutoSleep();
     u8 ComputeSystemKeyGeneration();

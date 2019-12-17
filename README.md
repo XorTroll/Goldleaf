@@ -1,14 +1,18 @@
-![Logo](Goldleaf/RomFs/Logo.png)
+<img src="Goldleaf/RomFs/Logo.png" alt="drawing" width="400"/>
 
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)]() [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)]()
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
+
+<img src="Screenshot-gleaf.jpg" alt="drawing" width="400"/> <img src="Screenshot-quark.png" alt="drawing" width="300"/>
+
+> Having any issues? Check [this help document](docs/FAQ.md) for help!
 
 # Table of contents
 
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
-3. [Remote PC system](#remote-pc-system)
+3. [Quark and remote PC](#quark-and-remote-pc)
 4. [Forwarding](#forwarding)
 5. [Settings](#settings)
 6. [Known bugs](#known-bugs)
@@ -20,7 +24,7 @@
 <p>
 <a href="https://www.patreon.com/xortroll"><img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" height="50" width="220"></a>
 <br>
-<b>If you like my work, consider becoming a patron and supporting it!</b>
+<b>Do you like my work? Become a patron and supporting it!</b>
 </p>
 
 ## Features
@@ -35,29 +39,27 @@ These are its main features:
 
 - **Remote PC browser**: Via this feature, one can browse a PC's drives like any other filesystem, connected by a USB-C cable.
 
-- **Content manager**: Browse any kind of content in your SD card, console memory or game cartridge. You can browse all the NCAs, and as title options, you can remove the content, or export it as a NSP. NAND SYSTEM contents (system titles or contents) aren't allowed to be deleted. Invidual contents such as updates or DLC can be removed individually.
+- **Content manager**: Browse any kind of content in your SD card, console memory or game cartridge. You can browse all the NCAs, and as title options, you can remove the content, or export it as a NSP. NAND SYSTEM contents (system titles or contents) aren't allowed to be deleted. Invidual contents such as updates or DLC can be removed individually. You have also the option to remove unused tickets or tickets belonging to contents, plus the options to reset launch version (in order to remove the update nag) or to export base, updates or DLCs to installable NSPs.
 
-- **Ticket manager**: Browse all tickets, both common and personalized. You can remove them, but an extra warning will be displayed when attempting to remove tickets being used by some content.
+- **Web browser (console's web-applet)**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. However, this can only be accessed if launched from the forwarder for technical reasons.
 
-- **Web browser (web applets)**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. If Goldleaf is launched through hbmenu as a NRO, WifiWebAuth applet will be used, which tends to fail sometimes, along with fewer features, such as lack of video support.
+- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one. Linked accounts can also be unlinked (locally).
 
-- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one.
+- **Console or Goldleaf settings**: In this menu you can manage the console's update (view it's version or dump it as a directory installable with Choi or a NSP), and pending update in case it's present (auto-downloaded updates, which can also be viewed, dumped or deleted)
 
-- **Console information**: Simple menu to see current firmware string, and the total free and occupied size on SD card and console memory.
-
-Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: **English**, **Spanish**, **German**, **French** and **Italian**.
+Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
 
 ### Common controls
 
-- **(L-stick / D-pad)** Move through the current menu
-
-- **(R-stick)** Move slightly faster through the current menu
+- **(LR-stick / R-stick / D-pad)** Move through the current menu
 
 - **(ZL / ZR)** Show a dialog to shut down or reboot the console.
 
-#### NRO version
+- **(Plus / +)** Show a dialog with this information.
 
-- **(+ / -)** Exit the application in order to return to hbmenu.
+#### NRO-only controls
+
+- **(Minus / -)** Exit the application in order to return to hbmenu.
 
 ## Disclaimer
 
@@ -65,7 +67,7 @@ Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and
 
 Always keep in mind that installing NSPs can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a smaller chance to get banned.
 
-**NEVER** install untrusted NSPs. Goldleaf can identify (according to the NSP's application ID) whether the NSP is a homebrew NSP (IDs starting with "05", usually for forwarders), or a regular title (official ID range just allows IDs starting with "01")
+**NEVER** install untrusted NSPs. Goldleaf doesn't do any special verification, so please make sure that what you decide to install was obtained from trustworthy sources.
 
 ### Tickets
 
@@ -77,11 +79,13 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 **TL;DR:** **Always** try to avoid untrusted NSPs, and if you go ahead and install CDN NSPs with tickets, avoid going online, or use special tools such as 90DNS, or you'll be banned for sure.
 
-## Remote PC system
+## Quark and remote PC
 
-Goldleaf supports browsing your PC and installing NSP files from it directly to your Switch. Follow these simple steps to set up the remote PC system:
+Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It should work on Windows, Linux or Mac.
 
-One time setup:
+Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
+
+**One time setup**:
 
 1. Download [Zadig](https://zadig.akeo.ie/)
 
@@ -93,13 +97,13 @@ One time setup:
 
 5. Select the Switch from the drop-down menu
 
-6. Change the driver (right next to the green arrow) to "libusbK (v3.0.7.0)"
+6. Change the driver (right next to the green arrow) to "libusbK"
 
 7. Click on the button below "Install WCID Driver" or "Replace Driver"
 
-8. Done. Now you can use Goldleaf and Goldtree together.
+8. Done. Now you can use Goldleaf and Quark to directly access your PC!
 
-**Note:** To use it correctly, open Goldleaf and connect the Switch with your PC before you open Goldtree.
+**Note:** To use it correctly, make sure you open Goldleaf and connect the Switch with your PC before you launch Quark. Nevertheless, Quark will warn when USB connection is gone or no USB connection is found.
 
 ## Forwarding
 
@@ -107,7 +111,7 @@ Goldleaf is released along with a NSP, in order to launch Goldleaf as an install
 
 The NSP is a forwarder since **0.6**, what means that, instead of having Goldleaf's source inside the NSP, it simply loads the NRO from the SD card, meaning that only the NRO should be updated instead of having to reinstall the NSP.
 
-Goldleaf's forwarding code tries to locate Goldleaf (`Goldleaf.nro`) in `sd:/switch/` and `sd:/switch/Goldleaf/`. If it isn't found, an error message is displayed.
+Goldleaf's forwarding code tries to locate Goldleaf (`Goldleaf.nro`) in `sd:/switch/` and `sd:/switch/Goldleaf/`. If it isn't found, an error message will be displayed.
 
 ## Settings
 
@@ -132,7 +136,7 @@ This is an example JSON for Goldleaf settings:
         "menuItemSize": 80
     },
     "installs": {
-        "ignoreRequiredFwVersion": true
+        "ignoreRequiredFwVersion": false
     }
 }
 ```
@@ -147,9 +151,9 @@ So, via this configurations, UI's images, resources, element sizes and even tran
 
 ## Known bugs
 
-- On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares.
+- On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on that specific versions. Any non-7.x firmware doesn't have this issue.
 
-- Remote PC browsing in general seems to have several bugs, most of them related to the UI system.
+- Apparently, after browsing (more than 4 times?) and then browsing (specific?) empty directories crashes Goldleaf. This issue is strangely common and needs to be looked into.
 
 ## Contributing
 
@@ -163,7 +167,7 @@ Read this before making any new translations:
 
 - Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
 
-- UI (Plutonium) lacks special UTF16 characters, so some languages like Russian or Korean will not work, at least on the UI's current state.
+- Currently languages with special alphabets (like Russian or Arabic) are unsupported due to the lack of non-UTF-8 support for the JSON parser. This is planned to be solved soon.
 
 ## Credits and support
 
@@ -179,14 +183,16 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - 2767mr, for all the support given in Goldtree.
 
+- developer.su for [NS-USBloader](https://github.com/developersu/ns-usbloader), which helped a lot on the development of Quark, mainly on the usage of usb4java and the base of a multi-platform JavaFX Java project.
+
 - Simon for his libusbK implementation for C#, which has made Goldtree client possible.
 
-- shchmue and blawar for the system to get titlekeys without breaking processes, found in [Lockpick](https://github.com/shchmue/Lockpick).
+- shchmue and blawar for the system to get tickets from system save data without breaking anything, found in [Lockpick](https://github.com/shchmue/Lockpick).
 
 - Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou) and [FuryBaguette](https://github.com/FuryBaguette) for French, and [LoOkYe](https://github.com/lookye) and C4Phoenix for German.
 
 - All the testers, for reporting bugs and helping a lot with the project's development.
 
-### Discord server and beta testing
+### Discord and beta testing
 
 If you would like to be more informed about my projects' status and support, you should check [my Discord server](https://discord.gg/3KpFyaH). It's a simple server for Nintendo hacking and homebrew, mainly focused on my projects. If you would like to be a beta-tester, then this is what you're looking for.

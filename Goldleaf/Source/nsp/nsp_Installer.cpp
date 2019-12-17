@@ -1,3 +1,24 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <nsp/nsp_Installer.hpp>
 #include <err/err_Errors.hpp>
 #include <fs/fs_Explorer.hpp>
@@ -12,7 +33,7 @@ extern set::Settings gsets;
 
 namespace nsp
 {
-    Installer::Installer(pu::String Path, fs::Explorer *Exp, Storage Location) : nspentry(Exp, Path), storage(static_cast<FsStorageId>(Location))
+    Installer::Installer(String Path, fs::Explorer *Exp, Storage Location) : nspentry(Exp, Path), storage(static_cast<NcmStorageId>(Location))
     {
     }
 
@@ -27,7 +48,7 @@ namespace nsp
         if(nspentry.IsOk())
         {
             rc = 0;
-            pu::String cnmtnca;
+            String cnmtnca;
             u32 idxcnmtnca = 0;
             u64 scnmtnca = 0;
             u32 idxtik = 0;
@@ -35,7 +56,7 @@ namespace nsp
             auto files = nspentry.GetFiles();
             for(u32 i = 0; i < files.size(); i++)
             {
-                pu::String file = files[i];
+                String file = files[i];
                 if(fs::GetExtension(file) == "tik")
                 {
                     tik = file;
@@ -54,13 +75,13 @@ namespace nsp
                 rc = err::Make(err::ErrorDescription::MetaNotFound);
                 return rc;
             }
-            pu::String icnmtnca = fs::GetFileName(cnmtnca);
+            String icnmtnca = fs::GetFileName(cnmtnca);
             fs::Explorer *nsys = fs::GetNANDSystemExplorer();
             nsys->CreateDirectory("Contents/temp");
-            pu::String ncnmtnca = nsys->FullPathFor("Contents/temp/" + cnmtnca);
+            String ncnmtnca = nsys->FullPathFor("Contents/temp/" + cnmtnca);
             nsys->DeleteFile(ncnmtnca);
             nspentry.SaveFile(idxcnmtnca, nsys, ncnmtnca);
-            pu::String acnmtnca = "@SystemContent://temp/" + cnmtnca;
+            String acnmtnca = "@SystemContent://temp/" + cnmtnca;
             acnmtnca.reserve(FS_MAX_PATH);
             FsRightsId rid = {};
             rc = fsGetRightsIdAndKeyGenerationByPath(acnmtnca.AsUTF8().c_str(), &keygen, &rid);
@@ -77,10 +98,10 @@ namespace nsp
             {
                 fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs);
                 auto cnts = cnmtfs.GetContents();
-                pu::String fcnmt;
+                String fcnmt;
                 for(u32 i = 0; i < cnts.size(); i++)
                 {
-                    pu::String cnt = cnts[i];
+                    String cnt = cnts[i];
                     if(fs::GetExtension(cnt) == "cnmt")
                     {
                         fcnmt = cnt;
@@ -103,28 +124,28 @@ namespace nsp
             *(u64*)record.Size = (scnmtnca & 0xffffffffffff);
             record.Type = ncm::ContentType::Meta;
             auto tmprec = cnmt.GetContentMetaKey();
-            memcpy(&mrec, &tmprec, sizeof(NcmMetaRecord));
-            if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, mrec.titleId))
+            memcpy(&mrec, &tmprec, sizeof(NcmContentMetaKey));
+            if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, mrec.id))
             {
                 rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
                 return rc;
             }
-            if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, mrec.titleId))
+            if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, mrec.id))
             {
                 rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
                 return rc;
             }
             NcmContentStorage cst;
-            rc = ncmOpenContentStorage(storage, &cst);
+            rc = ncmOpenContentStorage(&cst, storage);
             bool hascnmt = false;
-            ncmContentStorageHas(&cst, &record.ContentId, &hascnmt);
+            ncmContentStorageHas(&cst, &hascnmt, &record.ContentId);
             serviceClose(&cst.s);
             if(!hascnmt) ncas.push_back(record);
             cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
-            baseappid = hos::GetBaseApplicationId(mrec.titleId, static_cast<ncm::ContentMetaType>(mrec.type));
+            baseappid = hos::GetBaseApplicationId(mrec.id, static_cast<ncm::ContentMetaType>(mrec.type));
             auto recs = cnmt.GetContentRecords();
             memset(&entrynacp, 0, sizeof(entrynacp));
-            pu::String ptik = nsys->FullPathFor("Contents/temp/" + tik);
+            String ptik = nsys->FullPathFor("Contents/temp/" + tik);
             if(stik > 0)
             {
                 nspentry.SaveFile(idxtik, nsys, ptik);
@@ -135,25 +156,25 @@ namespace nsp
                 ncas.push_back(recs[i]);
                 if(recs[i].Type == ncm::ContentType::Control)
                 {
-                    pu::String controlncaid = hos::ContentIdAsString(recs[i].ContentId);
-                    pu::String controlnca = controlncaid + ".nca";
+                    String controlncaid = hos::ContentIdAsString(recs[i].ContentId);
+                    String controlnca = controlncaid + ".nca";
                     u32 idxcontrolnca = nspentry.GetFileIndexByName(controlnca);
                     auto ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
                     nspentry.SaveFile(idxcontrolnca, nsys, ncontrolnca);
-                    pu::String acontrolnca = "@SystemContent://temp/" + controlnca;
+                    String acontrolnca = "@SystemContent://temp/" + controlnca;
                     acontrolnca.reserve(FS_MAX_PATH);
                     FsFileSystem controlncafs;
-                    auto rc2 = fsOpenFileSystemWithId(&controlncafs, mrec.titleId, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
+                    auto rc2 = fsOpenFileSystemWithId(&controlncafs, mrec.id, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
                     if(rc2 == 0)
                     {
                         fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs);
                         auto cnts = controlfs.GetContents();
                         for(u32 i = 0; i < cnts.size(); i++)
                         {
-                            pu::String cnt = cnts[i];
+                            String cnt = cnts[i];
                             if(fs::GetExtension(cnt) == "dat")
                             {
-                                icon = "sdmc:/" + GoldleafDir + "/meta/" + controlncaid + ".jpg";
+                                icon = "sdmc:/" + consts::Root + "/meta/" + controlncaid + ".jpg";
                                 controlfs.CopyFile(cnt, icon);
                                 break;
                             }
@@ -170,9 +191,9 @@ namespace nsp
     {
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
         NcmContentMetaDatabase mdb;
-        Result rc = ncmOpenContentMetaDatabase(storage, &mdb);
+        Result rc = ncmOpenContentMetaDatabase(&mdb, storage);
         if(rc != 0) return rc;
-        rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetSize(), (NcmContentMetaRecordsHeader*)ccnmt.GetData());
+        rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetData(), ccnmt.GetSize());
         if(rc != 0)
         {
             serviceClose(&mdb.s);
@@ -207,13 +228,11 @@ namespace nsp
         srecs.push_back(csrecord);
         ns::DeleteApplicationRecord(baseappid);
         rc = ns::PushApplicationRecord(baseappid, 3, srecs.data(), srecs.size() * sizeof(ns::ContentStorageRecord));
-        if(rc != 0) return rc;
         if(stik > 0)
         {
-            u8 *tikbuf = new u8[stik]();
+            u8 *tikbuf = fs::GetFileSystemOperationsBuffer();
             nsys->ReadFileBlock("Contents/temp/" + tik, 0, stik, tikbuf);
-            es::ImportTicket(tikbuf, stik, es::CertData, 1792);
-            delete[] tikbuf;
+            rc = es::ImportTicket(tikbuf, stik, es::CertData, es::CertSize);
         }
         return rc;
     }
@@ -225,7 +244,7 @@ namespace nsp
 
     u64 Installer::GetApplicationId()
     {
-        return mrec.titleId;
+        return mrec.id;
     }
 
     std::string Installer::GetExportedIconPath()
@@ -266,14 +285,13 @@ namespace nsp
         u8 *rdata = fs::GetFileSystemOperationsBuffer();
         u64 totalsize = 0;
         u64 twrittensize = 0;
-        std::vector<pu::String> ncanames;
+        std::vector<String> ncanames;
         std::vector<u64> ncasizes;
         std::vector<u32> ncaidxs;
-        for(u32 i = 0; i < ncas.size(); i++)
+        for(auto &rnca: ncas)
         {
-            ncm::ContentRecord rnca = ncas[i];
-            NcmNcaId curid = rnca.ContentId;
-            pu::String ncaname = hos::ContentIdAsString(curid);
+            NcmContentId curid = rnca.ContentId;
+            String ncaname = hos::ContentIdAsString(curid);
             if(rnca.Type == ncm::ContentType::Meta) ncaname += ".cnmt";
             ncaname += ".nca";
             u32 idxncaname = nspentry.GetFileIndexByName(ncaname);
@@ -286,15 +304,19 @@ namespace nsp
         for(u32 i = 0; i < ncas.size(); i++)
         {
             ncm::ContentRecord rnca = ncas[i];
-            NcmNcaId curid = rnca.ContentId;
-            pu::String ncaname = ncanames[i];
+            NcmContentId curid = rnca.ContentId;
+            String ncaname = ncanames[i];
             u64 ncasize = ncasizes[i];
             u32 idxncaname = ncaidxs[i];
 
             NcmContentStorage cst;
-            ncmOpenContentStorage(storage, &cst);
-            ncm::DeletePlaceHolder(&cst, &curid);
-            ncm::CreatePlaceHolder(&cst, &curid, &curid, ncasize);
+            ncmOpenContentStorage(&cst, storage);
+
+            NcmPlaceHolderId plhdid = {};
+            memcpy(plhdid.uuid.uuid, curid.c, sizeof(curid.c));
+            
+            ncmContentStorageDeletePlaceHolder(&cst, &plhdid);
+            ncmContentStorageCreatePlaceHolder(&cst, &curid, &plhdid, ncasize);
             u64 noff = 0;
             u64 szrem = ncasize;
             while(szrem)
@@ -312,7 +334,7 @@ namespace nsp
                         rbytes = nspentry.ReadFromFile(idxncaname, noff, rsize, rdata);
                         break;
                 }
-                ncm::WritePlaceHolder(&cst, &curid, noff, rdata, rbytes);
+                ncmContentStorageWritePlaceHolder(&cst, &plhdid, noff, rdata, rbytes);
                 noff += rbytes;
                 szrem -= rbytes;
                 auto t2 = std::chrono::steady_clock::now();
@@ -321,8 +343,8 @@ namespace nsp
                 OnContentWrite(rnca, i, ncas.size(), (double)(noff + twrittensize), (double)totalsize, (u64)bsec);
             }
             twrittensize += noff;
-            ncmContentStorageRegister(&cst, &curid, &curid);
-            ncm::DeletePlaceHolder(&cst, &curid);
+            ncmContentStorageRegister(&cst, &curid, &plhdid);
+            ncmContentStorageDeletePlaceHolder(&cst, &plhdid);
             serviceClose(&cst.s);
         }
         return rc;

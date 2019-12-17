@@ -1,9 +1,30 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <nsp/nsp_PFS0.hpp>
 #include <cstring>
 
 namespace nsp
 {
-    PFS0::PFS0(fs::Explorer *Exp, pu::String Path)
+    PFS0::PFS0(fs::Explorer *Exp, String Path)
     {
         this->path = Path;
         this->gexp = Exp;
@@ -14,24 +35,24 @@ namespace nsp
         {
             this->ok = true;
             u64 strtoff = sizeof(PFS0Header) + (sizeof(PFS0FileEntry) * this->header.FileCount);
-            this->stringtable = new u8[this->header.StringTableSize];
+            this->stringtable = new u8[this->header.StringTableSize]();
             this->headersize = strtoff + this->header.StringTableSize;
             Exp->ReadFileBlock(this->path, strtoff, this->header.StringTableSize, this->stringtable);
             this->files.reserve(this->header.FileCount);
             for(u32 i = 0; i < this->header.FileCount; i++)
             {
                 u64 offset = sizeof(PFS0Header) + (i * sizeof(PFS0FileEntry));
-                PFS0FileEntry ent;
+                PFS0FileEntry ent = {};
                 memset(&ent, 0, sizeof(ent));
                 Exp->ReadFileBlock(this->path, offset, sizeof(ent), (u8*)&ent);
-                pu::String name;
+                String name;
                 for(u32 i = ent.StringTableOffset; i < this->header.StringTableSize; i++)
                 {
                     char ch = (char)this->stringtable[i];
                     if(ch == '\0') break;
                     name += ch;
                 }
-                PFS0File fl;
+                PFS0File fl = {};
                 fl.Entry = ent;
                 fl.Name = name;
                 this->files.push_back(fl);
@@ -49,8 +70,9 @@ namespace nsp
         return this->header.FileCount;
     }
 
-    pu::String PFS0::GetFile(u32 Index)
+    String PFS0::GetFile(u32 Index)
     {
+        if(Index >= this->files.size()) return "";
         return this->files[Index].Name;
     }
 
@@ -59,10 +81,10 @@ namespace nsp
         return this->gexp->ReadFileBlock(this->path, (this->headersize + this->files[Index].Entry.Offset + Offset), Size, Out);
     }
 
-    std::vector<pu::String> PFS0::GetFiles()
+    std::vector<String> PFS0::GetFiles()
     {
-        std::vector<pu::String> pfiles;
-        for(u32 i = 0; i < this->files.size(); i++) pfiles.push_back(this->files[i].Name);
+        std::vector<String> pfiles;
+        for(auto &file: this->files) pfiles.push_back(file.Name);
         return pfiles;
     }
 
@@ -78,11 +100,13 @@ namespace nsp
 
     u64 PFS0::GetFileSize(u32 Index)
     {
+        if(Index >= this->files.size()) return 0;
         return this->files[Index].Entry.Size;
     }
 
-    void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, pu::String Path)
+    void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, String Path)
     {
+        if(Index >= this->files.size()) return;
         u64 fsize = this->GetFileSize(Index);
         u64 rsize = fs::GetFileSystemOperationsBufferSize();
         u8 *bdata = fs::GetFileSystemOperationsBuffer();
@@ -100,16 +124,13 @@ namespace nsp
         }
     }
 
-    u32 PFS0::GetFileIndexByName(pu::String File)
+    u32 PFS0::GetFileIndexByName(String File)
     {
         u32 idx = 0;
-        for(u32 i = 0; i < this->files.size(); i++)
+        for(auto &file: this->files)
         {
-            if(strcasecmp(this->files[i].Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0)
-            {
-                idx = i;
-                break;
-            }
+            if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0) break;
+            idx++;
         }
         return idx;
     }

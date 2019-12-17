@@ -1,97 +1,117 @@
-#include <ui/ui_MainApplication.hpp>
-#include <arpa/inet.h>
 
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    MainApplication *mainapp;
-    extern pu::String clipboard;
+    extern String clipboard;
 
-    MainApplication::MainApplication() : pu::ui::Application()
+    void MainApplication::OnLoad()
     {
         gsets = set::ProcessSettings();
         set::Initialize();
         if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
+
         pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
-        this->seluser = 0;
+        this->seluser = {};
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
         this->connstate = 0;
-        this->baseImage = new pu::ui::elm::Image(0, 0, gsets.PathForResource("/Base.png"));
-        this->timeText = new pu::ui::elm::TextBlock(1124, 15, "00:00:00");
+        this->baseImage = pu::ui::elm::Image::New(0, 0, gsets.PathForResource("/Base.png"));
+        this->timeText = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
         this->timeText->SetColor(gsets.CustomScheme.Text);
-        this->batteryText = new pu::ui::elm::TextBlock(1015, 20, "0%", 20);
+        this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%", 20);
         this->batteryText->SetColor(gsets.CustomScheme.Text);
-        this->batteryImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/0.png"));
-        this->batteryChargeImage = new pu::ui::elm::Image(960, 8, gsets.PathForResource("/Battery/Charge.png"));
-        this->menuBanner = new pu::ui::elm::Image(10, 62, gsets.PathForResource("/MenuBanner.png"));
-        this->menuImage = new pu::ui::elm::Image(15, 69, gsets.PathForResource("/Common/SdCard.png"));
+        this->batteryImage = pu::ui::elm::Image::New(960, 8, gsets.PathForResource("/Battery/0.png"));
+        this->batteryChargeImage = pu::ui::elm::Image::New(960, 8, gsets.PathForResource("/Battery/Charge.png"));
+        this->menuBanner = pu::ui::elm::Image::New(10, 62, gsets.PathForResource("/MenuBanner.png"));
+        this->menuImage = pu::ui::elm::Image::New(15, 69, gsets.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(85);
         this->menuImage->SetHeight(85);
-        this->userImage = new ClickableImage(1090, 75, gsets.PathForResource("/Common/User.png"));
+        this->userImage = ClickableImage::New(1090, 75, gsets.PathForResource("/Common/User.png"));
         this->userImage->SetWidth(70);
         this->userImage->SetHeight(70);
         this->userImage->SetOnClick(std::bind(&MainApplication::userImage_OnClick, this));
-        this->helpImage = new ClickableImage(1180, 80, gsets.PathForResource("/Common/Help.png"));
+        this->helpImage = ClickableImage::New(1180, 80, gsets.PathForResource("/Common/Help.png"));
         this->helpImage->SetWidth(60);
         this->helpImage->SetHeight(60);
         this->helpImage->SetOnClick(std::bind(&MainApplication::helpImage_OnClick, this));
-        this->usbImage = new pu::ui::elm::Image(695, 12, gsets.PathForResource("/Common/USB.png"));
+        this->usbImage = pu::ui::elm::Image::New(695, 12, gsets.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);
-        this->connImage = new pu::ui::elm::Image(755, 12, gsets.PathForResource("/Connection/None.png"));
+        this->connImage = pu::ui::elm::Image::New(755, 12, gsets.PathForResource("/Connection/None.png"));
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = new pu::ui::elm::TextBlock(800, 20, "", 20);
+        this->ipText = pu::ui::elm::TextBlock::New(800, 20, "", 20);
         this->ipText->SetColor(gsets.CustomScheme.Text);
-        this->menuNameText = new pu::ui::elm::TextBlock(120, 85, "-");
+        this->menuNameText = pu::ui::elm::TextBlock::New(120, 85, "-");
         this->menuNameText->SetColor(gsets.CustomScheme.Text);
-        this->menuHeadText = new pu::ui::elm::TextBlock(120, 120, "-", 20);
+        this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-", 20);
         this->menuHeadText->SetColor(gsets.CustomScheme.Text);
         this->UnloadMenuData();
-        this->toast = new pu::ui::extras::Toast(":", 20, { 225, 225, 225, 255 }, { 40, 40, 40, 255 });
+        this->toast = pu::ui::extras::Toast::New(":", 20, pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
-        this->mainMenu = new MainMenuLayout();
-        this->browser = new PartitionBrowserLayout();
+        this->mainMenu = MainMenuLayout::New();
+        this->browser = PartitionBrowserLayout::New();
         this->browser->SetOnInput(std::bind(&MainApplication::browser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->fileContent = new FileContentLayout();
+        this->fileContent = FileContentLayout::New();
         this->fileContent->SetOnInput(std::bind(&MainApplication::fileContent_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->copy = new CopyLayout();
-        this->exploreMenu = new ExploreMenuLayout();
+        this->copy = CopyLayout::New();
+        this->exploreMenu = ExploreMenuLayout::New();
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->pcExplore = new PCExploreLayout();
+        this->pcExplore = PCExploreLayout::New();
         this->pcExplore->SetOnInput(std::bind(&MainApplication::pcExplore_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->usbDrives = new USBDrivesLayout();
-        this->usbDrives->SetOnInput(std::bind(&MainApplication::usbDrives_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->nspInstall = new InstallLayout();
-        this->contentInformation = new ContentInformationLayout();
+        this->nspInstall = InstallLayout::New();
+        this->contentInformation = ContentInformationLayout::New();
         this->contentInformation->SetOnInput(std::bind(&MainApplication::contentInformation_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->storageContents = new StorageContentsLayout();
+        this->storageContents = StorageContentsLayout::New();
         this->storageContents->SetOnInput(std::bind(&MainApplication::storageContents_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->contentManager = new ContentManagerLayout();
+        this->contentManager = ContentManagerLayout::New();
         this->contentManager->SetOnInput(std::bind(&MainApplication::contentManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->titleDump = new TitleDumperLayout();
-        this->unusedTickets = new UnusedTicketsLayout();
+        this->titleDump = TitleDumperLayout::New();
+        this->unusedTickets = UnusedTicketsLayout::New();
         this->unusedTickets->SetOnInput(std::bind(&MainApplication::unusedTickets_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->account = new AccountLayout();
+        this->account = AccountLayout::New();
         this->account->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->amiibo = new AmiiboDumpLayout();
+        this->amiibo = AmiiboDumpLayout::New();
         this->amiibo->SetOnInput(std::bind(&MainApplication::amiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->sysInfo = new SystemInfoLayout();
-        this->sysInfo->SetOnInput(std::bind(&MainApplication::sysInfo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->update = new UpdateLayout();
-        this->about = new AboutLayout();
+        this->settings = SettingsLayout::New();
+        this->settings->SetOnInput(std::bind(&MainApplication::settings_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->memory = MemoryLayout::New();
+        this->memory->SetOnInput(std::bind(&MainApplication::memory_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->update = UpdateLayout::New();
+        this->about = AboutLayout::New();
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->mainMenu->SetBackgroundColor(gsets.CustomScheme.Background);
         this->browser->SetBackgroundColor(gsets.CustomScheme.Background);
         this->exploreMenu->SetBackgroundColor(gsets.CustomScheme.Background);
         this->pcExplore->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->usbDrives->SetBackgroundColor(gsets.CustomScheme.Background);
         this->fileContent->SetBackgroundColor(gsets.CustomScheme.Background);
         this->copy->SetBackgroundColor(gsets.CustomScheme.Background);
         this->nspInstall->SetBackgroundColor(gsets.CustomScheme.Background);
@@ -102,14 +122,14 @@ namespace ui
         this->unusedTickets->SetBackgroundColor(gsets.CustomScheme.Background);
         this->account->SetBackgroundColor(gsets.CustomScheme.Background);
         this->amiibo->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->sysInfo->SetBackgroundColor(gsets.CustomScheme.Background);
+        this->settings->SetBackgroundColor(gsets.CustomScheme.Background);
+        this->memory->SetBackgroundColor(gsets.CustomScheme.Background);
         this->update->SetBackgroundColor(gsets.CustomScheme.Background);
         this->about->SetBackgroundColor(gsets.CustomScheme.Background);
         this->mainMenu->Add(this->baseImage);
         this->browser->Add(this->baseImage);
         this->exploreMenu->Add(this->baseImage);
         this->pcExplore->Add(this->baseImage);
-        this->usbDrives->Add(this->baseImage);
         this->fileContent->Add(this->baseImage);
         this->copy->Add(this->baseImage);
         this->nspInstall->Add(this->baseImage);
@@ -120,14 +140,14 @@ namespace ui
         this->unusedTickets->Add(this->baseImage);
         this->account->Add(this->baseImage);
         this->amiibo->Add(this->baseImage);
-        this->sysInfo->Add(this->baseImage);
+        this->settings->Add(this->baseImage);
+        this->memory->Add(this->baseImage);
         this->update->Add(this->baseImage);
         this->about->Add(this->baseImage);
         this->mainMenu->Add(this->timeText);
         this->browser->Add(this->timeText);
         this->exploreMenu->Add(this->timeText);
         this->pcExplore->Add(this->timeText);
-        this->usbDrives->Add(this->timeText);
         this->fileContent->Add(this->timeText);
         this->copy->Add(this->timeText);
         this->nspInstall->Add(this->timeText);
@@ -138,14 +158,14 @@ namespace ui
         this->unusedTickets->Add(this->timeText);
         this->account->Add(this->timeText);
         this->amiibo->Add(this->timeText);
-        this->sysInfo->Add(this->timeText);
+        this->settings->Add(this->timeText);
+        this->memory->Add(this->timeText);
         this->update->Add(this->timeText);
         this->about->Add(this->timeText);
         this->mainMenu->Add(this->batteryText);
         this->browser->Add(this->batteryText);
         this->exploreMenu->Add(this->batteryText);
         this->pcExplore->Add(this->batteryText);
-        this->usbDrives->Add(this->batteryText);
         this->fileContent->Add(this->batteryText);
         this->copy->Add(this->batteryText);
         this->nspInstall->Add(this->batteryText);
@@ -156,14 +176,14 @@ namespace ui
         this->unusedTickets->Add(this->batteryText);
         this->account->Add(this->batteryText);
         this->amiibo->Add(this->batteryText);
-        this->sysInfo->Add(this->batteryText);
+        this->settings->Add(this->batteryText);
+        this->memory->Add(this->batteryText);
         this->update->Add(this->batteryText);
         this->about->Add(this->batteryText);
         this->mainMenu->Add(this->batteryImage);
         this->browser->Add(this->batteryImage);
         this->exploreMenu->Add(this->batteryImage);
         this->pcExplore->Add(this->batteryImage);
-        this->usbDrives->Add(this->batteryImage);
         this->fileContent->Add(this->batteryImage);
         this->copy->Add(this->batteryImage);
         this->nspInstall->Add(this->batteryImage);
@@ -174,14 +194,14 @@ namespace ui
         this->unusedTickets->Add(this->batteryImage);
         this->account->Add(this->batteryImage);
         this->amiibo->Add(this->batteryImage);
-        this->sysInfo->Add(this->batteryImage);
+        this->settings->Add(this->batteryImage);
+        this->memory->Add(this->batteryImage);
         this->update->Add(this->batteryImage);
         this->about->Add(this->batteryImage);
         this->mainMenu->Add(this->batteryChargeImage);
         this->browser->Add(this->batteryChargeImage);
         this->exploreMenu->Add(this->batteryChargeImage);
         this->pcExplore->Add(this->batteryChargeImage);
-        this->usbDrives->Add(this->batteryChargeImage);
         this->fileContent->Add(this->batteryChargeImage);
         this->copy->Add(this->batteryChargeImage);
         this->nspInstall->Add(this->batteryChargeImage);
@@ -192,14 +212,14 @@ namespace ui
         this->unusedTickets->Add(this->batteryChargeImage);
         this->account->Add(this->batteryChargeImage);
         this->amiibo->Add(this->batteryChargeImage);
-        this->sysInfo->Add(this->batteryChargeImage);
+        this->settings->Add(this->batteryChargeImage);
+        this->memory->Add(this->batteryChargeImage);
         this->update->Add(this->batteryChargeImage);
         this->about->Add(this->batteryChargeImage);
         this->mainMenu->Add(this->menuImage);
         this->browser->Add(this->menuImage);
         this->exploreMenu->Add(this->menuImage);
         this->pcExplore->Add(this->menuImage);
-        this->usbDrives->Add(this->menuImage);
         this->fileContent->Add(this->menuImage);
         this->copy->Add(this->menuImage);
         this->nspInstall->Add(this->menuImage);
@@ -210,14 +230,14 @@ namespace ui
         this->unusedTickets->Add(this->menuImage);
         this->account->Add(this->menuImage);
         this->amiibo->Add(this->menuImage);
-        this->sysInfo->Add(this->menuImage);
+        this->settings->Add(this->menuImage);
+        this->memory->Add(this->menuImage);
         this->update->Add(this->menuImage);
         this->about->Add(this->menuImage);
         this->mainMenu->Add(this->usbImage);
         this->browser->Add(this->usbImage);
         this->exploreMenu->Add(this->usbImage);
         this->pcExplore->Add(this->usbImage);
-        this->usbDrives->Add(this->usbImage);
         this->fileContent->Add(this->usbImage);
         this->copy->Add(this->usbImage);
         this->nspInstall->Add(this->usbImage);
@@ -228,14 +248,14 @@ namespace ui
         this->unusedTickets->Add(this->usbImage);
         this->account->Add(this->usbImage);
         this->amiibo->Add(this->usbImage);
-        this->sysInfo->Add(this->usbImage);
+        this->settings->Add(this->usbImage);
+        this->memory->Add(this->usbImage);
         this->update->Add(this->usbImage);
         this->about->Add(this->usbImage);
         this->mainMenu->Add(this->connImage);
         this->browser->Add(this->connImage);
         this->exploreMenu->Add(this->connImage);
         this->pcExplore->Add(this->connImage);
-        this->usbDrives->Add(this->connImage);
         this->fileContent->Add(this->connImage);
         this->copy->Add(this->connImage);
         this->nspInstall->Add(this->connImage);
@@ -246,14 +266,14 @@ namespace ui
         this->unusedTickets->Add(this->connImage);
         this->account->Add(this->connImage);
         this->amiibo->Add(this->connImage);
-        this->sysInfo->Add(this->connImage);
+        this->settings->Add(this->connImage);
+        this->memory->Add(this->connImage);
         this->update->Add(this->connImage);
         this->about->Add(this->connImage);
         this->mainMenu->Add(this->ipText);
         this->browser->Add(this->ipText);
         this->exploreMenu->Add(this->ipText);
         this->pcExplore->Add(this->ipText);
-        this->usbDrives->Add(this->ipText);
         this->fileContent->Add(this->ipText);
         this->copy->Add(this->ipText);
         this->nspInstall->Add(this->ipText);
@@ -264,7 +284,8 @@ namespace ui
         this->unusedTickets->Add(this->ipText);
         this->account->Add(this->ipText);
         this->amiibo->Add(this->ipText);
-        this->sysInfo->Add(this->ipText);
+        this->settings->Add(this->ipText);
+        this->memory->Add(this->ipText);
         this->update->Add(this->ipText);
         this->about->Add(this->ipText);
         this->mainMenu->Add(this->menuBanner);
@@ -272,7 +293,6 @@ namespace ui
         this->browser->Add(this->menuNameText);
         this->exploreMenu->Add(this->menuNameText);
         this->pcExplore->Add(this->menuNameText);
-        this->usbDrives->Add(this->menuNameText);
         this->fileContent->Add(this->menuNameText);
         this->copy->Add(this->menuNameText);
         this->nspInstall->Add(this->menuNameText);
@@ -283,14 +303,14 @@ namespace ui
         this->unusedTickets->Add(this->menuNameText);
         this->account->Add(this->menuNameText);
         this->amiibo->Add(this->menuNameText);
-        this->sysInfo->Add(this->menuNameText);
+        this->settings->Add(this->menuNameText);
+        this->memory->Add(this->menuNameText);
         this->update->Add(this->menuNameText);
         this->about->Add(this->menuNameText);
         this->mainMenu->Add(this->menuHeadText);
         this->browser->Add(this->menuHeadText);
         this->exploreMenu->Add(this->menuHeadText);
         this->pcExplore->Add(this->menuHeadText);
-        this->usbDrives->Add(this->menuHeadText);
         this->fileContent->Add(this->menuHeadText);
         this->copy->Add(this->menuHeadText);
         this->nspInstall->Add(this->menuHeadText);
@@ -301,14 +321,14 @@ namespace ui
         this->unusedTickets->Add(this->menuHeadText);
         this->account->Add(this->menuHeadText);
         this->amiibo->Add(this->menuHeadText);
-        this->sysInfo->Add(this->menuHeadText);
+        this->settings->Add(this->menuHeadText);
+        this->memory->Add(this->menuHeadText);
         this->update->Add(this->menuHeadText);
         this->about->Add(this->menuHeadText);
         this->mainMenu->Add(this->userImage);
         this->browser->Add(this->userImage);
         this->exploreMenu->Add(this->userImage);
         this->pcExplore->Add(this->userImage);
-        this->usbDrives->Add(this->userImage);
         this->fileContent->Add(this->userImage);
         this->copy->Add(this->userImage);
         this->nspInstall->Add(this->userImage);
@@ -319,14 +339,14 @@ namespace ui
         this->unusedTickets->Add(this->userImage);
         this->account->Add(this->userImage);
         this->amiibo->Add(this->userImage);
-        this->sysInfo->Add(this->userImage);
+        this->settings->Add(this->userImage);
+        this->memory->Add(this->userImage);
         this->update->Add(this->userImage);
         this->about->Add(this->userImage);
         this->mainMenu->Add(this->helpImage);
         this->browser->Add(this->helpImage);
         this->exploreMenu->Add(this->helpImage);
         this->pcExplore->Add(this->helpImage);
-        this->usbDrives->Add(this->helpImage);
         this->fileContent->Add(this->helpImage);
         this->copy->Add(this->helpImage);
         this->nspInstall->Add(this->helpImage);
@@ -337,59 +357,22 @@ namespace ui
         this->unusedTickets->Add(this->helpImage);
         this->account->Add(this->helpImage);
         this->amiibo->Add(this->helpImage);
-        this->sysInfo->Add(this->helpImage);
+        this->settings->Add(this->helpImage);
+        this->memory->Add(this->helpImage);
         this->update->Add(this->helpImage);
         this->about->Add(this->helpImage);
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->LoadLayout(this->mainMenu);   
+        this->LoadLayout(this->mainMenu);
         this->welcomeshown = false;
         this->start = std::chrono::steady_clock::now();
-        mainapp = this;
     }
 
-    MainApplication::~MainApplication()
+    void MainApplication::ShowNotification(String Text)
     {
-        delete this->baseImage;
-        delete this->timeText;
-        delete this->batteryText;
-        delete this->batteryImage;
-        delete this->batteryChargeImage;
-        delete this->menuBanner;
-        delete this->menuImage;
-        delete this->usbImage;
-        delete this->userImage;
-        delete this->helpImage;
-        delete this->connImage;
-        delete this->ipText;
-        delete this->menuNameText;
-        delete this->menuHeadText;
-        delete this->toast;
-        delete this->mainMenu;
-        delete this->browser;
-        delete this->fileContent;
-        delete this->copy;
-        delete this->exploreMenu;
-        delete this->pcExplore;
-        delete this->usbDrives;
-        delete this->nspInstall;
-        delete this->contentInformation;
-        delete this->storageContents;
-        delete this->contentManager;
-        delete this->titleDump;
-        delete this->unusedTickets;
-        delete this->account;
-        delete this->amiibo;
-        delete this->sysInfo;
-        delete this->update;
-        delete this->about;
-    }
-
-    void MainApplication::ShowNotification(pu::String Text)
-    {
-        mainapp->EndOverlay();
+        this->EndOverlay();
         this->toast->SetText(Text);
-        mainapp->StartOverlayWithTimeout(this->toast, 1500);
+        this->StartOverlayWithTimeout(this->toast, 1500);
     }
 
     void MainApplication::UpdateValues()
@@ -400,12 +383,12 @@ namespace ui
             auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
             if(timediff >= 1000)
             {
-                this->ShowNotification("Welcome to Goldleaf! Press X anytime for control information.");
+                this->ShowNotification(set::GetDictionaryEntry(320));
                 this->welcomeshown = true;
             }
         }
 
-        pu::String dtime = hos::GetCurrentTime();
+        String dtime = hos::GetCurrentTime();
         u32 blv = hos::GetBatteryLevel();
         bool isch = hos::IsCharging();
         if((this->preblv != blv) || this->vfirst)
@@ -436,7 +419,7 @@ namespace ui
             this->pretime = dtime;
         }
         if(this->vfirst) this->vfirst = false;
-        this->hasusb = usb::IsStatePlugged();
+        this->hasusb = usb::detail::IsStateOk();
         this->usbImage->SetVisible(this->hasusb);
         u32 connstr = 0;
         Result rc = nifmGetInternetConnectionStatus(NULL, &connstr, NULL);
@@ -454,14 +437,14 @@ namespace ui
             u32 ip = gethostid();
             char sip[0x20] = {0};
             inet_ntop(AF_INET, &ip, sip, 0x20);
-            this->ipText->SetText(pu::String(sip));
+            this->ipText->SetText(String(sip));
         }
         else this->ipText->SetText("");
         auto user = acc::GetSelectedUser();
-        if(user != this->seluser)
+        if(!acc::UidCompare(&user, &this->seluser))
         {
             this->seluser = user;
-            if(this->seluser == 0) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+            if(!accountUidIsValid(&this->seluser)) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
             else
             {
                 auto usericon = acc::GetCachedUserIcon();
@@ -473,7 +456,7 @@ namespace ui
         }
     }
 
-    void MainApplication::LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon)
+    void MainApplication::LoadMenuData(String Name, std::string ImageName, String TempHead, bool CommonIcon)
     {
         if(this->menuImage != NULL)
         {
@@ -495,7 +478,7 @@ namespace ui
         }
     }
 
-    void MainApplication::LoadMenuHead(pu::String Head)
+    void MainApplication::LoadMenuHead(String Head)
     {
         if(this->menuHeadText != NULL) this->menuHeadText->SetText(Head);
     }
@@ -507,9 +490,9 @@ namespace ui
         this->menuHeadText->SetVisible(false);
     }
 
-    void MainApplication::browser_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::browser_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             if(this->browser->GoBack()) this->browser->UpdateElements(-1);
             else
@@ -519,7 +502,7 @@ namespace ui
                 this->LoadLayout(this->exploreMenu);
             }
         }
-        else if(Down & KEY_X)
+        else if(down & KEY_X)
         {
             if(clipboard != "")
             {
@@ -528,7 +511,7 @@ namespace ui
                 if(cdir) fsicon = gsets.PathForResource("/FileSystem/Directory.png");
                 else
                 {
-                    pu::String ext = fs::GetExtension(clipboard);
+                    String ext = fs::GetExtension(clipboard);
                     if(ext == "nsp") fsicon = gsets.PathForResource("/FileSystem/NSP.png");
                     else if(ext == "nro") fsicon = gsets.PathForResource("/FileSystem/NRO.png");
                     else if(ext == "tik") fsicon = gsets.PathForResource("/FileSystem/TIK.png");
@@ -540,22 +523,23 @@ namespace ui
                 int sopt = this->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
                 if(sopt == 0)
                 {
-                    pu::String cname = fs::GetFileName(clipboard);
+                    String cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
-                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer(), this->browser);
+                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer());
+                    mainapp->LoadLayout(this->browser);
                     this->browser->UpdateElements();
                     clipboard = "";
                 }
             }
             else this->ShowNotification(set::GetDictionaryEntry(224));
         }
-        else if(Down & KEY_L)
+        else if(down & KEY_L)
         {
-            pu::String cfile = AskForText(set::GetDictionaryEntry(225), "");
+            String cfile = AskForText(set::GetDictionaryEntry(225), "");
             if(cfile != "")
             {
-                pu::String ffile = this->browser->GetExplorer()->FullPathFor(cfile);
-                pu::String pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
+                String ffile = this->browser->GetExplorer()->FullPathFor(cfile);
+                String pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
                 if(this->browser->GetExplorer()->IsFile(ffile) || this->browser->GetExplorer()->IsDirectory(ffile)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
                 else
                 {
@@ -565,13 +549,13 @@ namespace ui
                 }
             }
         }
-        else if(Down & KEY_R)
+        else if(down & KEY_R)
         {
-            pu::String cdir = AskForText(set::GetDictionaryEntry(250), "");
+            String cdir = AskForText(set::GetDictionaryEntry(250), "");
             if(cdir != "")
             {
-                pu::String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
-                pu::String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
+                String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
+                String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
                 if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
                 else
                 {
@@ -583,18 +567,18 @@ namespace ui
         }
     }
 
-    void MainApplication::exploreMenu_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::exploreMenu_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::pcExplore_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::pcExplore_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
@@ -602,89 +586,89 @@ namespace ui
         }
     }
 
-    void MainApplication::usbDrives_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::fileContent_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
-        {
-            this->UnloadMenuData();
-            this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
-            this->LoadLayout(this->exploreMenu);
-        }
+        if(down & KEY_B) this->LoadLayout(this->browser);
+        else if((down & KEY_DDOWN) || (down & KEY_LSTICK_DOWN) || (held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
+        else if((down & KEY_DUP) || (down & KEY_LSTICK_UP) || (held & KEY_RSTICK_UP)) this->fileContent->ScrollUp();
     }
 
-    void MainApplication::fileContent_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::contentInformation_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B) this->LoadLayout(this->fileContent->GetPreviousLayout());
-        else if((Down & KEY_DDOWN) || (Down & KEY_LSTICK_DOWN) || (Held & KEY_RSTICK_DOWN)) this->fileContent->ScrollDown();
-        else if((Down & KEY_DUP) || (Down & KEY_LSTICK_UP) || (Held & KEY_RSTICK_UP)) this->fileContent->ScrollUp();
-    }
-
-    void MainApplication::contentInformation_Input(u64 Down, u64 Up, u64 Held)
-    {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(189));
             this->LoadLayout(this->storageContents);
         }
     }
 
-    void MainApplication::storageContents_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::storageContents_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(33));
             this->LoadLayout(this->contentManager);
         }
     }
 
-    void MainApplication::contentManager_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::contentManager_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::unusedTickets_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::unusedTickets_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::account_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::account_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::amiibo_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::amiibo_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::sysInfo_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::settings_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
         }
     }
 
-    void MainApplication::about_Input(u64 Down, u64 Up, u64 Held)
+    void MainApplication::memory_Input(u64 down, u64 up, u64 held)
     {
-        if(Down & KEY_B)
+        if(down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
+            this->LoadLayout(this->settings);
+        }
+    }
+
+    void MainApplication::about_Input(u64 down, u64 up, u64 held)
+    {
+        if(down & KEY_B)
         {
             this->UnloadMenuData();
             this->LoadLayout(this->mainMenu);
@@ -696,123 +680,118 @@ namespace ui
         if(acc::SelectUser())
         {
             acc::CacheSelectedUserIcon();
-            this->ShowNotification("User was successfully selected.");
+            this->ShowNotification(set::GetDictionaryEntry(324));
         }
     }
 
     void MainApplication::helpImage_OnClick()
     {
-        mainapp->CreateShowDialog("Demo", "Demo2", {"Ok"}, false);
+        this->CreateShowDialog(set::GetDictionaryEntry(162), set::GetDictionaryEntry(342) + "\n\n" + set::GetDictionaryEntry(343) + "\n" + set::GetDictionaryEntry(344) + "\n" + set::GetDictionaryEntry(345) + "\n" + set::GetDictionaryEntry(346) + "\n" + set::GetDictionaryEntry(347), {set::GetDictionaryEntry(234)}, false);
     }
 
-    void MainApplication::OnInput(u64 Down, u64 Up, u64 Held)
+    void MainApplication::OnInput(u64 down, u64 up, u64 held)
     {
-        if((Down & KEY_MINUS) && (GetLaunchMode() == LaunchMode::Applet)) this->CloseWithFadeOut();
-        else if((Down & KEY_ZL) || (Down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
-        else if(Down & KEY_PLUS) this->helpImage_OnClick();
+        if(down & KEY_MINUS) this->CloseWithFadeOut();
+        else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
+        else if(down & KEY_PLUS) this->helpImage_OnClick();
     }
 
-    MainMenuLayout *MainApplication::GetMainMenuLayout()
+    MainMenuLayout::Ref &MainApplication::GetMainMenuLayout()
     {
         return this->mainMenu;
     }
 
-    PartitionBrowserLayout *MainApplication::GetBrowserLayout()
+    PartitionBrowserLayout::Ref &MainApplication::GetBrowserLayout()
     {
         return this->browser;
     }
 
-    FileContentLayout *MainApplication::GetFileContentLayout()
+    FileContentLayout::Ref &MainApplication::GetFileContentLayout()
     {
         return this->fileContent;
     }
 
-    CopyLayout *MainApplication::GetCopyLayout()
+    CopyLayout::Ref &MainApplication::GetCopyLayout()
     {
         return this->copy;
     }
 
-    ExploreMenuLayout *MainApplication::GetExploreMenuLayout()
+    ExploreMenuLayout::Ref &MainApplication::GetExploreMenuLayout()
     {
         return this->exploreMenu;
     }
 
-    PCExploreLayout *MainApplication::GetPCExploreLayout()
+    PCExploreLayout::Ref &MainApplication::GetPCExploreLayout()
     {
         return this->pcExplore;
     }
 
-    USBDrivesLayout *MainApplication::GetUSBDrivesLayout()
-    {
-        return this->usbDrives;
-    }
-
-    InstallLayout *MainApplication::GetInstallLayout()
+    InstallLayout::Ref &MainApplication::GetInstallLayout()
     {
         return this->nspInstall;
     }
 
-    ContentInformationLayout *MainApplication::GetContentInformationLayout()
+    ContentInformationLayout::Ref &MainApplication::GetContentInformationLayout()
     {
         return this->contentInformation;
     }
 
-    StorageContentsLayout *MainApplication::GetStorageContentsLayout()
+    StorageContentsLayout::Ref &MainApplication::GetStorageContentsLayout()
     {
         return this->storageContents;
     }
 
-    ContentManagerLayout *MainApplication::GetContentManagerLayout()
+    ContentManagerLayout::Ref &MainApplication::GetContentManagerLayout()
     {
         return this->contentManager;
     }
 
-    TitleDumperLayout *MainApplication::GetTitleDumperLayout()
+    TitleDumperLayout::Ref &MainApplication::GetTitleDumperLayout()
     {
         return this->titleDump;
     }
 
-    UnusedTicketsLayout *MainApplication::GetUnusedTicketsLayout()
+    UnusedTicketsLayout::Ref &MainApplication::GetUnusedTicketsLayout()
     {
         return this->unusedTickets;
     }
 
-    AccountLayout *MainApplication::GetAccountLayout()
+    AccountLayout::Ref &MainApplication::GetAccountLayout()
     {
         return this->account;
     }
 
-    AmiiboDumpLayout *MainApplication::GetAmiiboDumpLayout()
+    AmiiboDumpLayout::Ref &MainApplication::GetAmiiboDumpLayout()
     {
         return this->amiibo;
     }
 
-    SystemInfoLayout *MainApplication::GetSystemInfoLayout()
+    SettingsLayout::Ref &MainApplication::GetSettingsLayout()
     {
-        return this->sysInfo;
+        return this->settings;
     }
 
-    UpdateLayout *MainApplication::GetUpdateLayout()
+    MemoryLayout::Ref &MainApplication::GetMemoryLayout()
+    {
+        return this->memory;
+    }
+
+    UpdateLayout::Ref &MainApplication::GetUpdateLayout()
     {
         return this->update;
     }
 
-    AboutLayout *MainApplication::GetAboutLayout()
+    AboutLayout::Ref &MainApplication::GetAboutLayout()
     {
         return this->about;
     }
 
-    void UpdateClipboard(pu::String Path)
+    void UpdateClipboard(String Path)
     {
         SetClipboard(Path);
-        pu::String copymsg;
+        String copymsg;
         if(mainapp->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
         else copymsg = set::GetDictionaryEntry(258);
         mainapp->ShowNotification(copymsg);
-    }
-
-    void SetMainApplication(MainApplication *MainApp)
-    {
-        mainapp = MainApp;
     }
 }

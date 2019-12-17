@@ -10,5 +10,6 @@
     "Questo titolo è già installato nella console",
     "Esiste già una cartella o un file con lo stesso nome",
     "Impossibile trovare i contenuti del titolo",
-    "Impossibile costruire il PFS0 (NSP)"
+    "Impossibile costruire il PFS0 (NSP)",
+    "Mancata corrispondenza della generazione della chiave (il firmware della console è troppo basso)"
 ]

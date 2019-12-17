@@ -2,10 +2,20 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll, emerged from Adubbz's work with Tinfoil
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    This project is licensed under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -19,7 +29,9 @@ namespace es
         u8 RId[0x10];
     } PACKED;
 
-    static const u8 CertData[1792] =
+    static constexpr size_t CertSize = 1792;
+
+    static const u8 CertData[CertSize] =
     {
         0x00, 0x01, 0x00, 0x03, 0x70, 0x41, 0x38, 0xef, 0xbb, 0xbd, 0xa1, 0x6a, 0x98, 0x7d, 0xd9, 0x01,
         0x32, 0x6d, 0x1c, 0x94, 0x59, 0x48, 0x4c, 0x88, 0xa2, 0x86, 0x1b, 0x91, 0xa3, 0x12, 0x58, 0x7a,

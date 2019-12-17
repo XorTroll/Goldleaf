@@ -1,31 +1,45 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <ui/ui_InstallLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 #include <iomanip>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
-
     InstallLayout::InstallLayout() : pu::ui::Layout()
     {
-        this->installText = new pu::ui::elm::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->installText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->installText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->installText->SetColor(gsets.CustomScheme.Text);
-        this->installBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->installBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->installBar);
         this->Add(this->installText);
         this->Add(this->installBar);
     }
 
-    InstallLayout::~InstallLayout()
-    {
-        delete this->installText;
-        delete this->installBar;
-    }
-
-    void InstallLayout::StartInstall(pu::String Path, fs::Explorer *Exp, Storage Location, pu::ui::Layout *Prev, bool OmitConfirmation)
+    void InstallLayout::StartInstall(String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation)
     {
         nsp::Installer inst(Path, Exp, Location);
 
@@ -46,21 +60,18 @@ namespace ui
                         if(rc != 0)
                         {
                             HandleResult(rc, set::GetDictionaryEntry(251));
-                            mainapp->LoadLayout(Prev);
                             return;
                         }
                     }
                 }
                 else
                 {
-                    mainapp->LoadLayout(Prev);
                     return;
                 }
             }
             else
             {
                 HandleResult(rc, set::GetDictionaryEntry(251));
-                mainapp->LoadLayout(Prev);
                 return;
             }
         }
@@ -70,7 +81,7 @@ namespace ui
         if(OmitConfirmation) doinstall = true;
         else
         {
-            pu::String info = set::GetDictionaryEntry(82) + "\n\n";
+            String info = set::GetDictionaryEntry(82) + "\n\n";
             switch(inst.GetContentMetaType())
             {
                 case ncm::ContentMetaType::Application:
@@ -103,7 +114,7 @@ namespace ui
             info += "\n" + set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(inst.GetApplicationId());
             info += "\n\n";
             auto NACP = inst.GetNACP();
-            if(NACP->version[0] != '\0')
+            if(NACP->display_version[0] != '\0')
             {
                 NacpLanguageEntry *lent;
                 nacpGetLanguageEntry(NACP, &lent);
@@ -117,7 +128,7 @@ namespace ui
                 info += "\n" + set::GetDictionaryEntry(92) + " ";
                 info += lent->author;
                 info += "\n" + set::GetDictionaryEntry(109) + " ";
-                info += NACP->version;
+                info += NACP->display_version;
                 info += "\n\n";
             }
             auto NCAs = inst.GetNCAs();
@@ -181,17 +192,15 @@ namespace ui
                     info += "(7.0.0 - 8.0.1)";
                     break;
                 case 8:
-                    info += "(8.1.0 -)";
+                    info += "(8.1.0)";
+                    break;
+                case 9:
+                    info += "(9.0.0)";
                     break;
                 default:
                     info += set::GetDictionaryEntry(96);
                     break;
             }
-
-            std::stringstream strm;
-            strm << std::setw(2) << std::setfill('0') << (int)masterkey;
-
-            info += " (master_key_" + strm.str() + ")";
 
             if(inst.HasTicket())
             {
@@ -235,17 +244,16 @@ namespace ui
             if(rc != 0)
             {
                 HandleResult(rc, set::GetDictionaryEntry(251));
-                mainapp->LoadLayout(Prev);
                 return;
             }
-            hos::LockAutoSleep();
             this->installText->SetText(set::GetDictionaryEntry(146));
             mainapp->CallForRender();
             this->installBar->SetVisible(true);
+            hos::LockAutoSleep();
             rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
             {
                 this->installBar->SetMaxValue(Total);
-                pu::String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
+                String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
                 if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
                 u64 speed = (u64)BytesSec;
                 u64 size = (u64)(Total - Done);
@@ -255,12 +263,11 @@ namespace ui
                 this->installBar->SetProgress(Done);
                 mainapp->CallForRender();
             });
+            hos::UnlockAutoSleep();
         }
-        hos::UnlockAutoSleep();
         this->installBar->SetVisible(false);
         mainapp->CallForRender();
         if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));
         else if(doinstall) mainapp->ShowNotification(set::GetDictionaryEntry(150));
-        mainapp->LoadLayout(Prev);
     }
 }

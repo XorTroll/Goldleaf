@@ -1,3 +1,24 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <nfp/nfp_Amiibo.hpp>
 #include <sstream>
 #include <iomanip>
@@ -5,7 +26,7 @@
 
 namespace nfp
 {
-    static HidControllerID dhandle;
+    static NfcDeviceHandle dhandle;
     static Event available;
     static Event activate;
     static Event deactivate;
@@ -14,24 +35,22 @@ namespace nfp
     Result Initialize()
     {
         if(init) return 0;
-        Result rc = nfpuInitialize(NULL);
-        if(rc == 0)
+        Result rc = nfpInitialize(NfpServiceType_Debug);
+        if(R_SUCCEEDED(rc))
         {
-            rc = nfpuAttachAvailabilityChangeEvent(&available);
-            if(rc == 0)
+            rc = nfpAttachAvailabilityChangeEvent(&available);
+            if(R_SUCCEEDED(rc))
             {
-                HidControllerID devs[9];
-                rc = nfpuListDevices(NULL, devs, 9);
-                if(rc == 0)
+                rc = nfpListDevices(NULL, &dhandle, 1);
+                if(R_SUCCEEDED(rc))
                 {
-                    dhandle = devs[0];
-                    rc = nfpuAttachActivateEvent(dhandle, &activate);
-                    if(rc == 0)
+                    rc = nfpAttachActivateEvent(&dhandle, &activate);
+                    if(R_SUCCEEDED(rc))
                     {
-                        rc = nfpuAttachDeactivateEvent(dhandle, &deactivate);
-                        if(rc == 0)
+                        rc = nfpAttachDeactivateEvent(&dhandle, &deactivate);
+                        if(R_SUCCEEDED(rc))
                         {
-                            rc = nfpuStartDetection(dhandle);
+                            rc = nfpStartDetection(&dhandle);
                             init = true;
                         }
                     }
@@ -44,47 +63,47 @@ namespace nfp
     bool IsReady()
     {
         if(!init) return false;
-        NfpuDeviceState dst;
-        nfpuGetDeviceState(dhandle, &dst);
-        return (dst == NfpuDeviceState_TagFound);
+        NfpDeviceState dst;
+        nfpGetDeviceState(&dhandle, &dst);
+        return (dst == NfpDeviceState_TagFound);
     }
 
     Result Open()
     {
-        return nfpuMount(dhandle, NfpuDeviceType_Amiibo, NfpuMountTarget_All);
+        return nfpMount(&dhandle, NfpDeviceType_Amiibo, NfpMountTarget_All);
     }
 
-    NfpuTagInfo GetTagInfo()
+    NfpTagInfo GetTagInfo()
     {
-        NfpuTagInfo tinfo = {0};
-        nfpuGetTagInfo(dhandle, &tinfo);
+        NfpTagInfo tinfo = {0};
+        nfpGetTagInfo(&dhandle, &tinfo);
         return tinfo;
     }
 
-    NfpuRegisterInfo GetRegisterInfo()
+    NfpRegisterInfo GetRegisterInfo()
     {
-        NfpuRegisterInfo rinfo = {0};
-        nfpuGetRegisterInfo(dhandle, &rinfo);
+        NfpRegisterInfo rinfo = {0};
+        nfpGetRegisterInfo(&dhandle, &rinfo);
         return rinfo;
     }
 
-    NfpuCommonInfo GetCommonInfo()
+    NfpCommonInfo GetCommonInfo()
     {
-        NfpuCommonInfo cinfo = {0};
-        nfpuGetCommonInfo(dhandle, &cinfo);
+        NfpCommonInfo cinfo = {0};
+        nfpGetCommonInfo(&dhandle, &cinfo);
         return cinfo;
     }
 
-    NfpuModelInfo GetModelInfo()
+    NfpModelInfo GetModelInfo()
     {
-        NfpuModelInfo minfo = {0};
-        nfpuGetModelInfo(dhandle, &minfo);
+        NfpModelInfo minfo = {0};
+        nfpGetModelInfo(&dhandle, &minfo);
         return minfo;
     }
 
-    Result DumpToEmuiibo(NfpuTagInfo &tag, NfpuRegisterInfo &reg, NfpuCommonInfo &common, NfpuModelInfo &model)
+    Result DumpToEmuiibo(NfpTagInfo &tag, NfpRegisterInfo &reg, NfpCommonInfo &common, NfpModelInfo &model)
     {
-        auto outdir = "sdmc:/emuiibo/amiibo/" + pu::String(reg.amiibo_name);
+        auto outdir = "sdmc:/emuiibo/amiibo/" + String(reg.amiibo_name);
         fsdevDeleteDirectoryRecursively(outdir.AsUTF8().c_str());
 
         mkdir("sdmc:/emuiibo", 777);
@@ -109,7 +128,7 @@ namespace nfp
         ofs.close();
 
         FILE *f = fopen((outdir + "/mii-charinfo.bin").AsUTF8().c_str(), "wb");
-        fwrite(&reg.mii, 1, sizeof(NfpuMiiCharInfo), f);
+        fwrite(&reg.mii, 1, sizeof(NfpMiiCharInfo), f);
         fclose(f);
 
         auto jreg = JSON::object();
@@ -143,14 +162,14 @@ namespace nfp
 
     void Close()
     {
-        nfpuUnmount(dhandle);
+        nfpUnmount(&dhandle);
     }
 
-    void Finalize()
+    void Exit()
     {
         if(!init) return;
-        nfpuStopDetection(dhandle);
-        nfpuExit();
+        nfpStopDetection(&dhandle);
+        nfpExit();
         init = false;
     }
 }

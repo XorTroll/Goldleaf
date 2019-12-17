@@ -1,29 +1,43 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
-
     UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout()
     {
-        this->ticketsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->ticketsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->ticketsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         gsets.ApplyScrollBarColor(this->ticketsMenu);
-        this->notTicketsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(199));
+        this->notTicketsText = pu::ui::elm::TextBlock::New(0, 0, set::GetDictionaryEntry(199));
         this->notTicketsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->notTicketsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->notTicketsText->SetColor(gsets.CustomScheme.Text);
         this->Add(this->notTicketsText);
         this->Add(this->ticketsMenu);
-    }
-
-    UnusedTicketsLayout::~UnusedTicketsLayout()
-    {
-        delete this->notTicketsText;
-        delete this->ticketsMenu;
     }
 
     void UnusedTicketsLayout::UpdateElements(bool Cooldown)
@@ -54,8 +68,8 @@ namespace ui
             {
                 hos::Ticket ticket = this->tickets[i];
                 u64 tappid = ticket.GetApplicationId();
-                pu::String tname = hos::FormatApplicationId(tappid);
-                pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(tname);
+                String tname = hos::FormatApplicationId(tappid);
+                auto itm = pu::ui::elm::MenuItem::New(tname);
                 itm->SetColor(gsets.CustomScheme.Text);
                 itm->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
                 itm->AddOnClick(std::bind(&UnusedTicketsLayout::tickets_Click, this));
@@ -68,7 +82,7 @@ namespace ui
     void UnusedTicketsLayout::tickets_Click()
     {
         hos::Ticket seltick = this->tickets[this->ticketsMenu->GetSelectedIndex()];
-        pu::String info = set::GetDictionaryEntry(201) + "\n\n\n";
+        String info = set::GetDictionaryEntry(201) + "\n\n\n";
         u64 tappid = seltick.GetApplicationId();
         info += set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(tappid);
         info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(seltick.GetKeyGeneration() + 1);

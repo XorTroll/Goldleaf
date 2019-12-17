@@ -1,10 +1,21 @@
 
 /*
 
-    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
-    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -18,19 +29,18 @@ namespace ui
     {
         public:
             FileContentLayout();
-            ~FileContentLayout();
-            void LoadFile(pu::String Path, pu::ui::Layout *Prev, fs::Explorer *Exp, bool Hex);
+            PU_SMART_CTOR(FileContentLayout)
+
+            void LoadFile(String PPath, String Path, fs::Explorer *Exp, bool Hex);
             void Update();
             void ScrollUp();
             void ScrollDown();
-            pu::ui::Layout *GetPreviousLayout();
         private:
             u32 loffset;
             u32 rlines;
             bool mode;
-            pu::String pth;
-            pu::ui::elm::TextBlock *cntText;
+            String pth;
+            pu::ui::elm::TextBlock::Ref cntText;
             fs::Explorer *gexp;
-            pu::ui::Layout *prev;
     };
 }

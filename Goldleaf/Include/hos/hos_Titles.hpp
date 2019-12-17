@@ -2,10 +2,20 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll, emerged from Adubbz's work with Tinfoil
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    This project is licensed under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -14,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <Types.hpp>
-#include <ncm/ncm_Service.hpp>
+#include <ncm/ncm_Types.hpp> 
 #include <ns/ns_Service.hpp>
 #include <es/es_Service.hpp>
 
@@ -37,6 +47,11 @@ namespace hos
         ECDSA_SHA256 = 0x10005,
     };
 
+    inline constexpr bool IsValidTicketSignature(u32 RawValue)
+    {
+        return (RawValue >= static_cast<u32>(TicketSignature::RSA_4096_SHA1)) && (RawValue <= static_cast<u32>(TicketSignature::ECDSA_SHA256));
+    }
+
     enum class ApplicationIdMask
     {
         Official,
@@ -47,13 +62,13 @@ namespace hos
     struct ContentId
     {
         ncm::ContentType Type;
-        NcmNcaId NCAId;
+        NcmContentId NCAId;
         Storage Location;
         bool Empty;
         u64 Size;
 
-        pu::String GetFileName();
-        pu::String GetFullPath();
+        String GetFileName();
+        String GetFullPath();
     };
 
     struct TitleContents
@@ -66,7 +81,7 @@ namespace hos
         ContentId LegalInfo;
 
         u64 GetTotalSize();
-        pu::String GetFormattedTotalSize();
+        String GetFormattedTotalSize();
     };
 
     struct TitlePlayStats
@@ -81,7 +96,7 @@ namespace hos
         u64 ApplicationId;
         ncm::ContentMetaType Type;
         u32 Version;
-        NcmMetaRecord Record;
+        NcmContentMetaKey Record;
         Storage Location;
         
         NacpStruct *TryGetNACP();
@@ -93,7 +108,7 @@ namespace hos
         bool IsDLC();
         bool CheckBase(Title &Other);
         TitlePlayStats GetGlobalPlayStats();
-        TitlePlayStats GetUserPlayStats(u128 UserId);
+        TitlePlayStats GetUserPlayStats(AccountUid UserId);
     };
 
     struct Ticket
@@ -103,7 +118,7 @@ namespace hos
 
         u64 GetApplicationId();
         u64 GetKeyGeneration();
-        pu::String ToString();
+        String ToString();
     };
 
     struct TicketData
@@ -123,11 +138,12 @@ namespace hos
     Result RemoveTitle(Title &ToRemove);
     Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
-    pu::String GetExportedNACPPath(u64 ApplicationId);
+    String GetExportedNACPPath(u64 ApplicationId);
     u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
+    u32 GetIdFromDLCApplicationId(u64 ApplicationId);
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
-    TicketData ReadTicket(pu::String Path);
-    pu::String GetNACPName(NacpStruct *NACP);
-    pu::String GetNACPAuthor(NacpStruct *NACP);
-    pu::String GetNACPVersion(NacpStruct *NACP);
+    TicketData ReadTicket(String Path);
+    String GetNACPName(NacpStruct *NACP);
+    String GetNACPAuthor(NacpStruct *NACP);
+    String GetNACPVersion(NacpStruct *NACP);
 }

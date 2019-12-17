@@ -1,3 +1,24 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <fs/fs_Common.hpp>
 #include <fs/fs_Explorer.hpp>
 #include <err/err_Errors.hpp>
@@ -20,109 +41,99 @@ namespace fs
     static u8 *opsbuf = NULL;
     static size_t opsbufsz = 0x800000;
 
-    bool Exists(pu::String Path)
+    bool Exists(String Path)
     {
-        struct stat st;
-        return (stat(Path.AsUTF8().c_str(), &st) == 0);
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) return exp->Exists(Path);
+        return false;
     }
 
-    bool IsFile(pu::String Path)
+    bool IsFile(String Path)
     {
-        bool is = false;
-        struct stat st;
-        if(stat(Path.AsUTF8().c_str(), &st) == 0) if(st.st_mode & S_IFREG) is = true;
-        return is;
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) return exp->IsFile(Path);
+        return false;
     }
 
-    bool IsDirectory(pu::String Path)
+    bool IsDirectory(String Path)
     {
-        bool is = false;
-        struct stat st;
-        if(stat(Path.AsUTF8().c_str(), &st) == 0) if(st.st_mode & S_IFDIR) is = true;
-        return is;
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) return exp->IsDirectory(Path);
+        return false;
     }
 
-    void CreateFile(pu::String Path)
+    void CreateFile(String Path)
     {
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) exp->CreateFile(Path);
     }
 
-    void CreateConcatenationFile(pu::String Path)
+    void CreateConcatenationFile(String Path)
     {
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FS_CREATE_BIG_FILE);
+        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
     }
 
-    Result CreateDirectory(pu::String Path)
+    void CreateDirectory(String Path)
     {
-        int res = mkdir(Path.AsUTF8().c_str(), 777);
-        Result rc = 0;
-        if(res != 0) rc = err::MakeErrno(res);
-        return rc;
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) exp->CreateDirectory(Path);
     }
 
-    void CopyFile(pu::String Path, pu::String NewPath)
+    void CopyFile(String Path, String NewPath)
     {
-        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
-        Explorer *ogexp = GetExplorerForMountName(GetPathRoot(NewPath));
+        Explorer *gexp = GetExplorerForPath(Path);
+        Explorer *ogexp = GetExplorerForPath(NewPath);
         auto fsize = gexp->GetFileSize(Path);
         if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
         gexp->CopyFile(Path, NewPath);
     }
 
-    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback)
+    void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
     {
-        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Path));
-        Explorer *ogexp = GetExplorerForMountName(GetPathRoot(NewPath));
+        Explorer *gexp = GetExplorerForPath(Path);
+        Explorer *ogexp = GetExplorerForPath(NewPath);
         auto fsize = gexp->GetFileSize(Path);
         if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
         gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 
-    void CopyDirectory(pu::String Dir, pu::String NewDir)
+    void CopyDirectory(String Dir, String NewDir)
     {
-        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Dir));
+        Explorer *gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectory(Dir, NewDir);
     }
 
-    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback)
+    void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
     {
-        Explorer *gexp = GetExplorerForMountName(GetPathRoot(Dir));
+        Explorer *gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
     }
 
-    Result DeleteFile(pu::String Path)
+    void DeleteFile(String Path)
     {
-        int res = remove(Path.AsUTF8().c_str());
-        Result rc = 0;
-        if(res != 0) rc = err::MakeErrno(res);
-        return rc;
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) exp->DeleteFile(Path);
     }
 
-    Result DeleteDirectory(pu::String Path)
+    void DeleteDirectory(String Path)
     {
-        Result rc = 0;
-        DIR *d = opendir(Path.AsUTF8().c_str());
-        if(d)
-        {
-            struct dirent *dent;
-            while(true)
-            {
-                dent = readdir(d);
-                if(dent == NULL) break;
-                pu::String nd = dent->d_name;
-                pu::String pd = Path + "/" + nd;
-                if(fs::IsFile(pd)) rc = DeleteFile(pd);
-                else rc = DeleteDirectory(pd);
-                if(rc != 0) return rc;
-            }
-        }
-        closedir(d);
-        int res = rmdir(Path.AsUTF8().c_str());
-        if(res != 0) rc = err::MakeErrno(res);
-        return rc;
+        auto exp = GetExplorerForPath(Path);
+        if(exp != NULL) exp->DeleteDirectory(Path);
     }
 
-    bool IsFileBinary(pu::String Path)
+    void RenameFile(String Old, String New)
+    {
+        auto exp = GetExplorerForPath(Old);
+        if(exp != NULL) exp->RenameFile(Old, New);
+    }
+
+    void RenameDirectory(String Old, String New)
+    {
+        auto exp = GetExplorerForPath(Old);
+        if(exp != NULL) exp->RenameDirectory(Old, New);
+    }
+
+    bool IsFileBinary(String Path)
     {
         if(GetFileSize(Path) == 0) return true;
         bool bin = false;
@@ -143,134 +154,14 @@ namespace fs
         return bin;
     }
 
-    std::vector<u8> ReadFile(pu::String Path)
+    void WriteFile(String Path, std::vector<u8> Data)
     {
-        std::vector<u8> file;
-        FILE *fle = fopen(Path.AsUTF8().c_str(), "rb");
-        if(fle)
-        {
-            fseek(fle, 0, SEEK_END);
-            auto sz = ftell(fle);
-            rewind(fle);
-            file.resize(sz);
-            fread(file.data(), 1, sz, fle);
-        }
-        fclose(fle);
-        return file;
+        auto exp = GetExplorerForPath(Path);
+        exp->DeleteFile(Path);
+        exp->WriteFileBlock(Path, Data.data(), Data.size());
     }
 
-    std::vector<pu::String> ReadFileLines(pu::String Path, u32 LineOffset, u32 LineCount)
-    {
-        std::vector<pu::String> data;
-        ifstream ifs(Path.AsUTF8());
-        if(ifs.good())
-        {
-            std::u16string tmpline;
-            u32 tmpc = 0;
-            u32 tmpo = 0;
-            while((tmpc < LineCount) && std::getline(ifs, tmpline))
-            {
-                if((tmpo < LineOffset) && (LineOffset != 0))
-                {
-                    tmpo++;
-                    continue;
-                }
-                std::u16string tab = u"\t";
-                while(true)
-                {
-                    size_t spos = tmpline.find(tab);
-                    if(spos == pu::String::npos) break;
-                    tmpline.replace(spos, tab.length(), u"    ");
-                }
-                data.push_back(tmpline);
-                tmpc++;
-            }
-        }
-        ifs.close();
-        return data;
-    }
-
-    std::vector<pu::String> ReadFileFormatHex(pu::String Path, u32 LineOffset, u32 LineCount)
-    {
-        std::vector<pu::String> sdata;
-        FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
-        if(f)
-        {
-            fseek(f, 0, SEEK_END);
-            u64 sz = ftell(f);
-            rewind(f);
-            u64 off = (16 * LineOffset);
-            u64 rsz = (16 * LineCount);
-            if(off >= sz) return sdata;
-            u64 rrsz = std::min(sz, rsz);
-            if((off + rsz) > sz) rrsz = rsz - ((off + rsz) - sz);
-            fseek(f, off, SEEK_SET);
-            std::vector<u8> bdata(rrsz);
-            fread(bdata.data(), 1, rrsz, f);
-            u32 count = 0;
-            pu::String tmpline;
-            pu::String tmpchr;
-            u32 toff = 0;
-            for(u32 i = 0; i < (rrsz + 1); i++)
-            {
-                if(count == 16)
-                {
-                    std::stringstream ostrm;
-                    ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
-                    pu::String def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
-                    sdata.push_back(def);
-                    toff += 16;
-                    count = 0;
-                    tmpline = "";
-                    tmpchr = "";
-                }
-                else if(i == rrsz)
-                {
-                    if((rrsz % 16) != 0)
-                    {
-                        u32 miss = 16 - count;
-                        for(u32 i = 0; i < miss; i++)
-                        {
-                            tmpline += "   ";
-                            tmpchr += " ";
-                        }
-                    }
-                    std::stringstream ostrm;
-                    ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
-                    pu::String def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
-                    sdata.push_back(def);
-                    break;
-                }
-                u8 byte = bdata[i];
-                std::stringstream strm;
-                strm << std::setw(2) << std::uppercase << std::setfill('0') << std::hex << (int)byte;
-                tmpline += strm.str() + " ";
-                if(isprint(byte)) tmpchr += (char)byte;
-                else tmpchr += ".";
-                count++;
-            }
-            bdata.clear();
-        }
-        fclose(f);
-        return sdata;
-    }
-
-    Result WriteFile(pu::String Path, std::vector<u8> Data)
-    {
-        Result rc = DeleteFile(Path);
-        if(rc != 0) return rc;
-        FILE *fle = fopen(Path.AsUTF8().c_str(), "wb");
-        if(fle)
-        {
-            fwrite(Data.data(), 1, Data.size(), fle);
-            fflush(fle);
-        }
-        else return 0xcafe;
-        fclose(fle);
-        return rc;
-    }
-
-    u64 GetFileSize(pu::String Path)
+    u64 GetFileSize(String Path)
     {
         u64 sz = 0;
         FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
@@ -284,7 +175,7 @@ namespace fs
         return sz;
     }
 
-    u64 GetDirectorySize(pu::String Path)
+    u64 GetDirectorySize(String Path)
     {
         u64 sz = 0;
         DIR *d = opendir(Path.AsUTF8().c_str());
@@ -295,8 +186,8 @@ namespace fs
             {
                 dent = readdir(d);
                 if(dent == NULL) break;
-                pu::String nd = dent->d_name;
-                pu::String pd = Path + "/" + nd;
+                String nd = dent->d_name;
+                String pd = Path + "/" + nd;
                 if(fs::IsFile(pd)) sz += GetFileSize(pd);
                 else sz += GetDirectorySize(pd);
             }
@@ -305,27 +196,27 @@ namespace fs
         return sz;
     }
 
-    pu::String GetFileName(pu::String Path)
+    String GetFileName(String Path)
     {
         return Path.substr(Path.find_last_of("/\\") + 1);
     }
 
-    pu::String GetBaseDirectory(pu::String Path)
+    String GetBaseDirectory(String Path)
     {
         return Path.substr(0, Path.find_last_of("/\\"));
     }
 
-    pu::String GetExtension(pu::String Path)
+    String GetExtension(String Path)
     {
         return Path.substr(Path.find_last_of(".") + 1);
     }
 
-    pu::String GetPathRoot(pu::String Path)
+    String GetPathRoot(String Path)
     {
         return Path.substr(0, Path.find_first_of(":"));
     }
 
-    pu::String GetPathWithoutRoot(pu::String Path)
+    String GetPathWithoutRoot(String Path)
     {
         return Path.substr(Path.find_first_of(":") + 1);
     }
@@ -382,9 +273,9 @@ namespace fs
         return space;
     }
 
-    pu::String FormatSize(u64 Bytes)
+    String FormatSize(u64 Bytes)
     {
-        pu::String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
+        String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
         if(Bytes == 0) return "0" + sufs[0];
         u32 plc = floor((log(Bytes) / log(1024)));
         double btnum = (double)(Bytes / pow(1024, plc));
@@ -394,9 +285,9 @@ namespace fs
         return (strm.str() + sufs[plc]);
     }
 
-    pu::String SearchForFileInPath(pu::String Base, pu::String Extension)
+    String SearchForFileInPath(String Base, String Extension)
     {
-        pu::String path;
+        String path;
         DIR *dp = opendir(Base.AsUTF8().c_str());
         if(dp)
         {
@@ -405,8 +296,8 @@ namespace fs
             {
                 dt = readdir(dp);
                 if(dt == NULL) break;
-                pu::String pth = pu::String(dt->d_name);
-                pu::String seq = pth.substr(pth.length() - Extension.length());
+                String pth = String(dt->d_name);
+                String seq = pth.substr(pth.length() - Extension.length());
                 if(seq == Extension)
                 {
                     path = pth;
@@ -421,6 +312,7 @@ namespace fs
     u8 *GetFileSystemOperationsBuffer()
     {
         if(opsbuf == NULL) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
+        memset(opsbuf, 0, opsbufsz);
         return opsbuf;
     }
 

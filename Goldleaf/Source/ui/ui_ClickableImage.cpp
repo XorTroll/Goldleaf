@@ -1,8 +1,30 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <ui/ui_ClickableImage.hpp>
+#include <sys/stat.h>
 
 namespace ui
 {
-    ClickableImage::ClickableImage(s32 X, s32 Y, pu::String Image) : pu::ui::elm::Element::Element()
+    ClickableImage::ClickableImage(s32 X, s32 Y, String Image) : pu::ui::elm::Element::Element()
     {
         this->x = X;
         this->y = Y;
@@ -63,25 +85,23 @@ namespace ui
         this->h = Height;
     }
 
-    pu::String ClickableImage::GetImage()
+    String ClickableImage::GetImage()
     {
         return this->img;
     }
 
-    void ClickableImage::SetImage(pu::String Image)
+    void ClickableImage::SetImage(String Image)
     {
         if(this->ntex != NULL) pu::ui::render::DeleteTexture(this->ntex);
         this->ntex = NULL;
-        std::ifstream ifs(Image.AsUTF8());
-        if(ifs.good())
+        struct stat st;
+        if((stat(Image.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFREG))
         {
-            ifs.close();
             this->img = Image;
             this->ntex = pu::ui::render::LoadImage(Image.AsUTF8());
             this->w = pu::ui::render::GetTextureWidth(this->ntex);
             this->h = pu::ui::render::GetTextureHeight(this->ntex);
         }
-        ifs.close();
     }
 
     bool ClickableImage::IsImageValid()
@@ -94,14 +114,12 @@ namespace ui
         cb = Callback;
     }
 
-    void ClickableImage::OnRender(pu::ui::render::Renderer *Drawer)
+    void ClickableImage::OnRender(pu::ui::render::Renderer::Ref &Drawer, s32 X, s32 Y)
     {
-        s32 rdx = this->GetProcessedX();
-        s32 rdy = this->GetProcessedY();
-        Drawer->RenderTextureScaled(this->ntex, rdx, rdy, w, h);
+        Drawer->RenderTexture(this->ntex, X, Y, { -1, w, h, -1 });
     }
 
-    void ClickableImage::OnInput(u64 Down, u64 Up, u64 Held, bool Touch, bool Focus)
+    void ClickableImage::OnInput(u64 down, u64 up, u64 held, pu::ui::Touch Pos)
     {
         if(touched)
         {
@@ -109,16 +127,16 @@ namespace ui
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(tpnow - touchtp).count();
             if(diff >= 200)
             {
-                (this->cb)();
                 touched = false;
+                (this->cb)();
                 SDL_SetTextureColorMod(ntex, 255, 255, 255);
             }
         }
-        else if(Touch)
+        else if(!Pos.IsEmpty())
         {
             touchPosition tch;
             hidTouchRead(&tch, 0);
-            if(((s32)tch.px >= x) && ((s32)tch.px < (x + w)) && ((s32)tch.py >= y) && ((s32)tch.py < (y + h)))
+            if((Pos.X >= this->GetProcessedX()) && (Pos.X < (this->GetProcessedX() + w)) && (Pos.Y >= this->GetProcessedY()) && (Pos.Y < (this->GetProcessedY() + h)))
             {
                 touchtp = std::chrono::steady_clock::now();
                 touched = true;

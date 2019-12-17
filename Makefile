@@ -1,9 +1,10 @@
 
-all:
-	$(MAKE) -C Goldleaf/
-	$(MAKE) -C Forwarder/
+.PHONY: all clean
 
+all:
+	@$(MAKE) -C Plutonium/
+	@$(MAKE) -C Goldleaf/
 
 clean:
-	$(MAKE) clean -C Goldleaf/
-	$(MAKE) clean -C Forwarder/
+	@$(MAKE) -C Plutonium/ clean
+	@$(MAKE) -C Goldleaf/ clean

@@ -1,36 +1,51 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <ui/ui_CopyLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
-
     CopyLayout::CopyLayout()
     {
-        this->infoText = new pu::ui::elm::TextBlock(150, 320, set::GetDictionaryEntry(151));
+        this->infoText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(gsets.CustomScheme.Text);
-        this->copyBar = new pu::ui::elm::ProgressBar(340, 360, 600, 30, 100.0f);
+        this->copyBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         gsets.ApplyProgressBarColor(this->copyBar);
         this->Add(this->infoText);
         this->Add(this->copyBar);
     }
 
-    CopyLayout::~CopyLayout()
-    {
-        delete this->infoText;
-        delete this->copyBar;
-    }
-
-    void CopyLayout::StartCopy(pu::String Path, pu::String NewPath, bool Directory, fs::Explorer *Exp, pu::ui::Layout *Prev)
+    void CopyLayout::StartCopy(String Path, String NewPath, bool Directory, fs::Explorer *Exp)
     {
         if(Directory)
         {
-            fs::CopyDirectoryProgress(Path, NewPath, [&](u8 p)
+            fs::CopyDirectoryProgress(Path, NewPath, [&](double done, double total)
             {
-                this->copyBar->SetProgress(p);
+                this->copyBar->SetMaxValue(total);
+                this->copyBar->SetProgress(done);
                 mainapp->CallForRender();
             });
             mainapp->ShowNotification(set::GetDictionaryEntry(141));
@@ -40,19 +55,16 @@ namespace ui
             if(Exp->IsFile(NewPath))
             {
                 int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
-                if(sopt < 0)
-                {
-                    mainapp->LoadLayout(Prev);
-                    return;
-                }
+                if(sopt < 0) return;
             }
-            fs::CopyFileProgress(Path, NewPath, [&](u8 p)
+            fs::DeleteFile(NewPath);
+            fs::CopyFileProgress(Path, NewPath, [&](double done, double total)
             {
-                this->copyBar->SetProgress(p);
+                this->copyBar->SetMaxValue(total);
+                this->copyBar->SetProgress(done);
                 mainapp->CallForRender();
             });
             mainapp->ShowNotification(set::GetDictionaryEntry(240));
         }
-        mainapp->LoadLayout(Prev);
     }
 }

@@ -1,3 +1,24 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <set/set_Strings.hpp>
 #include <fs/fs_Common.hpp>
 
@@ -30,23 +51,29 @@ namespace set
                 break;
         }
         pdict += ".json";
-        std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));
         MainDictionary.DictLanguage = gsets.CustomLanguage;
-        MainDictionary.Strings = JSON::parse(ifs);
-        ifs.close();
-        ifs.open(gsets.PathForResource("/Language/Errors/" + pdict));
+        std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));
+        if(ifs.good())
+        {
+            try { MainDictionary.Strings = JSON::parse(ifs); } catch(std::exception&) {}
+            ifs.close();
+        }
         Errors.DictLanguage = gsets.CustomLanguage;
-        Errors.Strings = JSON::parse(ifs);
-        ifs.close();
+        ifs.open(gsets.PathForResource("/Language/Errors/" + pdict));
+        if(ifs.good())
+        {
+            try { Errors.Strings = JSON::parse(ifs); } catch(std::exception&) {}
+            ifs.close();
+        }
     }
     
-    pu::String GetDictionaryEntry(u32 Index)
+    String GetDictionaryEntry(u32 Index)
     {
         if(Index >= MainDictionary.Strings.size()) return "<invalid entry>";
         return MainDictionary.Strings[Index].get<std::string>();
     }
 
-    pu::String GetErrorEntry(u32 Index)
+    String GetErrorEntry(u32 Index)
     {
         if(Index >= Errors.Strings.size()) return "<invalid error entry>";
         return Errors.Strings[Index].get<std::string>();

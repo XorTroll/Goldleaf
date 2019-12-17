@@ -1,10 +1,21 @@
 
 /*
 
-    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
-    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -19,14 +30,14 @@
 #include <ui/ui_FileContentLayout.hpp>
 #include <ui/ui_InstallLayout.hpp>
 #include <ui/ui_MainMenuLayout.hpp>
+#include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_PCExploreLayout.hpp>
+#include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_StorageContentsLayout.hpp>
-#include <ui/ui_SystemInfoLayout.hpp>
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
-#include <ui/ui_USBDrivesLayout.hpp>
 
 #include <ui/ui_ClickableImage.hpp>
 
@@ -35,89 +46,92 @@ namespace ui
     class MainApplication : public pu::ui::Application
     {
         public:
-            MainApplication();
-            ~MainApplication();
-            void ShowNotification(pu::String Text);
+            using Application::Application;
+            PU_SMART_CTOR(MainApplication)
+
+            void OnLoad() override;
+
+            void ShowNotification(String Text);
             void UpdateValues();
-            void LoadMenuData(pu::String Name, std::string ImageName, pu::String TempHead, bool CommonIcon = true);
-            void LoadMenuHead(pu::String Head);
+            void LoadMenuData(String Name, std::string ImageName, String TempHead, bool CommonIcon = true);
+            void LoadMenuHead(String Head);
             void UnloadMenuData();
-            void browser_Input(u64 Down, u64 Up, u64 Held);
-            void exploreMenu_Input(u64 Down, u64 Up, u64 Held);
-            void pcExplore_Input(u64 Down, u64 Up, u64 Held);
-            void usbDrives_Input(u64 Down, u64 Up, u64 Held);
-            void fileContent_Input(u64 Down, u64 Up, u64 Held);
-            void contentInformation_Input(u64 Down, u64 Up, u64 Held);
-            void storageContents_Input(u64 Down, u64 Up, u64 Held);
-            void contentManager_Input(u64 Down, u64 Up, u64 Held);
-            void unusedTickets_Input(u64 Down, u64 Up, u64 Held);
-            void account_Input(u64 Down, u64 Up, u64 Held);
-            void amiibo_Input(u64 Down, u64 Up, u64 Held);
-            void sysInfo_Input(u64 Down, u64 Up, u64 Held);
-            void about_Input(u64 Down, u64 Up, u64 Held);
+            void browser_Input(u64 down, u64 up, u64 held);
+            void exploreMenu_Input(u64 down, u64 up, u64 held);
+            void pcExplore_Input(u64 down, u64 up, u64 held);
+            void fileContent_Input(u64 down, u64 up, u64 held);
+            void contentInformation_Input(u64 down, u64 up, u64 held);
+            void storageContents_Input(u64 down, u64 up, u64 held);
+            void contentManager_Input(u64 down, u64 up, u64 held);
+            void unusedTickets_Input(u64 down, u64 up, u64 held);
+            void account_Input(u64 down, u64 up, u64 held);
+            void amiibo_Input(u64 down, u64 up, u64 held);
+            void settings_Input(u64 down, u64 up, u64 held);
+            void memory_Input(u64 down, u64 up, u64 held);
+            void about_Input(u64 down, u64 up, u64 held);
             void userImage_OnClick();
             void helpImage_OnClick();
-            void ReloadUser(u128 User);
-            void OnInput(u64 Down, u64 Up, u64 Held);
-            MainMenuLayout *GetMainMenuLayout();
-            PartitionBrowserLayout *GetBrowserLayout();
-            FileContentLayout *GetFileContentLayout();
-            CopyLayout *GetCopyLayout();
-            ExploreMenuLayout *GetExploreMenuLayout();
-            PCExploreLayout *GetPCExploreLayout();
-            USBDrivesLayout *GetUSBDrivesLayout();
-            InstallLayout *GetInstallLayout();
-            ContentInformationLayout *GetContentInformationLayout();
-            StorageContentsLayout *GetStorageContentsLayout();
-            ContentManagerLayout *GetContentManagerLayout();
-            TitleDumperLayout *GetTitleDumperLayout();
-            UnusedTicketsLayout *GetUnusedTicketsLayout();
-            AccountLayout *GetAccountLayout();
-            AmiiboDumpLayout *GetAmiiboDumpLayout();
-            SystemInfoLayout *GetSystemInfoLayout();
-            UpdateLayout *GetUpdateLayout();
-            AboutLayout *GetAboutLayout();
+            void ReloadUser(AccountUid User);
+            void OnInput(u64 down, u64 up, u64 held);
+            MainMenuLayout::Ref &GetMainMenuLayout();
+            PartitionBrowserLayout::Ref &GetBrowserLayout();
+            FileContentLayout::Ref &GetFileContentLayout();
+            CopyLayout::Ref &GetCopyLayout();
+            ExploreMenuLayout::Ref &GetExploreMenuLayout();
+            PCExploreLayout::Ref &GetPCExploreLayout();
+            InstallLayout::Ref &GetInstallLayout();
+            ContentInformationLayout::Ref &GetContentInformationLayout();
+            StorageContentsLayout::Ref &GetStorageContentsLayout();
+            ContentManagerLayout::Ref &GetContentManagerLayout();
+            TitleDumperLayout::Ref &GetTitleDumperLayout();
+            UnusedTicketsLayout::Ref &GetUnusedTicketsLayout();
+            AccountLayout::Ref &GetAccountLayout();
+            AmiiboDumpLayout::Ref &GetAmiiboDumpLayout();
+            SettingsLayout::Ref &GetSettingsLayout();
+            MemoryLayout::Ref &GetMemoryLayout();
+            UpdateLayout::Ref &GetUpdateLayout();
+            AboutLayout::Ref &GetAboutLayout();
         private:
             u32 preblv;
             bool preisch;
             bool hasusb;
             u32 connstate;
-            u128 seluser;
-            pu::String pretime;
+            AccountUid seluser;
+            String pretime;
             bool vfirst;
-            MainMenuLayout *mainMenu;
-            PartitionBrowserLayout *browser;
-            FileContentLayout *fileContent;
-            CopyLayout *copy;
-            ExploreMenuLayout *exploreMenu;
-            PCExploreLayout *pcExplore;
-            USBDrivesLayout *usbDrives;
-            InstallLayout *nspInstall;
-            ContentInformationLayout *contentInformation;
-            StorageContentsLayout *storageContents;
-            ContentManagerLayout *contentManager;
-            TitleDumperLayout *titleDump;
-            UnusedTicketsLayout *unusedTickets;
-            AccountLayout *account;
-            AmiiboDumpLayout *amiibo;
-            SystemInfoLayout *sysInfo;
-            UpdateLayout* update;
-            AboutLayout *about;
-            pu::ui::elm::Image *baseImage;
-            pu::ui::elm::TextBlock *timeText;
-            pu::ui::elm::TextBlock *batteryText;
-            pu::ui::elm::Image *batteryImage;
-            pu::ui::elm::Image *batteryChargeImage;
-            pu::ui::elm::Image *menuBanner;
-            pu::ui::elm::Image *menuImage;
-            pu::ui::elm::Image *usbImage;
-            pu::ui::elm::Image *connImage;
-            pu::ui::elm::TextBlock *ipText;
-            pu::ui::elm::TextBlock *menuNameText;
-            pu::ui::elm::TextBlock *menuHeadText;
-            ClickableImage *userImage;
-            ClickableImage *helpImage;
-            pu::ui::extras::Toast *toast;
+            MainMenuLayout::Ref mainMenu;
+            PartitionBrowserLayout::Ref browser;
+            FileContentLayout::Ref fileContent;
+            CopyLayout::Ref copy;
+            ExploreMenuLayout::Ref exploreMenu;
+            PCExploreLayout::Ref pcExplore;
+            InstallLayout::Ref nspInstall;
+            ContentInformationLayout::Ref contentInformation;
+            StorageContentsLayout::Ref storageContents;
+            ContentManagerLayout::Ref contentManager;
+            TitleDumperLayout::Ref titleDump;
+            UnusedTicketsLayout::Ref unusedTickets;
+            AccountLayout::Ref account;
+            AmiiboDumpLayout::Ref amiibo;
+            SettingsLayout::Ref settings;
+            MemoryLayout::Ref memory;
+            UpdateLayout::Ref update;
+            AboutLayout::Ref about;
+            pu::ui::elm::Image::Ref baseImage;
+            pu::ui::elm::TextBlock::Ref timeText;
+            pu::ui::elm::TextBlock::Ref batteryText;
+            pu::ui::elm::Image::Ref batteryImage;
+            pu::ui::elm::Image::Ref batteryChargeImage;
+            pu::ui::elm::Image::Ref menuBanner;
+            pu::ui::elm::Image::Ref menuImage;
+            pu::ui::elm::Image::Ref usbImage;
+            pu::ui::elm::Image::Ref connImage;
+            pu::ui::elm::TextBlock::Ref ipText;
+            pu::ui::elm::TextBlock::Ref menuNameText;
+            pu::ui::elm::TextBlock::Ref menuHeadText;
+            ClickableImage::Ref userImage;
+            ClickableImage::Ref helpImage;
+            pu::ui::extras::Toast::Ref toast;
             bool welcomeshown;
             std::chrono::time_point<std::chrono::steady_clock> start;
     };
@@ -125,5 +139,5 @@ namespace ui
     static const ColorScheme DefaultLight = { { 124, 199, 239, 255 }, { 196, 224, 239, 255 }, { 168, 214, 237, 255 }, { 15, 15, 15, 255 } };
     static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
 
-    void UpdateClipboard(pu::String Path);
+    void UpdateClipboard(String Path);
 }

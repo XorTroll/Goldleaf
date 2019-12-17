@@ -10,5 +10,6 @@
     "Der Titel ist bereits installiert",
     "Eine andere Datei/Ordner existiert mit diesem Namen bereits",
     "Konnte Inhalte des Titels nicht finden",
-    "Konnte PFS0 (NSP) nicht erstellen" 
+    "Konnte PFS0 (NSP) nicht erstellen",
+    "Key Generierung ungleich (Konsolen Firmware zu niedrig)"
 ]

@@ -1,3 +1,24 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <set/set_Settings.hpp>
 #include <ui/ui_MainApplication.hpp>
 #include <fs/fs_Explorer.hpp>
@@ -15,12 +36,12 @@ namespace set
         return outres;
     }
 
-    void Settings::ApplyScrollBarColor(pu::ui::elm::Menu *Menu)
+    void Settings::ApplyScrollBarColor(pu::ui::elm::Menu::Ref &Menu)
     {
         if(this->HasScrollBar) Menu->SetScrollbarColor(this->ScrollBarColor);
     }
 
-    void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar *PBar)
+    void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar)
     {
         if(this->HasProgressBar) PBar->SetProgressColor(this->ProgressBarColor);
     }
@@ -29,44 +50,32 @@ namespace set
     {
         Settings gset;
         u64 lcode = 0;
-        s32 lang = 1;
+        SetLanguage lang = SetLanguage_ENUS;
         setGetSystemLanguage(&lcode);
         setMakeLanguage(lcode, &lang);
         switch(lang)
         {
-            // case 0:
-            case 1:
-            case 12:
+            case SetLanguage_ENUS:
+            case SetLanguage_ENGB:
                 gset.CustomLanguage = Language::English;
                 break;
-            case 2:
-            case 13:
+            case SetLanguage_FR:
+            case SetLanguage_FRCA:
                 gset.CustomLanguage = Language::French;
                 break;
-            case 3:
+            case SetLanguage_DE:
                 gset.CustomLanguage = Language::German;
                 break;
-            case 4:
+            case SetLanguage_IT:
                 gset.CustomLanguage = Language::Italian;
                 break;
-            case 5:
-            case 14:
+            case SetLanguage_ES:
+            case SetLanguage_ES419:
                 gset.CustomLanguage = Language::Spanish;
                 break;
-            /*
-            case 6:
-            case 7:
-            */
-            case 8:
+            case SetLanguage_NL:
                 gset.CustomLanguage = Language::Dutch;
                 break;
-            /*
-            case 9:
-            case 10:
-            case 11:
-            case 15:
-            case 16:    
-            */
             default:
                 gset.CustomLanguage = Language::English;
                 break;

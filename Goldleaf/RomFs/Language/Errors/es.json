@@ -10,5 +10,6 @@
     "El título ya se encuentra instalado en esta consola",
     "Ya existe un archivo o carpeta con el mismo nombre",
     "No se pudieron encontrar los contenidos del título",
-    "Error al generar el PFS0 (NSP)"
+    "Error al generar el PFS0 (NSP)",
+    "Fallo de claves de generación (versión de consola demasiado baja)"
 ]

@@ -1,10 +1,21 @@
 
 /*
 
-    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
-    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -18,24 +29,27 @@ namespace ui
     {
         public:
             MainMenuLayout();
-            ~MainMenuLayout();
+            PU_SMART_CTOR(MainMenuLayout)
+
             void exploreMenuItem_Click();
             void titleMenuItem_Click();
             void webMenuItem_Click();
             void accountMenuItem_Click();
             void amiiboMenuItem_Click();
-            void sysinfoMenuItem_Click();
+            void emuiiboMenuItem_Click();
+            void settingsMenuItem_Click();
             void updateMenuItem_Click();
             void aboutMenuItem_Click();
         private:
-            pu::ui::elm::Menu *optionMenu;
-            pu::ui::elm::MenuItem *exploreMenuItem;
-            pu::ui::elm::MenuItem *titleMenuItem;
-            pu::ui::elm::MenuItem *webMenuItem;
-            pu::ui::elm::MenuItem *accountMenuItem;
-            pu::ui::elm::MenuItem *amiiboMenuItem;
-            pu::ui::elm::MenuItem *sysinfoMenuItem;
-            pu::ui::elm::MenuItem *updateMenuItem;
-            pu::ui::elm::MenuItem *aboutMenuItem;
+            pu::ui::elm::Menu::Ref optionMenu;
+            pu::ui::elm::MenuItem::Ref exploreMenuItem;
+            pu::ui::elm::MenuItem::Ref titleMenuItem;
+            pu::ui::elm::MenuItem::Ref webMenuItem;
+            pu::ui::elm::MenuItem::Ref accountMenuItem;
+            pu::ui::elm::MenuItem::Ref amiiboMenuItem;
+            pu::ui::elm::MenuItem::Ref emuiiboMenuItem;
+            pu::ui::elm::MenuItem::Ref settingsMenuItem;
+            pu::ui::elm::MenuItem::Ref updateMenuItem;
+            pu::ui::elm::MenuItem::Ref aboutMenuItem;
     };
 }

@@ -1,30 +1,44 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <ui/ui_StorageContentsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref mainapp;
 extern set::Settings gsets;
 
 namespace ui
 {
-    extern MainApplication *mainapp;
-
     StorageContentsLayout::StorageContentsLayout()
     {
-        this->contentsMenu = new pu::ui::elm::Menu(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
+        this->contentsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
         this->contentsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
         gsets.ApplyScrollBarColor(this->contentsMenu);
-        this->noContentsText = new pu::ui::elm::TextBlock(0, 0, set::GetDictionaryEntry(188));
+        this->noContentsText = pu::ui::elm::TextBlock::New(0, 0, set::GetDictionaryEntry(188));
         this->noContentsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->noContentsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->noContentsText->SetColor(gsets.CustomScheme.Text);
         this->noContentsText->SetVisible(false);
         this->Add(this->noContentsText);
         this->Add(this->contentsMenu);
-    }
-
-    StorageContentsLayout::~StorageContentsLayout()
-    {
-        delete this->noContentsText;
-        delete this->contentsMenu;
     }
 
     void StorageContentsLayout::contents_Click()
@@ -75,13 +89,13 @@ namespace ui
             for(u32 i = 0; i < this->contents.size(); i++)
             {
                 NacpStruct *nacp = this->contents[i].TryGetNACP();
-                pu::String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
+                String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
                 if(nacp != NULL)
                 {
                     name = hos::GetNACPName(nacp);
                     delete nacp;
                 }
-                pu::ui::elm::MenuItem *itm = new pu::ui::elm::MenuItem(name);
+                auto itm = pu::ui::elm::MenuItem::New(name);
                 itm->SetColor(gsets.CustomScheme.Text);
                 bool hicon = this->contents[i].DumpControlData();
                 if(hicon) itm->SetIcon(hos::GetExportedIconPath(this->contents[i].ApplicationId));

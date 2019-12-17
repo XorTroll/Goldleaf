@@ -1,10 +1,21 @@
 
 /*
 
-    Goldleaf - Nintendo Switch homebrew multitool, for several purposes and with several features
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll
-    This project is under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -18,18 +29,19 @@ namespace ui
     {
         public:
             ContentManagerLayout();
-            ~ContentManagerLayout();
+            PU_SMART_CTOR(ContentManagerLayout)
+
             void sdCardMenuItem_Click();
             void nandUserMenuItem_Click();
             void nandSystemMenuItem_Click();
             void gameCartMenuItem_Click();
             void unusedTicketsMenuItem_Click();
         private:
-            pu::ui::elm::MenuItem *sdCardMenuItem;
-            pu::ui::elm::MenuItem *nandUserMenuItem;
-            pu::ui::elm::MenuItem *nandSystemMenuItem;
-            pu::ui::elm::MenuItem *gameCartMenuItem;
-            pu::ui::elm::MenuItem *unusedTicketsMenuItem;
-            pu::ui::elm::Menu *typesMenu;
+            pu::ui::elm::MenuItem::Ref sdCardMenuItem;
+            pu::ui::elm::MenuItem::Ref nandUserMenuItem;
+            pu::ui::elm::MenuItem::Ref nandSystemMenuItem;
+            pu::ui::elm::MenuItem::Ref gameCartMenuItem;
+            pu::ui::elm::MenuItem::Ref unusedTicketsMenuItem;
+            pu::ui::elm::Menu::Ref typesMenu;
     };
 }

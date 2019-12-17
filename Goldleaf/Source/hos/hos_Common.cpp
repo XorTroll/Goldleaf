@@ -1,3 +1,24 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <hos/hos_Common.hpp>
 #include <hos/hos_Titles.hpp>
 #include <fs/fs_Explorer.hpp>
@@ -26,32 +47,14 @@ namespace hos
         int h = times->tm_hour;
         int min = times->tm_min;
         int s = times->tm_sec;
-        char timestr[0x10];
+        char timestr[0x10] = {0};
         sprintf(timestr, "%02d:%02d:%02d", h, min, s);
         return std::string(timestr);
     }
 
-    FwVersion GetFwVersion()
+    std::string FormatHex128(AccountUid Number)
     {
-        FwVersion pfw = { 0, 0, 0, "" };
-        SetSysFirmwareVersion fw;
-        Result rc = setsysGetFirmwareVersion(&fw);
-        if(rc != 0) return pfw;
-        pfw.Major = fw.major;
-        pfw.Minor = fw.minor;
-        pfw.Micro = fw.micro;
-        pfw.DisplayName = std::string(fw.display_title);
-        return pfw;
-    }
-
-    std::string FwVersion::ToString()
-    {
-        return (std::to_string(this->Major) + "." + std::to_string(this->Minor) + "." + std::to_string(this->Micro));
-    }
-
-    std::string FormatHex128(u128 Number)
-    {
-        u8 *ptr = (u8*)&Number;
+        u8 *ptr = (u8*)Number.uid;
         std::stringstream strm;
         for(u32 i = 0; i < 16; i++) strm << std::hex << std::uppercase << (int)ptr[i];
         return strm.str();
@@ -154,7 +157,7 @@ namespace hos
         operator delete[](block, std::align_val_t(0x1000));
     }
 
-    void PayloadProcess(pu::String Path)
+    void PayloadProcess(String Path)
     {
         u8 *block = new (std::align_val_t(0x1000)) u8[MaxPayloadSize]();
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
@@ -181,27 +184,17 @@ namespace hos
         if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
     }
 
-    #define VERSION_EXACT(a,b,c) (hosversionGet() == MAKEHOSVERSION(a,b,c))
-    #define VERSION_BETWEEN(a,b,c,d,e,f) ((hosversionGet() >= MAKEHOSVERSION(a,b,c)) && (hosversionGet() <= MAKEHOSVERSION(d,e,f)))
-
-    #define MKEY_SET_IF(expression, kgen) if(expression) { masterkey = kgen; }
-
     u8 ComputeSystemKeyGeneration()
     {
-        u8 masterkey = 0;
-        
-        MKEY_SET_IF(VERSION_BETWEEN(1,0,0,2,3,0), 0)
-        MKEY_SET_IF(VERSION_EXACT(3,0,0), 1)
-        MKEY_SET_IF(VERSION_BETWEEN(3,0,1,3,0,2), 2)
-        MKEY_SET_IF(VERSION_BETWEEN(4,0,0,4,1,0), 3)
-        MKEY_SET_IF(VERSION_BETWEEN(5,0,0,5,1,0), 4)
-        MKEY_SET_IF(VERSION_BETWEEN(6,0,0,6,1,0), 5)
-        MKEY_SET_IF(VERSION_EXACT(6,2,0), 6)
-        MKEY_SET_IF(VERSION_BETWEEN(7,0,0,8,0,1), 7)
-        MKEY_SET_IF(VERSION_EXACT(8,1,0), 8)
-
-        // KeyGen = MasterKey + 1
-
-        return masterkey + 1;
+        FsStorage boot0;
+        auto rc = fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root);
+        if(R_SUCCEEDED(rc))
+        {
+            u32 keygen_ver = 0;
+            fsStorageRead(&boot0, 0x2330, &keygen_ver, sizeof(u32));
+            fsStorageClose(&boot0);
+            return (u8)keygen_ver;
+        }
+        return 0;
     }
 }

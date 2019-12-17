@@ -2,10 +2,20 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
 
-    Copyright 2018 - 2019 Goldleaf project, developed by XorTroll, emerged from Adubbz's work with Tinfoil
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    This project is licensed under the terms of GPLv3 license: https://github.com/XorTroll/Goldleaf/blob/master/LICENSE
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
@@ -42,35 +52,34 @@ namespace fs
         } \
     }
 
-    bool Exists(pu::String Path);
-    bool IsFile(pu::String Path);
-    bool IsDirectory(pu::String Path);
-    void CreateFile(pu::String Path);
-    void CreateConcatenationFile(pu::String Path);
-    Result CreateDirectory(pu::String Path);
-    void CopyFile(pu::String Path, pu::String NewPath);
-    void CopyFileProgress(pu::String Path, pu::String NewPath, std::function<void(u8 Percentage)> Callback);
-    void CopyDirectory(pu::String Dir, pu::String NewDir);
-    void CopyDirectoryProgress(pu::String Dir, pu::String NewDir, std::function<void(u8 Percentage)> Callback);
-    Result DeleteFile(pu::String Path);
-    Result DeleteDirectory(pu::String Path);
-    bool IsFileBinary(pu::String Path);
-    std::vector<u8> ReadFile(pu::String Path);
-    std::vector<pu::String> ReadFileLines(pu::String Path, u32 LineOffset, u32 LineCount);
-    std::vector<pu::String> ReadFileFormatHex(pu::String Path, u32 LineOffset, u32 LineCount);
-    Result WriteFile(pu::String Path, std::vector<u8> Data);
-    u64 GetFileSize(pu::String Path);
-    u64 GetDirectorySize(pu::String Path);
-    pu::String GetFileName(pu::String Path);
-    pu::String GetBaseDirectory(pu::String Path);
-    pu::String GetExtension(pu::String Path);
-    pu::String GetPathRoot(pu::String Path);
-    pu::String GetPathWithoutRoot(pu::String Path);
+    bool Exists(String Path);
+    bool IsFile(String Path);
+    bool IsDirectory(String Path);
+    void CreateFile(String Path);
+    void CreateConcatenationFile(String Path);
+    void CreateDirectory(String Path);
+    void CopyFile(String Path, String NewPath);
+    void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback);
+    void CopyDirectory(String Dir, String NewDir);
+    void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback);
+    void DeleteFile(String Path);
+    void DeleteDirectory(String Path);
+    void RenameFile(String Old, String New);
+    void RenameDirectory(String Old, String New);
+    bool IsFileBinary(String Path);
+    void WriteFile(String Path, std::vector<u8> Data);
+    u64 GetFileSize(String Path);
+    u64 GetDirectorySize(String Path);
+    String GetFileName(String Path);
+    String GetBaseDirectory(String Path);
+    String GetExtension(String Path);
+    String GetPathRoot(String Path);
+    String GetPathWithoutRoot(String Path);
     u64 GetTotalSpaceForPartition(Partition Partition);
     u64 GetFreeSpaceForPartition(Partition Partition);
-    pu::String FormatSize(u64 Bytes);
-    pu::String SearchForFile(FsFileSystem FS, pu::String Extension);
-    pu::String SearchForFileInPath(pu::String Base, pu::String Extension);
+    String FormatSize(u64 Bytes);
+    String SearchForFile(FsFileSystem FS, String Extension);
+    String SearchForFileInPath(String Base, String Extension);
 
     u8 *GetFileSystemOperationsBuffer();
     size_t GetFileSystemOperationsBufferSize();

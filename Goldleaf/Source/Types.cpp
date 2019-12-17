@@ -1,47 +1,80 @@
+
+/*
+
+    Goldleaf - Multipurpose homebrew tool for Nintendo Switch
+    Copyright (C) 2018-2019  XorTroll
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
 #include <Types.hpp>
 #include <fs/fs_Explorer.hpp>
 
-pu::String Version::AsString()
+namespace consts
 {
-    pu::String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
-    if(this->BugFix > 0)
-    {
-        txt += "." + std::to_string(this->BugFix);
-    }
+    std::string Root = "switch/Goldleaf";
+    std::string Log = Root + "/Goldleaf.log";
+    std::string CrashesDir = Root + "/crash";
+    std::string TempUpdatePath = Root + "/UpdateTemp.nro";
+}
+
+String Version::AsString()
+{
+    String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
+    if(this->Micro > 0) txt += "." + std::to_string(this->Micro);
     return txt;
 }
 
-Version Version::FromString(pu::String StrVersion)
+Version Version::MakeVersion(u32 major, u32 minor, u32 micro)
 {
-    pu::String strv = StrVersion;
+    return { major, minor, (s32)micro };
+}
+
+Version Version::FromString(String StrVersion)
+{
+    String strv = StrVersion;
     Version v;
     memset(&v, 0, sizeof(v));
     size_t pos = 0;
-    pu::String token;
+    String token;
     u32 c = 0;
-    pu::String delimiter = ".";
-    while((pos = strv.find(delimiter)) != pu::String::npos)
+    String delimiter = ".";
+    while((pos = strv.find(delimiter)) != String::npos)
     {
         token = strv.substr(0, pos);
         if(c == 0) v.Major = std::stoi(token);
         else if(c == 1) v.Minor = std::stoi(token);
-        else if(c == 2) v.BugFix = std::stoi(token);
+        else if(c == 2) v.Micro = std::stoi(token);
         strv.erase(0, pos + delimiter.length());
         c++;
     }
     if(c == 0) v.Major = std::stoi(strv);
     else if(c == 1) v.Minor = std::stoi(strv);
-    else if(c == 2) v.BugFix = std::stoi(strv);
+    else if(c == 2) v.Micro = std::stoi(strv);
     return v;
 }
 
 bool Version::IsLower(Version Other)
 {
-    bool low = false;
-    if(this->Major > Other.Major) low = true;
-    else if(this->Minor > Other.Minor) low = true;
-    else if(this->BugFix > Other.BugFix) low = true;
-    return low;
+    if(this->Major > Other.Major) return true;
+    else if(this->Major == Other.Major)
+    {
+        if(this->Minor > Other.Minor) return true;
+        else if(this->Minor == Other.Minor) if(this->Micro > Other.Micro) return true;
+    }
+    return false;
 }
 
 bool Version::IsHigher(Version Other)
@@ -51,7 +84,7 @@ bool Version::IsHigher(Version Other)
 
 bool Version::IsEqual(Version Other)
 {
-    return ((this->Major == Other.Major) && (this->Minor == Other.Minor) && (this->BugFix == Other.BugFix));
+    return ((this->Major == Other.Major) && (this->Minor == Other.Minor) && (this->Micro == Other.Micro));
 }
 
 ExecutableMode GetExecutableMode()
@@ -78,14 +111,9 @@ LaunchMode GetLaunchMode()
     return mode;
 }
 
-pu::String GetVersion()
+String GetVersion()
 {
-    return pu::String(GOLDLEAF_VERSION);
-}
-
-u64 GetApplicationId()
-{
-    return GOLDLEAF_APPID;
+    return String(GOLDLEAF_VERSION);
 }
 
 bool IsAtmosphere()
@@ -94,28 +122,10 @@ bool IsAtmosphere()
     return R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &tmpc));
 }
 
-bool IsReiNX()
-{
-    Handle tmph = 0;
-    Result rc = smRegisterService(&tmph, "rnx", false, 1);
-    if(R_FAILED(rc)) return true;
-    smUnregisterService("rnx");
-    return false;
-}
-
-bool IsSXOS()
-{
-    Handle tmph = 0;
-    Result rc = smRegisterService(&tmph, "tx", false, 1);
-    if(R_FAILED(rc)) return true;
-    smUnregisterService("tx");
-    return false;
-}
-
 u64 GetCurrentApplicationId()
 {
     u64 appid = 0;
-    svcGetInfo(&appid, InfoType_TitleId, CUR_PROCESS_HANDLE, 0);
+    svcGetInfo(&appid, InfoType_ProgramId, CUR_PROCESS_HANDLE, 0);
     return appid;
 }
 
@@ -128,14 +138,24 @@ u32 RandomFromRange(u32 Min, u32 Max)
 
 void EnsureDirectories()
 {
-    fs::Explorer *nsys = fs::GetNANDSystemExplorer();
+    auto nsys = fs::GetNANDSystemExplorer();
+    auto sd = fs::GetSdCardExplorer();
     nsys->DeleteDirectory("Contents/temp");
     nsys->CreateDirectory("Contents/temp");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir);
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/meta");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/title");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/userdata");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/temp");
-    fs::CreateDirectory("sdmc:/" + GoldleafDir + "/dump/out");
+    sd->CreateDirectory(consts::Root);
+    sd->CreateDirectory(consts::Root + "/meta");
+    sd->CreateDirectory(consts::Root + "/title");
+    sd->CreateDirectory(consts::Root + "/dump");
+    sd->CreateDirectory(consts::Root + "/crash");
+    sd->CreateDirectory(consts::Root + "/amiibocache");
+    sd->CreateDirectory(consts::Root + "/userdata");
+    sd->CreateDirectory(consts::Root + "/dump/temp");
+    sd->CreateDirectory(consts::Root + "/dump/update");
+    sd->CreateDirectory(consts::Root + "/dump/title");
+}
+
+void Close()
+{
+    if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
+    else exit(0);
 }
