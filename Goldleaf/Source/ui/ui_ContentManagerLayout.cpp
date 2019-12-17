@@ -22,35 +22,35 @@
 #include <ui/ui_ContentManagerLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     ContentManagerLayout::ContentManagerLayout() : pu::ui::Layout()
     {
-        this->typesMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
-        this->typesMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        gsets.ApplyScrollBarColor(this->typesMenu);
+        this->typesMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
+        this->typesMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
+        global_settings.ApplyScrollBarColor(this->typesMenu);
         this->sdCardMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(19));
-        this->sdCardMenuItem->SetIcon(gsets.PathForResource("/Common/SdCard.png"));
-        this->sdCardMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->sdCardMenuItem->SetIcon(global_settings.PathForResource("/Common/SdCard.png"));
+        this->sdCardMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->sdCardMenuItem->AddOnClick(std::bind(&ContentManagerLayout::sdCardMenuItem_Click, this));
         this->nandUserMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(28));
-        this->nandUserMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
-        this->nandUserMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->nandUserMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
+        this->nandUserMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->nandUserMenuItem->AddOnClick(std::bind(&ContentManagerLayout::nandUserMenuItem_Click, this));
         this->nandSystemMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(29));
-        this->nandSystemMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
-        this->nandSystemMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->nandSystemMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
+        this->nandSystemMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->nandSystemMenuItem->AddOnClick(std::bind(&ContentManagerLayout::nandSystemMenuItem_Click, this));
         this->gameCartMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(190));
-        this->gameCartMenuItem->SetIcon(gsets.PathForResource("/Common/GameCart.png"));
-        this->gameCartMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->gameCartMenuItem->SetIcon(global_settings.PathForResource("/Common/GameCart.png"));
+        this->gameCartMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->gameCartMenuItem->AddOnClick(std::bind(&ContentManagerLayout::gameCartMenuItem_Click, this));
         this->unusedTicketsMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(287));
-        this->unusedTicketsMenuItem->SetIcon(gsets.PathForResource("/Common/Ticket.png"));
-        this->unusedTicketsMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->unusedTicketsMenuItem->SetIcon(global_settings.PathForResource("/Common/Ticket.png"));
+        this->unusedTicketsMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->unusedTicketsMenuItem->AddOnClick(std::bind(&ContentManagerLayout::unusedTicketsMenuItem_Click, this));
         this->typesMenu->AddItem(this->sdCardMenuItem);
         this->typesMenu->AddItem(this->nandUserMenuItem);
@@ -62,32 +62,32 @@ namespace ui
 
     void ContentManagerLayout::sdCardMenuItem_Click()
     {
-        mainapp->GetStorageContentsLayout()->LoadFromStorage(Storage::SdCard);
-        mainapp->LoadLayout(mainapp->GetStorageContentsLayout());
+        global_app->GetStorageContentsLayout()->LoadFromStorage(Storage::SdCard);
+        global_app->LoadLayout(global_app->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::nandUserMenuItem_Click()
     {
-        mainapp->GetStorageContentsLayout()->LoadFromStorage(Storage::NANDUser);
-        mainapp->LoadLayout(mainapp->GetStorageContentsLayout());
+        global_app->GetStorageContentsLayout()->LoadFromStorage(Storage::NANDUser);
+        global_app->LoadLayout(global_app->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::nandSystemMenuItem_Click()
     {
-        mainapp->GetStorageContentsLayout()->LoadFromStorage(Storage::NANDSystem);
-        mainapp->LoadLayout(mainapp->GetStorageContentsLayout());
+        global_app->GetStorageContentsLayout()->LoadFromStorage(Storage::NANDSystem);
+        global_app->LoadLayout(global_app->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::gameCartMenuItem_Click()
     {
-        mainapp->GetStorageContentsLayout()->LoadFromStorage(Storage::GameCart);
-        mainapp->LoadLayout(mainapp->GetStorageContentsLayout());
+        global_app->GetStorageContentsLayout()->LoadFromStorage(Storage::GameCart);
+        global_app->LoadLayout(global_app->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::unusedTicketsMenuItem_Click()
     {
-        mainapp->LoadMenuData(set::GetDictionaryEntry(34), "Ticket", set::GetDictionaryEntry(35));
-        mainapp->GetUnusedTicketsLayout()->UpdateElements(true);
-        mainapp->LoadLayout(mainapp->GetUnusedTicketsLayout());
+        global_app->LoadMenuData(set::GetDictionaryEntry(34), "Ticket", set::GetDictionaryEntry(35));
+        global_app->GetUnusedTicketsLayout()->UpdateElements(true);
+        global_app->LoadLayout(global_app->GetUnusedTicketsLayout());
     }
 }

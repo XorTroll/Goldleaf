@@ -21,59 +21,76 @@
 
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     extern String clipboard;
 
+    #define MAINAPP_MENU_SET_BASE(layout) { \
+        layout->SetBackgroundColor(global_settings.custom_scheme.Background); \
+        layout->Add(this->baseImage); \
+        layout->Add(this->timeText); \
+        layout->Add(this->batteryText); \
+        layout->Add(this->batteryImage); \
+        layout->Add(this->batteryChargeImage); \
+        layout->Add(this->menuImage); \
+        layout->Add(this->usbImage); \
+        layout->Add(this->connImage); \
+        layout->Add(this->ipText); \
+        layout->Add(this->menuNameText); \
+        layout->Add(this->menuHeadText); \
+        layout->Add(this->userImage); \
+        layout->Add(this->helpImage); \
+    }
+
     void MainApplication::OnLoad()
     {
-        gsets = set::ProcessSettings();
+        global_settings = set::ProcessSettings();
         set::Initialize();
         if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
 
-        pu::ui::render::SetDefaultFont(gsets.PathForResource("/Roboto-Medium.ttf"));
+        pu::ui::render::SetDefaultFont(global_settings.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
         this->seluser = {};
         this->preisch = false;
         this->pretime = "";
         this->vfirst = true;
         this->connstate = 0;
-        this->baseImage = pu::ui::elm::Image::New(0, 0, gsets.PathForResource("/Base.png"));
+        this->baseImage = pu::ui::elm::Image::New(0, 0, global_settings.PathForResource("/Base.png"));
         this->timeText = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
-        this->timeText->SetColor(gsets.CustomScheme.Text);
+        this->timeText->SetColor(global_settings.custom_scheme.Text);
         this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%", 20);
-        this->batteryText->SetColor(gsets.CustomScheme.Text);
-        this->batteryImage = pu::ui::elm::Image::New(960, 8, gsets.PathForResource("/Battery/0.png"));
-        this->batteryChargeImage = pu::ui::elm::Image::New(960, 8, gsets.PathForResource("/Battery/Charge.png"));
-        this->menuBanner = pu::ui::elm::Image::New(10, 62, gsets.PathForResource("/MenuBanner.png"));
-        this->menuImage = pu::ui::elm::Image::New(15, 69, gsets.PathForResource("/Common/SdCard.png"));
+        this->batteryText->SetColor(global_settings.custom_scheme.Text);
+        this->batteryImage = pu::ui::elm::Image::New(960, 8, global_settings.PathForResource("/Battery/0.png"));
+        this->batteryChargeImage = pu::ui::elm::Image::New(960, 8, global_settings.PathForResource("/Battery/Charge.png"));
+        this->menuBanner = pu::ui::elm::Image::New(10, 62, global_settings.PathForResource("/MenuBanner.png"));
+        this->menuImage = pu::ui::elm::Image::New(15, 69, global_settings.PathForResource("/Common/SdCard.png"));
         this->menuImage->SetWidth(85);
         this->menuImage->SetHeight(85);
-        this->userImage = ClickableImage::New(1090, 75, gsets.PathForResource("/Common/User.png"));
+        this->userImage = ClickableImage::New(1090, 75, global_settings.PathForResource("/Common/User.png"));
         this->userImage->SetWidth(70);
         this->userImage->SetHeight(70);
         this->userImage->SetOnClick(std::bind(&MainApplication::userImage_OnClick, this));
-        this->helpImage = ClickableImage::New(1180, 80, gsets.PathForResource("/Common/Help.png"));
+        this->helpImage = ClickableImage::New(1180, 80, global_settings.PathForResource("/Common/Help.png"));
         this->helpImage->SetWidth(60);
         this->helpImage->SetHeight(60);
         this->helpImage->SetOnClick(std::bind(&MainApplication::helpImage_OnClick, this));
-        this->usbImage = pu::ui::elm::Image::New(695, 12, gsets.PathForResource("/Common/USB.png"));
+        this->usbImage = pu::ui::elm::Image::New(695, 12, global_settings.PathForResource("/Common/USB.png"));
         this->usbImage->SetWidth(40);
         this->usbImage->SetHeight(40);
         this->usbImage->SetVisible(false);
-        this->connImage = pu::ui::elm::Image::New(755, 12, gsets.PathForResource("/Connection/None.png"));
+        this->connImage = pu::ui::elm::Image::New(755, 12, global_settings.PathForResource("/Connection/None.png"));
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
         this->ipText = pu::ui::elm::TextBlock::New(800, 20, "", 20);
-        this->ipText->SetColor(gsets.CustomScheme.Text);
+        this->ipText->SetColor(global_settings.custom_scheme.Text);
         this->menuNameText = pu::ui::elm::TextBlock::New(120, 85, "-");
-        this->menuNameText->SetColor(gsets.CustomScheme.Text);
+        this->menuNameText->SetColor(global_settings.custom_scheme.Text);
         this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-", 20);
-        this->menuHeadText->SetColor(gsets.CustomScheme.Text);
+        this->menuHeadText->SetColor(global_settings.custom_scheme.Text);
         this->UnloadMenuData();
         this->toast = pu::ui::extras::Toast::New(":", 20, pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
@@ -106,261 +123,34 @@ namespace ui
         this->memory = MemoryLayout::New();
         this->memory->SetOnInput(std::bind(&MainApplication::memory_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->update = UpdateLayout::New();
+        this->webBrowser = WebBrowserLayout::New();
+        this->webBrowser->SetOnInput(std::bind(&MainApplication::webBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->about = AboutLayout::New();
         this->about->SetOnInput(std::bind(&MainApplication::about_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        this->mainMenu->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->browser->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->exploreMenu->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->pcExplore->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->fileContent->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->copy->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->nspInstall->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->contentInformation->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->storageContents->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->contentManager->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->titleDump->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->unusedTickets->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->account->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->amiibo->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->settings->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->memory->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->update->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->about->SetBackgroundColor(gsets.CustomScheme.Background);
-        this->mainMenu->Add(this->baseImage);
-        this->browser->Add(this->baseImage);
-        this->exploreMenu->Add(this->baseImage);
-        this->pcExplore->Add(this->baseImage);
-        this->fileContent->Add(this->baseImage);
-        this->copy->Add(this->baseImage);
-        this->nspInstall->Add(this->baseImage);
-        this->contentInformation->Add(this->baseImage);
-        this->storageContents->Add(this->baseImage);
-        this->contentManager->Add(this->baseImage);
-        this->titleDump->Add(this->baseImage);
-        this->unusedTickets->Add(this->baseImage);
-        this->account->Add(this->baseImage);
-        this->amiibo->Add(this->baseImage);
-        this->settings->Add(this->baseImage);
-        this->memory->Add(this->baseImage);
-        this->update->Add(this->baseImage);
-        this->about->Add(this->baseImage);
-        this->mainMenu->Add(this->timeText);
-        this->browser->Add(this->timeText);
-        this->exploreMenu->Add(this->timeText);
-        this->pcExplore->Add(this->timeText);
-        this->fileContent->Add(this->timeText);
-        this->copy->Add(this->timeText);
-        this->nspInstall->Add(this->timeText);
-        this->contentInformation->Add(this->timeText);
-        this->storageContents->Add(this->timeText);
-        this->contentManager->Add(this->timeText);
-        this->titleDump->Add(this->timeText);
-        this->unusedTickets->Add(this->timeText);
-        this->account->Add(this->timeText);
-        this->amiibo->Add(this->timeText);
-        this->settings->Add(this->timeText);
-        this->memory->Add(this->timeText);
-        this->update->Add(this->timeText);
-        this->about->Add(this->timeText);
-        this->mainMenu->Add(this->batteryText);
-        this->browser->Add(this->batteryText);
-        this->exploreMenu->Add(this->batteryText);
-        this->pcExplore->Add(this->batteryText);
-        this->fileContent->Add(this->batteryText);
-        this->copy->Add(this->batteryText);
-        this->nspInstall->Add(this->batteryText);
-        this->contentInformation->Add(this->batteryText);
-        this->storageContents->Add(this->batteryText);
-        this->contentManager->Add(this->batteryText);
-        this->titleDump->Add(this->batteryText);
-        this->unusedTickets->Add(this->batteryText);
-        this->account->Add(this->batteryText);
-        this->amiibo->Add(this->batteryText);
-        this->settings->Add(this->batteryText);
-        this->memory->Add(this->batteryText);
-        this->update->Add(this->batteryText);
-        this->about->Add(this->batteryText);
-        this->mainMenu->Add(this->batteryImage);
-        this->browser->Add(this->batteryImage);
-        this->exploreMenu->Add(this->batteryImage);
-        this->pcExplore->Add(this->batteryImage);
-        this->fileContent->Add(this->batteryImage);
-        this->copy->Add(this->batteryImage);
-        this->nspInstall->Add(this->batteryImage);
-        this->contentInformation->Add(this->batteryImage);
-        this->storageContents->Add(this->batteryImage);
-        this->contentManager->Add(this->batteryImage);
-        this->titleDump->Add(this->batteryImage);
-        this->unusedTickets->Add(this->batteryImage);
-        this->account->Add(this->batteryImage);
-        this->amiibo->Add(this->batteryImage);
-        this->settings->Add(this->batteryImage);
-        this->memory->Add(this->batteryImage);
-        this->update->Add(this->batteryImage);
-        this->about->Add(this->batteryImage);
-        this->mainMenu->Add(this->batteryChargeImage);
-        this->browser->Add(this->batteryChargeImage);
-        this->exploreMenu->Add(this->batteryChargeImage);
-        this->pcExplore->Add(this->batteryChargeImage);
-        this->fileContent->Add(this->batteryChargeImage);
-        this->copy->Add(this->batteryChargeImage);
-        this->nspInstall->Add(this->batteryChargeImage);
-        this->contentInformation->Add(this->batteryChargeImage);
-        this->storageContents->Add(this->batteryChargeImage);
-        this->contentManager->Add(this->batteryChargeImage);
-        this->titleDump->Add(this->batteryChargeImage);
-        this->unusedTickets->Add(this->batteryChargeImage);
-        this->account->Add(this->batteryChargeImage);
-        this->amiibo->Add(this->batteryChargeImage);
-        this->settings->Add(this->batteryChargeImage);
-        this->memory->Add(this->batteryChargeImage);
-        this->update->Add(this->batteryChargeImage);
-        this->about->Add(this->batteryChargeImage);
-        this->mainMenu->Add(this->menuImage);
-        this->browser->Add(this->menuImage);
-        this->exploreMenu->Add(this->menuImage);
-        this->pcExplore->Add(this->menuImage);
-        this->fileContent->Add(this->menuImage);
-        this->copy->Add(this->menuImage);
-        this->nspInstall->Add(this->menuImage);
-        this->contentInformation->Add(this->menuImage);
-        this->storageContents->Add(this->menuImage);
-        this->contentManager->Add(this->menuImage);
-        this->titleDump->Add(this->menuImage);
-        this->unusedTickets->Add(this->menuImage);
-        this->account->Add(this->menuImage);
-        this->amiibo->Add(this->menuImage);
-        this->settings->Add(this->menuImage);
-        this->memory->Add(this->menuImage);
-        this->update->Add(this->menuImage);
-        this->about->Add(this->menuImage);
-        this->mainMenu->Add(this->usbImage);
-        this->browser->Add(this->usbImage);
-        this->exploreMenu->Add(this->usbImage);
-        this->pcExplore->Add(this->usbImage);
-        this->fileContent->Add(this->usbImage);
-        this->copy->Add(this->usbImage);
-        this->nspInstall->Add(this->usbImage);
-        this->contentInformation->Add(this->usbImage);
-        this->storageContents->Add(this->usbImage);
-        this->contentManager->Add(this->usbImage);
-        this->titleDump->Add(this->usbImage);
-        this->unusedTickets->Add(this->usbImage);
-        this->account->Add(this->usbImage);
-        this->amiibo->Add(this->usbImage);
-        this->settings->Add(this->usbImage);
-        this->memory->Add(this->usbImage);
-        this->update->Add(this->usbImage);
-        this->about->Add(this->usbImage);
-        this->mainMenu->Add(this->connImage);
-        this->browser->Add(this->connImage);
-        this->exploreMenu->Add(this->connImage);
-        this->pcExplore->Add(this->connImage);
-        this->fileContent->Add(this->connImage);
-        this->copy->Add(this->connImage);
-        this->nspInstall->Add(this->connImage);
-        this->contentInformation->Add(this->connImage);
-        this->storageContents->Add(this->connImage);
-        this->contentManager->Add(this->connImage);
-        this->titleDump->Add(this->connImage);
-        this->unusedTickets->Add(this->connImage);
-        this->account->Add(this->connImage);
-        this->amiibo->Add(this->connImage);
-        this->settings->Add(this->connImage);
-        this->memory->Add(this->connImage);
-        this->update->Add(this->connImage);
-        this->about->Add(this->connImage);
-        this->mainMenu->Add(this->ipText);
-        this->browser->Add(this->ipText);
-        this->exploreMenu->Add(this->ipText);
-        this->pcExplore->Add(this->ipText);
-        this->fileContent->Add(this->ipText);
-        this->copy->Add(this->ipText);
-        this->nspInstall->Add(this->ipText);
-        this->contentInformation->Add(this->ipText);
-        this->storageContents->Add(this->ipText);
-        this->contentManager->Add(this->ipText);
-        this->titleDump->Add(this->ipText);
-        this->unusedTickets->Add(this->ipText);
-        this->account->Add(this->ipText);
-        this->amiibo->Add(this->ipText);
-        this->settings->Add(this->ipText);
-        this->memory->Add(this->ipText);
-        this->update->Add(this->ipText);
-        this->about->Add(this->ipText);
+
+        MAINAPP_MENU_SET_BASE(this->mainMenu);
+        MAINAPP_MENU_SET_BASE(this->browser);
+        MAINAPP_MENU_SET_BASE(this->exploreMenu);
+        MAINAPP_MENU_SET_BASE(this->pcExplore);
+        MAINAPP_MENU_SET_BASE(this->fileContent);
+        MAINAPP_MENU_SET_BASE(this->copy);
+        MAINAPP_MENU_SET_BASE(this->nspInstall);
+        MAINAPP_MENU_SET_BASE(this->contentInformation);
+        MAINAPP_MENU_SET_BASE(this->storageContents);
+        MAINAPP_MENU_SET_BASE(this->contentManager);
+        MAINAPP_MENU_SET_BASE(this->titleDump);
+        MAINAPP_MENU_SET_BASE(this->unusedTickets);
+        MAINAPP_MENU_SET_BASE(this->account);
+        MAINAPP_MENU_SET_BASE(this->amiibo);
+        MAINAPP_MENU_SET_BASE(this->settings);
+        MAINAPP_MENU_SET_BASE(this->memory);
+        MAINAPP_MENU_SET_BASE(this->update);
+        MAINAPP_MENU_SET_BASE(this->webBrowser);
+        MAINAPP_MENU_SET_BASE(this->about);
+
+        // Special extras
         this->mainMenu->Add(this->menuBanner);
-        this->mainMenu->Add(this->menuNameText);
-        this->browser->Add(this->menuNameText);
-        this->exploreMenu->Add(this->menuNameText);
-        this->pcExplore->Add(this->menuNameText);
-        this->fileContent->Add(this->menuNameText);
-        this->copy->Add(this->menuNameText);
-        this->nspInstall->Add(this->menuNameText);
-        this->contentInformation->Add(this->menuNameText);
-        this->storageContents->Add(this->menuNameText);
-        this->contentManager->Add(this->menuNameText);
-        this->titleDump->Add(this->menuNameText);
-        this->unusedTickets->Add(this->menuNameText);
-        this->account->Add(this->menuNameText);
-        this->amiibo->Add(this->menuNameText);
-        this->settings->Add(this->menuNameText);
-        this->memory->Add(this->menuNameText);
-        this->update->Add(this->menuNameText);
-        this->about->Add(this->menuNameText);
-        this->mainMenu->Add(this->menuHeadText);
-        this->browser->Add(this->menuHeadText);
-        this->exploreMenu->Add(this->menuHeadText);
-        this->pcExplore->Add(this->menuHeadText);
-        this->fileContent->Add(this->menuHeadText);
-        this->copy->Add(this->menuHeadText);
-        this->nspInstall->Add(this->menuHeadText);
-        this->contentInformation->Add(this->menuHeadText);
-        this->storageContents->Add(this->menuHeadText);
-        this->contentManager->Add(this->menuHeadText);
-        this->titleDump->Add(this->menuHeadText);
-        this->unusedTickets->Add(this->menuHeadText);
-        this->account->Add(this->menuHeadText);
-        this->amiibo->Add(this->menuHeadText);
-        this->settings->Add(this->menuHeadText);
-        this->memory->Add(this->menuHeadText);
-        this->update->Add(this->menuHeadText);
-        this->about->Add(this->menuHeadText);
-        this->mainMenu->Add(this->userImage);
-        this->browser->Add(this->userImage);
-        this->exploreMenu->Add(this->userImage);
-        this->pcExplore->Add(this->userImage);
-        this->fileContent->Add(this->userImage);
-        this->copy->Add(this->userImage);
-        this->nspInstall->Add(this->userImage);
-        this->contentInformation->Add(this->userImage);
-        this->storageContents->Add(this->userImage);
-        this->contentManager->Add(this->userImage);
-        this->titleDump->Add(this->userImage);
-        this->unusedTickets->Add(this->userImage);
-        this->account->Add(this->userImage);
-        this->amiibo->Add(this->userImage);
-        this->settings->Add(this->userImage);
-        this->memory->Add(this->userImage);
-        this->update->Add(this->userImage);
-        this->about->Add(this->userImage);
-        this->mainMenu->Add(this->helpImage);
-        this->browser->Add(this->helpImage);
-        this->exploreMenu->Add(this->helpImage);
-        this->pcExplore->Add(this->helpImage);
-        this->fileContent->Add(this->helpImage);
-        this->copy->Add(this->helpImage);
-        this->nspInstall->Add(this->helpImage);
-        this->contentInformation->Add(this->helpImage);
-        this->storageContents->Add(this->helpImage);
-        this->contentManager->Add(this->helpImage);
-        this->titleDump->Add(this->helpImage);
-        this->unusedTickets->Add(this->helpImage);
-        this->account->Add(this->helpImage);
-        this->amiibo->Add(this->helpImage);
-        this->settings->Add(this->helpImage);
-        this->memory->Add(this->helpImage);
-        this->update->Add(this->helpImage);
-        this->about->Add(this->helpImage);
+
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->LoadLayout(this->mainMenu);
@@ -393,17 +183,17 @@ namespace ui
         bool isch = hos::IsCharging();
         if((this->preblv != blv) || this->vfirst)
         {
-            if(blv <= 10) this->batteryImage->SetImage(gsets.PathForResource("/Battery/0.png"));
-            else if((blv > 10) && (blv <= 20)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/10.png"));
-            else if((blv > 20) && (blv <= 30)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/20.png"));
-            else if((blv > 30) && (blv <= 40)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/30.png"));
-            else if((blv > 40) && (blv <= 50)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/40.png"));
-            else if((blv > 50) && (blv <= 60)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/50.png"));
-            else if((blv > 60) && (blv <= 70)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/60.png"));
-            else if((blv > 70) && (blv <= 80)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/70.png"));
-            else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/80.png"));
-            else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage(gsets.PathForResource("/Battery/90.png"));
-            else if(blv == 100) this->batteryImage->SetImage(gsets.PathForResource("/Battery/100.png"));
+            if(blv <= 10) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/0.png"));
+            else if((blv > 10) && (blv <= 20)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/10.png"));
+            else if((blv > 20) && (blv <= 30)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/20.png"));
+            else if((blv > 30) && (blv <= 40)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/30.png"));
+            else if((blv > 40) && (blv <= 50)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/40.png"));
+            else if((blv > 50) && (blv <= 60)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/50.png"));
+            else if((blv > 60) && (blv <= 70)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/60.png"));
+            else if((blv > 70) && (blv <= 80)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/70.png"));
+            else if((blv > 80) && (blv <= 90)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/80.png"));
+            else if((blv > 90) && (blv < 100)) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/90.png"));
+            else if(blv == 100) this->batteryImage->SetImage(global_settings.PathForResource("/Battery/100.png"));
             this->batteryText->SetText(std::to_string(blv) + "%");
             this->preblv = blv;
         }
@@ -427,7 +217,7 @@ namespace ui
         if(rc == 0) if(connstr > 0) connimg = std::to_string(connstr);
         if(connstr != this->connstate)
         {
-            this->connImage->SetImage(gsets.PathForResource("/Connection/" + connimg + ".png"));
+            this->connImage->SetImage(global_settings.PathForResource("/Connection/" + connimg + ".png"));
             this->connImage->SetWidth(40);
             this->connImage->SetHeight(40);
             this->connstate = connstr;
@@ -444,12 +234,12 @@ namespace ui
         if(!acc::UidCompare(&user, &this->seluser))
         {
             this->seluser = user;
-            if(!accountUidIsValid(&this->seluser)) this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+            if(!accountUidIsValid(&this->seluser)) this->userImage->SetImage(global_settings.PathForResource("/Common/User.png"));
             else
             {
                 auto usericon = acc::GetCachedUserIcon();
                 if(fs::Exists(usericon)) this->userImage->SetImage(usericon);
-                else this->userImage->SetImage(gsets.PathForResource("/Common/User.png"));
+                else this->userImage->SetImage(global_settings.PathForResource("/Common/User.png"));
             }
             this->userImage->SetWidth(70);
             this->userImage->SetHeight(70);
@@ -461,7 +251,7 @@ namespace ui
         if(this->menuImage != NULL)
         {
             this->menuImage->SetVisible(true);
-            if(CommonIcon) this->menuImage->SetImage(gsets.PathForResource("/Common/" + ImageName + ".png"));
+            if(CommonIcon) this->menuImage->SetImage(global_settings.PathForResource("/Common/" + ImageName + ".png"));
             else this->menuImage->SetImage(ImageName);
             this->menuImage->SetWidth(85);
             this->menuImage->SetHeight(85);
@@ -508,17 +298,17 @@ namespace ui
             {
                 bool cdir = this->browser->GetExplorer()->IsDirectory(clipboard);
                 std::string fsicon;
-                if(cdir) fsicon = gsets.PathForResource("/FileSystem/Directory.png");
+                if(cdir) fsicon = global_settings.PathForResource("/FileSystem/Directory.png");
                 else
                 {
                     String ext = fs::GetExtension(clipboard);
-                    if(ext == "nsp") fsicon = gsets.PathForResource("/FileSystem/NSP.png");
-                    else if(ext == "nro") fsicon = gsets.PathForResource("/FileSystem/NRO.png");
-                    else if(ext == "tik") fsicon = gsets.PathForResource("/FileSystem/TIK.png");
-                    else if(ext == "cert") fsicon = gsets.PathForResource("/FileSystem/CERT.png");
-                    else if(ext == "nca") fsicon = gsets.PathForResource("/FileSystem/NCA.png");
-                    else if(ext == "nxtheme") fsicon = gsets.PathForResource("/FileSystem/NXTheme.png");
-                    else fsicon = gsets.PathForResource("/FileSystem/File.png");
+                    if(ext == "nsp") fsicon = global_settings.PathForResource("/FileSystem/NSP.png");
+                    else if(ext == "nro") fsicon = global_settings.PathForResource("/FileSystem/NRO.png");
+                    else if(ext == "tik") fsicon = global_settings.PathForResource("/FileSystem/TIK.png");
+                    else if(ext == "cert") fsicon = global_settings.PathForResource("/FileSystem/CERT.png");
+                    else if(ext == "nca") fsicon = global_settings.PathForResource("/FileSystem/NCA.png");
+                    else if(ext == "nxtheme") fsicon = global_settings.PathForResource("/FileSystem/NXTheme.png");
+                    else fsicon = global_settings.PathForResource("/FileSystem/File.png");
                 }
                 int sopt = this->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
                 if(sopt == 0)
@@ -526,7 +316,7 @@ namespace ui
                     String cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
                     this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer());
-                    mainapp->LoadLayout(this->browser);
+                    global_app->LoadLayout(this->browser);
                     this->browser->UpdateElements();
                     clipboard = "";
                 }
@@ -666,6 +456,15 @@ namespace ui
         }
     }
 
+    void MainApplication::webBrowser_Input(u64 down, u64 up, u64 held)
+    {
+        if(down & KEY_B)
+        {
+            this->UnloadMenuData();
+            this->LoadLayout(this->mainMenu);
+        }
+    }
+
     void MainApplication::about_Input(u64 down, u64 up, u64 held)
     {
         if(down & KEY_B)
@@ -781,6 +580,11 @@ namespace ui
         return this->update;
     }
 
+    WebBrowserLayout::Ref &MainApplication::GetWebBrowserLayout()
+    {
+        return this->webBrowser;
+    }
+
     AboutLayout::Ref &MainApplication::GetAboutLayout()
     {
         return this->about;
@@ -789,9 +593,8 @@ namespace ui
     void UpdateClipboard(String Path)
     {
         SetClipboard(Path);
-        String copymsg;
-        if(mainapp->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
-        else copymsg = set::GetDictionaryEntry(258);
-        mainapp->ShowNotification(copymsg);
+        String copymsg = set::GetDictionaryEntry(258);
+        if(global_app->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
+        global_app->ShowNotification(copymsg);
     }
 }

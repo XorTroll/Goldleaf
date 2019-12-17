@@ -22,16 +22,16 @@
 #include <ui/ui_ContentInformationLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     ContentInformationLayout::ContentInformationLayout()
     {
-        this->optionsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
-        this->optionsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        gsets.ApplyScrollBarColor(this->optionsMenu);
+        this->optionsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
+        this->optionsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
+        global_settings.ApplyScrollBarColor(this->optionsMenu);
         this->Add(this->optionsMenu);
     }
 
@@ -44,7 +44,7 @@ namespace ui
             if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
             if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(this->tcontents[i].ApplicationId));
             auto subcnt = pu::ui::elm::MenuItem::New(name);
-            subcnt->SetColor(gsets.CustomScheme.Text);
+            subcnt->SetColor(global_settings.custom_scheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
             this->optionsMenu->AddItem(subcnt);
         }
@@ -123,27 +123,27 @@ namespace ui
 
         if(cnt.Location == Storage::GameCart)
         {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
+            global_app->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
             return;
         }
         if(hastik) opts.push_back(set::GetDictionaryEntry(293));
         if(cnt.Location != Storage::NANDSystem) opts.push_back(set::GetDictionaryEntry(319));
         opts.push_back(set::GetDictionaryEntry(18));
-        int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
+        int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
         if(sopt < 0) return;
         if(sopt == 0)
         {
             if(cnt.Location == Storage::NANDSystem)
             {
-                mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(185), { set::GetDictionaryEntry(234) }, true);
+                global_app->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(185), { set::GetDictionaryEntry(234) }, true);
                 return;
             }
-            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             bool remtik = false;
             if(hastik)
             {
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
+                int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
                 if(sopt < 0) return;
                 remtik = (sopt == 0);
             }
@@ -153,9 +153,9 @@ namespace ui
                 if(remtik) rc = hos::RemoveTicket(stik);
                 if(rc == 0)
                 {
-                    mainapp->ShowNotification(set::GetDictionaryEntry(246));
-                    mainapp->UnloadMenuData();
-                    mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                    global_app->ShowNotification(set::GetDictionaryEntry(246));
+                    global_app->UnloadMenuData();
+                    global_app->LoadLayout(global_app->GetMainMenuLayout());
                 }
                 else HandleResult(rc, set::GetDictionaryEntry(247));
             }
@@ -163,24 +163,24 @@ namespace ui
         }
         else if(sopt == 1)
         {
-            sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             if(sopt == 0)
             {
-                mainapp->LoadLayout(mainapp->GetTitleDumperLayout());
-                mainapp->GetTitleDumperLayout()->StartDump(cnt, hastik);
-                mainapp->UnloadMenuData();
-                mainapp->LoadLayout(mainapp->GetMainMenuLayout());
+                global_app->LoadLayout(global_app->GetTitleDumperLayout());
+                global_app->GetTitleDumperLayout()->StartDump(cnt, hastik);
+                global_app->UnloadMenuData();
+                global_app->LoadLayout(global_app->GetMainMenuLayout());
             }
         }
         else if(hastik && (sopt == 2))
         {
-            sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             Result rc = es::DeleteTicket(&stik.RId, sizeof(es::RightsId));
             if(rc == 0)
             {
-                mainapp->ShowNotification(set::GetDictionaryEntry(206));
+                global_app->ShowNotification(set::GetDictionaryEntry(206));
                 this->UpdateElements();
             }
             else HandleResult(rc, set::GetDictionaryEntry(207));
@@ -190,7 +190,7 @@ namespace ui
             auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
             if(rc == 0)
             {
-                mainapp->ShowNotification(set::GetDictionaryEntry(322));
+                global_app->ShowNotification(set::GetDictionaryEntry(322));
                 this->UpdateElements();
             }
             else HandleResult(rc, set::GetDictionaryEntry(234));
@@ -221,7 +221,7 @@ namespace ui
             delete[] cicon;
             cicon = NULL;
         }
-        mainapp->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);
+        global_app->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);
         this->UpdateElements();
     }
 }

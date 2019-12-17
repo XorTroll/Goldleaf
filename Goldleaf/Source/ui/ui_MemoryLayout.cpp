@@ -22,37 +22,37 @@
 #include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     MemoryLayout::MemoryLayout() : pu::ui::Layout()
     {
         this->sdText = pu::ui::elm::TextBlock::New(125, 300, set::GetDictionaryEntry(19), 35);
-        this->sdText->SetColor(gsets.CustomScheme.Text);
+        this->sdText->SetColor(global_settings.custom_scheme.Text);
         this->sdBar = pu::ui::elm::ProgressBar::New(120, 345, 450, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->sdBar);
+        global_settings.ApplyProgressBarColor(this->sdBar);
         this->sdFreeText = pu::ui::elm::TextBlock::New(125, 385, "0 bytes " + set::GetDictionaryEntry(221));
-        this->sdFreeText->SetColor(gsets.CustomScheme.Text);
+        this->sdFreeText->SetColor(global_settings.custom_scheme.Text);
         this->nandText = pu::ui::elm::TextBlock::New(615, 300, set::GetDictionaryEntry(79), 35);
-        this->nandText->SetColor(gsets.CustomScheme.Text);
+        this->nandText->SetColor(global_settings.custom_scheme.Text);
         this->nandBar = pu::ui::elm::ProgressBar::New(620, 345, 450, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->nandBar);
+        global_settings.ApplyProgressBarColor(this->nandBar);
         this->nandFreeText = pu::ui::elm::TextBlock::New(620, 385, "0 bytes " + set::GetDictionaryEntry(221));
-        this->nandFreeText->SetColor(gsets.CustomScheme.Text);
+        this->nandFreeText->SetColor(global_settings.custom_scheme.Text);
         this->safeText = pu::ui::elm::TextBlock::New(105, 480, set::GetDictionaryEntry(27));
-        this->safeText->SetColor(gsets.CustomScheme.Text);
+        this->safeText->SetColor(global_settings.custom_scheme.Text);
         this->safeBar = pu::ui::elm::ProgressBar::New(100, 515, 300, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->safeBar);
+        global_settings.ApplyProgressBarColor(this->safeBar);
         this->userText = pu::ui::elm::TextBlock::New(455, 480, set::GetDictionaryEntry(28));
-        this->userText->SetColor(gsets.CustomScheme.Text);
+        this->userText->SetColor(global_settings.custom_scheme.Text);
         this->userBar = pu::ui::elm::ProgressBar::New(450, 515, 300, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->userBar);
+        global_settings.ApplyProgressBarColor(this->userBar);
         this->systemText = pu::ui::elm::TextBlock::New(805, 480, set::GetDictionaryEntry(29));
-        this->systemText->SetColor(gsets.CustomScheme.Text);
+        this->systemText->SetColor(global_settings.custom_scheme.Text);
         this->systemBar = pu::ui::elm::ProgressBar::New(800, 515, 300, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->systemBar);
+        global_settings.ApplyProgressBarColor(this->systemBar);
         this->Add(this->sdText);
         this->Add(this->sdBar);
         this->Add(this->sdFreeText);

@@ -89,6 +89,7 @@ enum class Storage
 
 enum class Language
 {
+    Invalid,
     English,
     Spanish,
     German,
@@ -96,6 +97,9 @@ enum class Language
     Italian,
     Dutch,
 };
+
+std::string LanguageToString(Language lang);
+Language StringToLanguage(std::string str);
 
 struct ColorScheme
 {

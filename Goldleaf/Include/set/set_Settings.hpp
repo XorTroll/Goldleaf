@@ -26,30 +26,31 @@ namespace set
 {
     struct WebBookmark
     {
-        std::string Name;
-        std::string URL;
+        std::string name;
+        std::string url;
     };
+
+    #define SET_OPTIONAL_VALUE(type, name) \
+    type name; \
+    bool has_##name;
 
     struct Settings
     {
-        Language CustomLanguage;
-        std::string KeysPath;
-        std::string ExternalRomFs;
-        ColorScheme CustomScheme;
-        u32 MenuItemSize;
-        bool HasScrollBar;
-        pu::ui::Color ScrollBarColor;
-        bool HasProgressBar;
-        pu::ui::Color ProgressBarColor;
-        bool IgnoreRequiredFirmwareVersion;
-        std::vector<WebBookmark> Bookmarks;
+        SET_OPTIONAL_VALUE(Language, custom_lang)
+        SET_OPTIONAL_VALUE(std::string, external_romfs)
+        SET_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
+        SET_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
+        SET_OPTIONAL_VALUE(ColorScheme, custom_scheme)
+        SET_OPTIONAL_VALUE(u32, menu_item_size)
 
+        bool ignore_required_fw_ver;
+        std::vector<WebBookmark> bookmarks;
+
+        void Save();
         std::string PathForResource(std::string Path);
         void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &Menu);
         void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar);
     };
-
-    static const std::string SettingsFile = "sdmc:/" + consts::Root + "/settings.json";
 
     Settings ProcessSettings();
     bool Exists();

@@ -22,16 +22,16 @@
 #include <ui/ui_FileContentLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     FileContentLayout::FileContentLayout()
     {
         this->cntText = pu::ui::elm::TextBlock::New(40, 180, "");
-        this->cntText->SetColor(gsets.CustomScheme.Text);
-        this->cntText->SetFont(pu::ui::render::LoadFont(gsets.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
+        this->cntText->SetColor(global_settings.custom_scheme.Text);
+        this->cntText->SetFont(pu::ui::render::LoadFont(global_settings.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
         this->Add(this->cntText);
         this->loffset = 0;
     }

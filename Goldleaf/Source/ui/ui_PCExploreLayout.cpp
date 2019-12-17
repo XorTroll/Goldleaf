@@ -22,16 +22,16 @@
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     PCExploreLayout::PCExploreLayout() : pu::ui::Layout()
     {
-        this->pathsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
-        this->pathsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        gsets.ApplyScrollBarColor(this->pathsMenu);
+        this->pathsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
+        this->pathsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
+        global_settings.ApplyScrollBarColor(this->pathsMenu);
         this->Add(this->pathsMenu);
     }
 
@@ -76,15 +76,15 @@ namespace ui
         for(u32 i = 0; i < this->names.size(); i++)
         {
             auto itm = pu::ui::elm::MenuItem::New(this->names[i]);
-            itm->SetColor(gsets.CustomScheme.Text);
-            if(i < drivecount) itm->SetIcon(gsets.PathForResource("/Common/Drive.png"));
-            else itm->SetIcon(gsets.PathForResource("/FileSystem/Directory.png"));
+            itm->SetColor(global_settings.custom_scheme.Text);
+            if(i < drivecount) itm->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
+            else itm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
             itm->AddOnClick(std::bind(&PCExploreLayout::path_Click, this));
             this->pathsMenu->AddItem(itm);
         }
         auto fselitm = pu::ui::elm::MenuItem::New("Select file from PC");
-        fselitm->SetColor(gsets.CustomScheme.Text);
-        fselitm->SetIcon(gsets.PathForResource("/FileSystem/File.png"));
+        fselitm->SetColor(global_settings.custom_scheme.Text);
+        fselitm->SetIcon(global_settings.PathForResource("/FileSystem/File.png"));
         fselitm->AddOnClick(std::bind(&PCExploreLayout::fileSelect_Click, this));
         this->pathsMenu->AddItem(fselitm);
         this->pathsMenu->SetSelectedIndex(0);
@@ -93,14 +93,14 @@ namespace ui
     void PCExploreLayout::path_Click()
     {
         u32 idx = this->pathsMenu->GetSelectedIndex();
-        mainapp->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
-        mainapp->LoadLayout(mainapp->GetBrowserLayout());
+        global_app->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
+        global_app->LoadLayout(global_app->GetBrowserLayout());
     }
 
     void PCExploreLayout::fileSelect_Click()
     {
         String selfile;
         auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selfile));
-        if(R_SUCCEEDED(rc)) mainapp->GetBrowserLayout()->HandleFileDirectly(selfile);
+        if(R_SUCCEEDED(rc)) global_app->GetBrowserLayout()->HandleFileDirectly(selfile);
     }
 }

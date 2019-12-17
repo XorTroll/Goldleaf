@@ -22,8 +22,8 @@
 #include <ui/ui_CopyLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
@@ -31,9 +31,9 @@ namespace ui
     {
         this->infoText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->infoText->SetColor(gsets.CustomScheme.Text);
+        this->infoText->SetColor(global_settings.custom_scheme.Text);
         this->copyBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->copyBar);
+        global_settings.ApplyProgressBarColor(this->copyBar);
         this->Add(this->infoText);
         this->Add(this->copyBar);
     }
@@ -46,15 +46,15 @@ namespace ui
             {
                 this->copyBar->SetMaxValue(total);
                 this->copyBar->SetProgress(done);
-                mainapp->CallForRender();
+                global_app->CallForRender();
             });
-            mainapp->ShowNotification(set::GetDictionaryEntry(141));
+            global_app->ShowNotification(set::GetDictionaryEntry(141));
         }
         else
         {
             if(Exp->IsFile(NewPath))
             {
-                int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
+                int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
                 if(sopt < 0) return;
             }
             fs::DeleteFile(NewPath);
@@ -62,9 +62,9 @@ namespace ui
             {
                 this->copyBar->SetMaxValue(total);
                 this->copyBar->SetProgress(done);
-                mainapp->CallForRender();
+                global_app->CallForRender();
             });
-            mainapp->ShowNotification(set::GetDictionaryEntry(240));
+            global_app->ShowNotification(set::GetDictionaryEntry(240));
         }
     }
 }

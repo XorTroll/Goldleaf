@@ -21,8 +21,8 @@
 
 #include <ui/ui_MainApplication.hpp>
 
-ui::MainApplication::Ref mainapp;
-set::Settings gsets;
+ui::MainApplication::Ref global_app;
+set::Settings global_settings;
 bool gupdated = false;
 
 int main()
@@ -31,10 +31,10 @@ int main()
     if(R_FAILED(rc)) fatalThrow(rc);
 
     auto renderer = pu::ui::render::Renderer::New(SDL_INIT_EVERYTHING, pu::ui::render::RendererInitOptions::RendererNoSound, pu::ui::render::RendererHardwareFlags);
-    mainapp = ui::MainApplication::New(renderer);
+    global_app = ui::MainApplication::New(renderer);
 
-    mainapp->Prepare();
-    mainapp->ShowWithFadeIn();
+    global_app->Prepare();
+    global_app->ShowWithFadeIn();
 
     Exit();
     return 0;

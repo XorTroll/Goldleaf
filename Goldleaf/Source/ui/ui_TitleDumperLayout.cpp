@@ -22,8 +22,8 @@
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
@@ -31,10 +31,10 @@ namespace ui
     {
         this->dumpText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->dumpText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->dumpText->SetColor(gsets.CustomScheme.Text);
+        this->dumpText->SetColor(global_settings.custom_scheme.Text);
         this->ncaBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         this->ncaBar->SetVisible(false);
-        gsets.ApplyProgressBarColor(this->ncaBar);
+        global_settings.ApplyProgressBarColor(this->ncaBar);
         this->Add(this->dumpText);
         this->Add(this->ncaBar);
     }
@@ -42,22 +42,22 @@ namespace ui
     void TitleDumperLayout::StartDump(hos::Title &Target, bool HasTicket)
     {
         EnsureDirectories();
-        mainapp->CallForRender();
+        global_app->CallForRender();
         NcmStorageId stid = static_cast<NcmStorageId>(Target.Location);
         String fappid = hos::FormatApplicationId(Target.ApplicationId);
         String outdir = "sdmc:/" + consts::Root + "/dump/title/" + fappid;
         fs::CreateDirectory(outdir);
         this->dumpText->SetText(set::GetDictionaryEntry(192));
-        mainapp->CallForRender();
+        global_app->CallForRender();
         if(HasTicket) dump::GenerateTicketCert(Target.ApplicationId);
         this->dumpText->SetText(set::GetDictionaryEntry(193));
-        mainapp->CallForRender();
+        global_app->CallForRender();
         NcmContentStorage cst;
         Result rc = ncmOpenContentStorage(&cst, stid);
         if(rc != 0)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
-            mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            global_app->LoadLayout(global_app->GetContentManagerLayout());
             return;
         }
         NcmContentMetaDatabase cmdb;
@@ -65,7 +65,7 @@ namespace ui
         if(rc != 0)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
-            mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            global_app->LoadLayout(global_app->GetContentManagerLayout());
             serviceClose(&cst.s);
             return;
         }
@@ -75,7 +75,7 @@ namespace ui
         if(!ok)
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
-            mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+            global_app->LoadLayout(global_app->GetContentManagerLayout());
             serviceClose(&cst.s);
             serviceClose(&cmdb.s);
             return;
@@ -126,7 +126,7 @@ namespace ui
             {
                 this->ncaBar->SetMaxValue(Total);
                 this->ncaBar->SetProgress(Done);
-                mainapp->CallForRender();
+                global_app->CallForRender();
             });
             this->ncaBar->SetVisible(false);
             if(hasprogram)
@@ -138,7 +138,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(Total);
                     this->ncaBar->SetProgress(Done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
             }
@@ -151,7 +151,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(Total);
                     this->ncaBar->SetProgress(Done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
             }
@@ -164,7 +164,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(Total);
                     this->ncaBar->SetProgress(Done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
             }
@@ -177,7 +177,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(Total);
                     this->ncaBar->SetProgress(Done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
             }
@@ -190,7 +190,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(Total);
                     this->ncaBar->SetProgress(Done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
             }
@@ -203,7 +203,7 @@ namespace ui
             else
             {
                 HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
-                mainapp->LoadLayout(mainapp->GetContentManagerLayout());
+                global_app->LoadLayout(global_app->GetContentManagerLayout());
                 serviceClose(&cst.s);
                 serviceClose(&cmdb.s);
                 hos::UnlockAutoSleep();
@@ -218,7 +218,7 @@ namespace ui
             {
                 this->ncaBar->SetMaxValue(total);
                 this->ncaBar->SetProgress(done);
-                mainapp->CallForRender();
+                global_app->CallForRender();
             });
             this->ncaBar->SetVisible(false);
             xmeta = txmeta;
@@ -232,7 +232,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(total);
                     this->ncaBar->SetProgress(done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
                 xprogram = txprogram;
@@ -247,7 +247,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(total);
                     this->ncaBar->SetProgress(done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
                 xcontrol = txcontrol;
@@ -262,7 +262,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(total);
                     this->ncaBar->SetProgress(done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
                 xlinfo = txlinfo;
@@ -277,7 +277,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(total);
                     this->ncaBar->SetProgress(done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
                 xhoff = txhoff;
@@ -292,7 +292,7 @@ namespace ui
                 {
                     this->ncaBar->SetMaxValue(total);
                     this->ncaBar->SetProgress(done);
-                    mainapp->CallForRender();
+                    global_app->CallForRender();
                 });
                 this->ncaBar->SetVisible(false);
                 xdata = txdata;
@@ -306,12 +306,12 @@ namespace ui
         {
             this->ncaBar->SetMaxValue((double)total);
             this->ncaBar->SetProgress((double)done);
-            mainapp->CallForRender();
+            global_app->CallForRender();
         });
         hos::UnlockAutoSleep();
         fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump/temp");
         fs::DeleteDirectory(outdir);
-        if(ok) mainapp->ShowNotification(set::GetDictionaryEntry(197) + " '" + fout + "'");
+        if(ok) global_app->ShowNotification(set::GetDictionaryEntry(197) + " '" + fout + "'");
         else
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotBuildNSP), set::GetDictionaryEntry(198));

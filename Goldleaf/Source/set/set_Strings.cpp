@@ -22,14 +22,14 @@
 #include <set/set_Strings.hpp>
 #include <fs/fs_Common.hpp>
 
-extern set::Settings gsets;
+extern set::Settings global_settings;
 
 namespace set
 {
     void Initialize()
     {
         std::string pdict = "en"; // By default
-        switch(gsets.CustomLanguage)
+        switch(global_settings.custom_lang)
         {
             case Language::English:
                 pdict = "en";
@@ -51,15 +51,15 @@ namespace set
                 break;
         }
         pdict += ".json";
-        MainDictionary.DictLanguage = gsets.CustomLanguage;
-        std::ifstream ifs(gsets.PathForResource("/Language/Strings/" + pdict));
+        MainDictionary.DictLanguage = global_settings.custom_lang;
+        std::ifstream ifs(global_settings.PathForResource("/Language/Strings/" + pdict));
         if(ifs.good())
         {
             try { MainDictionary.Strings = JSON::parse(ifs); } catch(std::exception&) {}
             ifs.close();
         }
-        Errors.DictLanguage = gsets.CustomLanguage;
-        ifs.open(gsets.PathForResource("/Language/Errors/" + pdict));
+        Errors.DictLanguage = global_settings.custom_lang;
+        ifs.open(global_settings.PathForResource("/Language/Errors/" + pdict));
         if(ifs.good())
         {
             try { Errors.Strings = JSON::parse(ifs); } catch(std::exception&) {}

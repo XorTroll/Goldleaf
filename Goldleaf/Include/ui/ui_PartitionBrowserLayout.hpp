@@ -38,8 +38,8 @@ namespace ui
             void HandleFileDirectly(String Path);
             bool GoBack();
             bool WarnNANDWriteAccess();
-            void fsItems_Click();
-            void fsItems_Click_Y();
+            void fsItems_Click(String item);
+            void fsItems_Click_Y(String item);
             fs::Explorer *GetExplorer();
         private:
             fs::Explorer *gexp;

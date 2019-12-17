@@ -34,6 +34,41 @@ namespace consts
     std::string TempUpdatePath = Root + "/UpdateTemp.nro";
 }
 
+std::string LanguageToString(Language lang)
+{
+    std::string langstr;
+    switch(lang)
+    {
+        case Language::English:
+            return "en";
+        case Language::Spanish:
+            return "es";
+        case Language::German:
+            return "de";
+        case Language::French:
+            return "fr";
+        case Language::Invalid:
+            return "it";
+        case Language::Dutch:
+            return "nl";
+        default:
+            break;
+    }
+    return langstr;
+}
+
+Language StringToLanguage(std::string str)
+{
+    auto lang = Language::Invalid;
+    if(str == "en") lang = Language::English;
+    else if(str == "es") lang = Language::Spanish;
+    else if(str == "de") lang = Language::German;
+    else if(str == "fr") lang = Language::French;
+    else if(str == "it") lang = Language::Italian;
+    else if(str == "nl") lang = Language::Dutch;
+    return lang;
+}
+
 String Version::AsString()
 {
     String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);

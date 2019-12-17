@@ -38,6 +38,7 @@
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
+#include <ui/ui_WebBrowserLayout.hpp>
 
 #include <ui/ui_ClickableImage.hpp>
 
@@ -68,6 +69,7 @@ namespace ui
             void amiibo_Input(u64 down, u64 up, u64 held);
             void settings_Input(u64 down, u64 up, u64 held);
             void memory_Input(u64 down, u64 up, u64 held);
+            void webBrowser_Input(u64 down, u64 up, u64 held);
             void about_Input(u64 down, u64 up, u64 held);
             void userImage_OnClick();
             void helpImage_OnClick();
@@ -90,7 +92,9 @@ namespace ui
             SettingsLayout::Ref &GetSettingsLayout();
             MemoryLayout::Ref &GetMemoryLayout();
             UpdateLayout::Ref &GetUpdateLayout();
+            WebBrowserLayout::Ref &GetWebBrowserLayout();
             AboutLayout::Ref &GetAboutLayout();
+            
         private:
             u32 preblv;
             bool preisch;
@@ -116,6 +120,7 @@ namespace ui
             SettingsLayout::Ref settings;
             MemoryLayout::Ref memory;
             UpdateLayout::Ref update;
+            WebBrowserLayout::Ref webBrowser;
             AboutLayout::Ref about;
             pu::ui::elm::Image::Ref baseImage;
             pu::ui::elm::TextBlock::Ref timeText;

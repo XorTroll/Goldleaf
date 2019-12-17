@@ -29,7 +29,7 @@
 #include <dirent.h>
 #include <chrono>
 
-extern set::Settings gsets;
+extern set::Settings global_settings;
 
 namespace nsp
 {
@@ -141,7 +141,7 @@ namespace nsp
             ncmContentStorageHas(&cst, &hascnmt, &record.ContentId);
             serviceClose(&cst.s);
             if(!hascnmt) ncas.push_back(record);
-            cnmt.GetInstallContentMeta(ccnmt, record, gsets.IgnoreRequiredFirmwareVersion);
+            cnmt.GetInstallContentMeta(ccnmt, record, global_settings.ignore_required_fw_ver);
             baseappid = hos::GetBaseApplicationId(mrec.id, static_cast<ncm::ContentMetaType>(mrec.type));
             auto recs = cnmt.GetContentRecords();
             memset(&entrynacp, 0, sizeof(entrynacp));

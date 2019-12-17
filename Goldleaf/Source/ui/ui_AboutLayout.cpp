@@ -22,14 +22,14 @@
 #include <ui/ui_AboutLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     AboutLayout::AboutLayout()
     {
-        this->logoImage = pu::ui::elm::Image::New(85, 150, gsets.PathForResource("/Logo.png"));
+        this->logoImage = pu::ui::elm::Image::New(85, 150, global_settings.PathForResource("/Logo.png"));
         this->Add(this->logoImage);
     }
 }

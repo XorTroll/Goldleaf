@@ -22,39 +22,39 @@
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     ExploreMenuLayout::ExploreMenuLayout() : pu::ui::Layout()
     {
-        this->mountsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
-        this->mountsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        gsets.ApplyScrollBarColor(this->mountsMenu);
+        this->mountsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
+        this->mountsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
+        global_settings.ApplyScrollBarColor(this->mountsMenu);
         this->sdCardMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(19));
-        this->sdCardMenuItem->SetIcon(gsets.PathForResource("/Common/SdCard.png"));
-        this->sdCardMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->sdCardMenuItem->SetIcon(global_settings.PathForResource("/Common/SdCard.png"));
+        this->sdCardMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->sdCardMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::sdCard_Click, this));
         this->pcDriveMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(279));
-        this->pcDriveMenuItem->SetIcon(gsets.PathForResource("/Common/Drive.png"));
-        this->pcDriveMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->pcDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
+        this->pcDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->pcDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::pcDrive_Click, this));
         this->nandProfInfoFMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(20) + " (PRODINFOF)");
-        this->nandProfInfoFMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
-        this->nandProfInfoFMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->nandProfInfoFMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
+        this->nandProfInfoFMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->nandProfInfoFMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandProdInfoF_Click, this));
         this->nandSafeMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(20) + " (SAFE)");
-        this->nandSafeMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
-        this->nandSafeMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->nandSafeMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
+        this->nandSafeMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->nandSafeMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandSafe_Click, this));
         this->nandUserMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(20) + " (USER)");
-        this->nandUserMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
-        this->nandUserMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->nandUserMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
+        this->nandUserMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->nandUserMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandUser_Click, this));
         this->nandSystemMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(20) + " (SYSTEM)");
-        this->nandSystemMenuItem->SetIcon(gsets.PathForResource("/Common/NAND.png"));
-        this->nandSystemMenuItem->SetColor(gsets.CustomScheme.Text);
+        this->nandSystemMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
+        this->nandSystemMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->nandSystemMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandSystem_Click, this));
         this->mountsMenu->AddItem(this->sdCardMenuItem);
         this->mountsMenu->AddItem(this->pcDriveMenuItem);
@@ -67,47 +67,47 @@ namespace ui
 
     void ExploreMenuLayout::sdCard_Click()
     {
-        mainapp->GetBrowserLayout()->ChangePartitionSdCard();
-        mainapp->LoadMenuData(set::GetDictionaryEntry(19), "SdCard", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        mainapp->LoadLayout(mainapp->GetBrowserLayout());
+        global_app->GetBrowserLayout()->ChangePartitionSdCard();
+        global_app->LoadMenuData(set::GetDictionaryEntry(19), "SdCard", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        global_app->LoadLayout(global_app->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::pcDrive_Click()
     {
         if(!usb::detail::IsStateOk())
         {
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(299), set::GetDictionaryEntry(300), { set::GetDictionaryEntry(234) }, true);
+            global_app->CreateShowDialog(set::GetDictionaryEntry(299), set::GetDictionaryEntry(300), { set::GetDictionaryEntry(234) }, true);
             return;
         }
-        mainapp->GetPCExploreLayout()->UpdatePaths();
-        mainapp->LoadLayout(mainapp->GetPCExploreLayout());
+        global_app->GetPCExploreLayout()->UpdatePaths();
+        global_app->LoadLayout(global_app->GetPCExploreLayout());
     }
 
     void ExploreMenuLayout::nandProdInfoF_Click()
     {
-        mainapp->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::PRODINFOF);
-        mainapp->LoadMenuData(set::GetDictionaryEntry(1), "NAND", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        mainapp->LoadLayout(mainapp->GetBrowserLayout());
+        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::PRODINFOF);
+        global_app->LoadMenuData(set::GetDictionaryEntry(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        global_app->LoadLayout(global_app->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandSafe_Click()
     {
-        mainapp->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSafe);
-        mainapp->LoadMenuData(set::GetDictionaryEntry(1), "NAND", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        mainapp->LoadLayout(mainapp->GetBrowserLayout());
+        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSafe);
+        global_app->LoadMenuData(set::GetDictionaryEntry(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        global_app->LoadLayout(global_app->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandUser_Click()
     {
-        mainapp->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDUser);
-        mainapp->LoadMenuData(set::GetDictionaryEntry(1), "NAND", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        mainapp->LoadLayout(mainapp->GetBrowserLayout());
+        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDUser);
+        global_app->LoadMenuData(set::GetDictionaryEntry(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        global_app->LoadLayout(global_app->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandSystem_Click()
     {
-        mainapp->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSystem);
-        mainapp->LoadMenuData(set::GetDictionaryEntry(1), "NAND", mainapp->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        mainapp->LoadLayout(mainapp->GetBrowserLayout());
+        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSystem);
+        global_app->LoadMenuData(set::GetDictionaryEntry(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        global_app->LoadLayout(global_app->GetBrowserLayout());
     }
 }

@@ -22,8 +22,8 @@
 #include <ui/ui_Utils.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
@@ -51,7 +51,7 @@ namespace ui
 
     void ShowPowerTasksDialog(String Title, String Message)
     {
-        int sopt = mainapp->CreateShowDialog(Title, Message, { set::GetDictionaryEntry(233), set::GetDictionaryEntry(232), set::GetDictionaryEntry(18) }, true);
+        int sopt = global_app->CreateShowDialog(Title, Message, { set::GetDictionaryEntry(233), set::GetDictionaryEntry(232), set::GetDictionaryEntry(18) }, true);
         if(sopt < 0) return;
         spsmInitialize();
         spsmShutdown(sopt == 1);
@@ -86,7 +86,7 @@ namespace ui
             sprintf(displayerr, "%04d-%04d", 2000 + R_MODULE(err.OSError), R_DESCRIPTION(err.OSError));
             String emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
             String edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
-            mainapp->CreateShowDialog(set::GetDictionaryEntry(266), Context + "\n\n" + set::GetDictionaryEntry(266) + ": " + std::string(displayerr) + " (" + hos::FormatHex(err.OSError) + ")\n" + set::GetDictionaryEntry(264) + ": " + emod + "\n" + set::GetDictionaryEntry(265) + ": " + edesc + "", { set::GetDictionaryEntry(234) }, false);
+            global_app->CreateShowDialog(set::GetDictionaryEntry(266), Context + "\n\n" + set::GetDictionaryEntry(266) + ": " + std::string(displayerr) + " (" + hos::FormatHex(err.OSError) + ")\n" + set::GetDictionaryEntry(264) + ": " + emod + "\n" + set::GetDictionaryEntry(265) + ": " + edesc + "", { set::GetDictionaryEntry(234) }, false);
         }
     }
 }

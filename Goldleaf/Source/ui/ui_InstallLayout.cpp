@@ -23,8 +23,8 @@
 #include <ui/ui_MainApplication.hpp>
 #include <iomanip>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
@@ -32,9 +32,9 @@ namespace ui
     {
         this->installText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
         this->installText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->installText->SetColor(gsets.CustomScheme.Text);
+        this->installText->SetColor(global_settings.custom_scheme.Text);
         this->installBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        gsets.ApplyProgressBarColor(this->installBar);
+        global_settings.ApplyProgressBarColor(this->installBar);
         this->Add(this->installText);
         this->Add(this->installBar);
     }
@@ -48,7 +48,7 @@ namespace ui
         {
             if(rc == err::Make(err::ErrorDescription::TitleAlreadyInstalled))
             {
-                auto sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(272) + "\n" + set::GetDictionaryEntry(273) + "\n" + set::GetDictionaryEntry(274), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+                auto sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(272) + "\n" + set::GetDictionaryEntry(273) + "\n" + set::GetDictionaryEntry(274), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
                 if(sopt == 0)
                 {
                     auto title = hos::Locate(inst.GetApplicationId());
@@ -233,7 +233,7 @@ namespace ui
                 }
             }
             else info += "\n\n" + set::GetDictionaryEntry(97);
-            int sopt = mainapp->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), set::GetDictionaryEntry(18) }, true, inst.GetExportedIconPath());
+            int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), set::GetDictionaryEntry(18) }, true, inst.GetExportedIconPath());
 
             doinstall = (sopt == 0);
         }
@@ -247,7 +247,7 @@ namespace ui
                 return;
             }
             this->installText->SetText(set::GetDictionaryEntry(146));
-            mainapp->CallForRender();
+            global_app->CallForRender();
             this->installBar->SetVisible(true);
             hos::LockAutoSleep();
             rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
@@ -261,13 +261,13 @@ namespace ui
                 name += ".nca\'... (" + fs::FormatSize(BytesSec) + "/s  -  " + hos::FormatTime(secstime) + ")";
                 this->installText->SetText(name);
                 this->installBar->SetProgress(Done);
-                mainapp->CallForRender();
+                global_app->CallForRender();
             });
             hos::UnlockAutoSleep();
         }
         this->installBar->SetVisible(false);
-        mainapp->CallForRender();
+        global_app->CallForRender();
         if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));
-        else if(doinstall) mainapp->ShowNotification(set::GetDictionaryEntry(150));
+        else if(doinstall) global_app->ShowNotification(set::GetDictionaryEntry(150));
     }
 }

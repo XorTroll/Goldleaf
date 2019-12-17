@@ -22,15 +22,50 @@
 #include <set/set_Settings.hpp>
 #include <ui/ui_MainApplication.hpp>
 #include <fs/fs_Explorer.hpp>
+#include <iomanip>
 
 namespace set
 {
+    static std::string ColorToHex(pu::ui::Color clr)
+    {
+        char str[0x20] = {0};
+        sprintf(str, "#%02X%02X%02X%02X", clr.R, clr.G, clr.B, clr.A);
+        return str;
+    }
+
+    void Settings::Save()
+    {
+        auto json = JSON::object();
+        if(this->has_custom_lang) json["general"]["customLanguage"] = LanguageToString(this->custom_lang);
+        if(this->has_external_romfs) json["general"]["externalRomFs"] = this->external_romfs;
+        if(this->has_menu_item_size) json["ui"]["menuItemSize"] = this->menu_item_size;
+        if(this->has_custom_scheme)
+        {
+            json["ui"]["base"] = ColorToHex(this->custom_scheme.Base);
+            json["ui"]["baseFocus"] = ColorToHex(this->custom_scheme.BaseFocus);
+            json["ui"]["text"] = ColorToHex(this->custom_scheme.Text);
+        }
+        if(this->has_scrollbar_color) json["ui"]["scrollBar"] = ColorToHex(this->scrollbar_color);
+        if(this->has_progressbar_color) json["ui"]["progressBar"] = ColorToHex(this->progressbar_color);
+        json["installs"]["ignoreRequiredFwVersion"] = this->ignore_required_fw_ver;
+        for(u32 i = 0; i < this->bookmarks.size(); i++)
+        {
+            auto bmk = this->bookmarks[i];
+            json["web"]["bookmarks"][i]["name"] = bmk.name;
+            json["web"]["bookmarks"][i]["url"] = bmk.url;
+        }
+        fs::DeleteFile("sdmc:/" + consts::Root + "/settings.json");
+        std::ofstream ofs("sdmc:/" + consts::Root + "/settings.json");
+        ofs << std::setw(4) << json;
+        ofs.close();
+    }
+
     std::string Settings::PathForResource(std::string Path)
     {
         std::string outres = "romfs:" + Path;
-        if(!this->ExternalRomFs.empty())
+        if(this->has_external_romfs)
         {
-            std::string tmpres = this->ExternalRomFs + "/" + Path;
+            std::string tmpres = this->external_romfs + "/" + Path;
             if(fs::IsFile(tmpres)) outres = tmpres;
         }
         return outres;
@@ -38,12 +73,12 @@ namespace set
 
     void Settings::ApplyScrollBarColor(pu::ui::elm::Menu::Ref &Menu)
     {
-        if(this->HasScrollBar) Menu->SetScrollbarColor(this->ScrollBarColor);
+        if(this->has_scrollbar_color) Menu->SetScrollbarColor(this->scrollbar_color);
     }
 
     void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar)
     {
-        if(this->HasProgressBar) PBar->SetProgressColor(this->ProgressBarColor);
+        if(this->has_progressbar_color) PBar->SetProgressColor(this->progressbar_color);
     }
 
     Settings ProcessSettings()
@@ -57,38 +92,45 @@ namespace set
         {
             case SetLanguage_ENUS:
             case SetLanguage_ENGB:
-                gset.CustomLanguage = Language::English;
+                gset.custom_lang = Language::English;
                 break;
             case SetLanguage_FR:
             case SetLanguage_FRCA:
-                gset.CustomLanguage = Language::French;
+                gset.custom_lang = Language::French;
                 break;
             case SetLanguage_DE:
-                gset.CustomLanguage = Language::German;
+                gset.custom_lang = Language::German;
                 break;
             case SetLanguage_IT:
-                gset.CustomLanguage = Language::Italian;
+                gset.custom_lang = Language::Italian;
                 break;
             case SetLanguage_ES:
             case SetLanguage_ES419:
-                gset.CustomLanguage = Language::Spanish;
+                gset.custom_lang = Language::Spanish;
                 break;
             case SetLanguage_NL:
-                gset.CustomLanguage = Language::Dutch;
+                gset.custom_lang = Language::Dutch;
                 break;
             default:
-                gset.CustomLanguage = Language::English;
+                gset.custom_lang = Language::English;
                 break;
         }
-        gset.MenuItemSize = 80;
-        gset.HasScrollBar = false;
-        gset.HasProgressBar = false;
-        gset.IgnoreRequiredFirmwareVersion = true;
+        gset.has_custom_lang = false;
+        gset.has_external_romfs = false;
+        gset.has_scrollbar_color = false;
+        gset.has_progressbar_color = false;
+        gset.has_custom_scheme = false;
+        gset.has_menu_item_size = false;
+
+        gset.menu_item_size = 80;
+        gset.ignore_required_fw_ver = true;
+
         ColorSetId csid = ColorSetId_Light;
         setsysGetColorSetId(&csid);
-        if(csid == ColorSetId_Dark) gset.CustomScheme = ui::DefaultDark;
-        else gset.CustomScheme = ui::DefaultLight;
-        std::ifstream ifs(SettingsFile);
+        if(csid == ColorSetId_Dark) gset.custom_scheme = ui::DefaultDark;
+        else gset.custom_scheme = ui::DefaultLight;
+
+        std::ifstream ifs("sdmc:/" + consts::Root + "/settings.json");
         if(ifs.good())
         {
             JSON settings = JSON::parse(ifs);
@@ -97,74 +139,91 @@ namespace set
                 std::string lang = settings["general"].value("customLanguage", "");
                 if(!lang.empty())
                 {
-                    if(lang == "en") gset.CustomLanguage = Language::English;
-                    else if(lang == "es") gset.CustomLanguage = Language::Spanish;
-                    else if(lang == "de") gset.CustomLanguage = Language::German;
-                    else if(lang == "fr") gset.CustomLanguage = Language::French;
-                    else if(lang == "it") gset.CustomLanguage = Language::Italian;
-                    else if(lang == "nl") gset.CustomLanguage = Language::Dutch;
-                }
-                std::string keys = settings["general"].value("keysPath", "");
-                if(!keys.empty())
-                {
-                    gset.KeysPath = "sdmc:";
-                    if(keys[0] != '/') gset.KeysPath += "/";
-                    gset.KeysPath += keys;
+                    auto clang = StringToLanguage(lang);
+                    if(clang != Language::Invalid)
+                    {
+                        gset.has_custom_lang = true;
+                        gset.custom_lang = clang;
+                    }
                 }
                 std::string extrom = settings["general"].value("externalRomFs", "");
                 if(!extrom.empty())
                 {
-                    gset.ExternalRomFs = "sdmc:";
-                    if(extrom[0] != '/') gset.ExternalRomFs += "/";
-                    gset.ExternalRomFs += extrom;
+                    gset.has_external_romfs = true;
+                    if(extrom.substr(0, 6) == "sdmc:/") gset.external_romfs = extrom;
+                    else
+                    {
+                        gset.external_romfs = "sdmc:";
+                        if(extrom[0] != '/') gset.external_romfs += "/";
+                        gset.external_romfs += extrom;
+                    }
                 }
             }
             if(settings.count("ui"))
             {
+                auto itemsize = settings["ui"].value("menuItemSize", 0);
+                if(itemsize > 0)
+                {
+                    gset.has_menu_item_size = true;
+                    gset.menu_item_size = itemsize;
+                }
                 std::string clr = settings["ui"].value("background", "");
-                if(!clr.empty()) gset.CustomScheme.Background = pu::ui::Color::FromHex(clr);
+                if(!clr.empty())
+                {
+                    gset.has_custom_scheme = true;
+                    gset.custom_scheme.Background = pu::ui::Color::FromHex(clr);
+                }
                 clr = settings["ui"].value("base", "");
-                if(!clr.empty()) gset.CustomScheme.Base = pu::ui::Color::FromHex(clr);
+                if(!clr.empty())
+                {
+                    gset.has_custom_scheme = true;
+                    gset.custom_scheme.Base = pu::ui::Color::FromHex(clr);
+                }
                 clr = settings["ui"].value("baseFocus", "");
-                if(!clr.empty()) gset.CustomScheme.BaseFocus = pu::ui::Color::FromHex(clr);
+                if(!clr.empty())
+                {
+                    gset.has_custom_scheme = true;
+                    gset.custom_scheme.BaseFocus = pu::ui::Color::FromHex(clr);
+                }
                 clr = settings["ui"].value("text", "");
-                if(!clr.empty()) gset.CustomScheme.Text = pu::ui::Color::FromHex(clr);
+                if(!clr.empty())
+                {
+                    gset.has_custom_scheme = true;
+                    gset.custom_scheme.Text = pu::ui::Color::FromHex(clr);
+                }
                 clr = settings["ui"].value("scrollBar", "");
                 if(!clr.empty())
                 {
-                    gset.HasScrollBar = true;
-                    gset.ScrollBarColor = pu::ui::Color::FromHex(clr);
+                    gset.has_scrollbar_color = true;
+                    gset.scrollbar_color = pu::ui::Color::FromHex(clr);
                 }
                 clr = settings["ui"].value("progressBar", "");
                 if(!clr.empty())
                 {
-                    gset.HasProgressBar = true;
-                    gset.ProgressBarColor = pu::ui::Color::FromHex(clr);
+                    gset.has_progressbar_color = true;
+                    gset.progressbar_color = pu::ui::Color::FromHex(clr);
                 }
             }
             if(settings.count("installs"))
             {
-                gset.IgnoreRequiredFirmwareVersion = settings["installs"].value("ignoreRequiredFwVersion", true);
-                // More for 0.8!
+                gset.ignore_required_fw_ver = settings["installs"].value("ignoreRequiredFwVersion", true);
             }
-            /* 0.8
             if(settings.count("web"))
             {
                 if(settings["web"].count("bookmarks"))
                 {
                     for(u32 i = 0; i < settings["web"]["bookmarks"].size(); i++)
                     {
-                        WebBookmark bmk;
-                        bmk.Name = settings["web"]["bookmarks"][i].value("name", "");
-                        bmk.URL = settings["web"]["bookmarks"][i].value("url", "");
-                        if(!bmk.URL.empty() && !bmk.Name.empty())
+                        WebBookmark bmk = {};
+                        bmk.name = settings["web"]["bookmarks"][i].value("name", "");
+                        bmk.url = settings["web"]["bookmarks"][i].value("url", "");
+                        if(!bmk.url.empty() && !bmk.name.empty())
                         {
-                            gset.Bookmarks.push_back(bmk);
+                            gset.bookmarks.push_back(bmk);
                         }
                     }
                 }
             }
-            */
             ifs.close();
         }
         return gset;
@@ -172,6 +231,6 @@ namespace set
 
     bool Exists()
     {
-        return fs::IsFile(SettingsFile);
+        return fs::IsFile("sdmc:/" + consts::Root + "/settings.json");
     }
 }

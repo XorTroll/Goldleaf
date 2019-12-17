@@ -22,20 +22,20 @@
 #include <ui/ui_StorageContentsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref mainapp;
-extern set::Settings gsets;
+extern ui::MainApplication::Ref global_app;
+extern set::Settings global_settings;
 
 namespace ui
 {
     StorageContentsLayout::StorageContentsLayout()
     {
-        this->contentsMenu = pu::ui::elm::Menu::New(0, 160, 1280, gsets.CustomScheme.Base, gsets.MenuItemSize, (560 / gsets.MenuItemSize));
-        this->contentsMenu->SetOnFocusColor(gsets.CustomScheme.BaseFocus);
-        gsets.ApplyScrollBarColor(this->contentsMenu);
+        this->contentsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
+        this->contentsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
+        global_settings.ApplyScrollBarColor(this->contentsMenu);
         this->noContentsText = pu::ui::elm::TextBlock::New(0, 0, set::GetDictionaryEntry(188));
         this->noContentsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->noContentsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->noContentsText->SetColor(gsets.CustomScheme.Text);
+        this->noContentsText->SetColor(global_settings.custom_scheme.Text);
         this->noContentsText->SetVisible(false);
         this->Add(this->noContentsText);
         this->Add(this->contentsMenu);
@@ -44,8 +44,8 @@ namespace ui
     void StorageContentsLayout::contents_Click()
     {
         hos::Title selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
-        mainapp->GetContentInformationLayout()->LoadContent(selcnt);
-        mainapp->LoadLayout(mainapp->GetContentInformationLayout());
+        global_app->GetContentInformationLayout()->LoadContent(selcnt);
+        global_app->LoadLayout(global_app->GetContentInformationLayout());
     }
 
     void StorageContentsLayout::LoadFromStorage(Storage Location)
@@ -96,7 +96,7 @@ namespace ui
                     delete nacp;
                 }
                 auto itm = pu::ui::elm::MenuItem::New(name);
-                itm->SetColor(gsets.CustomScheme.Text);
+                itm->SetColor(global_settings.custom_scheme.Text);
                 bool hicon = this->contents[i].DumpControlData();
                 if(hicon) itm->SetIcon(hos::GetExportedIconPath(this->contents[i].ApplicationId));
                 itm->AddOnClick(std::bind(&StorageContentsLayout::contents_Click, this));
@@ -104,7 +104,7 @@ namespace ui
             }
             this->contentsMenu->SetSelectedIndex(0);
         }
-        mainapp->LoadMenuHead(set::GetDictionaryEntry(189));
+        global_app->LoadMenuHead(set::GetDictionaryEntry(189));
     }
 
     std::vector<hos::Title> StorageContentsLayout::GetContents()

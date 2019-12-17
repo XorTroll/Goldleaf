@@ -32,7 +32,7 @@ namespace ui
             PU_SMART_CTOR(UnusedTicketsLayout)
             
             void UpdateElements(bool Cooldown);
-            void tickets_Click();
+            void tickets_Click(hos::Ticket ticket);
         private:
             std::vector<hos::Ticket> tickets;
             pu::ui::elm::TextBlock::Ref notTicketsText;
