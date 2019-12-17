@@ -47,6 +47,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import xorTroll.goldleaf.quark.Config;
+import xorTroll.goldleaf.quark.Logging;
 import xorTroll.goldleaf.quark.Version;
 import xorTroll.goldleaf.quark.fs.FileSystem;
 import xorTroll.goldleaf.quark.usb.Command;
@@ -188,7 +189,7 @@ public class MainApplication extends Application
                             updateMessage("Processing USB input from Goldleaf...");
                             updateProgress(-1.0, -1.0);
                         }
-                        System.out.println("Command: " + id.toString());
+                        Logging.log("Command: " + id.toString());
                         switch(id)
                         {
                             case GetDriveCount:
@@ -474,7 +475,7 @@ public class MainApplication extends Application
                             }
                             default:
                             {
-                                System.out.println("Unknown Id: " + cmdid);
+                                Logging.log("Unknown Id: " + cmdid);
                                 break;
                             }
                         }

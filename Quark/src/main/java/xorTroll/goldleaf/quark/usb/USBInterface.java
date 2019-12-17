@@ -24,6 +24,7 @@ package xorTroll.goldleaf.quark.usb;
 import java.util.Optional;
 import org.usb4java.*;
 
+import xorTroll.goldleaf.quark.Logging;
 import xorTroll.goldleaf.quark.Version;
 
 import java.nio.ByteBuffer;
@@ -123,11 +124,11 @@ public class USBInterface
                             if(res == LibUsb.SUCCESS)
                             {
                                 String product = LibUsb.getStringDescriptor(intf.usbDeviceHandle, dtor.iProduct());
-                                System.out.println("USB Product: '" + product + "'");
+                                Logging.log("USB Product: '" + product + "'");
                                 if(product.contains("Goldleaf"))
                                 {
                                     String serialno = LibUsb.getStringDescriptor(intf.usbDeviceHandle, dtor.iSerialNumber());
-                                    System.out.println("USB Serial number: '" + serialno + "'");
+                                    Logging.log("USB Serial number: '" + serialno + "'");
                                     if(serialno.endsWith("-dev"))
                                     {
                                         intf.isDevVersion = true;
@@ -147,7 +148,7 @@ public class USBInterface
                                     }
                                     catch(Exception e)
                                     {
-                                        System.out.println(e.getClass().getName() + " -> " + e.getMessage());
+                                        Logging.log(e.getClass().getName() + " -> " + e.getMessage());
                                     }
                                 }
                             }
