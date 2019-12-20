@@ -125,7 +125,6 @@ This is an example JSON for Goldleaf settings:
 {
     "general": {
         "customLanguage": "es",
-        "keysPath": "/switch/prod.keys",
         "externalRomFs": "/switch/Goldleaf/theme/rom"
     },
     "ui": {
@@ -137,6 +136,18 @@ This is an example JSON for Goldleaf settings:
     },
     "installs": {
         "ignoreRequiredFwVersion": false
+    },
+    "web": {
+        "bookmarks": [
+            {
+                "name": "Google",
+                "url": "https://www.google.com"
+            },
+            {
+                "name": "GitHub",
+                "url": "https://www.github.com"
+            }
+        ]
     }
 }
 ```
@@ -187,7 +198,7 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - Simon for his libusbK implementation for C#, which has made Goldtree client possible.
 
-- shchmue and blawar for the system to get tickets from system save data without breaking anything, found in [Lockpick](https://github.com/shchmue/Lockpick).
+- shchmue for the system to get tickets from system save data without breaking anything, found in [Lockpick](https://github.com/shchmue/Lockpick).
 
 - WerWolv for the help with custom exception handling, avoiding those frustrating fatals.
 

@@ -27,7 +27,7 @@ namespace usb
 {
     enum class CommandId
     {
-        GetDriveCount,
+        GetDriveCount = 1,
         GetDriveInfo,
         StatPath,
         GetFileCount,

@@ -30,24 +30,24 @@ public class Command
 {
     public enum Id
     {
-        Invalid(-1),
-        GetDriveCount(0),
-        GetDriveInfo(1),
-        StatPath(2),
-        GetFileCount(3),
-        GetFile(4),
-        GetDirectoryCount(5),
-        GetDirectory(6),
-        StartFile(7),
-        ReadFile(8),
-        WriteFile(9),
-        EndFile(10),
-        Create(11),
-        Delete(12),
-        Rename(13),
-        GetSpecialPathCount(14),
-        GetSpecialPath(15),
-        SelectFile(16);
+        Invalid(0),
+        GetDriveCount(1),
+        GetDriveInfo(2),
+        StatPath(3),
+        GetFileCount(4),
+        GetFile(5),
+        GetDirectoryCount(6),
+        GetDirectory(7),
+        StartFile(8),
+        ReadFile(9),
+        WriteFile(10),
+        EndFile(11),
+        Create(12),
+        Delete(13),
+        Rename(14),
+        GetSpecialPathCount(15),
+        GetSpecialPath(16),
+        SelectFile(17);
 
         private int id;
 

@@ -1,0 +1,49 @@
+Stuff to be translated (new 0.8 translations to be made)
+
+ * Main:
+
+Enter web page...
+Save bookmark
+Would you like to save this page as a bookmark?
+Bookmark name
+Settings were updated and saved.
+Loading and querying amiibos...
+Change state
+Which state would you like to set?
+On
+On (once)
+Off
+Amiibo emulation state was successfully set.
+An error ocurred while attempting to set the amiibo emulation state:
+Amiibo emulation isn't activated.
+Select amiibo
+Would you like to select this virtual amiibo?
+The amiibo was successfully selected.
+An error ocurred while attempting to select the amiibo:
+Amiibo emulation is off.
+Amiibo emulation is on.
+Amiibo emulation is on (one single use).
+Change emulation state
+Selected amiibo
+An error ocurred attempting to access emuiibo:
+emuiibo isn't present or loaded.
+
+ * Modules:
+
+Unknown module
+Applet
+User accounts
+Content manager
+Location system
+Processes
+Service API
+Shell
+ETickets
+Battery
+Power control
+Secure platform
+Settings
+USB
+File system
+Goldleaf
+C (errno)

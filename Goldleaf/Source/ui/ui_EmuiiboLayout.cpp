@@ -40,7 +40,7 @@ namespace ui
 
     void EmuiiboLayout::state_Click()
     {
-        auto sopt = global_app->CreateShowDialog("State change", "Which state would you like to cfg?", { "On", "On (once)", "Off", "Cancel" }, true);
+        auto sopt = global_app->CreateShowDialog("Change state", "Which state would you like to set?", { "On", "On (once)", "Off", "Cancel" }, true);
         if(sopt >= 0)
         {
             Result rc = 0;
@@ -60,10 +60,10 @@ namespace ui
             }
             if(R_SUCCEEDED(rc))
             {
-                global_app->ShowNotification("Amiibo emulation state was successfully cfg.");
+                global_app->ShowNotification("Amiibo emulation state was successfully set.");
                 this->Reload();
             }
-            else HandleResult(rc, "An error ocurred while attempting to cfg the amiibo emulation state:");
+            else HandleResult(rc, "An error ocurred while attempting to set the amiibo emulation state:");
         }
     }
             
@@ -77,7 +77,7 @@ namespace ui
             return;
         }
 
-        auto sopt = global_app->CreateShowDialog("Amiibo change", "Would you like to select this virtual amiibo?", { "Yes", "Cancel" }, true);
+        auto sopt = global_app->CreateShowDialog("Select amiibo", "Would you like to select this virtual amiibo?", { "Yes", "Cancel" }, true);
         if(sopt == 0)
         {
             auto rc = nfp::emu::SetCustomAmiibo(path.AsUTF8().c_str());
@@ -172,7 +172,7 @@ namespace ui
             }
             if(R_FAILED(rc))
             {
-                HandleResult(rc, "<emuiibo>");
+                HandleResult(rc, "An error ocurred attempting to access emuiibo:");
                 global_app->ReturnToMainMenu();
             }
             else
