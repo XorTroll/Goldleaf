@@ -34,31 +34,16 @@ namespace usb
         GetFile,
         GetDirectoryCount,
         GetDirectory,
+        StartFile,
         ReadFile,
         WriteFile,
+        EndFile,
         Create,
         Delete,
         Rename,
         GetSpecialPathCount,
         GetSpecialPath,
-        SelectFile,
-
-        Startup,
-
-        OpenFile,
-        FileRead,
-        FileWrite,
-        FileGetSize,
-        CloseFile,
-
-        OpenDirectory,
-        DirectoryGetEntryCount,
-        DirectoryGetFileCount,
-        DirectoryGetDirectoryCount,
-        DirectoryReadEntry,
-        DirectoryReadFile,
-        DirectoryReadDirectory,
-        CloseDirectory
+        SelectFile
     };
 
     static constexpr u32 InputMagic = 0x49434C47; // GLCI

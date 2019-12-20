@@ -23,13 +23,13 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
     TitleDumperLayout::TitleDumperLayout()
     {
-        this->dumpText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
+        this->dumpText = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->dumpText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->dumpText->SetColor(global_settings.custom_scheme.Text);
         this->ncaBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
@@ -47,16 +47,16 @@ namespace ui
         String fappid = hos::FormatApplicationId(Target.ApplicationId);
         String outdir = "sdmc:/" + consts::Root + "/dump/title/" + fappid;
         fs::CreateDirectory(outdir);
-        this->dumpText->SetText(set::GetDictionaryEntry(192));
+        this->dumpText->SetText(cfg::strings::Main.GetString(192));
         global_app->CallForRender();
         if(HasTicket) dump::GenerateTicketCert(Target.ApplicationId);
-        this->dumpText->SetText(set::GetDictionaryEntry(193));
+        this->dumpText->SetText(cfg::strings::Main.GetString(193));
         global_app->CallForRender();
         NcmContentStorage cst;
         Result rc = ncmOpenContentStorage(&cst, stid);
         if(R_FAILED(rc))
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             global_app->LoadLayout(global_app->GetContentManagerLayout());
             return;
         }
@@ -64,7 +64,7 @@ namespace ui
         rc = ncmOpenContentMetaDatabase(&cmdb, stid);
         if(R_FAILED(rc))
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             global_app->LoadLayout(global_app->GetContentManagerLayout());
             serviceClose(&cst.s);
             return;
@@ -74,7 +74,7 @@ namespace ui
         bool ok = dump::GetNCAId(&cmdb, &mrec, Target.ApplicationId, dump::NCAType::Meta, &meta);
         if(!ok)
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+            HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             global_app->LoadLayout(global_app->GetContentManagerLayout());
             serviceClose(&cst.s);
             serviceClose(&cmdb.s);
@@ -118,7 +118,7 @@ namespace ui
         String xdata = sdata;
         if(stid == NcmStorageId_SdCard)
         {
-            this->dumpText->SetText(set::GetDictionaryEntry(194));
+            this->dumpText->SetText(cfg::strings::Main.GetString(194));
             xmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
             fs::CreateConcatenationFile(xmeta);
             this->ncaBar->SetVisible(true);
@@ -202,14 +202,14 @@ namespace ui
             else if(stid == NcmStorageId_BuiltInUser) nexp = fs::GetNANDUserExplorer();
             else
             {
-                HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
+                HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
                 global_app->LoadLayout(global_app->GetContentManagerLayout());
                 serviceClose(&cst.s);
                 serviceClose(&cmdb.s);
                 hos::UnlockAutoSleep();
                 return;
             }
-            this->dumpText->SetText(set::GetDictionaryEntry(195));
+            this->dumpText->SetText(cfg::strings::Main.GetString(195));
             xmeta = nexp->FullPathFor("Contents/" + xmeta.substr(15));
             String txmeta = outdir + "/" + hos::ContentIdAsString(meta) + ".cnmt.nca";
             fs::CreateConcatenationFile(txmeta);
@@ -301,7 +301,7 @@ namespace ui
         String fout = "sdmc:/" + consts::Root + "/dump/title/" + fappid + ".nsp";
         fs::CreateConcatenationFile(fout);
         this->ncaBar->SetVisible(true);
-        this->dumpText->SetText(set::GetDictionaryEntry(196));
+        this->dumpText->SetText(cfg::strings::Main.GetString(196));
         ok = nsp::GenerateFrom(outdir, fout, [&](u64 done, u64 total)
         {
             this->ncaBar->SetMaxValue((double)total);
@@ -311,10 +311,10 @@ namespace ui
         hos::UnlockAutoSleep();
         fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump/temp");
         fs::DeleteDirectory(outdir);
-        if(ok) global_app->ShowNotification(set::GetDictionaryEntry(197) + " '" + fout + "'");
+        if(ok) global_app->ShowNotification(cfg::strings::Main.GetString(197) + " '" + fout + "'");
         else
         {
-            HandleResult(err::Make(err::ErrorDescription::CouldNotBuildNSP), set::GetDictionaryEntry(198));
+            HandleResult(err::result::ResultCouldNotBuildNSP, cfg::strings::Main.GetString(198));
             fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump");
             EnsureDirectories();
         }

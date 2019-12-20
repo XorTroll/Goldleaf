@@ -25,6 +25,13 @@
 
 namespace fs
 {
+    enum class FileMode : u32
+    {
+        Read = 1,
+        Write,
+        Append,
+    };
+
     class Explorer
     {
         public:
@@ -62,8 +69,12 @@ namespace fs
             virtual void RenameDirectory(String Path, String NewName) = 0;
             virtual void DeleteFile(String Path) = 0;
             virtual void DeleteDirectorySingle(String Path) = 0;
+            
+            virtual void StartFile(String path, FileMode mode) = 0;
             virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) = 0;
             virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) = 0;
+            virtual void EndFile(FileMode mode) = 0;
+
             virtual u64 GetFileSize(String Path) = 0;
             virtual u64 GetTotalSpace() = 0;
             virtual u64 GetFreeSpace() = 0;
@@ -100,92 +111,4 @@ namespace fs
     {
         return (Path.find(":/") != String::npos);
     }
-
-    class StdExplorer : public Explorer
-    {
-        public:
-            virtual std::vector<String> GetDirectories(String Path) override;
-            virtual std::vector<String> GetFiles(String Path) override;
-            virtual bool Exists(String Path) override;
-            virtual bool IsFile(String Path) override;
-            virtual bool IsDirectory(String Path) override;
-            virtual void CreateFile(String Path) override;
-            virtual void CreateDirectory(String Path) override;
-            virtual void RenameFile(String Path, String NewName) override;
-            virtual void RenameDirectory(String Path, String NewName) override;
-            virtual void DeleteFile(String Path) override;
-            virtual void DeleteDirectorySingle(String Path) override;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) override;
-            virtual u64 GetFileSize(String Path) override;
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-            virtual void SetArchiveBit(String Path) override;
-    };
-
-    class SdCardExplorer final : public StdExplorer
-    {
-        public:
-            SdCardExplorer();
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-    };
-
-    class NANDExplorer final : public StdExplorer
-    {
-        public:
-            NANDExplorer(Partition Part);
-            ~NANDExplorer();
-            Partition GetPartition();
-            virtual bool ShouldWarnOnWriteAccess() override;
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-        private:
-            Partition part;
-            FsFileSystem fs;
-    };
-
-    class USBPCDriveExplorer final : public Explorer
-    {
-        public:
-            USBPCDriveExplorer(String MountName);
-            virtual std::vector<String> GetDirectories(String Path) override;
-            virtual std::vector<String> GetFiles(String Path) override;
-            virtual bool Exists(String Path) override;
-            virtual bool IsFile(String Path) override;
-            virtual bool IsDirectory(String Path) override;
-            virtual void CreateFile(String Path) override;
-            virtual void CreateDirectory(String Path) override;
-            virtual void RenameFile(String Path, String NewName) override;
-            virtual void RenameDirectory(String Path, String NewName) override;
-            virtual void DeleteFile(String Path) override;
-            virtual void DeleteDirectorySingle(String Path) override;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) override;
-            virtual u64 GetFileSize(String Path) override;
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-            virtual void SetArchiveBit(String Path) override;
-    };
-
-    class FileSystemExplorer final : public StdExplorer
-    {
-        public:
-            FileSystemExplorer(String MountName, String DisplayName, FsFileSystem *FileSystem);
-            ~FileSystemExplorer();
-            FsFileSystem *GetFileSystem();
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-        private:
-            FsFileSystem *fs;
-    };
-
-    SdCardExplorer *GetSdCardExplorer();
-    NANDExplorer *GetPRODINFOFExplorer();
-    NANDExplorer *GetNANDSafeExplorer();
-    NANDExplorer *GetNANDUserExplorer();
-    NANDExplorer *GetNANDSystemExplorer();
-    USBPCDriveExplorer *GetUSBPCDriveExplorer(String MountName);
-    Explorer *GetExplorerForMountName(String MountName);
-    Explorer *GetExplorerForPath(String Path);
 }

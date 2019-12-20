@@ -61,7 +61,10 @@ public class MainApplication extends Application
     public MainController controller;
     public Stage stage;
     public Scene scene;
-    public RandomAccessFile openedfile = null;
+    
+    public RandomAccessFile readfile = null;
+    public RandomAccessFile writefile = null;
+
     public USBInterface usbInterface = null;
     public String openedpath = null;
 
@@ -178,13 +181,6 @@ public class MainApplication extends Application
                     {
                         int cmdid = c.read32();
                         Command.Id id = Command.Id.from32(cmdid);
-                        if((openedfile != null) && (id != Command.Id.ReadFile) && (id != Command.Id.WriteFile))
-                        {
-                            openedfile.close();
-                            openedfile = null;
-                            updateMessage("Processing USB input from Goldleaf...");
-                            updateProgress(-1.0, -1.0);
-                        }
                         Logging.log("Command: " + id.toString());
                         switch(id)
                         {
@@ -288,6 +284,25 @@ public class MainApplication extends Application
                                 else c.respondFailure(0xDEAD);
                                 break;
                             }
+                            case StartFile:
+                            {
+                                String path = FileSystem.denormalizePath(c.readString());
+                                int mode = c.read32();
+                                if(mode == 1)
+                                {
+                                    if(readfile != null) readfile.close();
+                                    readfile = new RandomAccessFile(path, "rw");
+                                }
+                                else
+                                {
+                                    if(writefile != null) writefile.close();
+                                    writefile = new RandomAccessFile(path, "rw");
+                                    if(mode == 3) writefile.seek(writefile.length());
+                                }
+                                c.respondEmpty();
+
+                                break;
+                            }
                             case ReadFile:
                             {
                                 String path = FileSystem.denormalizePath(c.readString());
@@ -295,28 +310,28 @@ public class MainApplication extends Application
                                 long size = c.read64();
                                 try
                                 {
-                                    if((openedfile == null) || !openedpath.equalsIgnoreCase(path))
+                                    if(readfile != null)
                                     {
-                                        openedpath = path;
-                                        if(openedfile != null)
-                                        {
-                                            openedfile.close();
-                                            openedfile = null;
-                                        }
-                                        openedfile = new RandomAccessFile(openedpath, "rw");
+                                        byte[] block = new byte[(int)size];
+                                        readfile.seek(offset);
+                                        int read = readfile.read(block, 0, (int)size);
+                                        c.responseStart();
+                                        c.write64((long)read);
+                                        c.responseEnd();
+                                        c.sendBuffer(block);
                                     }
                                     else
                                     {
-                                        updateMessage("Goldleaf is reading a file: " + path);
-                                        updateProgress(offset, openedfile.length());
+                                        RandomAccessFile raf = new RandomAccessFile(path, "rw");
+                                        byte[] block = new byte[(int)size];
+                                        raf.seek(offset);
+                                        int read = raf.read(block, 0, (int)size);
+                                        raf.close();
+                                        c.responseStart();
+                                        c.write64((long)read);
+                                        c.responseEnd();
+                                        c.sendBuffer(block);
                                     }
-                                    byte[] block = new byte[(int)size];
-                                    openedfile.seek(offset);
-                                    int read = openedfile.read(block, 0, (int)size);
-                                    c.responseStart();
-                                    c.write64((long)read);
-                                    c.responseEnd();
-                                    c.sendBuffer(block);
                                 }
                                 catch(Exception e)
                                 {
@@ -331,24 +346,46 @@ public class MainApplication extends Application
                                 byte[] data = c.getBuffer((int)size);
                                 try
                                 {
-                                    if((openedfile == null) || !openedpath.equalsIgnoreCase(path))
+                                    if(writefile != null)
                                     {
-                                        openedpath = path;
-                                        if(openedfile != null)
-                                        {
-                                            openedfile.close();
-                                            openedfile = null;
-                                        }
-                                        openedfile = new RandomAccessFile(openedpath, "rw");
+                                        writefile.write(data);
+                                        c.respondEmpty();
                                     }
-                                    openedfile.seek(openedfile.length());
-                                    openedfile.write(data);
-                                    c.respondEmpty();
+                                    else
+                                    {
+                                        RandomAccessFile raf = new RandomAccessFile(path, "rw");
+                                        raf.write(data);
+                                        raf.close();
+                                        c.respondEmpty();
+                                    }
                                 }
                                 catch(Exception e)
                                 {
                                     c.respondFailure(0xDEAD);
                                 }
+                                break;
+                            }
+                            case EndFile:
+                            {
+                                int mode = c.read32();
+                                if(mode == 1)
+                                {
+                                    if(readfile != null)
+                                    {
+                                        readfile.close();
+                                        readfile = null;
+                                    }
+                                }
+                                else
+                                {
+                                    if(writefile != null)
+                                    {
+                                        writefile.close();
+                                        writefile = null;
+                                    }
+                                }
+                                c.respondEmpty();
+
                                 break;
                             }
                             case Create:

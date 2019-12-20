@@ -63,7 +63,6 @@ namespace consts
 {
     extern std::string Root;
     extern std::string Log;
-    extern std::string TempUpdatePath;
 }
 
 enum class ExecutableMode
@@ -89,7 +88,6 @@ enum class Storage
 
 enum class Language
 {
-    Invalid,
     English,
     Spanish,
     German,

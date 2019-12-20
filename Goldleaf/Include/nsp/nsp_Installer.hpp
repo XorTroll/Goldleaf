@@ -29,7 +29,7 @@
 #include <ncm/ncm_ContentMeta.hpp>
 #include <es/es_Service.hpp>
 #include <ns/ns_Service.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <hos/hos_Content.hpp>
 #include <hos/hos_Titles.hpp>
 

@@ -20,7 +20,7 @@
 */
 
 #include <nsp/nsp_Builder.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
@@ -56,6 +56,7 @@ namespace nsp
         strtablesize = (strtablesize + 0x1f) &~ 0x1f;
         header.StringTableSize = strtablesize;
         auto outexp = fs::GetExplorerForPath(Out);
+        outexp->StartFile(Out, fs::FileMode::Write);
         outexp->WriteFileBlock(Out, (u8*)&header, sizeof(PFS0Header));
         for(auto &entry: fentries)
         {
@@ -69,16 +70,20 @@ namespace nsp
             u8 *buf = fs::GetFileSystemOperationsBuffer();
             size_t readsz = fs::GetFileSystemOperationsBufferSize();
             size_t fdone = 0;
+            auto fentry = Input + "/" + entry.Name;
+            exp->StartFile(fentry, fs::FileMode::Read);
             while(toread)
             {
-                auto read = exp->ReadFileBlock(Input + "/" + entry.Name, fdone, std::min(toread, readsz), buf);
+                auto read = exp->ReadFileBlock(fentry, fdone, std::min(toread, readsz), buf);
                 outexp->WriteFileBlock(Out, buf, read);
                 fdone += read;
                 done += read;
                 toread -= read;
                 Callback(done, base_offset);
             }
+            exp->EndFile(fs::FileMode::Read);
         }
+        outexp->EndFile(fs::FileMode::Write);
         return true;
     }
 }

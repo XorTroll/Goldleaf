@@ -24,13 +24,13 @@
 #include <iomanip>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
     InstallLayout::InstallLayout() : pu::ui::Layout()
     {
-        this->installText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
+        this->installText = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->installText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->installText->SetColor(global_settings.custom_scheme.Text);
         this->installBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
@@ -46,9 +46,9 @@ namespace ui
         auto rc = inst.PrepareInstallation();
         if(R_FAILED(rc))
         {
-            if(rc == err::Make(err::ErrorDescription::TitleAlreadyInstalled))
+            if(rc == err::result::ResultTitleAlreadyInstalled)
             {
-                auto sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(77), set::GetDictionaryEntry(272) + "\n" + set::GetDictionaryEntry(273) + "\n" + set::GetDictionaryEntry(274), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+                auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(77), cfg::strings::Main.GetString(272) + "\n" + cfg::strings::Main.GetString(273) + "\n" + cfg::strings::Main.GetString(274), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                 if(sopt == 0)
                 {
                     auto title = hos::Locate(inst.GetApplicationId());
@@ -59,7 +59,7 @@ namespace ui
                         auto rc = inst.PrepareInstallation();
                         if(R_FAILED(rc))
                         {
-                            HandleResult(rc, set::GetDictionaryEntry(251));
+                            HandleResult(rc, cfg::strings::Main.GetString(251));
                             return;
                         }
                     }
@@ -71,7 +71,7 @@ namespace ui
             }
             else
             {
-                HandleResult(rc, set::GetDictionaryEntry(251));
+                HandleResult(rc, cfg::strings::Main.GetString(251));
                 return;
             }
         }
@@ -81,20 +81,20 @@ namespace ui
         if(OmitConfirmation) doinstall = true;
         else
         {
-            String info = set::GetDictionaryEntry(82) + "\n\n";
+            String info = cfg::strings::Main.GetString(82) + "\n\n";
             switch(inst.GetContentMetaType())
             {
                 case ncm::ContentMetaType::Application:
-                    info += set::GetDictionaryEntry(83);
+                    info += cfg::strings::Main.GetString(83);
                     break;
                 case ncm::ContentMetaType::Patch:
-                    info += set::GetDictionaryEntry(84);
+                    info += cfg::strings::Main.GetString(84);
                     break;
                 case ncm::ContentMetaType::AddOnContent:
-                    info += set::GetDictionaryEntry(85);
+                    info += cfg::strings::Main.GetString(85);
                     break;
                 default:
-                    info += set::GetDictionaryEntry(86);
+                    info += cfg::strings::Main.GetString(86);
                     break;
             }
             info += "\n";
@@ -102,16 +102,16 @@ namespace ui
             switch(idmask)
             {
                 case hos::ApplicationIdMask::Official:
-                    info += set::GetDictionaryEntry(87);
+                    info += cfg::strings::Main.GetString(87);
                     break;
                 case hos::ApplicationIdMask::Homebrew:
-                    info += set::GetDictionaryEntry(88);
+                    info += cfg::strings::Main.GetString(88);
                     break;
                 case hos::ApplicationIdMask::Invalid:
-                    info += set::GetDictionaryEntry(89);
+                    info += cfg::strings::Main.GetString(89);
                     break;
             }
-            info += "\n" + set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(inst.GetApplicationId());
+            info += "\n" + cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(inst.GetApplicationId());
             info += "\n\n";
             auto NACP = inst.GetNACP();
             if(NACP->display_version[0] != '\0')
@@ -123,38 +123,38 @@ namespace ui
                     lent = &NACP->lang[i];
                     if((lent->name[0] != '\0') && (lent->author[0] != '\0')) break;
                 }
-                info += set::GetDictionaryEntry(91) + " ";
+                info += cfg::strings::Main.GetString(91) + " ";
                 info += lent->name;
-                info += "\n" + set::GetDictionaryEntry(92) + " ";
+                info += "\n" + cfg::strings::Main.GetString(92) + " ";
                 info += lent->author;
-                info += "\n" + set::GetDictionaryEntry(109) + " ";
+                info += "\n" + cfg::strings::Main.GetString(109) + " ";
                 info += NACP->display_version;
                 info += "\n\n";
             }
             auto NCAs = inst.GetNCAs();
-            info += set::GetDictionaryEntry(93) + " ";
+            info += cfg::strings::Main.GetString(93) + " ";
             for(u32 i = 0; i < NCAs.size(); i++)
             {
                 ncm::ContentType t = NCAs[i].Type;
                 switch(t)
                 {
                     case ncm::ContentType::Control:
-                        info += set::GetDictionaryEntry(166);
+                        info += cfg::strings::Main.GetString(166);
                         break;
                     case ncm::ContentType::Data:
-                        info += set::GetDictionaryEntry(165);
+                        info += cfg::strings::Main.GetString(165);
                         break;
                     case ncm::ContentType::LegalInformation:
-                        info += set::GetDictionaryEntry(168);
+                        info += cfg::strings::Main.GetString(168);
                         break;
                     case ncm::ContentType::Meta:
-                        info += set::GetDictionaryEntry(163);
+                        info += cfg::strings::Main.GetString(163);
                         break;
                     case ncm::ContentType::OfflineHtml:
-                        info += set::GetDictionaryEntry(167);
+                        info += cfg::strings::Main.GetString(167);
                         break;
                     case ncm::ContentType::Program:
-                        info += set::GetDictionaryEntry(164);
+                        info += cfg::strings::Main.GetString(164);
                         break;
                     default:
                         break;
@@ -164,7 +164,7 @@ namespace ui
 
             u8 kgen = inst.GetKeyGeneration();
             u8 masterkey = kgen - 1;
-            info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(kgen) + " ";
+            info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(kgen) + " ";
             switch(masterkey)
             {
                 case 0:
@@ -198,16 +198,16 @@ namespace ui
                     info += "(9.0.0)";
                     break;
                 default:
-                    info += set::GetDictionaryEntry(96);
+                    info += cfg::strings::Main.GetString(96);
                     break;
             }
 
             if(inst.HasTicket())
             {
                 auto Tik = inst.GetTicketData();
-                info += "\n\n" + set::GetDictionaryEntry(94) + "\n\n";
-                info += set::GetDictionaryEntry(235) + " " + Tik.TitleKey;
-                info += "\n" + set::GetDictionaryEntry(236) + " ";
+                info += "\n\n" + cfg::strings::Main.GetString(94) + "\n\n";
+                info += cfg::strings::Main.GetString(235) + " " + Tik.TitleKey;
+                info += "\n" + cfg::strings::Main.GetString(236) + " ";
                 switch(Tik.Signature)
                 {
                     case hos::TicketSignature::RSA_4096_SHA1:
@@ -232,8 +232,8 @@ namespace ui
                         break;
                 }
             }
-            else info += "\n\n" + set::GetDictionaryEntry(97);
-            int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(77), info, { set::GetDictionaryEntry(65), set::GetDictionaryEntry(18) }, true, inst.GetExportedIconPath());
+            else info += "\n\n" + cfg::strings::Main.GetString(97);
+            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(77), info, { cfg::strings::Main.GetString(65), cfg::strings::Main.GetString(18) }, true, inst.GetExportedIconPath());
 
             doinstall = (sopt == 0);
         }
@@ -243,17 +243,17 @@ namespace ui
             rc = inst.PreProcessContents();
             if(R_FAILED(rc))
             {
-                HandleResult(rc, set::GetDictionaryEntry(251));
+                HandleResult(rc, cfg::strings::Main.GetString(251));
                 return;
             }
-            this->installText->SetText(set::GetDictionaryEntry(146));
+            this->installText->SetText(cfg::strings::Main.GetString(146));
             global_app->CallForRender();
             this->installBar->SetVisible(true);
             hos::LockAutoSleep();
             rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
             {
                 this->installBar->SetMaxValue(Total);
-                String name = set::GetDictionaryEntry(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
+                String name = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
                 if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
                 u64 speed = (u64)BytesSec;
                 u64 size = (u64)(Total - Done);
@@ -267,7 +267,7 @@ namespace ui
         }
         this->installBar->SetVisible(false);
         global_app->CallForRender();
-        if(R_FAILED(rc)) HandleResult(rc, set::GetDictionaryEntry(251));
-        else if(doinstall) global_app->ShowNotification(set::GetDictionaryEntry(150));
+        if(R_FAILED(rc)) HandleResult(rc, cfg::strings::Main.GetString(251));
+        else if(doinstall) global_app->ShowNotification(cfg::strings::Main.GetString(150));
     }
 }

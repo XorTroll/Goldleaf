@@ -20,7 +20,7 @@
 */
 
 #include <Types.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <usb/usb_Detail.hpp>
 #include <es/es_Service.hpp>
 
@@ -31,12 +31,11 @@ namespace consts
 {
     std::string Root = "switch/Goldleaf";
     std::string Log = Root + "/Goldleaf.log";
-    std::string TempUpdatePath = Root + "/UpdateTemp.nro";
 }
 
 std::string LanguageToString(Language lang)
 {
-    std::string langstr;
+    std::string langstr = "en"; // Default
     switch(lang)
     {
         case Language::English:
@@ -47,7 +46,7 @@ std::string LanguageToString(Language lang)
             return "de";
         case Language::French:
             return "fr";
-        case Language::Invalid:
+        case Language::Italian:
             return "it";
         case Language::Dutch:
             return "nl";
@@ -59,7 +58,7 @@ std::string LanguageToString(Language lang)
 
 Language StringToLanguage(std::string str)
 {
-    auto lang = Language::Invalid;
+    auto lang = Language::English;
     if(str == "en") lang = Language::English;
     else if(str == "es") lang = Language::Spanish;
     else if(str == "de") lang = Language::German;
@@ -226,7 +225,7 @@ void Exit()
     {
         romfsExit();
         fs::DeleteFile(__system_argv[0]);
-        fs::RenameFile(consts::TempUpdatePath, __system_argv[0]);
+        fs::RenameFile("sdmc:/" + consts::Root + "/update_tmp.nro", __system_argv[0]);
     }
 
     auto fsopsbuf = fs::GetFileSystemOperationsBuffer();

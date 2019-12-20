@@ -38,14 +38,16 @@ public class Command
         GetFile(4),
         GetDirectoryCount(5),
         GetDirectory(6),
-        ReadFile(7),
-        WriteFile(8),
-        Create(9),
-        Delete(10),
-        Rename(11),
-        GetSpecialPathCount(12),
-        GetSpecialPath(13),
-        SelectFile(14);
+        StartFile(7),
+        ReadFile(8),
+        WriteFile(9),
+        EndFile(10),
+        Create(11),
+        Delete(12),
+        Rename(13),
+        GetSpecialPathCount(14),
+        GetSpecialPath(15),
+        SelectFile(16);
 
         private int id;
 

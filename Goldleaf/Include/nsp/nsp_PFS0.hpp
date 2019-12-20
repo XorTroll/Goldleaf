@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <nsp/nsp_Types.hpp>
 
 namespace nsp
@@ -32,6 +32,7 @@ namespace nsp
             ~PFS0();
             u32 GetCount();
             String GetFile(u32 Index);
+            String GetPath();
             u64 ReadFromFile(u32 Index, u64 Offset, u64 Size, u8 *Out);
             std::vector<String> GetFiles();
             bool IsOk();

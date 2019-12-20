@@ -30,6 +30,7 @@ namespace nsp
         this->gexp = Exp;
         this->ok = false;
         this->headersize = 0;
+        Exp->StartFile(this->path, fs::FileMode::Read);
         Exp->ReadFileBlock(this->path, 0, sizeof(this->header), (u8*)&this->header);
         if(this->header.Magic == Magic)
         {
@@ -58,6 +59,7 @@ namespace nsp
                 this->files.push_back(fl);
             }
         }
+        Exp->EndFile(fs::FileMode::Read);
     }
 
     PFS0::~PFS0()
@@ -74,6 +76,11 @@ namespace nsp
     {
         if(Index >= this->files.size()) return "";
         return this->files[Index].Name;
+    }
+
+    String PFS0::GetPath()
+    {
+        return this->path;
     }
 
     u64 PFS0::ReadFromFile(u32 Index, u64 Offset, u64 Size, u8 *Out)
@@ -114,6 +121,8 @@ namespace nsp
         u64 off = 0;
         Exp->DeleteFile(Path);
         Exp->CreateFile(Path);
+        this->gexp->StartFile(this->path, fs::FileMode::Read);
+        Exp->StartFile(Path, fs::FileMode::Write);
         while(szrem)
         {
             u64 tread = std::min(rsize, szrem);
@@ -122,6 +131,8 @@ namespace nsp
             off += rbytes;
             szrem -= rbytes;
         }
+        this->gexp->EndFile(fs::FileMode::Read);
+        Exp->EndFile(fs::FileMode::Write);
     }
 
     u32 PFS0::GetFileIndexByName(String File)

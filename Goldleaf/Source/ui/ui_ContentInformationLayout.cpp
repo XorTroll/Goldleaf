@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -40,9 +40,9 @@ namespace ui
         this->optionsMenu->ClearItems();
         if(!this->tcontents.empty()) for(u32 i = 0; i < this->tcontents.size(); i++)
         {
-            String name = set::GetDictionaryEntry(261);
-            if(this->tcontents[i].IsUpdate()) name = set::GetDictionaryEntry(262);
-            if(this->tcontents[i].IsDLC()) name = set::GetDictionaryEntry(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(this->tcontents[i].ApplicationId));
+            String name = cfg::strings::Main.GetString(261);
+            if(this->tcontents[i].IsUpdate()) name = cfg::strings::Main.GetString(262);
+            if(this->tcontents[i].IsDLC()) name = cfg::strings::Main.GetString(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(this->tcontents[i].ApplicationId));
             auto subcnt = pu::ui::elm::MenuItem::New(name);
             subcnt->SetColor(global_settings.custom_scheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
@@ -54,56 +54,56 @@ namespace ui
     void ContentInformationLayout::options_Click()
     {
         u32 idx = this->optionsMenu->GetSelectedIndex();
-        String msg = set::GetDictionaryEntry(169) + "\n\n";
-        msg += set::GetDictionaryEntry(170) + " ";
-        std::vector<String> opts = { set::GetDictionaryEntry(245), set::GetDictionaryEntry(244) };
+        String msg = cfg::strings::Main.GetString(169) + "\n\n";
+        msg += cfg::strings::Main.GetString(170) + " ";
+        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244) };
         std::string icn;
         hos::Title cnt = this->tcontents[idx];
         if(fs::IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
         switch(cnt.Type)
         {
             case ncm::ContentMetaType::Application:
-                msg += set::GetDictionaryEntry(171);
+                msg += cfg::strings::Main.GetString(171);
                 break;
             case ncm::ContentMetaType::AddOnContent:
-                msg += set::GetDictionaryEntry(172);
+                msg += cfg::strings::Main.GetString(172);
                 break;
             case ncm::ContentMetaType::Patch:
-                msg += set::GetDictionaryEntry(173);
+                msg += cfg::strings::Main.GetString(173);
                 break;
             case ncm::ContentMetaType::SystemProgram:
-                msg += set::GetDictionaryEntry(174);
+                msg += cfg::strings::Main.GetString(174);
                 break;
             case ncm::ContentMetaType::SystemData:
-                msg += set::GetDictionaryEntry(175);
+                msg += cfg::strings::Main.GetString(175);
                 break;
             default:
-                msg += set::GetDictionaryEntry(176);
+                msg += cfg::strings::Main.GetString(176);
                 break;
         }
-        msg += "\n" + set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(cnt.ApplicationId);
-        msg += "\n\n" + set::GetDictionaryEntry(177) + " " + cnt.GetContents().GetFormattedTotalSize();
-        msg += "\n\n" + set::GetDictionaryEntry(178) + " v" + std::to_string(cnt.Version);
-        if(cnt.Version != 0) msg += " [" + set::GetDictionaryEntry(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
+        msg += "\n" + cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(cnt.ApplicationId);
+        msg += "\n\n" + cfg::strings::Main.GetString(177) + " " + cnt.GetContents().GetFormattedTotalSize();
+        msg += "\n\n" + cfg::strings::Main.GetString(178) + " v" + std::to_string(cnt.Version);
+        if(cnt.Version != 0) msg += " [" + cfg::strings::Main.GetString(179) + " no. " + std::to_string(cnt.Version >> 16) + "]";
         if(cnt.IsBaseTitle() && (cnt.Location != Storage::NANDSystem))
         {
             msg += "\n";
             auto uid = acc::GetSelectedUser();
             hos::TitlePlayStats stats = cnt.GetGlobalPlayStats();
-            if(stats.TotalPlaySeconds == 0) msg += "\n" + set::GetDictionaryEntry(351) + "\n";
+            if(stats.TotalPlaySeconds == 0) msg += "\n" + cfg::strings::Main.GetString(351) + "\n";
             else 
             {
                 if(accountUidIsValid(&uid))
                 {
                     stats = cnt.GetUserPlayStats(uid);
-                    msg += "\n" + set::GetDictionaryEntry(337);
-                    msg += "\n" + set::GetDictionaryEntry(339) + " " + hos::FormatTime(stats.SecondsFromLastLaunched);
-                    msg += "\n" + set::GetDictionaryEntry(340) + " " + hos::FormatTime(stats.TotalPlaySeconds);
+                    msg += "\n" + cfg::strings::Main.GetString(337);
+                    msg += "\n" + cfg::strings::Main.GetString(339) + " " + hos::FormatTime(stats.SecondsFromLastLaunched);
+                    msg += "\n" + cfg::strings::Main.GetString(340) + " " + hos::FormatTime(stats.TotalPlaySeconds);
                     msg += "\n";
                 }
-                msg += "\n" + set::GetDictionaryEntry(338);
-                msg += "\n" + set::GetDictionaryEntry(339) + " " + hos::FormatTime(stats.SecondsFromLastLaunched);
-                msg += "\n" + set::GetDictionaryEntry(340) + " " + hos::FormatTime(stats.TotalPlaySeconds);
+                msg += "\n" + cfg::strings::Main.GetString(338);
+                msg += "\n" + cfg::strings::Main.GetString(339) + " " + hos::FormatTime(stats.SecondsFromLastLaunched);
+                msg += "\n" + cfg::strings::Main.GetString(340) + " " + hos::FormatTime(stats.TotalPlaySeconds);
             }
         }
         auto tiks = hos::GetAllTickets();
@@ -123,27 +123,27 @@ namespace ui
 
         if(cnt.Location == Storage::GameCart)
         {
-            global_app->CreateShowDialog(set::GetDictionaryEntry(243), msg, { set::GetDictionaryEntry(234) }, true, icn);
+            global_app->CreateShowDialog(cfg::strings::Main.GetString(243), msg, { cfg::strings::Main.GetString(234) }, true, icn);
             return;
         }
-        if(hastik) opts.push_back(set::GetDictionaryEntry(293));
-        if(cnt.Location != Storage::NANDSystem) opts.push_back(set::GetDictionaryEntry(319));
-        opts.push_back(set::GetDictionaryEntry(18));
-        int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(243), msg, opts, true, icn);
+        if(hastik) opts.push_back(cfg::strings::Main.GetString(293));
+        if(cnt.Location != Storage::NANDSystem) opts.push_back(cfg::strings::Main.GetString(319));
+        opts.push_back(cfg::strings::Main.GetString(18));
+        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(243), msg, opts, true, icn);
         if(sopt < 0) return;
         if(sopt == 0)
         {
             if(cnt.Location == Storage::NANDSystem)
             {
-                global_app->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(185), { set::GetDictionaryEntry(234) }, true);
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(185), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
-            int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(186), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(186), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
             bool remtik = false;
             if(hastik)
             {
-                int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(243), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112), set::GetDictionaryEntry(18) }, true);
+                int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112), cfg::strings::Main.GetString(18) }, true);
                 if(sopt < 0) return;
                 remtik = (sopt == 0);
             }
@@ -153,16 +153,16 @@ namespace ui
                 if(remtik) rc = hos::RemoveTicket(stik);
                 if(R_SUCCEEDED(rc))
                 {
-                    global_app->ShowNotification(set::GetDictionaryEntry(246));
+                    global_app->ShowNotification(cfg::strings::Main.GetString(246));
                     global_app->ReturnToMainMenu();
                 }
-                else HandleResult(rc, set::GetDictionaryEntry(247));
+                else HandleResult(rc, cfg::strings::Main.GetString(247));
             }
-            else HandleResult(rc, set::GetDictionaryEntry(247));
+            else HandleResult(rc, cfg::strings::Main.GetString(247));
         }
         else if(sopt == 1)
         {
-            sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(182), set::GetDictionaryEntry(184), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(182), cfg::strings::Main.GetString(184), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
             if(sopt == 0)
             {
@@ -173,25 +173,25 @@ namespace ui
         }
         else if(hastik && (sopt == 2))
         {
-            sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+            sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(205), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
             Result rc = es::DeleteTicket(&stik.RId, sizeof(es::RightsId));
             if(R_SUCCEEDED(rc))
             {
-                global_app->ShowNotification(set::GetDictionaryEntry(206));
+                global_app->ShowNotification(cfg::strings::Main.GetString(206));
                 this->UpdateElements();
             }
-            else HandleResult(rc, set::GetDictionaryEntry(207));
+            else HandleResult(rc, cfg::strings::Main.GetString(207));
         }
         else if((hastik && sopt == 3) || (!hastik && sopt == 2))
         {
             auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
             if(R_SUCCEEDED(rc))
             {
-                global_app->ShowNotification(set::GetDictionaryEntry(322));
+                global_app->ShowNotification(cfg::strings::Main.GetString(322));
                 this->UpdateElements();
             }
-            else HandleResult(rc, set::GetDictionaryEntry(234));
+            else HandleResult(rc, cfg::strings::Main.GetString(234));
         }
     }
 
@@ -219,7 +219,7 @@ namespace ui
             delete[] cicon;
             cicon = NULL;
         }
-        global_app->LoadMenuData(set::GetDictionaryEntry(187), icon, tcnt, false);
+        global_app->LoadMenuData(cfg::strings::Main.GetString(187), icon, tcnt, false);
         this->UpdateElements();
     }
 }

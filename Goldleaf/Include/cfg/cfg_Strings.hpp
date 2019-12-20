@@ -20,20 +20,24 @@
 */
 
 #pragma once
-#include <set/set_Settings.hpp>
+#include <cfg/cfg_Settings.hpp>
 
-namespace set
+namespace cfg
 {
-    struct Dictionary
+    struct Strings
     {
-        Language DictLanguage;
-        JSON Strings;
+        Language language;
+        JSON json;
+
+        String GetString(u32 idx);
     };
 
-    static Dictionary MainDictionary;
-    static Dictionary Errors;
+    namespace strings
+    {
+        extern Strings Main;
+        extern Strings Results;
+        extern Strings Modules;
+    }
     
-    void Initialize();
-    String GetDictionaryEntry(u32 Index);
-    String GetErrorEntry(u32 Index);
+    void LoadStrings();
 }

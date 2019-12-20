@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -37,11 +37,11 @@ namespace ui
 
     void AmiiboDumpLayout::StartDump()
     {
-        this->infoText->SetText(set::GetDictionaryEntry(294));
+        this->infoText->SetText(cfg::strings::Main.GetString(294));
         auto rc = nfp::Initialize();
         if(R_SUCCEEDED(rc))
         {
-            this->infoText->SetText(set::GetDictionaryEntry(295));
+            this->infoText->SetText(cfg::strings::Main.GetString(295));
             while(!nfp::IsReady())
             {
                 global_app->CallForRender();
@@ -55,12 +55,12 @@ namespace ui
                 auto reg = nfp::GetRegisterInfo();
 
                 auto name = String(reg.amiibo_name);
-                auto sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(283), set::GetDictionaryEntry(317) + " '" + name + "'?", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(112) }, true);
+                auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(283), cfg::strings::Main.GetString(317) + " '" + name + "'?", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
                 if(sopt == 0)
                 {
-                    this->infoText->SetText(set::GetDictionaryEntry(296) + " '" + name + "' " + set::GetDictionaryEntry(297));
+                    this->infoText->SetText(cfg::strings::Main.GetString(296) + " '" + name + "' " + cfg::strings::Main.GetString(297));
                     nfp::DumpToEmuiibo(tag, reg, common, model);
-                    global_app->ShowNotification("'" + name + "' " + set::GetDictionaryEntry(298));
+                    global_app->ShowNotification("'" + name + "' " + cfg::strings::Main.GetString(298));
                 }
                 nfp::Close();
             }

@@ -44,6 +44,7 @@ namespace hos
 
     std::string FormatHex128(AccountUid Number);
     std::string DoubleToString(double Number);
+    std::string FormatResult(Result rc);
     std::string FormatTime(u64 Seconds);
     u64 GetSdCardFreeSpaceForInstalls();
     u64 GetNANDFreeSpaceForInstalls();

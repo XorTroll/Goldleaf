@@ -19,8 +19,7 @@
 
 */
 
-#include <fs/fs_Explorer.hpp>
-#include <usb/usb_Commands.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <malloc.h>
@@ -31,13 +30,6 @@
 
 namespace fs
 {
-    static SdCardExplorer *esdc = NULL;
-    static NANDExplorer *eprd = NULL;
-    static NANDExplorer *ensf = NULL;
-    static NANDExplorer *enus = NULL;
-    static NANDExplorer *enss = NULL;
-    static USBPCDriveExplorer *epcdrv = NULL;
-
     static bool InternalCaseCompare(String a, String b)
     {
         std::transform(a.begin(), a.end(), a.begin(), ::tolower);
@@ -109,12 +101,15 @@ namespace fs
     void Explorer::CopyFile(String Path, String NewPath)
     {
         String path = this->MakeFull(Path);
-        auto ex = GetExplorerForMountName(GetPathRoot(NewPath));
+        auto ex = GetExplorerForPath(NewPath);
+        String npath = ex->MakeFull(NewPath);
         u64 fsize = this->GetFileSize(path);
         u64 rsize = GetFileSystemOperationsBufferSize();
         u8 *data = GetFileSystemOperationsBuffer();
         u64 szrem = fsize;
         u64 off = 0;
+        this->StartFile(path, fs::FileMode::Read);
+        ex->StartFile(npath, fs::FileMode::Write);
         while(szrem)
         {
             u64 rbytes = this->ReadFileBlock(path, off, std::min(szrem, rsize), data);
@@ -122,44 +117,52 @@ namespace fs
             off += rbytes;
             ex->WriteFileBlock(NewPath, data, rbytes);
         }
+        this->EndFile(fs::FileMode::Read);
+        ex->EndFile(fs::FileMode::Write);
     }
 
     void Explorer::CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
     {
         String path = this->MakeFull(Path);
-        auto ex = GetExplorerForMountName(GetPathRoot(NewPath));
+        auto ex = GetExplorerForPath(NewPath);
+        String npath = ex->MakeFull(NewPath);
         u64 fsize = this->GetFileSize(path);
         u64 rsize = GetFileSystemOperationsBufferSize();
         u8 *data = GetFileSystemOperationsBuffer();
         u64 szrem = fsize;
         u64 off = 0;
+        this->StartFile(path, fs::FileMode::Read);
+        ex->StartFile(npath, fs::FileMode::Write);
         while(szrem)
         {
             u64 rbytes = this->ReadFileBlock(path, off, std::min(szrem, rsize), data);
             szrem -= rbytes;
             off += rbytes;
-            ex->WriteFileBlock(NewPath, data, rbytes);
+            ex->WriteFileBlock(npath, data, rbytes);
             Callback((double)off, (double)fsize);
         }
+        this->EndFile(fs::FileMode::Read);
+        ex->EndFile(fs::FileMode::Write);
     }
 
     void Explorer::CopyDirectory(String Dir, String NewDir)
     {
         String dir = this->MakeFull(Dir);
-        String ndir = this->MakeFull(NewDir);
-        this->CreateDirectory(ndir);
+        auto ex = GetExplorerForPath(NewDir);
+        String ndir = ex->MakeFull(NewDir);
+        ex->CreateDirectory(ndir);
         auto dirs = this->GetDirectories(dir);
-        if(!dirs.empty()) for(u32 i = 0; i < dirs.size(); i++)
+        for(auto &qdir: dirs)
         {
-            String dfrom = dir + "/" + dirs[i];
-            String dto = ndir + "/" + dirs[i];
+            String dfrom = dir + "/" + qdir;
+            String dto = ndir + "/" + qdir;
             this->CopyDirectory(dfrom, dto);
         }
         auto files = this->GetFiles(dir);
-        if(!files.empty()) for(u32 i = 0; i < files.size(); i++)
+        for(auto &qfile: files)
         {
-            String dfrom = dir + "/" + files[i];
-            String dto = ndir + "/" + files[i];
+            String dfrom = dir + "/" + qfile;
+            String dto = ndir + "/" + qfile;
             this->CopyFile(dfrom, dto);
         }
     }
@@ -167,12 +170,13 @@ namespace fs
     void Explorer::CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
     {
         String dir = this->MakeFull(Dir);
-        String ndir = this->MakeFull(NewDir);
-        this->CreateDirectory(ndir);
-        auto dirs = this->GetDirectories(dir);
-        for(auto &cdir: dirs) this->CopyDirectoryProgress(dir + "/" + cdir, ndir + "/" + cdir, Callback);
+        auto ex = GetExplorerForPath(NewDir);
+        String ndir = ex->MakeFull(NewDir);
+        ex->CreateDirectory(ndir);
         auto files = this->GetFiles(dir);
         for(auto &cfile: files) this->CopyFileProgress(dir + "/" + cfile, ndir + "/" + cfile, Callback);
+        auto dirs = this->GetDirectories(dir);
+        for(auto &cdir: dirs) this->CopyDirectoryProgress(dir + "/" + cdir, ndir + "/" + cdir, Callback);
     }
 
     bool Explorer::IsFileBinary(String Path)
@@ -339,549 +343,17 @@ namespace fs
     {
         String path = this->MakeFull(Path);
         auto dirs = this->GetDirectories(path);
-        if(!dirs.empty()) for(u32 i = 0; i < dirs.size(); i++)
+        for(auto &dir: dirs)
         {
-            String pd = path + "/" + dirs[i];
+            String pd = path + "/" + dir;
             this->DeleteDirectory(pd);
         }
         auto files = this->GetFiles(path);
-        if(!files.empty()) for(u32 i = 0; i < files.size(); i++)
+        for(auto &file: files)
         {
-            String pd = path + "/" + files[i];
+            String pd = path + "/" + file;
             this->DeleteFile(pd);
         }
         this->DeleteDirectorySingle(path);
-    }
-
-    std::vector<String> StdExplorer::GetDirectories(String Path)
-    {
-        std::vector<String> dirs;
-        String path = this->MakeFull(Path);
-        DIR *dp = opendir(path.AsUTF8().c_str());
-        if(dp)
-        {
-            struct dirent *dt;
-            while(true)
-            {
-                dt = readdir(dp);
-                if(dt == NULL) break;
-                std::string ent = dt->d_name;
-                if(this->IsDirectory(path + "/" + ent)) dirs.push_back(ent);
-            }
-            closedir(dp);
-        }
-        return dirs;
-    }
-
-    std::vector<String> StdExplorer::GetFiles(String Path)
-    {
-        std::vector<String> files;
-        String path = this->MakeFull(Path);
-        DIR *dp = opendir(path.AsUTF8().c_str());
-        if(dp)
-        {
-            struct dirent *dt;
-            while(true)
-            {
-                dt = readdir(dp);
-                if(dt == NULL) break;
-                std::string ent = dt->d_name;
-                if(this->IsFile(path + "/" + ent)) files.push_back(ent);
-            }
-            closedir(dp);
-        }
-        return files;
-    }
-
-    bool StdExplorer::Exists(String Path)
-    {
-        String path = this->MakeFull(Path);
-        struct stat st;
-        return (stat(path.AsUTF8().c_str(), &st) == 0);
-    }
-
-    bool StdExplorer::IsFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        struct stat st;
-        return ((stat(path.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFREG));
-    }
-
-    bool StdExplorer::IsDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        struct stat st;
-        return ((stat(path.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFDIR));
-    }
-    
-    void StdExplorer::CreateFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
-    }
-
-    void StdExplorer::CreateDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        mkdir(path.AsUTF8().c_str(), 777);
-    }
-
-    void StdExplorer::RenameFile(String Path, String NewName)
-    {
-        String path = this->MakeFull(Path);
-        String npath = this->MakeFull(NewName);
-        rename(path.AsUTF8().c_str(), npath.AsUTF8().c_str());
-    }
-
-    void StdExplorer::RenameDirectory(String Path, String NewName)
-    {
-        return this->RenameFile(Path, NewName);
-    }
-
-    void StdExplorer::DeleteFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        remove(path.AsUTF8().c_str());
-    }
-
-    void StdExplorer::DeleteDirectorySingle(String Path)
-    {
-        String path = this->MakeFull(Path);
-        fsdevDeleteDirectoryRecursively(path.AsUTF8().c_str());
-    }
-
-    u64 StdExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out)
-    {
-        u64 rsz = 0;
-        String path = this->MakeFull(Path);
-        FILE *f = fopen(path.AsUTF8().c_str(), "rb");
-        if(f)
-        {
-            fseek(f, Offset, SEEK_SET);
-            rsz = fread(Out, 1, Size, f);
-            fclose(f);
-        }
-        return rsz;
-    }
-
-    u64 StdExplorer::WriteFileBlock(String Path, u8 *Data, u64 Size)
-    {
-        u64 wsz = 0;
-        String path = this->MakeFull(Path);
-        FILE *f = fopen(path.AsUTF8().c_str(), "ab+");
-        if(f)
-        {
-            wsz = fwrite(Data, 1, Size, f);
-            fclose(f);
-        }
-        return wsz;
-    }
-
-    u64 StdExplorer::GetFileSize(String Path)
-    {
-        u64 sz = 0;
-        String path = this->MakeFull(Path);
-        struct stat st;
-        if(stat(path.AsUTF8().c_str(), &st) == 0) sz = st.st_size;
-        return sz;
-    }
-
-    u64 StdExplorer::GetTotalSpace()
-    {
-        return 0;
-    }
-
-    u64 StdExplorer::GetFreeSpace()
-    {
-        return 0;
-    }
-
-    void StdExplorer::SetArchiveBit(String Path)
-    {
-        String path = this->MakeFull(Path);
-        fsdevSetConcatenationFileAttribute(path.AsUTF8().c_str());
-    }
-
-    SdCardExplorer::SdCardExplorer()
-    {
-        this->SetNames("sdmc", "SdCard");
-    }
-
-    u64 SdCardExplorer::GetTotalSpace()
-    {
-        s64 sz = 0;
-        fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sdmc"), "/", &sz);
-        return (u64)sz;
-    }
-
-    u64 SdCardExplorer::GetFreeSpace()
-    {
-        s64 sz = 0;
-        fsFsGetFreeSpace(fsdevGetDeviceFileSystem("sdmc"), "/", &sz);
-        return (u64)sz;
-    }
-
-    NANDExplorer::NANDExplorer(Partition Part)
-    {
-        this->part = Part;
-        switch(Part)
-        {
-            case Partition::PRODINFOF:
-            {
-                fsOpenBisFileSystem(&this->fs, FsBisPartitionId_CalibrationFile, "");
-                fsdevMountDevice("gprodinfof", this->fs);
-                this->SetNames("gprodinfof", "ProdInfoF");
-                break;
-            }
-            case Partition::NANDSafe:
-            {
-                fsOpenBisFileSystem(&this->fs, FsBisPartitionId_SafeMode, "");
-                fsdevMountDevice("gnsafe", this->fs);
-                this->SetNames("gnsafe", "Safe");
-                break;
-            }
-            case Partition::NANDUser:
-            {
-                fsOpenBisFileSystem(&this->fs, FsBisPartitionId_User, "");
-                fsdevMountDevice("gnuser", this->fs);
-                this->SetNames("gnuser", "User");
-                break;
-            }
-            case Partition::NANDSystem:
-            {
-                fsOpenBisFileSystem(&this->fs, FsBisPartitionId_System, "");
-                fsdevMountDevice("gnsystem", this->fs);
-                this->SetNames("gnsystem", "System");
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    NANDExplorer::~NANDExplorer()
-    {
-        switch(this->part)
-        {
-            case Partition::PRODINFOF:
-            {
-                fsdevUnmountDevice("gprodinfof");
-                break;
-            }
-            case Partition::NANDSafe:
-            {
-                fsdevUnmountDevice("gnsafe");
-                break;
-            }
-            case Partition::NANDUser:
-            {
-                fsdevUnmountDevice("gnuser");
-                break;
-            }
-            case Partition::NANDSystem:
-            {
-                fsdevUnmountDevice("gnsystem");
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    Partition NANDExplorer::GetPartition()
-    {
-        return this->part;
-    }
-
-    bool NANDExplorer::ShouldWarnOnWriteAccess()
-    {
-        return true;
-    }
-
-    u64 NANDExplorer::GetTotalSpace()
-    {
-        s64 sz = 0;
-        fsFsGetTotalSpace(&this->fs, "/", &sz);
-        return (u64)sz;
-    }
-
-    u64 NANDExplorer::GetFreeSpace()
-    {
-        s64 sz = 0;
-        fsFsGetFreeSpace(&this->fs, "/", &sz);
-        return (u64)sz;
-    }
-
-    USBPCDriveExplorer::USBPCDriveExplorer(String MountName)
-    {
-        this->SetNames(MountName, MountName);
-    }
-
-    std::vector<String> USBPCDriveExplorer::GetDirectories(String Path)
-    {
-        std::vector<String> dirs;
-        String path = this->MakeFull(Path);
-        u32 dircount = 0;
-        auto rc = usb::ProcessCommand<usb::CommandId::GetDirectoryCount>(usb::InString(path), usb::Out32(dircount));
-        if(R_SUCCEEDED(rc))
-        {
-            for(u32 i = 0; i < dircount; i++)
-            {
-                String dir;
-                rc = usb::ProcessCommand<usb::CommandId::GetDirectory>(usb::InString(path), usb::In32(i), usb::OutString(dir));
-                if(R_SUCCEEDED(rc)) dirs.push_back(dir);
-            }
-        }
-        return dirs;
-    }
-
-    std::vector<String> USBPCDriveExplorer::GetFiles(String Path)
-    {
-        std::vector<String> files;
-        String path = this->MakeFull(Path);
-        u32 filecount = 0;
-        auto rc = usb::ProcessCommand<usb::CommandId::GetFileCount>(usb::InString(path), usb::Out32(filecount));
-        if(R_SUCCEEDED(rc))
-        {
-            for(u32 i = 0; i < filecount; i++)
-            {
-                String file;
-                rc = usb::ProcessCommand<usb::CommandId::GetFile>(usb::InString(path), usb::In32(i), usb::OutString(file));
-                if(R_SUCCEEDED(rc)) files.push_back(file);
-            }
-        }
-        return files;
-    }
-
-    bool USBPCDriveExplorer::Exists(String Path)
-    {
-        bool ex = false;
-        String path = this->MakeFull(Path);
-        u32 type = 0;
-        u64 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
-        ex = ((type == 1) || (type == 2));
-        return ex;
-    }
-
-    bool USBPCDriveExplorer::IsFile(String Path)
-    {
-        bool ex = false;
-        String path = this->MakeFull(Path);
-        u32 type = 0;
-        u64 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
-        ex = (type == 1);
-        return ex;
-    }
-
-    bool USBPCDriveExplorer::IsDirectory(String Path)
-    {
-        bool ex = false;
-        String path = this->MakeFull(Path);
-        u32 type = 0;
-        u64 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
-        ex = (type == 2);
-        return ex;
-    }
-
-    void USBPCDriveExplorer::CreateFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(1), usb::InString(path));
-    }
-
-    void USBPCDriveExplorer::CreateDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(2), usb::InString(path));
-    }
-
-    void USBPCDriveExplorer::RenameFile(String Path, String NewName)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(1), usb::InString(path), usb::InString(NewName));
-    }
-
-    void USBPCDriveExplorer::RenameDirectory(String Path, String NewName)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(2), usb::InString(path), usb::InString(NewName));
-    }
-
-    void USBPCDriveExplorer::DeleteFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(1), usb::InString(path));
-    }
-
-    void USBPCDriveExplorer::DeleteDirectorySingle(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(2), usb::InString(path));
-    }
-
-    u64 USBPCDriveExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out)
-    {
-        u64 rsize = 0;
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(path), usb::In64(Offset), usb::In64(Size), usb::Out64(rsize), usb::OutBuffer(Out, Size));
-        return rsize;
-    }
-
-    u64 USBPCDriveExplorer::WriteFileBlock(String Path, u8 *Data, u64 Size)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(path), usb::In64(Size), usb::InBuffer(Data, Size));
-        return Size;
-    }
-
-    u64 USBPCDriveExplorer::GetFileSize(String Path)
-    {
-        u64 sz = 0;
-        String path = this->MakeFull(Path);
-        u32 tmptype = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(tmptype), usb::Out64(sz));
-        return sz;
-    }
-
-    u64 USBPCDriveExplorer::GetTotalSpace()
-    {
-        u64 sz = 0;
-        /*
-        if(usb::WriteCommandInput(usb::CommandId::GetDriveTotalSpace))
-        {
-            usb::WriteString(this->mntname);
-            if(!usb::Read64(sz)){}
-        }
-        */
-        return sz;
-    }
-
-    u64 USBPCDriveExplorer::GetFreeSpace()
-    {
-        u64 sz = 0;
-        /*
-        if(usb::WriteCommandInput(usb::CommandId::GetDriveFreeSpace))
-        {
-            usb::WriteString(this->mntname);
-            if(!usb::Read64(sz)){}
-        }
-        */
-        return sz;
-    }
-
-    void USBPCDriveExplorer::SetArchiveBit(String Path)
-    {
-        // Non-HOS operating systems don't handle archive bit for what we want, so :P
-    }
-
-    FileSystemExplorer::FileSystemExplorer(String MountName, String DisplayName, FsFileSystem *FileSystem)
-    {
-        this->fs = FileSystem;
-        this->SetNames(MountName, DisplayName);
-        fsdevMountDevice(MountName.AsUTF8().c_str(), *this->fs);
-    }
-
-    FileSystemExplorer::~FileSystemExplorer()
-    {
-        fsdevUnmountDevice(this->mntname.AsUTF8().c_str());
-    }
-
-    FsFileSystem *FileSystemExplorer::GetFileSystem()
-    {
-        return this->fs;
-    }
-
-    u64 FileSystemExplorer::GetTotalSpace()
-    {
-        s64 sz = 0;
-        fsFsGetTotalSpace(this->fs, "/", &sz);
-        return (u64)sz;
-    }
-
-    u64 FileSystemExplorer::GetFreeSpace()
-    {
-        s64 sz = 0;
-        fsFsGetFreeSpace(this->fs, "/", &sz);
-        return (u64)sz;
-    }
-
-    SdCardExplorer *GetSdCardExplorer()
-    {
-        if(esdc == NULL) esdc = new SdCardExplorer();
-        return esdc;
-    }
-
-    NANDExplorer *GetPRODINFOFExplorer()
-    {
-        if(eprd == NULL) eprd = new NANDExplorer(Partition::PRODINFOF);
-        return eprd;
-    }
-
-    NANDExplorer *GetNANDSafeExplorer()
-    {
-        if(ensf == NULL) ensf = new NANDExplorer(Partition::NANDSafe);
-        return ensf;
-    }
-
-    NANDExplorer *GetNANDUserExplorer()
-    {
-        if(enus == NULL) enus = new NANDExplorer(Partition::NANDUser);
-        return enus;
-    }
-
-    NANDExplorer *GetNANDSystemExplorer()
-    {
-        if(enss == NULL) enss = new NANDExplorer(Partition::NANDSystem);
-        return enss;
-    }
-
-    USBPCDriveExplorer *GetUSBPCDriveExplorer(String MountName)
-    {
-        String mname = fs::GetPathRoot(MountName);
-        if(epcdrv == NULL)
-        {
-            epcdrv = new USBPCDriveExplorer(mname);
-            if(MountName != mname)
-            {
-                String pth = fs::GetPathWithoutRoot(MountName);
-                pth.erase(0, 1);
-                epcdrv->NavigateForward(pth);
-            }
-        }
-        else
-        {
-            if(epcdrv->GetMountName() != MountName)
-            {
-                delete epcdrv;
-                epcdrv = new USBPCDriveExplorer(mname);
-                if(MountName != mname)
-                {
-                    String pth = fs::GetPathWithoutRoot(MountName);
-                    pth.erase(0, 1);
-                    epcdrv->NavigateForward(pth);
-                }
-            }
-        }
-        return epcdrv;
-    }
-
-    Explorer *GetExplorerForMountName(String MountName)
-    {
-        Explorer *ex = NULL;
-        if(esdc != NULL) if(esdc->GetMountName() == MountName) return esdc;
-        if(eprd != NULL) if(eprd->GetMountName() == MountName) return eprd;
-        if(ensf != NULL) if(ensf->GetMountName() == MountName) return ensf;
-        if(enus != NULL) if(enus->GetMountName() == MountName) return enus;
-        if(enss != NULL) if(enss->GetMountName() == MountName) return enss;
-        if(epcdrv != NULL) if(epcdrv->GetMountName() == MountName) return epcdrv;
-        return ex;
-    }
-
-    Explorer *GetExplorerForPath(String Path)
-    {
-        return GetExplorerForMountName(GetPathRoot(Path));
     }
 }

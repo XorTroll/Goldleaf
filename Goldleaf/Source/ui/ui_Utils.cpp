@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -51,7 +51,7 @@ namespace ui
 
     void ShowPowerTasksDialog(String Title, String Message)
     {
-        int sopt = global_app->CreateShowDialog(Title, Message, { set::GetDictionaryEntry(233), set::GetDictionaryEntry(232), set::GetDictionaryEntry(18) }, true);
+        int sopt = global_app->CreateShowDialog(Title, Message, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
         if(sopt < 0) return;
         spsmInitialize();
         spsmShutdown(sopt == 1);
@@ -77,16 +77,16 @@ namespace ui
         return out;
     }
 
-    void HandleResult(Result OSError, String Context)
+    void HandleResult(Result rc, String info)
     {
-        if(OSError != 0)
+        if(R_FAILED(rc))
         {
-            err::Error err = err::DetermineError(OSError);
-            char displayerr[0x10] = {0};
-            sprintf(displayerr, "%04d-%04d", 2000 + R_MODULE(err.OSError), R_DESCRIPTION(err.OSError));
-            String emod = err.Module + " (" + std::to_string(R_MODULE(err.OSError)) + ")";
-            String edesc = err.Description + " (" + std::to_string(R_DESCRIPTION(err.OSError)) + ")";
-            global_app->CreateShowDialog(set::GetDictionaryEntry(266), Context + "\n\n" + set::GetDictionaryEntry(266) + ": " + std::string(displayerr) + " (" + hos::FormatHex(err.OSError) + ")\n" + set::GetDictionaryEntry(264) + ": " + emod + "\n" + set::GetDictionaryEntry(265) + ": " + edesc + "", { set::GetDictionaryEntry(234) }, false);
+            auto serr = hos::FormatResult(rc);
+            auto sres = err::GetResultDescription(rc);
+            auto modname = err::GetModuleName(R_MODULE(rc));
+            auto infomod = modname + " (" + std::to_string(R_MODULE(rc)) + ")";
+            auto infodesc = sres + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
+            global_app->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + serr + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + infomod + "\n" + cfg::strings::Main.GetString(265) + ": " + infodesc + "", { cfg::strings::Main.GetString(234) }, false);
         }
     }
 }

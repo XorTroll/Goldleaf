@@ -20,7 +20,7 @@
 */
 
 #include <hos/hos_Content.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 
 namespace hos
 {
@@ -63,7 +63,9 @@ namespace hos
                 for(auto &f: fs)
                 {
                     u32 rawver = 0;
+                    fwfs.StartFile(f, fs::FileMode::Read);
                     fwfs.ReadFileBlock(f, 8, sizeof(u32), (u8*)&rawver);
+                    fwfs.EndFile(fs::FileMode::Read);
                     out->Major = (u8)((rawver >> 26) & 0x3f);
                     out->Minor = (u8)((rawver >> 20) & 0x3f);
                     out->Micro = (u8)((rawver >> 16) & 0x3f);
@@ -91,5 +93,8 @@ namespace hos
         auto sys = fs::GetNANDSystemExplorer();
         sys->DeleteDirectory("Contents/placehld");
         sys->CreateDirectory("Contents/placehld");
+        nssuInitialize();
+        nssuDestroySystemUpdateTask();
+        nssuExit();
     }
 }

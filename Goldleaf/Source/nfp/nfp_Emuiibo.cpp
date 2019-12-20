@@ -21,7 +21,7 @@
 
 #include <nfp/nfp_Emuiibo.hpp>
 #include <net/net_Network.hpp>
-#include <fs/fs_Common.hpp>
+#include <fs/fs_FileSystem.hpp>
 
 namespace nfp::emu
 {

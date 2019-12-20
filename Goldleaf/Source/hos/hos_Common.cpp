@@ -21,7 +21,7 @@
 
 #include <hos/hos_Common.hpp>
 #include <hos/hos_Titles.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <sstream>
 
 namespace hos
@@ -65,6 +65,13 @@ namespace hos
         std::stringstream strm;
         strm << Number;
         return strm.str();
+    }
+
+    std::string FormatResult(Result rc)
+    {
+        char serr[0x10] = {0};
+        sprintf(serr, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
+        return serr;
     }
 
     std::string FormatTime(u64 Seconds)
@@ -163,7 +170,10 @@ namespace hos
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
         auto size = fexp->GetFileSize(Path);
         if((size == 0) || (size > MaxPayloadSize)) return;
+        
+        fexp->StartFile(Path, fs::FileMode::Read);
         fexp->ReadFileBlock(Path, 0, size, block);
+        fexp->EndFile(fs::FileMode::Read);
 
         IRAMClear();
         for(u32 i = 0; i < MaxPayloadSize; i += 0x1000) IRAMWrite(&block[i], (IRAMPayloadBaseAddress + i), 0x1000);

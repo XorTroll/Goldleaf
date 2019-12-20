@@ -23,13 +23,13 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
     CopyLayout::CopyLayout()
     {
-        this->infoText = pu::ui::elm::TextBlock::New(150, 320, set::GetDictionaryEntry(151));
+        this->infoText = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(global_settings.custom_scheme.Text);
         this->copyBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
@@ -48,13 +48,13 @@ namespace ui
                 this->copyBar->SetProgress(done);
                 global_app->CallForRender();
             });
-            global_app->ShowNotification(set::GetDictionaryEntry(141));
+            global_app->ShowNotification(cfg::strings::Main.GetString(141));
         }
         else
         {
             if(Exp->IsFile(NewPath))
             {
-                int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(153), set::GetDictionaryEntry(143), { set::GetDictionaryEntry(239), set::GetDictionaryEntry(18) }, true);
+                int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(153), cfg::strings::Main.GetString(143), { cfg::strings::Main.GetString(239), cfg::strings::Main.GetString(18) }, true);
                 if(sopt < 0) return;
             }
             fs::DeleteFile(NewPath);
@@ -64,7 +64,7 @@ namespace ui
                 this->copyBar->SetProgress(done);
                 global_app->CallForRender();
             });
-            global_app->ShowNotification(set::GetDictionaryEntry(240));
+            global_app->ShowNotification(cfg::strings::Main.GetString(240));
         }
     }
 }

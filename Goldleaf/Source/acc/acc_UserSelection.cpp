@@ -21,7 +21,7 @@
 
 #include <acc/acc_UserSelection.hpp>
 #include <acc/acc_Service.hpp>
-#include <fs/fs_Common.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <hos/hos_Common.hpp>
 
 namespace acc

@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -61,14 +61,14 @@ namespace ui
 
     void WebBrowserLayout::input_Click()
     {
-        String out = AskForText(set::GetDictionaryEntry(38), "https://");
+        String out = AskForText(cfg::strings::Main.GetString(38), "https://");
         LaunchWeb(out.AsUTF8());
 
         auto sopt = global_app->CreateShowDialog("Bookmark save", "Would you like to save this page as a bookmark?", { "Yes", "No" }, true);
         if(sopt == 0)
         {
             auto name = AskForText("Bookmark name");
-            set::WebBookmark bmk = {};
+            cfg::WebBookmark bmk = {};
             bmk.name = name.AsUTF8();
             bmk.url = out.AsUTF8();
             global_settings.bookmarks.push_back(bmk);
@@ -77,7 +77,7 @@ namespace ui
         }
     }
     
-    void WebBrowserLayout::bookmark_Click(set::WebBookmark bmk)
+    void WebBrowserLayout::bookmark_Click(cfg::WebBookmark bmk)
     {
         LaunchWeb(bmk.url);
     }

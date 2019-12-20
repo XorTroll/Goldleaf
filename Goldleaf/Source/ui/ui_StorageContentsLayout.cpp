@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -32,7 +32,7 @@ namespace ui
         this->contentsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
         this->contentsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
         global_settings.ApplyScrollBarColor(this->contentsMenu);
-        this->noContentsText = pu::ui::elm::TextBlock::New(0, 0, set::GetDictionaryEntry(188));
+        this->noContentsText = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(188));
         this->noContentsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->noContentsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->noContentsText->SetColor(global_settings.custom_scheme.Text);
@@ -104,7 +104,7 @@ namespace ui
             }
             this->contentsMenu->SetSelectedIndex(0);
         }
-        global_app->LoadMenuHead(set::GetDictionaryEntry(189));
+        global_app->LoadMenuHead(cfg::strings::Main.GetString(189));
     }
 
     std::vector<hos::Title> StorageContentsLayout::GetContents()

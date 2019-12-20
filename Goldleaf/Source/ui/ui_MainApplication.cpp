@@ -22,7 +22,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -47,8 +47,8 @@ namespace ui
 
     void MainApplication::OnLoad()
     {
-        global_settings = set::ProcessSettings();
-        set::Initialize();
+        global_settings = cfg::ProcessSettings();
+        cfg::LoadStrings();
         if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
 
         pu::ui::render::SetDefaultFont(global_settings.PathForResource("/Roboto-Medium.ttf"));
@@ -176,7 +176,7 @@ namespace ui
             auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
             if(timediff >= 1000)
             {
-                this->ShowNotification(set::GetDictionaryEntry(320));
+                this->ShowNotification(cfg::strings::Main.GetString(320));
                 this->welcomeshown = true;
             }
         }
@@ -297,7 +297,7 @@ namespace ui
             else
             {
                 this->UnloadMenuData();
-                this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
+                this->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
                 this->LoadLayout(this->exploreMenu);
             }
         }
@@ -305,7 +305,7 @@ namespace ui
         {
             if(clipboard != "")
             {
-                bool cdir = this->browser->GetExplorer()->IsDirectory(clipboard);
+                bool cdir = fs::IsDirectory(clipboard);
                 std::string fsicon;
                 if(cdir) fsicon = global_settings.PathForResource("/FileSystem/Directory.png");
                 else
@@ -319,7 +319,7 @@ namespace ui
                     else if(ext == "nxtheme") fsicon = global_settings.PathForResource("/FileSystem/NXTheme.png");
                     else fsicon = global_settings.PathForResource("/FileSystem/File.png");
                 }
-                int sopt = this->CreateShowDialog(set::GetDictionaryEntry(222), set::GetDictionaryEntry(223) + "\n(" + clipboard + ")", { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true, fsicon);
+                int sopt = this->CreateShowDialog(cfg::strings::Main.GetString(222), cfg::strings::Main.GetString(223) + "\n(" + clipboard + ")", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true, fsicon);
                 if(sopt == 0)
                 {
                     String cname = fs::GetFileName(clipboard);
@@ -330,36 +330,36 @@ namespace ui
                     clipboard = "";
                 }
             }
-            else this->ShowNotification(set::GetDictionaryEntry(224));
+            else this->ShowNotification(cfg::strings::Main.GetString(224));
         }
         else if(down & KEY_L)
         {
-            String cfile = AskForText(set::GetDictionaryEntry(225), "");
+            String cfile = AskForText(cfg::strings::Main.GetString(225), "");
             if(cfile != "")
             {
                 String ffile = this->browser->GetExplorer()->FullPathFor(cfile);
                 String pffile = this->browser->GetExplorer()->FullPresentablePathFor(cfile);
-                if(this->browser->GetExplorer()->IsFile(ffile) || this->browser->GetExplorer()->IsDirectory(ffile)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
+                if(this->browser->GetExplorer()->IsFile(ffile) || this->browser->GetExplorer()->IsDirectory(ffile)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 else
                 {
                     this->browser->GetExplorer()->CreateFile(ffile);
-                    this->ShowNotification(set::GetDictionaryEntry(227) + " \'" + pffile + "\'");
+                    this->ShowNotification(cfg::strings::Main.GetString(227) + " \'" + pffile + "\'");
                     this->browser->UpdateElements();
                 }
             }
         }
         else if(down & KEY_R)
         {
-            String cdir = AskForText(set::GetDictionaryEntry(250), "");
+            String cdir = AskForText(cfg::strings::Main.GetString(250), "");
             if(cdir != "")
             {
                 String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
                 String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
-                if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::Make(err::ErrorDescription::FileDirectoryAlreadyPresent), set::GetDictionaryEntry(255));
+                if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 else
                 {
                     this->browser->GetExplorer()->CreateDirectory(fdir);
-                    this->ShowNotification(set::GetDictionaryEntry(228) + " \'" + pfdir + "\'");
+                    this->ShowNotification(cfg::strings::Main.GetString(228) + " \'" + pfdir + "\'");
                     this->browser->UpdateElements();
                 }
             }
@@ -386,7 +386,7 @@ namespace ui
         if(down & KEY_B)
         {
             this->UnloadMenuData();
-            this->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
+            this->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
             this->LoadLayout(this->exploreMenu);
         }
     }
@@ -402,7 +402,7 @@ namespace ui
     {
         if(down & KEY_B)
         {
-            this->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(189));
+            this->LoadMenuData(cfg::strings::Main.GetString(187), "Storage", cfg::strings::Main.GetString(189));
             this->LoadLayout(this->storageContents);
         }
     }
@@ -411,7 +411,7 @@ namespace ui
     {
         if(down & KEY_B)
         {
-            this->LoadMenuData(set::GetDictionaryEntry(187), "Storage", set::GetDictionaryEntry(33));
+            this->LoadMenuData(cfg::strings::Main.GetString(187), "Storage", cfg::strings::Main.GetString(33));
             this->LoadLayout(this->contentManager);
         }
     }
@@ -446,7 +446,7 @@ namespace ui
         if(down & KEY_B)
         {
             this->UnloadMenuData();
-            this->LoadMenuData(set::GetDictionaryEntry(43), "Settings", set::GetDictionaryEntry(44));
+            this->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
             this->LoadLayout(this->settings);
         }
     }
@@ -466,19 +466,19 @@ namespace ui
         if(acc::SelectUser())
         {
             acc::CacheSelectedUserIcon();
-            this->ShowNotification(set::GetDictionaryEntry(324));
+            this->ShowNotification(cfg::strings::Main.GetString(324));
         }
     }
 
     void MainApplication::helpImage_OnClick()
     {
-        this->CreateShowDialog(set::GetDictionaryEntry(162), set::GetDictionaryEntry(342) + "\n\n" + set::GetDictionaryEntry(343) + "\n" + set::GetDictionaryEntry(344) + "\n" + set::GetDictionaryEntry(345) + "\n" + set::GetDictionaryEntry(346) + "\n" + set::GetDictionaryEntry(347), {set::GetDictionaryEntry(234)}, false);
+        this->CreateShowDialog(cfg::strings::Main.GetString(162), cfg::strings::Main.GetString(342) + "\n\n" + cfg::strings::Main.GetString(343) + "\n" + cfg::strings::Main.GetString(344) + "\n" + cfg::strings::Main.GetString(345) + "\n" + cfg::strings::Main.GetString(346) + "\n" + cfg::strings::Main.GetString(347), {cfg::strings::Main.GetString(234)}, false);
     }
 
     void MainApplication::OnInput(u64 down, u64 up, u64 held)
     {
         if(down & KEY_MINUS) this->CloseWithFadeOut();
-        else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(set::GetDictionaryEntry(229), set::GetDictionaryEntry(230));
+        else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(cfg::strings::Main.GetString(229), cfg::strings::Main.GetString(230));
         else if(down & KEY_PLUS) this->helpImage_OnClick();
     }
 
@@ -585,8 +585,8 @@ namespace ui
     void UpdateClipboard(String Path)
     {
         SetClipboard(Path);
-        String copymsg = set::GetDictionaryEntry(258);
-        if(global_app->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = set::GetDictionaryEntry(257);
+        String copymsg = cfg::strings::Main.GetString(258);
+        if(global_app->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = cfg::strings::Main.GetString(257);
         global_app->ShowNotification(copymsg);
     }
 }

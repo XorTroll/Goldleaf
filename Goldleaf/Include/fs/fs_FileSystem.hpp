@@ -20,21 +20,20 @@
 */
 
 #pragma once
-#include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
+#include <fs/fs_Common.hpp>
+#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FspExplorers.hpp>
+#include <fs/fs_RemotePCExplorer.hpp>
+#include <fs/fs_StdExplorer.hpp>
 
-namespace ui
+namespace fs
 {
-    class WebBrowserLayout : public pu::ui::Layout
-    {
-        public:
-            WebBrowserLayout();
-            PU_SMART_CTOR(WebBrowserLayout)
-
-            void Refresh();
-            void input_Click();
-            void bookmark_Click(cfg::WebBookmark bmk);
-        private:
-            pu::ui::elm::Menu::Ref optionsMenu;
-    };
+    SdCardExplorer *GetSdCardExplorer();
+    NANDExplorer *GetPRODINFOFExplorer();
+    NANDExplorer *GetNANDSafeExplorer();
+    NANDExplorer *GetNANDUserExplorer();
+    NANDExplorer *GetNANDSystemExplorer();
+    RemotePCExplorer *GetRemotePCExplorer(String MountName);
+    Explorer *GetExplorerForMountName(String MountName);
+    Explorer *GetExplorerForPath(String Path);
 }

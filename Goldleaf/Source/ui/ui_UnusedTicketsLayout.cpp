@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -32,7 +32,7 @@ namespace ui
         this->ticketsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
         this->ticketsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
         global_settings.ApplyScrollBarColor(this->ticketsMenu);
-        this->notTicketsText = pu::ui::elm::TextBlock::New(0, 0, set::GetDictionaryEntry(199));
+        this->notTicketsText = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(199));
         this->notTicketsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->notTicketsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->notTicketsText->SetColor(global_settings.custom_scheme.Text);
@@ -50,7 +50,7 @@ namespace ui
             bool used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid) || hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
             if(!used) this->tickets.push_back(ticket);
         }
-        global_app->LoadMenuHead(set::GetDictionaryEntry(248));
+        global_app->LoadMenuHead(cfg::strings::Main.GetString(248));
         this->ticketsMenu->ClearItems();
         if(Cooldown) this->ticketsMenu->SetCooldownEnabled(true);
         if(this->tickets.empty())
@@ -77,22 +77,22 @@ namespace ui
 
     void UnusedTicketsLayout::tickets_Click(hos::Ticket ticket)
     {
-        String info = set::GetDictionaryEntry(201) + "\n\n\n";
+        String info = cfg::strings::Main.GetString(201) + "\n\n\n";
         u64 tappid = ticket.GetApplicationId();
-        info += set::GetDictionaryEntry(90) + " " + hos::FormatApplicationId(tappid);
-        info += "\n" + set::GetDictionaryEntry(95) + " " + std::to_string(ticket.GetKeyGeneration() + 1);
+        info += cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(tappid);
+        info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(ticket.GetKeyGeneration() + 1);
         info += "\n\n";
-        info += set::GetDictionaryEntry(203);
-        int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(200), info, { set::GetDictionaryEntry(245), set::GetDictionaryEntry(18) }, true);
+        info += cfg::strings::Main.GetString(203);
+        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), info, { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
         if(sopt < 0) return;
-        sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(204), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+        sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(sopt < 0) return;
         auto rc = hos::RemoveTicket(ticket);
         if(R_SUCCEEDED(rc))
         {
-            global_app->ShowNotification(set::GetDictionaryEntry(206));
+            global_app->ShowNotification(cfg::strings::Main.GetString(206));
             this->UpdateElements(false);
         }
-        else HandleResult(rc, set::GetDictionaryEntry(207));
+        else HandleResult(rc, cfg::strings::Main.GetString(207));
     }
 }

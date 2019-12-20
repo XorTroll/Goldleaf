@@ -22,7 +22,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 ui::MainApplication::Ref global_app;
-set::Settings global_settings;
+cfg::Settings global_settings;
 bool gupdated = false;
 
 int main()

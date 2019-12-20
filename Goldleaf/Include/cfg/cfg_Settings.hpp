@@ -22,7 +22,7 @@
 #pragma once
 #include <Types.hpp>
 
-namespace set
+namespace cfg
 {
     struct WebBookmark
     {

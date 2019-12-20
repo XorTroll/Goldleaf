@@ -20,8 +20,8 @@
 */
 
 #include <nsp/nsp_Installer.hpp>
-#include <err/err_Errors.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <err/err_Result.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <sys/stat.h>
 #include <hos/hos_Common.hpp>
 #include <fstream>
@@ -29,7 +29,7 @@
 #include <dirent.h>
 #include <chrono>
 
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace nsp
 {
@@ -44,7 +44,7 @@ namespace nsp
 
     Result Installer::PrepareInstallation()
     {
-        Result rc = err::Make(err::ErrorDescription::InvalidNSP);
+        auto rc = err::result::ResultInvalidNSP;
         if(nspentry.IsOk())
         {
             rc = 0;
@@ -72,7 +72,7 @@ namespace nsp
             }
             if(scnmtnca == 0)
             {
-                rc = err::Make(err::ErrorDescription::MetaNotFound);
+                rc = err::result::ResultMetaNotFound;
                 return rc;
             }
             String icnmtnca = fs::GetFileName(cnmtnca);
@@ -89,7 +89,7 @@ namespace nsp
             u8 systemkgen = hos::ComputeSystemKeyGeneration();
             if(systemkgen < keygen)
             {
-                rc = err::Make(err::ErrorDescription::KeyGenMismatch);
+                rc = err::result::ResultKeyGenMismatch;
                 return rc;
             }
             FsFileSystem cnmtncafs;
@@ -110,12 +110,14 @@ namespace nsp
                 }
                 if(fcnmt.empty())
                 {
-                    rc = err::Make(err::ErrorDescription::MetaNotFound);
+                    rc = err::result::ResultMetaNotFound;
                     return rc;
                 }
                 u64 fcnmtsz = cnmtfs.GetFileSize(fcnmt);
                 u8 *cnmtbuf = new u8[fcnmtsz]();
+                cnmtfs.StartFile(fcnmt, fs::FileMode::Read);
                 cnmtfs.ReadFileBlock(fcnmt, 0, fcnmtsz, cnmtbuf);
+                cnmtfs.EndFile(fs::FileMode::Read);
                 cnmt = ncm::ContentMeta(cnmtbuf, fcnmtsz);
                 delete[] cnmtbuf;
             }
@@ -127,12 +129,12 @@ namespace nsp
             memcpy(&mrec, &tmprec, sizeof(NcmContentMetaKey));
             if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, mrec.id))
             {
-                rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
+                rc = err::result::ResultTitleAlreadyInstalled;
                 return rc;
             }
             if(hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, mrec.id))
             {
-                rc = err::Make(err::ErrorDescription::TitleAlreadyInstalled);
+                rc = err::result::ResultTitleAlreadyInstalled;
                 return rc;
             }
             NcmContentStorage cst;
@@ -179,7 +181,10 @@ namespace nsp
                                 break;
                             }
                         }
-                        controlfs.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)&entrynacp);
+                        auto fcontrol = "control.nacp";
+                        controlfs.StartFile(fcontrol, fs::FileMode::Read);
+                        controlfs.ReadFileBlock(fcontrol, 0, sizeof(NacpStruct), (u8*)&entrynacp);
+                        controlfs.EndFile(fs::FileMode::Read);
                     }
                 }
             }
@@ -231,7 +236,10 @@ namespace nsp
         if(stik > 0)
         {
             u8 *tikbuf = fs::GetFileSystemOperationsBuffer();
-            nsys->ReadFileBlock("Contents/temp/" + tik, 0, stik, tikbuf);
+            auto nmtik = "Contents/temp/" + tik;
+            nsys->StartFile(nmtik, fs::FileMode::Read);
+            nsys->ReadFileBlock(nmtik, 0, stik, tikbuf);
+            nsys->EndFile(fs::FileMode::Read);
             rc = es::ImportTicket(tikbuf, stik, es::CertData, es::CertSize);
         }
         return rc;
@@ -319,6 +327,17 @@ namespace nsp
             ncmContentStorageCreatePlaceHolder(&cst, &curid, &plhdid, ncasize);
             u64 noff = 0;
             u64 szrem = ncasize;
+            auto nmnca = "Contents/temp/" + ncaname;
+            switch(rnca.Type)
+            {
+                case ncm::ContentType::Meta:
+                case ncm::ContentType::Control:
+                    nsys->StartFile(nmnca, fs::FileMode::Read);
+                    break;
+                default:
+                    nspentry.GetExplorer()->StartFile(nspentry.GetPath(), fs::FileMode::Read);
+                    break;
+            }
             while(szrem)
             {
                 u64 rbytes = 0;
@@ -328,7 +347,7 @@ namespace nsp
                 {
                     case ncm::ContentType::Meta:
                     case ncm::ContentType::Control:
-                        rbytes = nsys->ReadFileBlock("Contents/temp/" + ncaname, noff, rsize, rdata);
+                        rbytes = nsys->ReadFileBlock(nmnca, noff, rsize, rdata);
                         break;
                     default:
                         rbytes = nspentry.ReadFromFile(idxncaname, noff, rsize, rdata);
@@ -341,6 +360,16 @@ namespace nsp
                 u64 diff = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
                 double bsec = (1000.0f / (double)diff) * rbytes; // By elapsed time and written bytes, compute how much data has been written in 1sec.
                 OnContentWrite(rnca, i, ncas.size(), (double)(noff + twrittensize), (double)totalsize, (u64)bsec);
+            }
+            switch(rnca.Type)
+            {
+                case ncm::ContentType::Meta:
+                case ncm::ContentType::Control:
+                    nsys->EndFile(fs::FileMode::Read);
+                    break;
+                default:
+                    nspentry.GetExplorer()->EndFile(fs::FileMode::Read);
+                    break;
             }
             twrittensize += noff;
             ncmContentStorageRegister(&cst, &curid, &plhdid);

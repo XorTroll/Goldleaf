@@ -21,7 +21,7 @@
 
 #include <hos/hos_Titles.hpp>
 #include <hos/hos_Content.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -118,7 +118,9 @@ namespace hos
         {
             String fnacp = consts::Root + "/title/" + fappid + ".nacp";
             sdexp->DeleteFile(fnacp);
+            sdexp->StartFile(fnacp, fs::FileMode::Write);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
+            sdexp->EndFile(fs::FileMode::Write);
             delete nacp;
         }
         u8 *jpg = this->TryGetIcon();
@@ -126,7 +128,9 @@ namespace hos
         {
             String fjpg = consts::Root + "/title/" + fappid + ".jpg";
             sdexp->DeleteFile(fjpg);
+            sdexp->StartFile(fjpg, fs::FileMode::Write);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
+            sdexp->EndFile(fs::FileMode::Write);
             delete[] jpg;
             hicon = true;
         }
@@ -433,6 +437,7 @@ namespace hos
         TicketData tik;
         u64 off = 0;
         u32 tiksig = 0;
+        fexp->StartFile(Path, fs::FileMode::Read);
         fexp->ReadFileBlock(Path, off, sizeof(u32), (u8*)&tiksig);
         tik.Signature = static_cast<TicketSignature>(tiksig);
         u32 sigsz = 0;
@@ -475,6 +480,7 @@ namespace hos
         off = tikdata + 0x160 + 0xf;
         u8 kgen = 0;
         fexp->ReadFileBlock(Path, off, 1, &kgen);
+        fexp->EndFile(fs::FileMode::Read);
         tik.KeyGeneration = kgen;
         return tik;
     }

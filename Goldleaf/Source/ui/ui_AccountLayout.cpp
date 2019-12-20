@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -39,21 +39,21 @@ namespace ui
     void AccountLayout::ReloadItems()
     {
         this->optsMenu->ClearItems();
-        auto itm = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(208));
+        auto itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(208));
         itm->SetColor(global_settings.custom_scheme.Text);
         itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
         this->optsMenu->AddItem(itm);
-        auto itm2 = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(209));
+        auto itm2 = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(209));
         itm2->SetColor(global_settings.custom_scheme.Text);
         itm2->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
         this->optsMenu->AddItem(itm2);
-        auto itm3 = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(210));
+        auto itm3 = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(210));
         itm3->SetColor(global_settings.custom_scheme.Text);
         itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
         this->optsMenu->AddItem(itm3);
         if(acc::IsLinked())
         {
-            auto itm4 = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(336));
+            auto itm4 = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(336));
             itm4->SetColor(global_settings.custom_scheme.Text);
             itm4->AddOnClick(std::bind(&AccountLayout::optsServicesInfo_Click, this));
             this->optsMenu->AddItem(itm4);
@@ -68,7 +68,7 @@ namespace ui
         auto rc = accountGetProfile(&prof, this->uid);
         if(R_FAILED(rc))
         {
-            HandleResult(rc, set::GetDictionaryEntry(211));
+            HandleResult(rc, cfg::strings::Main.GetString(211));
             global_app->ReturnToMainMenu();
             return;
         }
@@ -79,7 +79,7 @@ namespace ui
         rc = accountProfileGet(&prof, &udata, &pbase);
         if(R_FAILED(rc))
         {
-            HandleResult(rc, set::GetDictionaryEntry(211));
+            HandleResult(rc, cfg::strings::Main.GetString(211));
             global_app->ReturnToMainMenu();
             return;
         }
@@ -95,13 +95,13 @@ namespace ui
             usericon = "Accounts";
         }
         
-        global_app->LoadMenuData(set::GetDictionaryEntry(41), usericon, set::GetDictionaryEntry(212) + " " + String(pbase.nickname), deficon);
+        global_app->LoadMenuData(cfg::strings::Main.GetString(41), usericon, cfg::strings::Main.GetString(212) + " " + String(pbase.nickname), deficon);
         this->ReloadItems();
     }
 
     void AccountLayout::optsRename_Click()
     {
-        String name = AskForText(set::GetDictionaryEntry(213), "", 10);
+        String name = AskForText(cfg::strings::Main.GetString(213), "", 10);
         if(!name.empty())
         {
             auto rc = acc::EditUser([&](AccountProfileBase *pbase, AccountUserData *udata)
@@ -110,56 +110,56 @@ namespace ui
             });
             if(R_SUCCEEDED(rc))
             {
-                global_app->LoadMenuHead(set::GetDictionaryEntry(212) + " " + name);
-                global_app->ShowNotification(set::GetDictionaryEntry(214) + " \'" + name + "\'.");
+                global_app->LoadMenuHead(cfg::strings::Main.GetString(212) + " " + name);
+                global_app->ShowNotification(cfg::strings::Main.GetString(214) + " \'" + name + "\'.");
             }
-            else HandleResult(rc, set::GetDictionaryEntry(215));
+            else HandleResult(rc, cfg::strings::Main.GetString(215));
         }
     }
 
     void AccountLayout::optsIcon_Click()
     {
         std::string iconpth = "/" + consts::Root + "/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
-        global_app->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(217) + "\n\'SdCard:" + iconpth + "\'", { set::GetDictionaryEntry(234) }, false, "sdmc:" + iconpth);
+        global_app->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(217) + "\n\'SdCard:" + iconpth + "\'", { cfg::strings::Main.GetString(234) }, false, "sdmc:" + iconpth);
     }
 
     void AccountLayout::optsDelete_Click()
     {
-        int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(218), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(218), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(sopt == 0)
         {
             s32 ucount = 0;
             accountGetUserCount(&ucount);
             if(ucount < 2)
             {
-                global_app->CreateShowDialog(set::GetDictionaryEntry(216), set::GetDictionaryEntry(276), { set::GetDictionaryEntry(234) }, true);
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(276), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
             auto rc = acc::DeleteUser(this->uid);
             if(R_SUCCEEDED(rc))
             {
-                global_app->ShowNotification(set::GetDictionaryEntry(219));
+                global_app->ShowNotification(cfg::strings::Main.GetString(219));
                 global_app->ReturnToMainMenu();
 
                 acc::ResetSelectedUser();
             }
-            else HandleResult(rc, set::GetDictionaryEntry(220));
+            else HandleResult(rc, cfg::strings::Main.GetString(220));
         }
     }
 
     void AccountLayout::optsServicesInfo_Click()
     {
         auto linkedinfo = acc::GetUserLinkedInfo();
-        String str = set::GetDictionaryEntry(328) + " " + hos::FormatHex(linkedinfo.AccountId);
-        str += "\n" + set::GetDictionaryEntry(329) + " " + hos::FormatHex(linkedinfo.NintendoAccountId);
-        auto sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(330), str, { set::GetDictionaryEntry(331), set::GetDictionaryEntry(18) }, true);
+        String str = cfg::strings::Main.GetString(328) + " " + hos::FormatHex(linkedinfo.AccountId);
+        str += "\n" + cfg::strings::Main.GetString(329) + " " + hos::FormatHex(linkedinfo.NintendoAccountId);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(330), str, { cfg::strings::Main.GetString(331), cfg::strings::Main.GetString(18) }, true);
         if(sopt != 0) return;
-        sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(332), set::GetDictionaryEntry(333), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
+        sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(332), cfg::strings::Main.GetString(333), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(sopt == 0)
         {
             auto res = acc::UnlinkLocally();
-            if(res == 0) global_app->ShowNotification(set::GetDictionaryEntry(334));
-            else HandleResult(res, set::GetDictionaryEntry(335));
+            if(res == 0) global_app->ShowNotification(cfg::strings::Main.GetString(334));
+            else HandleResult(res, cfg::strings::Main.GetString(335));
         }
     }
 }

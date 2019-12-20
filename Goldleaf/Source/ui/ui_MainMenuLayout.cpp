@@ -23,7 +23,7 @@
 #include <ui/ui_MainApplication.hpp>
 
 extern ui::MainApplication::Ref global_app;
-extern set::Settings global_settings;
+extern cfg::Settings global_settings;
 
 namespace ui
 {
@@ -32,23 +32,23 @@ namespace ui
         this->optionMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
         this->optionMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
         global_settings.ApplyScrollBarColor(this->optionMenu);
-        this->exploreMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(277));
+        this->exploreMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(277));
         this->exploreMenuItem->SetIcon(global_settings.PathForResource("/Common/SdCard.png"));
         this->exploreMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->exploreMenuItem->AddOnClick(std::bind(&MainMenuLayout::exploreMenuItem_Click, this));
-        this->titleMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(3));
+        this->titleMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(3));
         this->titleMenuItem->SetIcon(global_settings.PathForResource("/Common/Storage.png"));
         this->titleMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
-        this->webMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(5));
+        this->webMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(5));
         this->webMenuItem->SetIcon(global_settings.PathForResource("/Common/Browser.png"));
         this->webMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->webMenuItem->AddOnClick(std::bind(&MainMenuLayout::webMenuItem_Click, this));
-        this->accountMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(6));
+        this->accountMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(6));
         this->accountMenuItem->SetIcon(global_settings.PathForResource("/Common/Accounts.png"));
         this->accountMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->accountMenuItem->AddOnClick(std::bind(&MainMenuLayout::accountMenuItem_Click, this));
-        this->amiiboMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(283));
+        this->amiiboMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(283));
         this->amiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
         this->amiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
@@ -56,15 +56,15 @@ namespace ui
         this->emuiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
         this->emuiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->emuiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::emuiiboMenuItem_Click, this));
-        this->settingsMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(375));
+        this->settingsMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(375));
         this->settingsMenuItem->SetIcon(global_settings.PathForResource("/Common/Settings.png"));
         this->settingsMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->settingsMenuItem->AddOnClick(std::bind(&MainMenuLayout::settingsMenuItem_Click, this));
-        this->updateMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(284));
+        this->updateMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(284));
         this->updateMenuItem->SetIcon(global_settings.PathForResource("/Common/Update.png"));
         this->updateMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->updateMenuItem->AddOnClick(std::bind(&MainMenuLayout::updateMenuItem_Click, this));
-        this->aboutMenuItem = pu::ui::elm::MenuItem::New(set::GetDictionaryEntry(8));
+        this->aboutMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(8));
         this->aboutMenuItem->SetIcon(global_settings.PathForResource("/Common/Info.png"));
         this->aboutMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->aboutMenuItem->AddOnClick(std::bind(&MainMenuLayout::aboutMenuItem_Click, this));
@@ -82,13 +82,13 @@ namespace ui
 
     void MainMenuLayout::exploreMenuItem_Click()
     {
-        global_app->LoadMenuData(set::GetDictionaryEntry(277), "Storage", set::GetDictionaryEntry(278));
+        global_app->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
         global_app->LoadLayout(global_app->GetExploreMenuLayout());
     }
 
     void MainMenuLayout::titleMenuItem_Click()
     {
-        global_app->LoadMenuData(set::GetDictionaryEntry(32), "Storage", set::GetDictionaryEntry(33));
+        global_app->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
         EnsureDirectories();
         global_app->LoadLayout(global_app->GetContentManagerLayout());
     }
@@ -104,23 +104,23 @@ namespace ui
     {
         if(!acc::HasUser())
         {
-            int sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(348), set::GetDictionaryEntry(349), {set::GetDictionaryEntry(111), set::GetDictionaryEntry(18)}, true);
+            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(348), cfg::strings::Main.GetString(349), {cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18)}, true);
             if(sopt != 0) return;
-            if(acc::SelectUser()) global_app->ShowNotification(set::GetDictionaryEntry(324));
+            if(acc::SelectUser()) global_app->ShowNotification(cfg::strings::Main.GetString(324));
             else
             {
-                global_app->ShowNotification(set::GetDictionaryEntry(350));
+                global_app->ShowNotification(cfg::strings::Main.GetString(350));
                 return;
             }
         }
-        global_app->LoadMenuData(set::GetDictionaryEntry(41), "Accounts", set::GetDictionaryEntry(42));
+        global_app->LoadMenuData(cfg::strings::Main.GetString(41), "Accounts", cfg::strings::Main.GetString(42));
         global_app->GetAccountLayout()->Load();
         global_app->LoadLayout(global_app->GetAccountLayout());
     }
 
     void MainMenuLayout::amiiboMenuItem_Click()
     {
-        global_app->LoadMenuData(set::GetDictionaryEntry(283), "Amiibo", set::GetDictionaryEntry(301));
+        global_app->LoadMenuData(cfg::strings::Main.GetString(283), "Amiibo", cfg::strings::Main.GetString(301));
         global_app->LoadLayout(global_app->GetAmiiboDumpLayout());
         global_app->GetAmiiboDumpLayout()->StartDump();
         global_app->ReturnToMainMenu();
@@ -135,25 +135,25 @@ namespace ui
 
     void MainMenuLayout::settingsMenuItem_Click()
     {
-        global_app->LoadMenuData(set::GetDictionaryEntry(375), "Settings", set::GetDictionaryEntry(376));
+        global_app->LoadMenuData(cfg::strings::Main.GetString(375), "Settings", cfg::strings::Main.GetString(376));
         global_app->LoadLayout(global_app->GetSettingsLayout());
     }
 
     void MainMenuLayout::updateMenuItem_Click()
     {
-        global_app->LoadMenuData(set::GetDictionaryEntry(284), "Update", set::GetDictionaryEntry(302));
+        global_app->LoadMenuData(cfg::strings::Main.GetString(284), "Update", cfg::strings::Main.GetString(302));
         global_app->LoadLayout(global_app->GetUpdateLayout());
         global_app->GetUpdateLayout()->StartUpdateSearch();
     }
 
     void MainMenuLayout::aboutMenuItem_Click()
     {
-        String exmode = set::GetDictionaryEntry(288);
-        if(GetExecutableMode() == ExecutableMode::NSO) exmode = set::GetDictionaryEntry(289);
+        String exmode = cfg::strings::Main.GetString(288);
+        if(GetExecutableMode() == ExecutableMode::NSO) exmode = cfg::strings::Main.GetString(289);
 
         String lmode;
-        if(GetLaunchMode() == LaunchMode::Applet) lmode = set::GetDictionaryEntry(290);
-        if(GetLaunchMode() == LaunchMode::Application) lmode = set::GetDictionaryEntry(291);
+        if(GetLaunchMode() == LaunchMode::Applet) lmode = cfg::strings::Main.GetString(290);
+        if(GetLaunchMode() == LaunchMode::Application) lmode = cfg::strings::Main.GetString(291);
 
         global_app->LoadMenuData("Goldleaf v" + GetVersion(), "Info", exmode.AsUTF8() + ", " + lmode.AsUTF8());
         global_app->LoadLayout(global_app->GetAboutLayout());

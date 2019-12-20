@@ -19,12 +19,12 @@
 
 */
 
-#include <set/set_Settings.hpp>
+#include <cfg/cfg_Settings.hpp>
 #include <ui/ui_MainApplication.hpp>
-#include <fs/fs_Explorer.hpp>
+#include <fs/fs_FileSystem.hpp>
 #include <iomanip>
 
-namespace set
+namespace cfg
 {
     static std::string ColorToHex(pu::ui::Color clr)
     {
@@ -140,11 +140,8 @@ namespace set
                 if(!lang.empty())
                 {
                     auto clang = StringToLanguage(lang);
-                    if(clang != Language::Invalid)
-                    {
-                        gset.has_custom_lang = true;
-                        gset.custom_lang = clang;
-                    }
+                    gset.has_custom_lang = true;
+                    gset.custom_lang = clang;
                 }
                 std::string extrom = settings["general"].value("externalRomFs", "");
                 if(!extrom.empty())
