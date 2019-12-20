@@ -148,14 +148,13 @@ namespace ui
                 remtik = (sopt == 0);
             }
             Result rc = hos::RemoveTitle(cnt);
-            if(rc == 0)
+            if(R_SUCCEEDED(rc))
             {
                 if(remtik) rc = hos::RemoveTicket(stik);
-                if(rc == 0)
+                if(R_SUCCEEDED(rc))
                 {
                     global_app->ShowNotification(set::GetDictionaryEntry(246));
-                    global_app->UnloadMenuData();
-                    global_app->LoadLayout(global_app->GetMainMenuLayout());
+                    global_app->ReturnToMainMenu();
                 }
                 else HandleResult(rc, set::GetDictionaryEntry(247));
             }
@@ -169,8 +168,7 @@ namespace ui
             {
                 global_app->LoadLayout(global_app->GetTitleDumperLayout());
                 global_app->GetTitleDumperLayout()->StartDump(cnt, hastik);
-                global_app->UnloadMenuData();
-                global_app->LoadLayout(global_app->GetMainMenuLayout());
+                global_app->ReturnToMainMenu();
             }
         }
         else if(hastik && (sopt == 2))
@@ -178,7 +176,7 @@ namespace ui
             sopt = global_app->CreateShowDialog(set::GetDictionaryEntry(200), set::GetDictionaryEntry(205), { set::GetDictionaryEntry(111), set::GetDictionaryEntry(18) }, true);
             if(sopt < 0) return;
             Result rc = es::DeleteTicket(&stik.RId, sizeof(es::RightsId));
-            if(rc == 0)
+            if(R_SUCCEEDED(rc))
             {
                 global_app->ShowNotification(set::GetDictionaryEntry(206));
                 this->UpdateElements();
@@ -188,7 +186,7 @@ namespace ui
         else if((hastik && sopt == 3) || (!hastik && sopt == 2))
         {
             auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
-            if(rc == 0)
+            if(R_SUCCEEDED(rc))
             {
                 global_app->ShowNotification(set::GetDictionaryEntry(322));
                 this->UpdateElements();

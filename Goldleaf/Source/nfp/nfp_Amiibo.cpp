@@ -30,12 +30,12 @@ namespace nfp
     static Event available;
     static Event activate;
     static Event deactivate;
-    static bool init;
+    static bool init = false;
 
     Result Initialize()
     {
         if(init) return 0;
-        Result rc = nfpInitialize(NfpServiceType_Debug);
+        auto rc = nfpInitialize(NfpServiceType_Debug);
         if(R_SUCCEEDED(rc))
         {
             rc = nfpAttachAvailabilityChangeEvent(&available);
@@ -63,7 +63,7 @@ namespace nfp
     bool IsReady()
     {
         if(!init) return false;
-        NfpDeviceState dst;
+        NfpDeviceState dst = NfpDeviceState_Unavailable;
         nfpGetDeviceState(&dhandle, &dst);
         return (dst == NfpDeviceState_TagFound);
     }
@@ -75,29 +75,34 @@ namespace nfp
 
     NfpTagInfo GetTagInfo()
     {
-        NfpTagInfo tinfo = {0};
+        NfpTagInfo tinfo = {};
         nfpGetTagInfo(&dhandle, &tinfo);
         return tinfo;
     }
 
     NfpRegisterInfo GetRegisterInfo()
     {
-        NfpRegisterInfo rinfo = {0};
+        NfpRegisterInfo rinfo = {};
         nfpGetRegisterInfo(&dhandle, &rinfo);
         return rinfo;
     }
 
     NfpCommonInfo GetCommonInfo()
     {
-        NfpCommonInfo cinfo = {0};
+        NfpCommonInfo cinfo = {};
         nfpGetCommonInfo(&dhandle, &cinfo);
         return cinfo;
     }
 
     NfpModelInfo GetModelInfo()
     {
-        NfpModelInfo minfo = {0};
+        NfpModelInfo minfo = {};
         nfpGetModelInfo(&dhandle, &minfo);
+
+        minfo.amiibo_id[5] = minfo.amiibo_id[4];
+        minfo.amiibo_id[4] = 0;
+        minfo.amiibo_id[7] = 2;
+        
         return minfo;
     }
 
@@ -106,13 +111,13 @@ namespace nfp
         auto outdir = "sdmc:/emuiibo/amiibo/" + String(reg.amiibo_name);
         fsdevDeleteDirectoryRecursively(outdir.AsUTF8().c_str());
 
-        mkdir("sdmc:/emuiibo", 777);
-        mkdir("sdmc:/emuiibo/amiibo", 777);
-        mkdir(outdir.AsUTF8().c_str(), 777);
+        fs::CreateDirectory("sdmc:/emuiibo");
+        fs::CreateDirectory("sdmc:/emuiibo/amiibo");
+        fs::CreateDirectory(outdir);
 
         auto jtag = JSON::object();
         std::stringstream strm;
-        for(u32 i = 0; i < 9; i++) strm << std::hex << std::setw(2) << std::uppercase << std::setfill('0') << (int)tag.uuid[i];
+        for(u32 i = 0; i < 10; i++) strm << std::hex << std::setw(2) << std::setfill('0') << (int)tag.uuid[i];
         jtag["uuid"] = strm.str();
         std::ofstream ofs((outdir + "/tag.json").AsUTF8());
         ofs << std::setw(4) << jtag;
@@ -121,15 +126,18 @@ namespace nfp
         auto jmodel = JSON::object();
         strm.str("");
         strm.clear();
-        for(u32 i = 0; i < 8; i++) strm << std::hex << std::setw(2) << std::uppercase << std::setfill('0') << (int)model.amiibo_id[i];
+        for(u32 i = 0; i < 8; i++) strm << std::hex << std::setw(2) << std::setfill('0') << (int)model.amiibo_id[i];
         jmodel["amiiboId"] = strm.str();
         ofs = std::ofstream((outdir + "/model.json").AsUTF8());
         ofs << std::setw(4) << jmodel;
         ofs.close();
 
         FILE *f = fopen((outdir + "/mii-charinfo.bin").AsUTF8().c_str(), "wb");
-        fwrite(&reg.mii, 1, sizeof(NfpMiiCharInfo), f);
-        fclose(f);
+        if(f)
+        {
+            fwrite(&reg.mii, 1, sizeof(reg.mii), f);
+            fclose(f);
+        }
 
         auto jreg = JSON::object();
         jreg["name"] = std::string(reg.amiibo_name);

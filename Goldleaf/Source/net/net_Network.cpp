@@ -95,8 +95,13 @@ namespace net
     
     bool HasConnection()
     {
+        /*
         u32 strg = 0;
         nifmGetInternetConnectionStatus(NULL, &strg, NULL);
         return (strg > 0);
+        */
+
+        u32 id = gethostid();
+        return (id == INADDR_LOOPBACK);
     }
 }

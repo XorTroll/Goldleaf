@@ -58,7 +58,7 @@ namespace dump
         s32 written = 0;
         bool got = false;
         Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, hos::MaxTitleCount, NcmContentMetaType_Unknown, ApplicationId, 0, U64_MAX, NcmContentInstallType_Full);
-        if((rc == 0) && (written > 0)) 
+        if((R_SUCCEEDED(rc)) && (written > 0)) 
         {
             for(s32 i = 0; i < written; i++)
             {
@@ -169,7 +169,7 @@ namespace dump
         char out[FS_MAX_PATH] = { 0 };
         Result rc = ncmContentStorageGetPath(st, out, FS_MAX_PATH, Id);
         String sst = "";
-        if(rc == 0) sst = String(out);
+        if(R_SUCCEEDED(rc)) sst = String(out);
         return sst;
     }
 

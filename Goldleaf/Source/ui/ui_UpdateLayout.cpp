@@ -77,7 +77,6 @@ namespace ui
             }
         }
         else if(latestv.IsHigher(currentv)) global_app->CreateShowDialog(set::GetDictionaryEntry(284), set::GetDictionaryEntry(316), { set::GetDictionaryEntry(234) }, true);
-        global_app->UnloadMenuData();
-        global_app->LoadLayout(global_app->GetMainMenuLayout());
+        global_app->ReturnToMainMenu();
     }
 }

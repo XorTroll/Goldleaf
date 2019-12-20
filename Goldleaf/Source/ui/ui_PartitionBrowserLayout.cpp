@@ -295,7 +295,7 @@ namespace ui
                         {
                             auto btik = this->gexp->ReadFile(fullitm);
                             Result rc = es::ImportTicket(btik.data(), btik.size(), es::CertData, es::CertSize);
-                            if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(103));
+                            if(R_FAILED(rc)) HandleResult(rc, set::GetDictionaryEntry(103));
                         }
                         break;
                 }
@@ -394,7 +394,7 @@ namespace ui
                         this->gexp->ReadFileBlock(fullitm, 0, fsize, iconbuf);
 
                         auto rc = acc::EditUserIcon(iconbuf, fsize);
-                        if(rc == 0) global_app->ShowNotification(set::GetDictionaryEntry(123));
+                        if(R_SUCCEEDED(rc)) global_app->ShowNotification(set::GetDictionaryEntry(123));
                         else HandleResult(rc, set::GetDictionaryEntry(124));
                         delete[] iconbuf;
                         break;
@@ -439,7 +439,7 @@ namespace ui
                     if(sopt < 0) return;
                     Result rc = 0;
                     this->gexp->DeleteFile(fullitm);
-                    if(rc == 0) global_app->ShowNotification(set::GetDictionaryEntry(129));
+                    if(R_SUCCEEDED(rc)) global_app->ShowNotification(set::GetDictionaryEntry(129));
                     else HandleResult(rc, set::GetDictionaryEntry(253));
                     u32 tmpidx = this->browseMenu->GetSelectedIndex();
                     if(tmpidx > 0) tmpidx--;

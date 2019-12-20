@@ -66,11 +66,10 @@ namespace ui
 
         AccountProfile prof;
         auto rc = accountGetProfile(&prof, this->uid);
-        if(rc != 0)
+        if(R_FAILED(rc))
         {
             HandleResult(rc, set::GetDictionaryEntry(211));
-            global_app->UnloadMenuData();
-            global_app->LoadLayout(global_app->GetMainMenuLayout());
+            global_app->ReturnToMainMenu();
             return;
         }
 
@@ -78,11 +77,10 @@ namespace ui
         AccountUserData udata;
 
         rc = accountProfileGet(&prof, &udata, &pbase);
-        if(rc != 0)
+        if(R_FAILED(rc))
         {
             HandleResult(rc, set::GetDictionaryEntry(211));
-            global_app->UnloadMenuData();
-            global_app->LoadLayout(global_app->GetMainMenuLayout());
+            global_app->ReturnToMainMenu();
             return;
         }
 
@@ -110,7 +108,7 @@ namespace ui
             {
                 strcpy(pbase->nickname, name.AsUTF8().c_str());
             });
-            if(rc == 0)
+            if(R_SUCCEEDED(rc))
             {
                 global_app->LoadMenuHead(set::GetDictionaryEntry(212) + " " + name);
                 global_app->ShowNotification(set::GetDictionaryEntry(214) + " \'" + name + "\'.");
@@ -138,11 +136,10 @@ namespace ui
                 return;
             }
             auto rc = acc::DeleteUser(this->uid);
-            if(rc == 0)
+            if(R_SUCCEEDED(rc))
             {
                 global_app->ShowNotification(set::GetDictionaryEntry(219));
-                global_app->UnloadMenuData();
-                global_app->LoadLayout(global_app->GetMainMenuLayout());
+                global_app->ReturnToMainMenu();
 
                 acc::ResetSelectedUser();
             }

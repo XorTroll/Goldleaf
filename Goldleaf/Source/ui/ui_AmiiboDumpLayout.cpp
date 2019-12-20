@@ -39,7 +39,7 @@ namespace ui
     {
         this->infoText->SetText(set::GetDictionaryEntry(294));
         auto rc = nfp::Initialize();
-        if(rc == 0)
+        if(R_SUCCEEDED(rc))
         {
             this->infoText->SetText(set::GetDictionaryEntry(295));
             while(!nfp::IsReady())
@@ -47,7 +47,7 @@ namespace ui
                 global_app->CallForRender();
             }
             auto rc = nfp::Open();
-            if(rc == 0)
+            if(R_SUCCEEDED(rc))
             {
                 auto tag = nfp::GetTagInfo();
                 auto model = nfp::GetModelInfo();

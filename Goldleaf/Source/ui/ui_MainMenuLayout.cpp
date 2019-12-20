@@ -123,65 +123,14 @@ namespace ui
         global_app->LoadMenuData(set::GetDictionaryEntry(283), "Amiibo", set::GetDictionaryEntry(301));
         global_app->LoadLayout(global_app->GetAmiiboDumpLayout());
         global_app->GetAmiiboDumpLayout()->StartDump();
-        global_app->UnloadMenuData();
-        global_app->LoadLayout(global_app->GetMainMenuLayout());
+        global_app->ReturnToMainMenu();
     }
 
     void MainMenuLayout::emuiiboMenuItem_Click()
     {
-        if(nfp::emu::IsEmuiiboAccessible())
-        {
-            auto rc = nfp::emu::Initialize();
-            if(R_SUCCEEDED(rc))
-            {
-                nfp::emu::Version v;
-                auto rc = nfp::emu::GetVersion(&v);
-                if(R_SUCCEEDED(rc))
-                {
-                    Version otherv = Version::MakeVersion(v.major, v.minor, v.micro);
-                    if(otherv.IsLower(Version::MakeVersion(0, 4, 0))) global_app->ShowNotification("Only emuiibo 0.4.0 or newer is supported.");
-                    else
-                    {
-                        nfp::emu::EmulationStatus status;
-                        rc = nfp::emu::GetStatus(&status);
-                        if(R_SUCCEEDED(rc))
-                        {
-                            if(!nfp::emu::StatusIsOn(status))
-                            {
-                                auto sopt = global_app->CreateShowDialog("emuiibo activation", "emuiibo is currently deactivated.\nWould you like to activate it?", { "Yes", "Cancel" }, true);
-                                if(sopt == 0)
-                                {
-                                    rc = nfp::emu::SetEmulationOnForever();
-                                    global_app->ShowNotification("emuiibo was activated. Select this menu again.");
-                                }
-                            }
-                            else
-                            {
-                                char amiibo[FS_MAX_PATH] = {0};
-                                rc = nfp::emu::GetCurrentAmiibo(amiibo, FS_MAX_PATH);
-                                global_app->ShowNotification(String("Current amiibo: ") + amiibo);
-                                auto id = nfp::emu::GetAmiiboIdFromPath(amiibo);
-                                global_app->ShowNotification(String("Amiibo ID: ") + id);
-                                auto img = nfp::emu::SaveAmiiboImageById(id);
-                                global_app->ShowNotification(String("Amiibo ID image: ") + img);
-                                global_app->CreateShowDialog("Amiibo", String("Current selected amiibo: ") + amiibo, {"Ok"}, true, img.AsUTF8());
-                            }
-                        }
-                    }
-                }
-                nfp::emu::Exit();
-            }
-            if(R_FAILED(rc)) global_app->ShowNotification("Result failed: " + hos::FormatHex(rc));
-        }
-        else global_app->ShowNotification("emuiibo isn't present or loaded.");
-
-        return;
-
-        global_app->LoadMenuData(set::GetDictionaryEntry(283), "Amiibo", set::GetDictionaryEntry(301));
-        global_app->LoadLayout(global_app->GetAmiiboDumpLayout());
-        global_app->GetAmiiboDumpLayout()->StartDump();
-        global_app->UnloadMenuData();
-        global_app->LoadLayout(global_app->GetMainMenuLayout());
+        global_app->LoadMenuData("emuiibo manager", "Emuiibo", "Loading status...");
+        global_app->LoadLayout(global_app->GetEmuiiboLayout());
+        global_app->GetEmuiiboLayout()->Reload();
     }
 
     void MainMenuLayout::settingsMenuItem_Click()

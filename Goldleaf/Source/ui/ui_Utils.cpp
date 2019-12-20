@@ -64,14 +64,14 @@ namespace ui
         char tmpout[FS_MAX_PATH] = { 0 };
         SwkbdConfig kbd;
         Result rc = swkbdCreate(&kbd, 0);
-        if(rc == 0)
+        if(R_SUCCEEDED(rc))
         {
             swkbdConfigMakePresetDefault(&kbd);
             if(MaxSize > 0) swkbdConfigSetStringLenMax(&kbd, (u32)MaxSize);
             if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.AsUTF8().c_str());
             if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.AsUTF8().c_str());
             rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
-            if(rc == 0) out = String(tmpout);
+            if(R_SUCCEEDED(rc)) out = String(tmpout);
         }
         swkbdClose(&kbd);
         return out;

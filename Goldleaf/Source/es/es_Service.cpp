@@ -44,7 +44,7 @@ namespace es
         return serviceIsActive(&es_srv);
     }
 
-    Result ImportTicket(void const *Ticket, size_t TicketSize, void const *Cert, size_t CertSize)
+    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CertSize)
     {
         return serviceDispatch(&es_srv, 1,
             .buffer_attrs = {

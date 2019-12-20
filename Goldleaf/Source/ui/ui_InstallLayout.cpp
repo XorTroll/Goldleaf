@@ -44,7 +44,7 @@ namespace ui
         nsp::Installer inst(Path, Exp, Location);
 
         auto rc = inst.PrepareInstallation();
-        if(rc != 0)
+        if(R_FAILED(rc))
         {
             if(rc == err::Make(err::ErrorDescription::TitleAlreadyInstalled))
             {
@@ -57,7 +57,7 @@ namespace ui
                         hos::RemoveTitle(title);
                         inst.FinalizeInstallation();
                         auto rc = inst.PrepareInstallation();
-                        if(rc != 0)
+                        if(R_FAILED(rc))
                         {
                             HandleResult(rc, set::GetDictionaryEntry(251));
                             return;
@@ -241,7 +241,7 @@ namespace ui
         if(doinstall)
         {
             rc = inst.PreProcessContents();
-            if(rc != 0)
+            if(R_FAILED(rc))
             {
                 HandleResult(rc, set::GetDictionaryEntry(251));
                 return;
@@ -267,7 +267,7 @@ namespace ui
         }
         this->installBar->SetVisible(false);
         global_app->CallForRender();
-        if(rc != 0) HandleResult(rc, set::GetDictionaryEntry(251));
+        if(R_FAILED(rc)) HandleResult(rc, set::GetDictionaryEntry(251));
         else if(doinstall) global_app->ShowNotification(set::GetDictionaryEntry(150));
     }
 }

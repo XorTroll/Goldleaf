@@ -54,7 +54,7 @@ namespace ui
         global_app->CallForRender();
         NcmContentStorage cst;
         Result rc = ncmOpenContentStorage(&cst, stid);
-        if(rc != 0)
+        if(R_FAILED(rc))
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             global_app->LoadLayout(global_app->GetContentManagerLayout());
@@ -62,7 +62,7 @@ namespace ui
         }
         NcmContentMetaDatabase cmdb;
         rc = ncmOpenContentMetaDatabase(&cmdb, stid);
-        if(rc != 0)
+        if(R_FAILED(rc))
         {
             HandleResult(err::Make(err::ErrorDescription::CouldNotLocateTitleContents), set::GetDictionaryEntry(198));
             global_app->LoadLayout(global_app->GetContentManagerLayout());

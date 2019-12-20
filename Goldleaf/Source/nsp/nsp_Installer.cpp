@@ -85,7 +85,7 @@ namespace nsp
             acnmtnca.reserve(FS_MAX_PATH);
             FsRightsId rid = {};
             rc = fsGetRightsIdAndKeyGenerationByPath(acnmtnca.AsUTF8().c_str(), &keygen, &rid);
-            if(rc != 0) return rc;
+            if(R_FAILED(rc)) return rc;
             u8 systemkgen = hos::ComputeSystemKeyGeneration();
             if(systemkgen < keygen)
             {
@@ -94,7 +94,7 @@ namespace nsp
             }
             FsFileSystem cnmtncafs;
             rc = fsOpenFileSystemWithId(&cnmtncafs, 0, FsFileSystemType_ContentMeta, acnmtnca.AsUTF8().c_str());
-            if(rc != 0) return rc;
+            if(R_FAILED(rc)) return rc;
             {
                 fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs);
                 auto cnts = cnmtfs.GetContents();
@@ -192,20 +192,20 @@ namespace nsp
         fs::Explorer *nsys = fs::GetNANDSystemExplorer();
         NcmContentMetaDatabase mdb;
         Result rc = ncmOpenContentMetaDatabase(&mdb, storage);
-        if(rc != 0) return rc;
+        if(R_FAILED(rc)) return rc;
         rc = ncmContentMetaDatabaseSet(&mdb, &mrec, ccnmt.GetData(), ccnmt.GetSize());
-        if(rc != 0)
+        if(R_FAILED(rc))
         {
             serviceClose(&mdb.s);
             return rc;
         }
         rc = ncmContentMetaDatabaseCommit(&mdb);
         serviceClose(&mdb.s);
-        if(rc != 0) return rc;
+        if(R_FAILED(rc)) return rc;
         u32 cmetacount = 0;
         rc = ns::CountApplicationContentMeta(baseappid, &cmetacount);
         if(rc == 0x410) rc = 0;
-        if(rc != 0) return rc;
+        if(R_FAILED(rc)) return rc;
         std::vector<ns::ContentStorageRecord> srecs;
         if(cmetacount > 0)
         {
@@ -214,7 +214,7 @@ namespace nsp
             ns::ContentStorageRecord *csbuf = new ns::ContentStorageRecord[cmetacount]();
             u32 cmcount = 0;
             rc = ns::ListApplicationRecordContentMeta(0, baseappid, csbuf, csbufs, &cmcount);
-            if(rc != 0)
+            if(R_FAILED(rc))
             {
                 delete[] csbuf;
                 return rc;

@@ -76,9 +76,12 @@ namespace nfp::emu
     Result Refresh();
     Result GetVersion(Version *out_ver);
 
+    struct VirtualAmiibo
+    {
+        std::string id;
+        std::string name;
+    };
+
+    VirtualAmiibo LoadVirtualAmiibo(String path);
     String SaveAmiiboImageById(String id);
-
-    String GetAmiiboIdFromPath(String amiibo);
-
-    // TODO: implement emuiibo 0.4.0's commands
 }

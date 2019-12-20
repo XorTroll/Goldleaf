@@ -21,6 +21,7 @@
 
 #include <nfp/nfp_Emuiibo.hpp>
 #include <net/net_Network.hpp>
+#include <fs/fs_Common.hpp>
 
 namespace nfp::emu
 {
@@ -114,7 +115,8 @@ namespace nfp::emu
 
     String SaveAmiiboImageById(String id)
     {
-        std::string imgpath;
+        std::string imgpath = (String("sdmc:/") + consts::Root + "/amiibocache/" + id + ".png").AsUTF8();
+        if(fs::IsFile(imgpath)) return imgpath;
         auto json = net::RetrieveContent("https://www.amiiboapi.com/api/amiibo/?id=" + id.AsUTF8(), "application/json");
         if(!json.empty())
         {
@@ -133,22 +135,36 @@ namespace nfp::emu
             }
             catch(std::exception&) {}
         }
+        if(!fs::IsFile(imgpath)) return "";
         return imgpath;
     }
 
-    String GetAmiiboIdFromPath(String amiibo)
+    VirtualAmiibo LoadVirtualAmiibo(String path)
     {
-        std::string id;
-        std::ifstream ifs((amiibo + "/model.json").AsUTF8().c_str());
+        VirtualAmiibo amiibo = {};
+        std::ifstream ifs((path + "/model.json").AsUTF8().c_str());
         if(ifs.good())
         {
             try
             {
                 JSON j = JSON::parse(ifs);
-                id = j.value("amiiboId", "");
+                amiibo.id = j.value("amiiboId", "");
             }
             catch(std::exception&) {}
+            ifs.close();
+            ifs.open((path + "/register.json").AsUTF8().c_str());
+            if(ifs.good())
+            {
+                try
+                {
+                    JSON j = JSON::parse(ifs);
+                    amiibo.name = j.value("name", "");
+                }
+                catch(std::exception&) {}
+                ifs.close();
+            }
         }
-        return id;
+
+        return amiibo;
     }
 }
