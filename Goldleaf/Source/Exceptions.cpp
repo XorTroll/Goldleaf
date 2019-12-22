@@ -3,12 +3,6 @@
 alignas(16) u8 __nx_exception_stack[0x1000];
 u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
 
-struct StackFrame
-{
-    u64 fp;     // Frame Pointer (Pointer to previous stack frame)
-    u64 lr;     // Link Register (Return address)
-};
-
 static u64 GetBaseAddress()
 {
     u32 p;
@@ -21,24 +15,10 @@ static u64 GetBaseAddress()
     return info.addr;
 }
 
-static void UnwindStack(u64 *outStackTrace, s32 *outStackTraceSize, size_t maxStackTraceSize, u64 currFp)
-{
-    for(size_t i = 0; i < maxStackTraceSize; i++)
-    {
-        if(currFp == 0 || currFp % sizeof(u64) != 0) break;
-        auto currTrace = reinterpret_cast<StackFrame*>(currFp); 
-        outStackTrace[(*outStackTraceSize)++] = currTrace->lr;
-        currFp = currTrace->fp;
-    }
-}
-
 extern "C"
 {
     void __libnx_exception_handler(ThreadExceptionDump *context)
     {
-        u64 stackTrace[0x20] = {0};
-        s32 stackTraceSize = 0;
-        UnwindStack(stackTrace, &stackTraceSize, 0x20, context->fp.x);
         auto baseaddr = GetBaseAddress();
         auto pcstr = hos::FormatHex(context->pc.x - baseaddr);
 

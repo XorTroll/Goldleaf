@@ -477,9 +477,9 @@ namespace ui
 
     void MainApplication::OnInput(u64 down, u64 up, u64 held)
     {
-        if(down & KEY_MINUS) this->CloseWithFadeOut();
+        if(down & KEY_PLUS) this->CloseWithFadeOut();
         else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(cfg::strings::Main.GetString(229), cfg::strings::Main.GetString(230));
-        else if(down & KEY_PLUS) this->helpImage_OnClick();
+        else if(down & KEY_MINUS) this->helpImage_OnClick();
     }
 
     MainMenuLayout::Ref &MainApplication::GetMainMenuLayout()
