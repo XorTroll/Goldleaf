@@ -55,7 +55,7 @@ import xorTroll.goldleaf.quark.usb.USBInterface;
 
 public class MainApplication extends Application
 {
-    public static final Version QuarkVer = new Version(0, 2, 0);
+    public static final Version QuarkVer = new Version(0, 3, 0);
     public static final Version MinGoldleafVer = new Version(0, 8, 0);
 
     public MainController controller;
@@ -131,13 +131,13 @@ public class MainApplication extends Application
         Pane base = loader.load();
         cfg = new Config();
 
-        scene = new Scene(base, 590, 390);
+        scene = new Scene(base, 900, 400);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("Main.css").toExternalForm());
         controller = loader.getController();
         primaryStage.getIcons().add(new Image(getClass().getClassLoader().getResource("Icon.png").toExternalForm()));
         primaryStage.setResizable(false);
         stage = primaryStage;
-        stage.setTitle("Quark v" + QuarkVer.toString() + " - Goldleaf USB client");
+        stage.setTitle("Quark v" + QuarkVer.toString() + " - Goldleaf's USB client");
         stage.setScene(scene);
 
         Task<Void> usbtask = new Task<Void>()

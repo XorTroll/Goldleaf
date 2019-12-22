@@ -11,15 +11,15 @@
 
 <VBox prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="xorTroll.goldleaf.quark.ui.MainController">
    <children>
-      <Pane fx:id="MainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
+      <Pane fx:id="MainPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="900.0">
          <children>
-            <JFXProgressBar fx:id="ProgressBar" layoutX="35.0" layoutY="352.0" prefHeight="3.0" prefWidth="225.0" />
-            <Label fx:id="USBStatusLabel" layoutX="15.0" layoutY="375.0" text="Starting Quark..." />
-            <JFXTextArea fx:id="LogArea" editable="false" layoutX="14.0" layoutY="14.0" prefHeight="276.0" prefWidth="266.0" />
-            <JFXListView fx:id="PathList" layoutX="295.0" layoutY="53.0" prefHeight="318.0" prefWidth="291.0" />
-            <JFXButton fx:id="NewPathButton" layoutX="295.0" layoutY="14.0" prefHeight="32.0" prefWidth="119.0" text="Add new path" />
-            <JFXToggleButton fx:id="ShowLogsToggle" layoutX="-9.0" layoutY="294.0" prefHeight="3.0" prefWidth="175.0" text="Show logs" />
-            <JFXButton fx:id="PathRemoveButton" layoutX="424.0" layoutY="14.0" prefHeight="32.0" prefWidth="162.0" text="Remove selected path" />
+            <JFXProgressBar fx:id="ProgressBar" layoutX="29.0" layoutY="350.0" prefHeight="4.0" prefWidth="337.0" />
+            <Label fx:id="USBStatusLabel" layoutX="26.0" layoutY="369.0" text="Starting Quark..." />
+            <JFXTextArea fx:id="LogArea" editable="false" layoutX="14.0" layoutY="14.0" prefHeight="276.0" prefWidth="370.0" />
+            <JFXListView fx:id="PathList" layoutX="397.0" layoutY="58.0" prefHeight="320.0" prefWidth="485.0" />
+            <JFXButton fx:id="NewPathButton" layoutX="397.0" layoutY="14.0" prefHeight="32.0" prefWidth="220.0" text="Add new path" />
+            <JFXToggleButton fx:id="ShowLogsToggle" layoutX="-9.0" layoutY="292.0" prefHeight="3.0" prefWidth="175.0" text="Show logs" />
+            <JFXButton fx:id="PathRemoveButton" layoutX="630.0" layoutY="14.0" prefHeight="32.0" prefWidth="250.0" text="Remove selected path" />
          </children>
       </Pane>
    </children>
