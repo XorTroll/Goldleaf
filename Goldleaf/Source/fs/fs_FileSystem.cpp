@@ -50,7 +50,7 @@ namespace fs
 
     NANDExplorer *GetNANDUserExplorer()
     {
-        if(enus == NULL) enus = new NANDExplorer(Partition::NANDUser);
+        if(enus == NULL) enus = new NANDExplorer(Partition::SdCard);
         return enus;
     }
 

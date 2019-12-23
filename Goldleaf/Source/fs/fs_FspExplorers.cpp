@@ -42,6 +42,8 @@ namespace fs
         return (u64)sz;
     }
 
+    Service fspusb;
+
     NANDExplorer::NANDExplorer(Partition Part) : StdExplorer()
     {
         this->part = Part;
@@ -73,6 +75,18 @@ namespace fs
                 fsOpenBisFileSystem(&this->fs, FsBisPartitionId_System, "");
                 fsdevMountDevice("gnsystem", this->fs);
                 this->SetNames("gnsystem", "System");
+                break;
+            }
+            case Partition::SdCard:
+            {
+                smGetService(&fspusb, "fsp-usb");
+                u32 in = 0;
+                serviceDispatchIn(&fspusb, 3, in,
+                    .out_num_objects = 1,
+                    .out_objects = &this->fs.s,
+                );
+                fsdevMountDevice("gusbdrv", this->fs);
+                this->SetNames("gusbdrv", "USB-0");
                 break;
             }
             default:

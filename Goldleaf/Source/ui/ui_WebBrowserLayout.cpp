@@ -38,7 +38,7 @@ namespace ui
     void WebBrowserLayout::Refresh()
     {
         this->optionsMenu->ClearItems();
-        auto inputitm = pu::ui::elm::MenuItem::New("Enter web page...");
+        auto inputitm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(378));
         inputitm->SetColor(global_settings.custom_scheme.Text);
         inputitm->AddOnClick(std::bind(&WebBrowserLayout::input_Click, this));
         this->optionsMenu->AddItem(inputitm);
@@ -64,16 +64,16 @@ namespace ui
         String out = AskForText(cfg::strings::Main.GetString(38), "https://");
         LaunchWeb(out.AsUTF8());
 
-        auto sopt = global_app->CreateShowDialog("Save bookmark", "Would you like to save this page as a bookmark?", { "Yes", "No" }, true);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(379), cfg::strings::Main.GetString(380), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
         if(sopt == 0)
         {
-            auto name = AskForText("Bookmark name");
+            auto name = AskForText(cfg::strings::Main.GetString(381));
             cfg::WebBookmark bmk = {};
             bmk.name = name.AsUTF8();
             bmk.url = out.AsUTF8();
             global_settings.bookmarks.push_back(bmk);
             global_settings.Save();
-            global_app->ShowNotification("Settings were updated and saved.");
+            global_app->ShowNotification(cfg::strings::Main.GetString(382));
         }
     }
     

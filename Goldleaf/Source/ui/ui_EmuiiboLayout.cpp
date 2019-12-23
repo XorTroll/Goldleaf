@@ -29,7 +29,7 @@ namespace ui
 {
     EmuiiboLayout::EmuiiboLayout()
     {
-        this->infoText = pu::ui::elm::TextBlock::New(150, 320, "Loading and querying amiibos...");
+        this->infoText = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(383));
         this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->infoText->SetColor(global_settings.custom_scheme.Text);
         this->optionsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
@@ -40,7 +40,7 @@ namespace ui
 
     void EmuiiboLayout::state_Click()
     {
-        auto sopt = global_app->CreateShowDialog("Change state", "Which state would you like to set?", { "On", "On (once)", "Off", "Cancel" }, true);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(384), cfg::strings::Main.GetString(385), { cfg::strings::Main.GetString(386), cfg::strings::Main.GetString(387), cfg::strings::Main.GetString(388), cfg::strings::Main.GetString(18) }, true);
         if(sopt >= 0)
         {
             Result rc = 0;
@@ -60,10 +60,10 @@ namespace ui
             }
             if(R_SUCCEEDED(rc))
             {
-                global_app->ShowNotification("Amiibo emulation state was successfully set.");
+                global_app->ShowNotification(cfg::strings::Main.GetString(389));
                 this->Reload();
             }
-            else HandleResult(rc, "An error ocurred while attempting to set the amiibo emulation state:");
+            else HandleResult(rc, cfg::strings::Main.GetString(390));
         }
     }
             
@@ -73,20 +73,20 @@ namespace ui
         nfp::emu::GetStatus(&status);
         if(!nfp::emu::StatusIsOn(status))
         {
-            global_app->ShowNotification("Amiibo emulation isn't activated.");
+            global_app->ShowNotification(cfg::strings::Main.GetString(391));
             return;
         }
 
-        auto sopt = global_app->CreateShowDialog("Select amiibo", "Would you like to select this virtual amiibo?", { "Yes", "Cancel" }, true);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(392), cfg::strings::Main.GetString(393), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(sopt == 0)
         {
             auto rc = nfp::emu::SetCustomAmiibo(path.AsUTF8().c_str());
             if(R_SUCCEEDED(rc))
             {
-                global_app->ShowNotification("The amiibo was successfully selected.");
+                global_app->ShowNotification(cfg::strings::Main.GetString(394));
                 this->Reload();
             }
-            else HandleResult(rc, "An error ocurred while attempting to select the amiibo:");
+            else HandleResult(rc, cfg::strings::Main.GetString(395));
         }
     }
 
@@ -99,13 +99,13 @@ namespace ui
             switch(status)
             {
                 case nfp::emu::EmulationStatus::Off:
-                    global_app->LoadMenuHead("Amiibo emulation is off.");
+                    global_app->LoadMenuHead(cfg::strings::Main.GetString(396));
                     break;
                 case nfp::emu::EmulationStatus::OnForever:
-                    global_app->LoadMenuHead("Amiibo emulation is on.");
+                    global_app->LoadMenuHead(cfg::strings::Main.GetString(397));
                     break;
                 case nfp::emu::EmulationStatus::OnOnce:
-                    global_app->LoadMenuHead("Amiibo emulation is on (one single use).");
+                    global_app->LoadMenuHead(cfg::strings::Main.GetString(398));
                     break;
             }
         }
@@ -138,7 +138,7 @@ namespace ui
 
                         auto curamiiborc = nfp::emu::GetCurrentAmiibo(curamiibo, FS_MAX_PATH);
 
-                        auto sitm = pu::ui::elm::MenuItem::New("Change emulation state");
+                        auto sitm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(399));
                         sitm->SetColor(global_settings.custom_scheme.Text);
                         sitm->AddOnClick(std::bind(&EmuiiboLayout::state_Click, this));
                         this->optionsMenu->AddItem(sitm);
@@ -154,7 +154,7 @@ namespace ui
                                     String name = amiibo.name;
                                     if(R_SUCCEEDED(curamiiborc) && (strcasecmp(curamiibo, amiibopath.AsUTF8().c_str()) == 0))
                                     {
-                                        name = "[Selected amiibo] ";
+                                        name = "[" + cfg::strings::Main.GetString(400) + "] ";
                                         name += amiibo.name;
                                     }
                                     auto aitm = pu::ui::elm::MenuItem::New(name);
@@ -172,7 +172,7 @@ namespace ui
             }
             if(R_FAILED(rc))
             {
-                HandleResult(rc, "An error ocurred attempting to access emuiibo:");
+                HandleResult(rc, cfg::strings::Main.GetString(401));
                 global_app->ReturnToMainMenu();
             }
             else
@@ -184,7 +184,7 @@ namespace ui
         }
         else
         {
-            global_app->ShowNotification("emuiibo isn't present or loaded.");
+            global_app->ShowNotification(cfg::strings::Main.GetString(402));
             global_app->ReturnToMainMenu();
         }
     }
