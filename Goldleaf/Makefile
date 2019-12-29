@@ -52,7 +52,7 @@ APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
 # "-dev" prefix is manually appended when a new version has started development.
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)# -dev
 
 #---------------------------------------------------------------------------------
 # options for code generation

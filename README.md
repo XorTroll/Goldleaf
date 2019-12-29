@@ -1,23 +1,26 @@
-<img src="Goldleaf/RomFs/Logo.png" alt="drawing" width="400"/>
+# Goldleaf
 
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest)
+[![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
 
-<img src="Screenshot-gleaf.jpg" alt="drawing" width="400"/> <img src="Screenshot-quark.png" alt="drawing" width="300"/>
+<img src="Screenshots/Goldleaf.1.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.2.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.3.jpg" alt="drawing" width="250"/>
 
-> Having any issues? Check [this help document](docs/FAQ.md) for help!
+<img src="Screenshots/Goldleaf.4.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.5.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.6.jpg" alt="drawing" width="250"/>
+
+<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.7.jpg" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
 
 # Table of contents
 
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
 3. [Quark and remote PC](#quark-and-remote-pc)
-4. [Forwarding](#forwarding)
-5. [Settings](#settings)
-6. [Known bugs](#known-bugs)
-7. [Contributing](#contributing)
-8. [Credits and support](#credits-and-support)
+4. [Settings](#settings)
+5. [Known bugs](#known-bugs)
+6. [Contributing](#contributing)
+7. [Credits and support](#credits-and-support)
+
+> Having any issues? Check [this help document](docs/FAQ.md) for help!
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
@@ -41,9 +44,11 @@ These are its main features:
 
 - **Content manager**: Browse any kind of content in your SD card, console memory or game cartridge. You can browse all the NCAs, and as title options, you can remove the content, or export it as a NSP. NAND SYSTEM contents (system titles or contents) aren't allowed to be deleted. Invidual contents such as updates or DLC can be removed individually. You have also the option to remove unused tickets or tickets belonging to contents, plus the options to reset launch version (in order to remove the update nag) or to export base, updates or DLCs to installable NSPs.
 
-- **Web browser (console's web-applet)**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. However, this can only be accessed if launched from the forwarder for technical reasons.
+- **Web browser (console's web-applet)**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. You can even save pages as bookmarks to browse them quickly anytime.
 
 - **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one. Linked accounts can also be unlinked (locally).
+
+- **emuiibo manager**: You can control emuiibo (0.4 or higher) via Goldleaf, selecting custom amiibos, or enabling/disabling amiibo emulation, to make amiibo emulation way more comfortable than before.
 
 - **Console or Goldleaf settings**: In this menu you can manage the console's update (view it's version or dump it as a directory installable with Choi or a NSP), and pending update in case it's present (auto-downloaded updates, which can also be viewed, dumped or deleted)
 
@@ -55,11 +60,11 @@ Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and
 
 - **(ZL / ZR)** Show a dialog to shut down or reboot the console.
 
-- **(Plus / +)** Show a dialog with this information.
+- **(Minus / -)** Show a dialog with this information.
 
 #### NRO-only controls
 
-- **(Minus / -)** Exit the application in order to return to hbmenu.
+- **(Plus / +)** Exit the application in order to return to hbmenu.
 
 ## Disclaimer
 
@@ -83,35 +88,7 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It should work on Windows, Linux or Mac.
 
-Only requirement for Quark to work is **JRE/JDK 8u60 or higher**.
-
-**One time setup**:
-
-1. Download [Zadig](https://zadig.akeo.ie/)
-
-2. Open Goldleaf and connect your Switch via USB with your PC
-
-3. Open Zadig
-
-4. Click "Options" and select "List all devices"
-
-5. Select the Switch from the drop-down menu
-
-6. Change the driver (right next to the green arrow) to "libusbK"
-
-7. Click on the button below "Install WCID Driver" or "Replace Driver"
-
-8. Done. Now you can use Goldleaf and Quark to directly access your PC!
-
-**Note:** To use it correctly, make sure you open Goldleaf and connect the Switch with your PC before you launch Quark. Nevertheless, Quark will warn when USB connection is gone or no USB connection is found.
-
-## Forwarding
-
-Goldleaf is released along with a NSP, in order to launch Goldleaf as an installed title, and take advantage of extra RAM and features such as web browsing.
-
-The NSP is a forwarder since **0.6**, what means that, instead of having Goldleaf's source inside the NSP, it simply loads the NRO from the SD card, meaning that only the NRO should be updated instead of having to reinstall the NSP.
-
-Goldleaf's forwarding code tries to locate Goldleaf (`Goldleaf.nro`) in `sd:/switch/` and `sd:/switch/Goldleaf/`. If it isn't found, an error message will be displayed.
+For details about how to properly setup Quark and USB, check [this small guide](Quark.md).
 
 ## Settings
 
@@ -162,9 +139,11 @@ So, via this configurations, UI's images, resources, element sizes and even tran
 
 ## Known bugs
 
-- On Atmosphère and SX OS, exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on that specific versions. Any non-7.x firmware doesn't have this issue.
+- Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on that specific versions. Any non-7.x firmware doesn't have this issue.
 
 - Apparently, after browsing (more than 4 times?) and then browsing (specific?) empty directories crashes Goldleaf. This issue is strangely common and needs to be looked into.
+
+- Certain characters (Japanese/Chinese ones, for instance) aren't properly displayed due to the lack of those characters in the default font.
 
 ## Contributing
 

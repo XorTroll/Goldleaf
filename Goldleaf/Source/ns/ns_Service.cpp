@@ -73,7 +73,8 @@ namespace ns
         {
             u64 appId;
             u32 version;
-        } in = { ApplicationId, LaunchVersion };
+            u8 pad[4];
+        } in = { ApplicationId, LaunchVersion, {0} };
         
         return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 36, in);
     }
