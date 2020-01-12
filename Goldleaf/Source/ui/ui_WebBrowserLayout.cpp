@@ -56,7 +56,7 @@ namespace ui
     {
         WebCommonConfig web;
         webPageCreate(&web, page.c_str());
-        webConfigShow(&web, NULL);
+        webConfigShow(&web, nullptr);
     }
 
     void WebBrowserLayout::input_Click()

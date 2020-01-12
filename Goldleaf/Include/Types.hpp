@@ -63,6 +63,7 @@ namespace consts
 {
     extern std::string Root;
     extern std::string Log;
+    extern std::string Settings;
 }
 
 enum class ExecutableMode
@@ -123,15 +124,14 @@ struct Version
 
 namespace logging
 {
+    void LogString(std::string data);
+
     template<typename ...Args>
-    void LogFmt(String fmt, Args &&...args)
+    void LogFmt(std::string fmt, Args &&...args)
     {
-        FILE *f = fopen(("sdmc:/" + consts::Log).c_str(), "a+");
-        if(f)
-        {
-            fprintf(f, (fmt.AsUTF8() + "\n").c_str(), args...);
-            fclose(f);
-        }
+        char buf[0x2000] = {0};
+        sprintf(buf, (fmt + "\n").c_str(), args...);
+        LogString(buf);
     }
 }
 

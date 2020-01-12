@@ -34,6 +34,7 @@ namespace fs
     NANDExplorer *GetNANDUserExplorer();
     NANDExplorer *GetNANDSystemExplorer();
     RemotePCExplorer *GetRemotePCExplorer(String MountName);
+    USBDriveExplorer *GetUSBDriveExplorer(drive::Drive drive);
     Explorer *GetExplorerForMountName(String MountName);
     Explorer *GetExplorerForPath(String Path);
 }

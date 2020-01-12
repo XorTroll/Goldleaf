@@ -30,8 +30,14 @@
 
 namespace fs
 {
-    StdExplorer::StdExplorer() : r_file_obj(NULL), w_file_obj(NULL)
+    StdExplorer::StdExplorer() : r_file_obj(nullptr), w_file_obj(nullptr)
     {
+        this->commit_fn = [](){};
+    }
+
+    void StdExplorer::SetCommitFunction(std::function<void()> fn)
+    {
+        this->commit_fn = fn;
     }
 
     std::vector<String> StdExplorer::GetDirectories(String Path)
@@ -45,7 +51,7 @@ namespace fs
             while(true)
             {
                 dt = readdir(dp);
-                if(dt == NULL) break;
+                if(dt == nullptr) break;
                 std::string ent = dt->d_name;
                 if(this->IsDirectory(path + "/" + ent)) dirs.push_back(ent);
             }
@@ -65,7 +71,7 @@ namespace fs
             while(true)
             {
                 dt = readdir(dp);
-                if(dt == NULL) break;
+                if(dt == nullptr) break;
                 std::string ent = dt->d_name;
                 if(this->IsFile(path + "/" + ent)) files.push_back(ent);
             }
@@ -99,12 +105,14 @@ namespace fs
     {
         String path = this->MakeFull(Path);
         fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
+        this->commit_fn();
     }
 
     void StdExplorer::CreateDirectory(String Path)
     {
         String path = this->MakeFull(Path);
         mkdir(path.AsUTF8().c_str(), 777);
+        this->commit_fn();
     }
 
     void StdExplorer::RenameFile(String Path, String NewName)
@@ -112,6 +120,7 @@ namespace fs
         String path = this->MakeFull(Path);
         String npath = this->MakeFull(NewName);
         rename(path.AsUTF8().c_str(), npath.AsUTF8().c_str());
+        this->commit_fn();
     }
 
     void StdExplorer::RenameDirectory(String Path, String NewName)
@@ -123,12 +132,14 @@ namespace fs
     {
         String path = this->MakeFull(Path);
         remove(path.AsUTF8().c_str());
+        this->commit_fn();
     }
 
     void StdExplorer::DeleteDirectorySingle(String Path)
     {
         String path = this->MakeFull(Path);
         fsdevDeleteDirectoryRecursively(path.AsUTF8().c_str());
+        this->commit_fn();
     }
 
     void StdExplorer::StartFile(String path, FileMode mode)
@@ -156,7 +167,7 @@ namespace fs
     {
         u64 rsz = 0;
 
-        if(this->r_file_obj != NULL)
+        if(this->r_file_obj != nullptr)
         {
             fseek(this->r_file_obj, Offset, SEEK_SET);
             rsz = fread(Out, 1, Size, this->r_file_obj);
@@ -179,7 +190,7 @@ namespace fs
         u64 wsz = 0;
         
 
-        if(this->w_file_obj != NULL)
+        if(this->w_file_obj != nullptr)
         {
             wsz = fwrite(Data, 1, Size, this->w_file_obj);
             return wsz;
@@ -200,18 +211,19 @@ namespace fs
     {
         if(mode == FileMode::Read)
         {
-            if(this->r_file_obj != NULL)
+            if(this->r_file_obj != nullptr)
             {
                 fclose(this->r_file_obj);
-                this->r_file_obj = NULL;
+                this->r_file_obj = nullptr;
             }
         }
         else
         {
-            if(this->w_file_obj != NULL)
+            if(this->w_file_obj != nullptr)
             {
                 fclose(this->w_file_obj);
-                this->w_file_obj = NULL;
+                this->commit_fn();
+                this->w_file_obj = nullptr;
             }
         }
     }
@@ -239,5 +251,6 @@ namespace fs
     {
         String path = this->MakeFull(Path);
         fsdevSetConcatenationFileAttribute(path.AsUTF8().c_str());
+        this->commit_fn();
     }
 }

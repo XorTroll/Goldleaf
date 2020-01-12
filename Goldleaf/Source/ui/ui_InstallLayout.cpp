@@ -118,7 +118,7 @@ namespace ui
             {
                 NacpLanguageEntry *lent;
                 nacpGetLanguageEntry(NACP, &lent);
-                if(lent == NULL) for(u32 i = 0; i < 16; i++)
+                if(lent == nullptr) for(u32 i = 0; i < 16; i++)
                 {
                     lent = &NACP->lang[i];
                     if((lent->name[0] != '\0') && (lent->author[0] != '\0')) break;

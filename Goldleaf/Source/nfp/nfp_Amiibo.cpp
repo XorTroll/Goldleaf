@@ -41,7 +41,7 @@ namespace nfp
             rc = nfpAttachAvailabilityChangeEvent(&available);
             if(R_SUCCEEDED(rc))
             {
-                rc = nfpListDevices(NULL, &dhandle, 1);
+                rc = nfpListDevices(nullptr, &dhandle, 1);
                 if(R_SUCCEEDED(rc))
                 {
                     rc = nfpAttachActivateEvent(&dhandle, &activate);

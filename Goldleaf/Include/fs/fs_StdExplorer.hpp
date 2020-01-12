@@ -21,13 +21,16 @@
 
 #pragma once
 #include <fs/fs_Explorer.hpp>
+#include <functional>
 
 namespace fs
 {
+
     class StdExplorer : public Explorer
     {
         public:
             StdExplorer();
+            void SetCommitFunction(std::function<void()> fn);
             virtual std::vector<String> GetDirectories(String Path) override;
             virtual std::vector<String> GetFiles(String Path) override;
             virtual bool Exists(String Path) override;
@@ -48,6 +51,7 @@ namespace fs
             virtual u64 GetFreeSpace() override;
             virtual void SetArchiveBit(String Path) override;
         private:
+            std::function<void()> commit_fn;
             FILE *r_file_obj;
             FILE *w_file_obj;
     };

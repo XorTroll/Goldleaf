@@ -43,38 +43,48 @@ namespace ui
         this->Add(this->dirEmptyText);
     }
 
+    void PartitionBrowserLayout::ChangePartitionExplorer(fs::Explorer *exp, bool Update)
+    {
+        this->gexp = exp;
+        if(Update) this->UpdateElements();
+    }
+
     void PartitionBrowserLayout::ChangePartitionSdCard(bool Update)
     {
-        this->gexp = fs::GetSdCardExplorer();
-        if(Update) this->UpdateElements();
+        this->ChangePartitionExplorer(fs::GetSdCardExplorer(), Update);
     }
 
     void PartitionBrowserLayout::ChangePartitionNAND(fs::Partition Partition, bool Update)
     {
+        fs::Explorer *exp = nullptr;
         switch(Partition)
         {
             case fs::Partition::PRODINFOF:
-                this->gexp = fs::GetPRODINFOFExplorer();
+                exp = fs::GetPRODINFOFExplorer();
                 break;
             case fs::Partition::NANDSafe:
-                this->gexp = fs::GetNANDSafeExplorer();
+                exp = fs::GetNANDSafeExplorer();
                 break;
             case fs::Partition::NANDUser:
-                this->gexp = fs::GetNANDUserExplorer();
+                exp = fs::GetNANDUserExplorer();
                 break;
             case fs::Partition::NANDSystem:
-                this->gexp = fs::GetNANDSystemExplorer();
+                exp = fs::GetNANDSystemExplorer();
                 break;
             default:
-                break;
+                return;
         }
-        if(Update) this->UpdateElements();
+        this->ChangePartitionExplorer(exp, Update);
     }
     
     void PartitionBrowserLayout::ChangePartitionPCDrive(String Mount, bool Update)
     {
-        this->gexp = fs::GetRemotePCExplorer(Mount);
-        if(Update) this->UpdateElements();
+        this->ChangePartitionExplorer(fs::GetRemotePCExplorer(Mount), Update);
+    }
+
+    void PartitionBrowserLayout::ChangePartitionUSBDrive(drive::Drive drv, bool Update)
+    {
+        this->ChangePartitionExplorer(fs::GetUSBDriveExplorer(drv), Update);
     }
 
     void PartitionBrowserLayout::UpdateElements(int Idx)
@@ -342,12 +352,12 @@ namespace ui
                         this->gexp->EndFile(fs::FileMode::Read);
                         NacpStruct *snacp = &nacp;
                         u8 *rnacp = (u8*)snacp;
-                        NacpLanguageEntry *lent = NULL;
+                        NacpLanguageEntry *lent = nullptr;
                         nacpGetLanguageEntry(snacp, &lent);
                         String name = cfg::strings::Main.GetString(106);
                         String author = cfg::strings::Main.GetString(107);
                         String version = String(snacp->display_version);
-                        if(lent != NULL)
+                        if(lent != nullptr)
                         {
                             name = String(lent->name);
                             author = String(lent->author);

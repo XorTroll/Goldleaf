@@ -96,7 +96,7 @@ namespace nsp
             rc = fsOpenFileSystemWithId(&cnmtncafs, 0, FsFileSystemType_ContentMeta, acnmtnca.AsUTF8().c_str());
             if(R_FAILED(rc)) return rc;
             {
-                fs::FileSystemExplorer cnmtfs("gnspcnmtnca", "NSP-ContentMeta", &cnmtncafs);
+                fs::FspExplorer cnmtfs("NSP-ContentMeta", cnmtncafs);
                 auto cnts = cnmtfs.GetContents();
                 String fcnmt;
                 for(u32 i = 0; i < cnts.size(); i++)
@@ -169,7 +169,7 @@ namespace nsp
                     auto rc2 = fsOpenFileSystemWithId(&controlncafs, mrec.id, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
                     if(rc2 == 0)
                     {
-                        fs::FileSystemExplorer controlfs("gnspcontrolnca", "NSP-Control", &controlncafs);
+                        fs::FspExplorer controlfs("NSP-Control", controlncafs);
                         auto cnts = controlfs.GetContents();
                         for(u32 i = 0; i < cnts.size(); i++)
                         {

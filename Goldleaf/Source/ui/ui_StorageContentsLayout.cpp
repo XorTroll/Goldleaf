@@ -90,7 +90,7 @@ namespace ui
             {
                 NacpStruct *nacp = this->contents[i].TryGetNACP();
                 String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
-                if(nacp != NULL)
+                if(nacp != nullptr)
                 {
                     name = hos::GetNACPName(nacp);
                     delete nacp;

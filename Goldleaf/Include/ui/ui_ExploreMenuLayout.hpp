@@ -29,8 +29,10 @@ namespace ui
     {
         public:
             ExploreMenuLayout();
+            ~ExploreMenuLayout();
             PU_SMART_CTOR(ExploreMenuLayout)
 
+            void UpdateMenu();
             void mountsMenu_SelectionChanged();
             void sdCard_Click();
             void pcDrive_Click();
@@ -42,6 +44,10 @@ namespace ui
             void otherMount_Click();
             void specialMount_Click_X();
             void otherMount_Click_X();
+            void explorer_Click(fs::Explorer *exp, String name, std::string icon);
+            void explorer_Click_X(fs::Explorer *exp);
+            void AddMountedExplorer(fs::Explorer *exp, String name, std::string icon);
+            std::vector<fs::Explorer*> &GetMountedExplorers();
         private:
             pu::ui::elm::Menu::Ref mountsMenu;
             pu::ui::elm::MenuItem::Ref sdCardMenuItem;
@@ -51,7 +57,7 @@ namespace ui
             pu::ui::elm::MenuItem::Ref nandSafeMenuItem;
             pu::ui::elm::MenuItem::Ref nandUserMenuItem;
             pu::ui::elm::MenuItem::Ref nandSystemMenuItem;
+            std::vector<fs::Explorer*> mountedExplorers;
             std::vector<pu::ui::elm::MenuItem::Ref> mounts;
-            std::vector<fs::Explorer*> expls;
     };
 }

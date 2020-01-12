@@ -215,7 +215,7 @@ namespace ui
         this->hasusb = usb::detail::IsStateOk();
         this->usbImage->SetVisible(this->hasusb);
         u32 connstr = 0;
-        Result rc = nifmGetInternetConnectionStatus(NULL, &connstr, NULL);
+        Result rc = nifmGetInternetConnectionStatus(nullptr, &connstr, nullptr);
         std::string connimg = "None";
         if(R_SUCCEEDED(rc)) if(connstr > 0) connimg = std::to_string(connstr);
         if(connstr != this->connstate)
@@ -257,7 +257,7 @@ namespace ui
 
     void MainApplication::LoadMenuData(String Name, std::string ImageName, String TempHead, bool CommonIcon)
     {
-        if(this->menuImage != NULL)
+        if(this->menuImage != nullptr)
         {
             this->menuImage->SetVisible(true);
             if(CommonIcon) this->menuImage->SetImage(global_settings.PathForResource("/Common/" + ImageName + ".png"));
@@ -265,12 +265,12 @@ namespace ui
             this->menuImage->SetWidth(85);
             this->menuImage->SetHeight(85);
         }
-        if(this->menuNameText != NULL)
+        if(this->menuNameText != nullptr)
         {
             this->menuNameText->SetVisible(true);
             this->menuNameText->SetText(Name);
         }
-        if(this->menuHeadText != NULL)
+        if(this->menuHeadText != nullptr)
         {
             this->menuHeadText->SetVisible(true);
             this->LoadMenuHead(TempHead);
@@ -279,7 +279,7 @@ namespace ui
 
     void MainApplication::LoadMenuHead(String Head)
     {
-        if(this->menuHeadText != NULL) this->menuHeadText->SetText(Head);
+        if(this->menuHeadText != nullptr) this->menuHeadText->SetText(Head);
     }
 
     void MainApplication::UnloadMenuData()

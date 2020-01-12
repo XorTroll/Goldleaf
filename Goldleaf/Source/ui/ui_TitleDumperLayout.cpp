@@ -197,7 +197,7 @@ namespace ui
         }
         else
         {
-            fs::Explorer *nexp = NULL;
+            fs::Explorer *nexp = nullptr;
             if(stid == NcmStorageId_BuiltInSystem) nexp = fs::GetNANDSystemExplorer();
             else if(stid == NcmStorageId_BuiltInUser) nexp = fs::GetNANDUserExplorer();
             else

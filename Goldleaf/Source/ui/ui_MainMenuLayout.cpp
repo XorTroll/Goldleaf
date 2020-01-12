@@ -83,6 +83,7 @@ namespace ui
     void MainMenuLayout::exploreMenuItem_Click()
     {
         global_app->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
+        global_app->GetExploreMenuLayout()->UpdateMenu();
         global_app->LoadLayout(global_app->GetExploreMenuLayout());
     }
 

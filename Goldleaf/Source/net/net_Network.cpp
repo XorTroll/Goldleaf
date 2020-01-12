@@ -51,7 +51,7 @@ namespace net
         CURL *curl = curl_easy_init();
         if(!MIMEType.empty())
         {
-            curl_slist *headerdata = NULL;
+            curl_slist *headerdata = nullptr;
             headerdata = curl_slist_append(headerdata, ("Content-Type: " + MIMEType).c_str());
             headerdata = curl_slist_append(headerdata, ("Accept: " + MIMEType).c_str());
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerdata);
@@ -95,12 +95,6 @@ namespace net
     
     bool HasConnection()
     {
-        /*
-        u32 strg = 0;
-        nifmGetInternetConnectionStatus(NULL, &strg, NULL);
-        return (strg > 0);
-        */
-
         u32 id = gethostid();
         return (id == INADDR_LOOPBACK);
     }

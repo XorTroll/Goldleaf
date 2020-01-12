@@ -56,7 +56,7 @@ namespace ui
         u32 idx = this->optionsMenu->GetSelectedIndex();
         String msg = cfg::strings::Main.GetString(169) + "\n\n";
         msg += cfg::strings::Main.GetString(170) + " ";
-        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244) };
+        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), "Mount save data" };
         std::string icn;
         hos::Title cnt = this->tcontents[idx];
         if(fs::IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
@@ -171,7 +171,44 @@ namespace ui
                 global_app->ReturnToMainMenu();
             }
         }
-        else if(hastik && (sopt == 2))
+        else if(sopt == 2)
+        {
+            if(!cnt.IsBaseTitle())
+            {
+                global_app->CreateShowDialog("Content save data", "This can only be done with titles, not updates or DLC.", { "Ok" }, true);
+                return;
+            }
+            if(cnt.Location == Storage::NANDSystem)
+            {
+                global_app->CreateShowDialog("Content save data", "This cannot be done with system titles.", { "Ok" }, true);
+                return;
+            }
+            if(!acc::HasUser())
+            {
+                global_app->CreateShowDialog("Content save data", "Select an account to browse the save data first.", { "Ok" }, true);
+                return;
+            }
+
+            FsFileSystem fs;
+
+            FsSaveDataAttribute attr = {};
+            attr.application_id = cnt.ApplicationId;
+            attr.uid = acc::GetSelectedUser();
+            attr.save_data_type = FsSaveDataType_Account;
+            auto rc = fsOpenSaveDataFileSystem(&fs, FsSaveDataSpaceId_User, &attr);
+
+            if(R_SUCCEEDED(rc))
+            {
+                auto exp = new fs::FspExplorer("SaveData-0x" + hos::FormatApplicationId(cnt.ApplicationId), fs);
+                global_app->GetExploreMenuLayout()->AddMountedExplorer(exp, "Game save data", icn);
+                global_app->ShowNotification("Save data was mounted. Check it in the contents browsing section.");
+            }
+            else
+            {
+                HandleResult(rc, "An error ocurred attempting to mount the save data of this title and user:");
+            }
+        }
+        else if(hastik && (sopt == 3))
         {
             sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(205), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
@@ -183,7 +220,7 @@ namespace ui
             }
             else HandleResult(rc, cfg::strings::Main.GetString(207));
         }
-        else if((hastik && sopt == 3) || (!hastik && sopt == 2))
+        else if((hastik && sopt == 4) || (!hastik && sopt == 3))
         {
             auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
             if(R_SUCCEEDED(rc))
@@ -206,18 +243,18 @@ namespace ui
         }
         NacpStruct *nacp = Content.TryGetNACP();
         String tcnt = hos::FormatApplicationId(Content.ApplicationId);
-        if(nacp != NULL)
+        if(nacp != nullptr)
         {
             tcnt = hos::GetNACPName(nacp) + " (" + String(nacp->display_version) + ")";
             delete nacp;
         }
         std::string icon;
         u8 *cicon = Content.TryGetIcon();
-        if(cicon != NULL)
+        if(cicon != nullptr)
         {
             icon = hos::GetExportedIconPath(Content.ApplicationId);
             delete[] cicon;
-            cicon = NULL;
+            cicon = nullptr;
         }
         global_app->LoadMenuData(cfg::strings::Main.GetString(187), icon, tcnt, false);
         this->UpdateElements();

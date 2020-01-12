@@ -36,34 +36,34 @@
 
 namespace fs
 {
-    static u8 *opsbuf = NULL;
+    static u8 *opsbuf = nullptr;
     static size_t opsbufsz = 0x800000;
 
     bool Exists(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) return exp->Exists(Path);
+        if(exp != nullptr) return exp->Exists(Path);
         return false;
     }
 
     bool IsFile(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) return exp->IsFile(Path);
+        if(exp != nullptr) return exp->IsFile(Path);
         return false;
     }
 
     bool IsDirectory(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) return exp->IsDirectory(Path);
+        if(exp != nullptr) return exp->IsDirectory(Path);
         return false;
     }
 
     void CreateFile(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->CreateFile(Path);
+        if(exp != nullptr) exp->CreateFile(Path);
     }
 
     void CreateConcatenationFile(String Path)
@@ -74,7 +74,7 @@ namespace fs
     void CreateDirectory(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->CreateDirectory(Path);
+        if(exp != nullptr) exp->CreateDirectory(Path);
     }
 
     void CopyFile(String Path, String NewPath)
@@ -110,25 +110,25 @@ namespace fs
     void DeleteFile(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->DeleteFile(Path);
+        if(exp != nullptr) exp->DeleteFile(Path);
     }
 
     void DeleteDirectory(String Path)
     {
         auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->DeleteDirectory(Path);
+        if(exp != nullptr) exp->DeleteDirectory(Path);
     }
 
     void RenameFile(String Old, String New)
     {
         auto exp = GetExplorerForPath(Old);
-        if(exp != NULL) exp->RenameFile(Old, New);
+        if(exp != nullptr) exp->RenameFile(Old, New);
     }
 
     void RenameDirectory(String Old, String New)
     {
         auto exp = GetExplorerForPath(Old);
-        if(exp != NULL) exp->RenameDirectory(Old, New);
+        if(exp != nullptr) exp->RenameDirectory(Old, New);
     }
 
     bool IsFileBinary(String Path)
@@ -183,7 +183,7 @@ namespace fs
             while(true)
             {
                 dent = readdir(d);
-                if(dent == NULL) break;
+                if(dent == nullptr) break;
                 String nd = dent->d_name;
                 String pd = Path + "/" + nd;
                 if(fs::IsFile(pd)) sz += GetFileSize(pd);
@@ -222,7 +222,7 @@ namespace fs
     u64 GetTotalSpaceForPartition(Partition Partition)
     {
         u64 space = 0;
-        fs::Explorer *fexp = NULL;
+        fs::Explorer *fexp = nullptr;
         switch(Partition)
         {
             case Partition::PRODINFOF:
@@ -241,14 +241,14 @@ namespace fs
                 fexp = fs::GetSdCardExplorer();
                 break;
         }
-        if(fexp != NULL) space = fexp->GetTotalSpace();
+        if(fexp != nullptr) space = fexp->GetTotalSpace();
         return space;
     }
 
     u64 GetFreeSpaceForPartition(Partition Partition)
     {
         u64 space = 0;
-        fs::Explorer *fexp = NULL;
+        fs::Explorer *fexp = nullptr;
         switch(Partition)
         {
             case Partition::PRODINFOF:
@@ -267,7 +267,7 @@ namespace fs
                 fexp = fs::GetSdCardExplorer();
                 break;
         }
-        if(fexp != NULL) space = fexp->GetFreeSpace();
+        if(fexp != nullptr) space = fexp->GetFreeSpace();
         return space;
     }
 
@@ -293,7 +293,7 @@ namespace fs
             while(true)
             {
                 dt = readdir(dp);
-                if(dt == NULL) break;
+                if(dt == nullptr) break;
                 String pth = String(dt->d_name);
                 String seq = pth.substr(pth.length() - Extension.length());
                 if(seq == Extension)
@@ -309,7 +309,7 @@ namespace fs
 
     u8 *GetFileSystemOperationsBuffer()
     {
-        if(opsbuf == NULL) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
+        if(opsbuf == nullptr) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
         memset(opsbuf, 0, opsbufsz);
         return opsbuf;
     }

@@ -62,7 +62,7 @@ namespace hos
 
     NacpStruct *Title::TryGetNACP()
     {
-        NacpStruct *nacp = NULL;
+        NacpStruct *nacp = nullptr;
         NsApplicationControlData *ctdata = new NsApplicationControlData;
         size_t acsz = 0;
         Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
@@ -86,7 +86,7 @@ namespace hos
 
     u8 *Title::TryGetIcon()
     {
-        u8 *icon = NULL;
+        u8 *icon = nullptr;
         NsApplicationControlData *ctdata = new NsApplicationControlData();
         size_t acsz = 0;
         Result rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, this->ApplicationId, ctdata, sizeof(NsApplicationControlData), &acsz);
@@ -111,12 +111,11 @@ namespace hos
     bool Title::DumpControlData()
     {
         bool hicon = false;
-        String fappid = FormatApplicationId(this->ApplicationId);
         NacpStruct *nacp = this->TryGetNACP();
         auto sdexp = fs::GetSdCardExplorer();
-        if(nacp != NULL)
+        if(nacp != nullptr)
         {
-            String fnacp = consts::Root + "/title/" + fappid + ".nacp";
+            String fnacp = GetExportedNACPPath(this->ApplicationId);
             sdexp->DeleteFile(fnacp);
             sdexp->StartFile(fnacp, fs::FileMode::Write);
             sdexp->WriteFileBlock(fnacp, (u8*)nacp, sizeof(NacpStruct));
@@ -124,9 +123,9 @@ namespace hos
             delete nacp;
         }
         u8 *jpg = this->TryGetIcon();
-        if(jpg != NULL)
+        if(jpg != nullptr)
         {
-            String fjpg = consts::Root + "/title/" + fappid + ".jpg";
+            String fjpg = GetExportedIconPath(this->ApplicationId);
             sdexp->DeleteFile(fjpg);
             sdexp->StartFile(fjpg, fs::FileMode::Write);
             sdexp->WriteFileBlock(fjpg, jpg, 0x20000);
@@ -202,7 +201,7 @@ namespace hos
     {
         TitlePlayStats stats = {};
         stats.TotalPlaySeconds = Stats.playtimeMinutes * 60;
-        u64 timenow = time(NULL);
+        u64 timenow = time(nullptr);
         stats.SecondsFromFirstLaunched = timenow - pdmPlayTimestampToPosix(Stats.first_timestampUser);
         stats.SecondsFromLastLaunched = timenow - pdmPlayTimestampToPosix(Stats.last_timestampUser);
         return stats;
@@ -490,7 +489,7 @@ namespace hos
         NacpLanguageEntry *lent;
         nacpGetLanguageEntry(NACP, &lent);
         String ret;
-        if(lent != NULL) ret = String(lent->name);
+        if(lent != nullptr) ret = String(lent->name);
         return ret;
     }
 
@@ -499,7 +498,7 @@ namespace hos
         NacpLanguageEntry *lent;
         nacpGetLanguageEntry(NACP, &lent);
         String ret;
-        if(lent != NULL) ret = String(lent->author);
+        if(lent != nullptr) ret = String(lent->author);
         return ret;
     }
 

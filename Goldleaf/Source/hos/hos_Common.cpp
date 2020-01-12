@@ -42,7 +42,7 @@ namespace hos
 
     std::string GetCurrentTime()
     {
-        time_t timet = time(NULL);
+        time_t timet = time(nullptr);
         struct tm *times = localtime((const time_t*)&timet);
         int h = times->tm_hour;
         int min = times->tm_min;

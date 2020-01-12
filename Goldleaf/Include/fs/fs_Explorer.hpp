@@ -35,6 +35,10 @@ namespace fs
     class Explorer
     {
         public:
+            virtual ~Explorer()
+            {
+            }
+            
             virtual bool ShouldWarnOnWriteAccess();
             void SetNames(String MountName, String DisplayName);
             bool NavigateBack();
@@ -44,6 +48,7 @@ namespace fs
             String GetCwd();
             String GetPresentableCwd();
             inline String FullPathFor(String Path);
+            inline String AbsolutePathFor(String Path);
             inline String FullPresentablePathFor(String Path);
             inline String MakeFull(String Path);
             inline bool IsFullPath(String Path);
@@ -89,6 +94,14 @@ namespace fs
     {
         String fpath = this->ecwd;
         if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
+        fpath += Path;
+        return fpath;
+    }
+
+    String Explorer::AbsolutePathFor(String Path)
+    {
+        String fpath = this->mntname + ":";
+        if(Path.substr(0, 1) != "/") fpath += "/";
         fpath += Path;
         return fpath;
     }
