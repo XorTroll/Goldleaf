@@ -36,19 +36,22 @@ namespace dump
         ncmContentStorageGetSizeFromContentId(ncst, &ncasize, &NCAId);
         u64 szrem = ncasize;
         FILE *f = fopen(Path.AsUTF8().c_str(), "wb");
-        s64 off = 0;
-        u64 rmax = fs::GetFileSystemOperationsBufferSize();
-        u8 *data = fs::GetFileSystemOperationsBuffer();
-        while(szrem)
+        if(f)
         {
-            u64 rsize = std::min(rmax, szrem);
-            if(ncmContentStorageReadContentIdFile(ncst, data, rsize, &NCAId, off) != 0) break;
-            fwrite(data, 1, rsize, f);
-            szrem -= rsize;
-            off += rsize;
-            Callback((double)off, (double)ncasize);
+            s64 off = 0;
+            u64 rmax = fs::GetFileSystemOperationsBufferSize();
+            u8 *data = fs::GetFileSystemOperationsBuffer();
+            while(szrem)
+            {
+                u64 rsize = std::min(rmax, szrem);
+                if(ncmContentStorageReadContentIdFile(ncst, data, rsize, &NCAId, off) != 0) break;
+                fwrite(data, 1, rsize, f);
+                szrem -= rsize;
+                off += rsize;
+                Callback((double)off, (double)ncasize);
+            }
+            fclose(f);
         }
-        fclose(f);
     }
 
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmContentMetaKey *out)

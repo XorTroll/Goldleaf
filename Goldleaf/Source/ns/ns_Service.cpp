@@ -33,8 +33,8 @@ namespace ns
         const struct
         {
             u8 last_modified_event;
-            u8 padding[0x7];
-            u64 appId;
+            u8 padding[7];
+            u64 app_id;
         } in = { LastModifiedEvent, {0}, ApplicationId };
         
         return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 16, in,
@@ -48,7 +48,7 @@ namespace ns
         const struct
         {
             u64 offset;
-            u64 appId;
+            u64 app_id;
         } in = { Offset, ApplicationId };
 
         return serviceDispatchInOut(nsGetServiceSession_ApplicationManagerInterface(), 17, in, *out_Count,
@@ -71,10 +71,10 @@ namespace ns
     {
         const struct
         {
-            u64 appId;
             u32 version;
+            u64 app_id;
             u8 pad[4];
-        } in = { ApplicationId, LaunchVersion, {0} };
+        } in = { LaunchVersion, ApplicationId, {0} };
         
         return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 36, in);
     }
