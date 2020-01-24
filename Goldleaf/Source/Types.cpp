@@ -215,6 +215,8 @@ Result Initialize()
     R_TRY(nifmInitialize(NifmServiceType_Admin));
     R_TRY(pdmqryInitialize());
 
+    if(drive::IsFspUsbAccessible()) R_TRY(drive::Initialize());
+
     return 0;
 }
 
