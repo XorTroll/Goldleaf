@@ -27,6 +27,7 @@ public class Main
 {
     public static void main(String[] args)
     {
+        CommandLineParser.parseArguments(args);
         MainApplication.main(args);
     }
 }
