@@ -29,7 +29,7 @@ import java.util.Properties;
 
 public class Config
 {
-    public static final String ConfigPath = "quark-config.cfg";
+    public static String ConfigPath = "quark-config.cfg";
     public Properties data = new Properties();
     private File cfg;
 

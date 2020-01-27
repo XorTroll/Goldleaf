@@ -38,5 +38,6 @@ public class CommandLineParser {
         Docopt parser = new Docopt(DOCSTRING);
         Map<String,Object> parsedArgs = parser.parse(args);
         String configFile = (String) parsedArgs.get("--config-file");
+        Config.ConfigPath = configFile;
     }
 }
