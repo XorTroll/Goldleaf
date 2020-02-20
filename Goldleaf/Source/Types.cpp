@@ -50,6 +50,8 @@ std::string LanguageToString(Language lang)
             return "it";
         case Language::Dutch:
             return "nl";
+        case Language::Japanese:
+            return "ja";
         default:
             break;
     }
@@ -65,6 +67,7 @@ Language StringToLanguage(std::string str)
     else if(str == "fr") lang = Language::French;
     else if(str == "it") lang = Language::Italian;
     else if(str == "nl") lang = Language::Dutch;
+    else if(str == "ja") lang = Language::Japanese;
     return lang;
 }
 
