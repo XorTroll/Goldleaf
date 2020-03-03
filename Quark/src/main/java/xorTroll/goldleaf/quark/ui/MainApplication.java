@@ -58,6 +58,9 @@ public class MainApplication extends Application
     public static final Version QuarkVer = new Version(0, 3, 0);
     public static final Version MinGoldleafVer = new Version(0, 8, 0);
 
+    private static final int WIDTH = 900;
+    private static final int HEIGHT = 400;
+
     public MainController controller;
     public Stage stage;
     public Scene scene;
@@ -131,14 +134,18 @@ public class MainApplication extends Application
         Pane base = loader.load();
         cfg = new Config();
 
-        scene = new Scene(base, 900, 400);
+        scene = new Scene(base, WIDTH, HEIGHT);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("Main.css").toExternalForm());
         controller = loader.getController();
         primaryStage.getIcons().add(new Image(getClass().getClassLoader().getResource("Icon.png").toExternalForm()));
-        primaryStage.setResizable(false);
         stage = primaryStage;
         stage.setTitle("Quark v" + QuarkVer.toString() + " - Goldleaf's USB client");
         stage.setScene(scene);
+        stage.setMinHeight(HEIGHT);
+        stage.setMaxHeight(HEIGHT);
+        stage.setMaxWidth(WIDTH);
+        stage.setMinWidth(WIDTH);
+        stage.sizeToScene();
 
         Task<Void> usbtask = new Task<Void>()
         {
