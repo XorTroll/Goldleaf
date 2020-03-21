@@ -3,11 +3,13 @@
 static Service fspusb_srv;
 static u64 fspusb_refcnt = 0;
 
+#define DRIVE_FSPUSB_SERVICE "fsp-usb"
+
 namespace drive
 {
     bool IsFspUsbAccessible()
     {
-        SmServiceName srv = smEncodeName("fsp-usb");
+        SmServiceName srv = smEncodeName(DRIVE_FSPUSB_SERVICE);
         Handle tmph = 0;
         Result rc = smRegisterService(&tmph, srv, false, 1);
         if(R_FAILED(rc)) return true;
@@ -19,7 +21,7 @@ namespace drive
     {
         atomicIncrement64(&fspusb_refcnt);
         if(serviceIsActive(&fspusb_srv)) return 0;
-        return smGetService(&fspusb_srv, "fsp-usb");
+        return smGetService(&fspusb_srv, DRIVE_FSPUSB_SERVICE);
     }
 
     void Exit()

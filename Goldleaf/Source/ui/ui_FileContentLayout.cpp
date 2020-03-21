@@ -31,7 +31,7 @@ namespace ui
     {
         this->cntText = pu::ui::elm::TextBlock::New(40, 180, "");
         this->cntText->SetColor(global_settings.custom_scheme.Text);
-        this->cntText->SetFont(pu::ui::render::LoadFont(global_settings.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
+        this->cntText->SetFont("FileContentFont");
         this->Add(this->cntText);
         this->loffset = 0;
     }

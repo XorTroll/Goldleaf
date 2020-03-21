@@ -30,6 +30,7 @@ namespace nsp
         this->gexp = Exp;
         this->ok = false;
         this->headersize = 0;
+        this->stringtable = nullptr;
         Exp->StartFile(this->path, fs::FileMode::Read);
         Exp->ReadFileBlock(this->path, 0, sizeof(this->header), (u8*)&this->header);
         if(this->header.Magic == Magic)
@@ -64,7 +65,7 @@ namespace nsp
 
     PFS0::~PFS0()
     {
-        delete[] this->stringtable;
+        if(this->stringtable != nullptr) delete[] this->stringtable;
     }
 
     u32 PFS0::GetCount()
@@ -137,7 +138,7 @@ namespace nsp
 
     u32 PFS0::GetFileIndexByName(String File)
     {
-        u32 idx = 0;
+        u32 idx = InvalidFileIndex;
         for(auto &file: this->files)
         {
             if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0) break;

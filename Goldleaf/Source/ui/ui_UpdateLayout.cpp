@@ -24,7 +24,7 @@
 
 extern ui::MainApplication::Ref global_app;
 extern cfg::Settings global_settings;
-extern bool gupdated;
+extern bool global_app_updated;
 
 namespace ui
 {
@@ -41,7 +41,7 @@ namespace ui
 
     void UpdateLayout::StartUpdateSearch()
     {
-        if(gupdated) return;
+        if(global_app_updated) return;
         this->downloadBar->SetVisible(false);
         this->infoText->SetText(cfg::strings::Main.GetString(305));
         global_app->CallForRender();
@@ -70,7 +70,7 @@ namespace ui
                     this->downloadBar->SetProgress(Done);
                     global_app->CallForRender();
                 });
-                if(fs::IsFile("sdmc:/" + consts::Root + "/update_tmp.nro")) gupdated = true;
+                if(fs::IsFile("sdmc:/" + consts::Root + "/update_tmp.nro")) global_app_updated = true;
                 this->downloadBar->SetVisible(false);
                 global_app->CallForRender();
                 global_app->ShowNotification(cfg::strings::Main.GetString(314) + " " + cfg::strings::Main.GetString(315));

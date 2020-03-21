@@ -89,7 +89,7 @@ namespace ui
 
     void PartitionBrowserLayout::UpdateElements(int Idx)
     {
-        if(!this->elems.empty()) this->elems.clear();
+        this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
         global_app->LoadMenuHead(this->gexp->GetPresentableCwd());
@@ -104,10 +104,9 @@ namespace ui
             this->dirEmptyText->SetVisible(false);
             for(auto &itm: this->elems)
             {
-                bool isdir = this->gexp->IsDirectory(itm);
                 auto mitm = pu::ui::elm::MenuItem::New(itm);
                 mitm->SetColor(global_settings.custom_scheme.Text);
-                if(isdir) mitm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
+                if(this->gexp->IsDirectory(itm)) mitm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
                 else
                 {
                     String ext = fs::GetExtension(itm);
@@ -130,7 +129,7 @@ namespace ui
             {
                 if(!expidxstack.empty())
                 {
-                    tmpidx = expidxstack[expidxstack.size() - 1];
+                    tmpidx = expidxstack.back();
                     expidxstack.pop_back();
                 }
             }
@@ -174,7 +173,6 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click(String item)
     {
-        if(this->elems.empty()) return;
         String fullitm = this->gexp->FullPathFor(item);
         String pfullitm = this->gexp->FullPresentablePathFor(item);
         if(this->gexp->NavigateForward(fullitm))
@@ -196,51 +194,46 @@ namespace ui
             else msg += cfg::strings::Main.GetString(270);
             msg += "\n\n" + cfg::strings::Main.GetString(64) + " " + fs::FormatSize(this->gexp->GetFileSize(fullitm));
             std::vector<String> vopts;
-            u32 copt = 5;
-            bool ibin = this->gexp->IsFileBinary(fullitm);
+            u32 copt = 6;
             if(ext == "nsp")
             {
                 vopts.push_back(cfg::strings::Main.GetString(65));
-                copt = 6;
+                copt = 7;
             }
             else if(ext == "nro")
             {
                 vopts.push_back(cfg::strings::Main.GetString(66));
-                copt = 6;
+                copt = 7;
             }
             else if(ext == "tik")
             {
                 vopts.push_back(cfg::strings::Main.GetString(67));
-                copt = 6;
+                copt = 7;
             }
             else if(ext == "nxtheme")
             {
                 vopts.push_back(cfg::strings::Main.GetString(65));
-                copt = 6;
+                copt = 7;
             }
             else if(ext == "nacp")
             {
                 vopts.push_back(cfg::strings::Main.GetString(69));
-                copt = 6;
+                copt = 7;
             }
             else if((ext == "jpg") || (ext == "jpeg"))
             {
                 vopts.push_back(cfg::strings::Main.GetString(70));
-                copt = 6;
+                copt = 7;
             }
             else if(ext == "bin")
             {
                 if(IsAtmosphere())
                 {
                     vopts.push_back(cfg::strings::Main.GetString(66));
-                    copt = 6;
+                    copt = 7;
                 }
             }
-            else if(!ibin)
-            {
-                vopts.push_back(cfg::strings::Main.GetString(71));
-                copt = 6;
-            }
+            vopts.push_back(cfg::strings::Main.GetString(71));
             vopts.push_back(cfg::strings::Main.GetString(72));
             vopts.push_back(cfg::strings::Main.GetString(73));
             vopts.push_back(cfg::strings::Main.GetString(74));
@@ -326,7 +319,7 @@ namespace ui
                         while(true)
                         {
                             index = arg.find(" ", index);
-                            if(index == String::npos) break;
+                            if(index == std::string::npos) break;
                             arg.replace(index, 1, "(_)");
                         }
                         envSetNextLoad(ntnro.c_str(), arg.c_str());
@@ -425,21 +418,17 @@ namespace ui
                         break;
                 }
             }
-            else if(!ibin)
-            {
-                switch(sopt)
-                {
-                    case 0:
-                        global_app->LoadLayout(global_app->GetFileContentLayout());
-                        global_app->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, false);
-                        break;
-                }
-            }
-            int viewopt = copt - 5;
+            int viewtextopt = copt - 6;
+            int viewhexopt = copt - 5;
             int copyopt = copt - 4;
             int delopt = copt - 3;
             int renopt = copt - 2;
-            if((osopt == viewopt) && (this->gexp->GetFileSize(fullitm) > 0))
+            if((osopt == viewtextopt) && (this->gexp->GetFileSize(fullitm) > 0))
+            {
+                global_app->LoadLayout(global_app->GetFileContentLayout());
+                global_app->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, false);
+            }
+            if((osopt == viewhexopt) && (this->gexp->GetFileSize(fullitm) > 0))
             {
                 global_app->LoadLayout(global_app->GetFileContentLayout());
                 global_app->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, true);

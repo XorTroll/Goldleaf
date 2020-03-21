@@ -28,6 +28,18 @@ namespace nsp
     class PFS0
     {
         public:
+            static constexpr u32 InvalidFileIndex = UINT32_MAX;
+
+            NX_CONSTEXPR bool IsValidFileIndex(u32 idx)
+            {
+                return idx != InvalidFileIndex;
+            }
+            
+            NX_CONSTEXPR bool IsInvalidFileIndex(u32 idx)
+            {
+                return !IsValidFileIndex;
+            }
+
             PFS0(fs::Explorer *Exp, String Path);
             ~PFS0();
             u32 GetCount();

@@ -6,7 +6,7 @@
   <groupId>xorTroll.goldleaf.quark</groupId>
   <artifactId>Quark</artifactId>
 
-  <version>0.3</version>
+  <version>0.3-j9</version>
   <name>Quark</name>
 
   <properties>
@@ -130,6 +130,12 @@
   </dependencies>
 
   <build>
+    <sourceDirectory>../src/main/java</sourceDirectory>
+    <resources>
+        <resource>
+            <directory>../src/main/resources</directory>
+        </resource>
+    </resources>
     <plugins>
 
             <plugin>
@@ -158,7 +164,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <finalName>Quark</finalName>
+                    <finalName>Quark-j9</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>

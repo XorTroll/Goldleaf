@@ -51,7 +51,9 @@ namespace ui
         cfg::LoadStrings();
         if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
 
-        pu::ui::render::SetDefaultFont(global_settings.PathForResource("/Roboto-Medium.ttf"));
+        // Load the file hex-viewer font
+        pu::ui::render::AddFontFile("FileContentFont", 25, global_settings.PathForResource("/FileSystem/FileContentFont.ttf"));
+
         this->preblv = 0;
         this->seluser = {};
         this->preisch = false;
@@ -61,7 +63,8 @@ namespace ui
         this->baseImage = pu::ui::elm::Image::New(0, 0, global_settings.PathForResource("/Base.png"));
         this->timeText = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
         this->timeText->SetColor(global_settings.custom_scheme.Text);
-        this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%", 20);
+        this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%");
+        this->batteryText->SetFont("DefaultFont@20");
         this->batteryText->SetColor(global_settings.custom_scheme.Text);
         this->batteryImage = pu::ui::elm::Image::New(960, 8, global_settings.PathForResource("/Battery/0.png"));
         this->batteryChargeImage = pu::ui::elm::Image::New(960, 8, global_settings.PathForResource("/Battery/Charge.png"));
@@ -85,14 +88,16 @@ namespace ui
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = pu::ui::elm::TextBlock::New(800, 20, "", 20);
+        this->ipText = pu::ui::elm::TextBlock::New(800, 20, "");
+        this->ipText->SetFont("DefaultFont@20");
         this->ipText->SetColor(global_settings.custom_scheme.Text);
         this->menuNameText = pu::ui::elm::TextBlock::New(120, 85, "-");
         this->menuNameText->SetColor(global_settings.custom_scheme.Text);
-        this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-", 20);
+        this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-");
+        this->menuHeadText->SetFont("DefaultFont@20");
         this->menuHeadText->SetColor(global_settings.custom_scheme.Text);
         this->UnloadMenuData();
-        this->toast = pu::ui::extras::Toast::New(":", 20, pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
+        this->toast = pu::ui::extras::Toast::New(":", "DefaultFont@20", pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
         this->mainMenu = MainMenuLayout::New();
         this->browser = PartitionBrowserLayout::New();

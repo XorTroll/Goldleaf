@@ -161,30 +161,33 @@ namespace nsp
                     String controlncaid = hos::ContentIdAsString(recs[i].ContentId);
                     String controlnca = controlncaid + ".nca";
                     u32 idxcontrolnca = nspentry.GetFileIndexByName(controlnca);
-                    auto ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
-                    nspentry.SaveFile(idxcontrolnca, nsys, ncontrolnca);
-                    String acontrolnca = "@SystemContent://temp/" + controlnca;
-                    acontrolnca.reserve(FS_MAX_PATH);
-                    FsFileSystem controlncafs;
-                    auto rc2 = fsOpenFileSystemWithId(&controlncafs, mrec.id, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
-                    if(rc2 == 0)
+                    if(PFS0::IsValidFileIndex(idxcontrolnca))
                     {
-                        fs::FspExplorer controlfs("NSP-Control", controlncafs);
-                        auto cnts = controlfs.GetContents();
-                        for(u32 i = 0; i < cnts.size(); i++)
+                        auto ncontrolnca = nsys->FullPathFor("Contents/temp/" + controlnca);
+                        nspentry.SaveFile(idxcontrolnca, nsys, ncontrolnca);
+                        String acontrolnca = "@SystemContent://temp/" + controlnca;
+                        acontrolnca.reserve(FS_MAX_PATH);
+                        FsFileSystem controlncafs;
+                        auto rc2 = fsOpenFileSystemWithId(&controlncafs, mrec.id, FsFileSystemType_ContentControl, acontrolnca.AsUTF8().c_str());
+                        if(rc2 == 0)
                         {
-                            String cnt = cnts[i];
-                            if(fs::GetExtension(cnt) == "dat")
+                            fs::FspExplorer controlfs("NSP-Control", controlncafs);
+                            auto cnts = controlfs.GetContents();
+                            for(u32 i = 0; i < cnts.size(); i++)
                             {
-                                icon = "sdmc:/" + consts::Root + "/meta/" + controlncaid + ".jpg";
-                                controlfs.CopyFile(cnt, icon);
-                                break;
+                                String cnt = cnts[i];
+                                if(fs::GetExtension(cnt) == "dat")
+                                {
+                                    icon = "sdmc:/" + consts::Root + "/meta/" + controlncaid + ".jpg";
+                                    controlfs.CopyFile(cnt, icon);
+                                    break;
+                                }
                             }
+                            auto fcontrol = "control.nacp";
+                            controlfs.StartFile(fcontrol, fs::FileMode::Read);
+                            controlfs.ReadFileBlock(fcontrol, 0, sizeof(NacpStruct), (u8*)&entrynacp);
+                            controlfs.EndFile(fs::FileMode::Read);
                         }
-                        auto fcontrol = "control.nacp";
-                        controlfs.StartFile(fcontrol, fs::FileMode::Read);
-                        controlfs.ReadFileBlock(fcontrol, 0, sizeof(NacpStruct), (u8*)&entrynacp);
-                        controlfs.EndFile(fs::FileMode::Read);
                     }
                 }
             }
@@ -303,6 +306,7 @@ namespace nsp
             if(rnca.Type == ncm::ContentType::Meta) ncaname += ".cnmt";
             ncaname += ".nca";
             u32 idxncaname = nspentry.GetFileIndexByName(ncaname);
+            if(PFS0::IsInvalidFileIndex(idxncaname)) return err::result::ResultMetaNotFound;
             auto cursize =  nspentry.GetFileSize(idxncaname);
             totalsize += cursize;
             ncaidxs.push_back(idxncaname);

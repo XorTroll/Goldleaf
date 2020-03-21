@@ -23,14 +23,14 @@
 
 ui::MainApplication::Ref global_app;
 cfg::Settings global_settings;
-bool gupdated = false;
+bool global_app_updated = false;
 
 int main()
 {
     auto rc = Initialize();
     if(R_FAILED(rc)) fatalThrow(rc);
 
-    auto renderer = pu::ui::render::Renderer::New(SDL_INIT_EVERYTHING, pu::ui::render::RendererInitOptions::RendererNoSound, pu::ui::render::RendererHardwareFlags);
+    auto renderer = pu::ui::render::Renderer::New(pu::ui::render::RendererInitOptions(SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags).WithIMG(pu::ui::render::IMGAllFlags).WithMixer(pu::ui::render::MixerAllFlags).WithTTF().WithDefaultFontSize(35).WithRomfs());
     global_app = ui::MainApplication::New(renderer);
 
     global_app->Prepare();

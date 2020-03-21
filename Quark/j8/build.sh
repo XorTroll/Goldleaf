@@ -3,5 +3,5 @@
 mvn -B -DskipTests clean package
 
 echo
-echo Compiled.
+echo Compiled
 echo

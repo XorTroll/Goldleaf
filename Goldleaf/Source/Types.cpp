@@ -25,7 +25,7 @@
 #include <es/es_Service.hpp>
 
 extern char** __system_argv;
-extern bool gupdated;
+extern bool global_app_updated;
 
 namespace consts
 {
@@ -223,7 +223,7 @@ Result Initialize()
 void Exit()
 {
     // If Goldleaf updated itself in this session...
-    if(gupdated)
+    if(global_app_updated)
     {
         romfsExit();
         fs::DeleteFile(__system_argv[0]);

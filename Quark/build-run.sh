@@ -1,2 +1,2 @@
-./build.sh
-./run.sh
+./j8/build.sh
+./j9/build.sh

@@ -29,13 +29,15 @@ namespace ui
 {
     MemoryLayout::MemoryLayout() : pu::ui::Layout()
     {
-        this->sdText = pu::ui::elm::TextBlock::New(125, 300, cfg::strings::Main.GetString(19), 35);
+        this->sdText = pu::ui::elm::TextBlock::New(125, 300, cfg::strings::Main.GetString(19));
+        this->sdText->SetFont("DefaultFont@35");
         this->sdText->SetColor(global_settings.custom_scheme.Text);
         this->sdBar = pu::ui::elm::ProgressBar::New(120, 345, 450, 30, 100.0f);
         global_settings.ApplyProgressBarColor(this->sdBar);
         this->sdFreeText = pu::ui::elm::TextBlock::New(125, 385, "0 bytes " + cfg::strings::Main.GetString(221));
         this->sdFreeText->SetColor(global_settings.custom_scheme.Text);
-        this->nandText = pu::ui::elm::TextBlock::New(615, 300, cfg::strings::Main.GetString(79), 35);
+        this->nandText = pu::ui::elm::TextBlock::New(615, 300, cfg::strings::Main.GetString(79));
+        this->nandText->SetFont("DefaultFont@35");
         this->nandText->SetColor(global_settings.custom_scheme.Text);
         this->nandBar = pu::ui::elm::ProgressBar::New(620, 345, 450, 30, 100.0f);
         global_settings.ApplyProgressBarColor(this->nandBar);
