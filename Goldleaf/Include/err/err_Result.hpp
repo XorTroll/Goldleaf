@@ -30,7 +30,6 @@
 })
 
 #define ERR_RC_TRY(rc) ({ \
-    logging::LogFmt("Rc try - %s", #rc); \
     const auto _tmp_rc = (rc); \
     if(R_FAILED((_tmp_rc))) { \
         return _tmp_rc; \
