@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,10 +25,8 @@
 
 namespace ns
 {
-    Result DeleteApplicationCompletely(u64 ApplicationId);
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize);
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count);
     Result DeleteApplicationRecord(u64 ApplicationId);
-    Result CountApplicationContentMeta(u64 ApplicationId, u32 *out_Count);
     Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion);
 }

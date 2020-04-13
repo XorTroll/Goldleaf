@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,12 +26,6 @@
 
 extern char** __system_argv;
 extern bool global_app_updated;
-
-namespace consts
-{
-    std::string Root = "switch/Goldleaf";
-    std::string Log = Root + "/Goldleaf.log";
-}
 
 std::string LanguageToString(Language lang)
 {

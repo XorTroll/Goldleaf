@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,13 +23,28 @@
 
 namespace ns
 {
-    Result DeleteApplicationCompletely(u64 ApplicationId)
+    static inline Service *GetApplicationManagerInterfaceService(Service *ptr)
     {
-        return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 5, ApplicationId);
+        if(hosversionAtLeast(3,0,0))
+        {
+            nsGetApplicationManagerInterface(ptr);
+            return ptr;
+        }
+        return nsGetServiceSession_ApplicationManagerInterface();
+    }
+
+    static inline void DisposeApplicationManagerInterfaceService(Service *ptr)
+    {
+        if(hosversionAtLeast(3,0,0))
+        {
+            serviceClose(ptr);
+        }
     }
 
     Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize)
     {
+        Service srv;
+        auto use_srv = GetApplicationManagerInterfaceService(&srv);
         const struct
         {
             u8 last_modified_event;
@@ -37,45 +52,53 @@ namespace ns
             u64 app_id;
         } in = { LastModifiedEvent, {0}, ApplicationId };
         
-        return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 16, in,
+        auto rc = serviceDispatchIn(use_srv, 16, in,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
             .buffers = { { Records, RecordsSize } },
         );
+        DisposeApplicationManagerInterfaceService(&srv);
+        return rc;
     }
 
     Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count)
     {
+        Service srv;
+        auto use_srv = GetApplicationManagerInterfaceService(&srv);
         const struct
         {
             u64 offset;
             u64 app_id;
         } in = { Offset, ApplicationId };
 
-        return serviceDispatchInOut(nsGetServiceSession_ApplicationManagerInterface(), 17, in, *out_Count,
+        auto rc = serviceDispatchInOut(use_srv, 17, in, *out_Count,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
             .buffers = { { Out, OutBufferSize } },
         );
+        DisposeApplicationManagerInterfaceService(&srv);
+        return rc;
     }
 
     Result DeleteApplicationRecord(u64 ApplicationId)
     {
-        return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 27, ApplicationId);
-    }
-
-    Result CountApplicationContentMeta(u64 ApplicationId, u32 *out_Count)
-    {
-        return serviceDispatchInOut(nsGetServiceSession_ApplicationManagerInterface(), 600, ApplicationId, *out_Count);
+        Service srv;
+        auto use_srv = GetApplicationManagerInterfaceService(&srv);
+        auto rc = serviceDispatchIn(use_srv, 27, ApplicationId);
+        DisposeApplicationManagerInterfaceService(&srv);
+        return rc;
     }
 
     Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion)
     {
+        Service srv;
+        auto use_srv = GetApplicationManagerInterfaceService(&srv);
         const struct
         {
             u32 version;
             u64 app_id;
             u8 pad[4];
         } in = { LaunchVersion, ApplicationId, {0} };
-        
-        return serviceDispatchIn(nsGetServiceSession_ApplicationManagerInterface(), 36, in);
+        auto rc = serviceDispatchIn(use_srv, 36, in);
+        DisposeApplicationManagerInterfaceService(&srv);
+        return rc;
     }
 }

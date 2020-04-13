@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,27 +23,46 @@
 #include <cfg/cfg_Strings.hpp>
 #include <cerrno>
 
+#define ERR_RC_UNLESS(expr, rc) ({ \
+    if(!(expr)) { \
+        return rc; \
+    } \
+})
+
+#define ERR_RC_TRY(rc) ({ \
+    logging::LogFmt("Rc try - %s", #rc); \
+    const auto _tmp_rc = (rc); \
+    if(R_FAILED((_tmp_rc))) { \
+        return _tmp_rc; \
+    } \
+})
+
 namespace err
 {
-    #define R_DEFINE(mod, name, id) static constexpr Result Result##name = MAKERESULT(module::mod, id);
 
     namespace result
     {
+        static constexpr Result ResultSuccess = 0;
+
         namespace module
         {
             static constexpr u32 Goldleaf = 356;
             static constexpr u32 Errno = 357;
         }
 
-        R_DEFINE(Goldleaf, NotEnoughSize, 1)
-        R_DEFINE(Goldleaf, MetaNotFound, 2)
-        R_DEFINE(Goldleaf, CNMTNotFound, 3)
-        R_DEFINE(Goldleaf, TitleAlreadyInstalled, 4)
-        R_DEFINE(Goldleaf, EntryAlreadyPresent, 5)
-        R_DEFINE(Goldleaf, CouldNotLocateTitleContents, 6)
-        R_DEFINE(Goldleaf, CouldNotBuildNSP, 7)
-        R_DEFINE(Goldleaf, KeyGenMismatch, 8)
-        R_DEFINE(Goldleaf, InvalidNSP, 9)
+        #define _ERR_RC_DEFINE(mod, name, id) static constexpr Result Result##name = MAKERESULT(module::mod, id);
+
+        _ERR_RC_DEFINE(Goldleaf, NotEnoughSize, 1)
+        _ERR_RC_DEFINE(Goldleaf, MetaNotFound, 2)
+        _ERR_RC_DEFINE(Goldleaf, CNMTNotFound, 3)
+        _ERR_RC_DEFINE(Goldleaf, TitleAlreadyInstalled, 4)
+        _ERR_RC_DEFINE(Goldleaf, EntryAlreadyPresent, 5)
+        _ERR_RC_DEFINE(Goldleaf, CouldNotLocateTitleContents, 6)
+        _ERR_RC_DEFINE(Goldleaf, CouldNotBuildNSP, 7)
+        _ERR_RC_DEFINE(Goldleaf, KeyGenMismatch, 8)
+        _ERR_RC_DEFINE(Goldleaf, InvalidNSP, 9)
+
+        #undef _ERR_RC_DEFINE
 
         static inline Result MakeErrnoResult()
         {

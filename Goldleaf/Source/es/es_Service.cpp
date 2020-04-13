@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,21 +22,19 @@
 #include <es/es_Service.hpp>
 #include <cstring>
 
-static Service es_srv;
-static u64 es_refcnt = 0;
-
 namespace es
 {
+    static Service es_srv;
+
     Result Initialize()
     {
-        atomicIncrement64(&es_refcnt);
         if(serviceIsActive(&es_srv)) return 0;
         return smGetService(&es_srv, "es");
     }
 
     void Exit()
     {
-        if(atomicDecrement64(&es_refcnt) == 0) serviceClose(&es_srv);
+        if(serviceIsActive(&es_srv)) serviceClose(&es_srv);
     }
 
     bool HasInitialized()

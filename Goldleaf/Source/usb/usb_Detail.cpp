@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -384,7 +384,7 @@ namespace usb::detail
         auto rc = usbDsEndpoint_PostBufferAsync(ep, buf, size, &urbid);
         if(R_SUCCEEDED(rc))
         {
-            rc = eventWait(&ep->CompletionEvent, U64_MAX);
+            rc = eventWait(&ep->CompletionEvent, UINT64_MAX);
             eventClear(&ep->CompletionEvent);
             
             if(R_SUCCEEDED(rc))

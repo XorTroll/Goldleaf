@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ extern cfg::Settings global_settings;
 
 namespace ui
 {
-    std::vector<u32> expidxstack;
+    std::vector<u32> g_entry_idx_stack;
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout()
     {
@@ -89,7 +89,6 @@ namespace ui
 
     void PartitionBrowserLayout::UpdateElements(int Idx)
     {
-        this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
         global_app->LoadMenuHead(this->gexp->GetPresentableCwd());
@@ -109,7 +108,7 @@ namespace ui
                 if(this->gexp->IsDirectory(itm)) mitm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
                 else
                 {
-                    String ext = fs::GetExtension(itm);
+                    auto ext = fs::GetExtension(itm);
                     if(ext == "nsp") mitm->SetIcon(global_settings.PathForResource("/FileSystem/NSP.png"));
                     else if(ext == "nro") mitm->SetIcon(global_settings.PathForResource("/FileSystem/NRO.png"));
                     else if(ext == "tik") mitm->SetIcon(global_settings.PathForResource("/FileSystem/TIK.png"));
@@ -127,15 +126,16 @@ namespace ui
             u32 tmpidx = 0;
             if(Idx < 0)
             {
-                if(!expidxstack.empty())
+                if(!g_entry_idx_stack.empty())
                 {
-                    tmpidx = expidxstack.back();
-                    expidxstack.pop_back();
+                    tmpidx = g_entry_idx_stack.back();
+                    g_entry_idx_stack.pop_back();
                 }
             }
             else
             {
-                if(this->elems.size() > (u32)Idx) tmpidx = Idx;
+                tmpidx = static_cast<u32>(Idx);
+                if(tmpidx >= this->elems.size()) tmpidx = 0;
             }
             this->browseMenu->SetSelectedIndex(tmpidx);
         }
@@ -167,17 +167,17 @@ namespace ui
     bool PartitionBrowserLayout::WarnNANDWriteAccess()
     {
         if(!this->gexp->ShouldWarnOnWriteAccess()) return true;
-        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(50), cfg::strings::Main.GetString(51), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-        return (sopt == 0);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(50), cfg::strings::Main.GetString(51), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        return sopt == 0;
     }
 
     void PartitionBrowserLayout::fsItems_Click(String item)
     {
-        String fullitm = this->gexp->FullPathFor(item);
-        String pfullitm = this->gexp->FullPresentablePathFor(item);
+        auto fullitm = this->gexp->FullPathFor(item);
+        auto pfullitm = this->gexp->FullPresentablePathFor(item);
         if(this->gexp->NavigateForward(fullitm))
         {
-            expidxstack.push_back(this->browseMenu->GetSelectedIndex());
+            g_entry_idx_stack.push_back(this->browseMenu->GetSelectedIndex());
             this->UpdateElements();
         }
         else

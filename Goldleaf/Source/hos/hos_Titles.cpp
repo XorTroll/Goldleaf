@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -256,7 +256,7 @@ namespace hos
             NcmContentMetaKey *recs = new NcmContentMetaKey[MaxTitleCount]();
             s32 wrt = 0;
             s32 total = 0;
-            rc = ncmContentMetaDatabaseList(&metadb, &total, &wrt, recs, MaxTitleCount, static_cast<NcmContentMetaType>(Type), 0, 0, U64_MAX, NcmContentInstallType_Full);
+            rc = ncmContentMetaDatabaseList(&metadb, &total, &wrt, recs, MaxTitleCount, static_cast<NcmContentMetaType>(Type), 0, 0, UINT64_MAX, NcmContentInstallType_Full);
             if((R_SUCCEEDED(rc)) && (wrt > 0))
             {
                 titles.reserve(wrt);

@@ -1,7 +1,6 @@
 #include <drive/drive_Drives.hpp>
 
 static Service fspusb_srv;
-static u64 fspusb_refcnt = 0;
 
 #define DRIVE_FSPUSB_SERVICE "fsp-usb"
 
@@ -19,14 +18,13 @@ namespace drive
 
     Result Initialize()
     {
-        atomicIncrement64(&fspusb_refcnt);
         if(serviceIsActive(&fspusb_srv)) return 0;
         return smGetService(&fspusb_srv, DRIVE_FSPUSB_SERVICE);
     }
 
     void Exit()
     {
-        if(atomicDecrement64(&fspusb_refcnt) == 0) serviceClose(&fspusb_srv);
+        if(serviceIsActive(&fspusb_srv)) serviceClose(&fspusb_srv);
     }
 
     std::string FormatFileSystemType(u8 fs_type)

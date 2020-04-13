@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,11 @@ import java.util.Vector;
 
 public class FileSystem
 {
+    private static String OS = System.getProperty("os.name").toLowerCase();
     public static final String HomeDrive = "Home";
    
     public static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("win");
+        return OS.indexOf("windows") >= 0;
     }
 
     public static Vector<String> listDrives()

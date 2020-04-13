@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,21 +49,11 @@ inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)
     } \
 })
 
-namespace result
-{
-    namespace module
-    {
-        static constexpr u32 Goldleaf = 356;
-        static constexpr u32 Errno = 357;
-        static constexpr u32 ExGUSB = 358;
-    }
-}
-
 namespace consts
 {
-    extern std::string Root;
-    extern std::string Log;
-    extern std::string Settings;
+    static const std::string Root = "switch/Goldleaf";
+    static const std::string Log = Root + "/goldleaf.log";
+    static const std::string Settings = Root + "/settings.json";
 }
 
 enum class ExecutableMode
@@ -124,14 +114,15 @@ struct Version
 
 namespace logging
 {
-    void LogString(std::string data);
-
     template<typename ...Args>
-    void LogFmt(std::string fmt, Args &&...args)
+    inline void LogFmt(std::string fmt, Args &&...args)
     {
-        char buf[0x2000] = {0};
-        sprintf(buf, (fmt + "\n").c_str(), args...);
-        LogString(buf);
+        auto f = fopen(("sdmc:/" + consts::Log).c_str(), "a+");
+        if(f)
+        {
+            fprintf(f, (fmt + "\n").c_str(), args...);
+            fclose(f);
+        }
     }
 }
 

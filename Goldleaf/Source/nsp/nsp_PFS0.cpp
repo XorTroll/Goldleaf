@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -75,6 +75,7 @@ namespace nsp
 
     String PFS0::GetFile(u32 Index)
     {
+        if(IsInvalidFileIndex(Index)) return "";
         if(Index >= this->files.size()) return "";
         return this->files[Index].Name;
     }
@@ -108,12 +109,14 @@ namespace nsp
 
     u64 PFS0::GetFileSize(u32 Index)
     {
+        if(IsInvalidFileIndex(Index)) return 0;
         if(Index >= this->files.size()) return 0;
         return this->files[Index].Entry.Size;
     }
 
     void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, String Path)
     {
+        if(IsInvalidFileIndex(Index)) return;
         if(Index >= this->files.size()) return;
         u64 fsize = this->GetFileSize(Index);
         u64 rsize = fs::GetFileSystemOperationsBufferSize();
@@ -138,12 +141,18 @@ namespace nsp
 
     u32 PFS0::GetFileIndexByName(String File)
     {
-        u32 idx = InvalidFileIndex;
+        auto found = false;
+        u32 idx = 0;
         for(auto &file: this->files)
         {
-            if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0) break;
+            if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0)
+            {
+                found = true;
+                break;
+            }
             idx++;
         }
+        if(!found) return InvalidFileIndex;
         return idx;
     }
 }

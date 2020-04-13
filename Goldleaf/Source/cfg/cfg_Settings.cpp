@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,8 +54,8 @@ namespace cfg
             json["web"]["bookmarks"][i]["name"] = bmk.name;
             json["web"]["bookmarks"][i]["url"] = bmk.url;
         }
-        fs::DeleteFile("sdmc:/" + consts::Root + "/settings.json");
-        std::ofstream ofs("sdmc:/" + consts::Root + "/settings.json");
+        fs::DeleteFile("sdmc:/" + consts::Settings);
+        std::ofstream ofs("sdmc:/" + consts::Settings);
         ofs << std::setw(4) << json;
         ofs.close();
     }
@@ -130,7 +130,7 @@ namespace cfg
         if(csid == ColorSetId_Dark) gset.custom_scheme = ui::DefaultDark;
         else gset.custom_scheme = ui::DefaultLight;
 
-        std::ifstream ifs("sdmc:/" + consts::Root + "/settings.json");
+        std::ifstream ifs("sdmc:/" + consts::Settings);
         if(ifs.good())
         {
             JSON settings = JSON::parse(ifs);
@@ -228,6 +228,6 @@ namespace cfg
 
     bool Exists()
     {
-        return fs::IsFile("sdmc:/" + consts::Root + "/settings.json");
+        return fs::IsFile("sdmc:/" + consts::Settings);
     }
 }
