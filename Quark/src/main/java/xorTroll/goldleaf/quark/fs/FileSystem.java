@@ -29,15 +29,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Vector;
 
-import com.sun.javafx.PlatformUtil;
-
 public class FileSystem
 {
     public static final String HomeDrive = "Home";
-
-    public static boolean isWindows()
-    {
-        return PlatformUtil.isWindows();
+   
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("win");
     }
 
     public static Vector<String> listDrives()
