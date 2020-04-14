@@ -239,7 +239,7 @@ namespace nsp
         return this->ncas;
     }
 
-    Result Installer::WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite)
+    Result Installer::WriteContents(OnContentsWriteFunction OnContentWrite)
     {
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
         auto read_size = fs::GetFileSystemOperationsBufferSize();

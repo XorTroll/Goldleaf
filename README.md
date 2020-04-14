@@ -181,7 +181,7 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - WerWolv for the help with custom exception handling, avoiding those frustrating fatals.
 
-- Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou) and [FuryBaguette](https://github.com/FuryBaguette) for French, and [LoOkYe](https://github.com/lookye) and C4Phoenix for German.
+- Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou), [FuryBaguette](https://github.com/FuryBaguette) and GOffrier#9688 for French, and [LoOkYe](https://github.com/lookye) and C4Phoenix for German.
 
 - All the testers, for reporting bugs and helping a lot with the project's development.
 
