@@ -298,7 +298,7 @@ public class MainApplication extends Application
                                 if(mode == 1)
                                 {
                                     if(readfile != null) readfile.close();
-                                    readfile = new RandomAccessFile(path, "rw");
+                                    readfile = new RandomAccessFile(path, "r");
                                 }
                                 else
                                 {
@@ -329,7 +329,7 @@ public class MainApplication extends Application
                                     }
                                     else
                                     {
-                                        RandomAccessFile raf = new RandomAccessFile(path, "rw");
+                                        RandomAccessFile raf = new RandomAccessFile(path, "r");
                                         byte[] block = new byte[(int)size];
                                         raf.seek(offset);
                                         int read = raf.read(block, 0, (int)size);
