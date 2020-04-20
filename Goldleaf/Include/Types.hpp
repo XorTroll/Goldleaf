@@ -26,6 +26,7 @@
 #include <arpa/inet.h>
 #include <ByteBuffer.hpp>
 #include <json.hpp>
+#include <codecvt>
 #include <pu/Plutonium>
 
 using JSON = nlohmann::json;
@@ -33,6 +34,8 @@ template<typename ...Args>
 using ResultWith = std::tuple<Result, Args...>;
 
 using String = pu::String;
+
+String LowerCaseString(String str);
 
 template<typename ...Args>
 inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)

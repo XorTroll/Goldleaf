@@ -108,7 +108,7 @@ namespace ui
                 if(this->gexp->IsDirectory(itm)) mitm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
                 else
                 {
-                    auto ext = fs::GetExtension(itm);
+                    auto ext = LowerCaseString(fs::GetExtension(itm));
                     if(ext == "nsp") mitm->SetIcon(global_settings.PathForResource("/FileSystem/NSP.png"));
                     else if(ext == "nro") mitm->SetIcon(global_settings.PathForResource("/FileSystem/NRO.png"));
                     else if(ext == "tik") mitm->SetIcon(global_settings.PathForResource("/FileSystem/TIK.png"));
@@ -182,8 +182,8 @@ namespace ui
         }
         else
         {
-            String ext = fs::GetExtension(item);
-            String msg = cfg::strings::Main.GetString(52) + " ";
+            auto ext = LowerCaseString(fs::GetExtension(item));
+            auto msg = cfg::strings::Main.GetString(52) + " ";
             if(ext == "nsp") msg += cfg::strings::Main.GetString(53);
             else if(ext == "nro") msg += cfg::strings::Main.GetString(54);
             else if(ext == "tik") msg += cfg::strings::Main.GetString(55);
@@ -481,10 +481,11 @@ namespace ui
         {
             auto files = this->gexp->GetFiles(fullitm);
             std::vector<String> nsps;
-            for(u32 i = 0; i < files.size(); i++)
+            for(auto &file: files)
             {
-                auto path = fullitm + "/" + files[i];
-                if(fs::GetExtension(path) == "nsp") nsps.push_back(files[i]);
+                auto path = fullitm + "/" + file;
+                auto ext = LowerCaseString(fs::GetExtension(path));
+                if(ext == "nsp") nsps.push_back(file);
             }
             std::vector<String> extraopts = { cfg::strings::Main.GetString(281) };
             if(!nsps.empty()) extraopts.push_back(cfg::strings::Main.GetString(282));

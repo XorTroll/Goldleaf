@@ -27,6 +27,14 @@
 extern char** __system_argv;
 extern bool global_app_updated;
 
+String LowerCaseString(String str)
+{
+    String ret;
+    auto u8str = str.AsUTF8();
+    std::transform(u8str.begin(), u8str.end(), u8str.begin(), tolower);
+    return u8str;
+}
+
 std::string LanguageToString(Language lang)
 {
     std::string langstr = "en"; // Default
