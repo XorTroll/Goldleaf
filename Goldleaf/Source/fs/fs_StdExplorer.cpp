@@ -135,7 +135,7 @@ namespace fs
         this->commit_fn();
     }
 
-    void StdExplorer::DeleteDirectorySingle(String Path)
+    void StdExplorer::DeleteDirectory(String Path)
     {
         String path = this->MakeFull(Path);
         fsdevDeleteDirectoryRecursively(path.AsUTF8().c_str());

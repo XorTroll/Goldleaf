@@ -135,7 +135,7 @@ namespace fs
         usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(1), usb::InString(path));
     }
 
-    void RemotePCExplorer::DeleteDirectorySingle(String Path)
+    void RemotePCExplorer::DeleteDirectory(String Path)
     {
         String path = this->MakeFull(Path);
         usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(2), usb::InString(path));

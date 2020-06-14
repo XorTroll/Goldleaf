@@ -61,7 +61,6 @@ namespace fs
             std::vector<String> ReadFileLines(String Path, u32 LineOffset, u32 LineCount);
             std::vector<String> ReadFileFormatHex(String Path, u32 LineOffset, u32 LineCount);
             u64 GetDirectorySize(String Path);
-            void DeleteDirectory(String Path);
 
             virtual std::vector<String> GetDirectories(String Path) = 0;
             virtual std::vector<String> GetFiles(String Path) = 0;
@@ -73,7 +72,7 @@ namespace fs
             virtual void RenameFile(String Path, String NewName) = 0;
             virtual void RenameDirectory(String Path, String NewName) = 0;
             virtual void DeleteFile(String Path) = 0;
-            virtual void DeleteDirectorySingle(String Path) = 0;
+            virtual void DeleteDirectory(String Path) = 0;
             
             virtual void StartFile(String path, FileMode mode) = 0;
             virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) = 0;
