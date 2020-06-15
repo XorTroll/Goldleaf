@@ -31,4 +31,6 @@ namespace ui
     void ShowPowerTasksDialog(String Title, String Message);
     String AskForText(String Guide = "", String Initial = "", int MaxSize = -1);
     void HandleResult(Result rc, String context);
+
+    ColorScheme GenerateRandomScheme();
 }

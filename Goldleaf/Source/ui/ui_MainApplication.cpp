@@ -27,6 +27,7 @@ extern cfg::Settings global_settings;
 namespace ui
 {
     extern String clipboard;
+    bool welcome_shown = false;
 
     #define MAINAPP_MENU_SET_BASE(layout) { \
         layout->SetBackgroundColor(global_settings.custom_scheme.Background); \
@@ -47,10 +48,6 @@ namespace ui
 
     void MainApplication::OnLoad()
     {
-        global_settings = cfg::ProcessSettings();
-        cfg::LoadStrings();
-        if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
-
         // Load the file hex-viewer font
         pu::ui::render::AddFontFile("FileContentFont", 25, global_settings.PathForResource("/FileSystem/FileContentFont.ttf"));
 
@@ -162,7 +159,6 @@ namespace ui
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->LoadLayout(this->mainMenu);
-        this->welcomeshown = false;
         this->start = std::chrono::steady_clock::now();
     }
 
@@ -175,14 +171,14 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
-        if(!this->welcomeshown)
+        if(!welcome_shown)
         {
             auto tnow = std::chrono::steady_clock::now();
             auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
             if(timediff >= 1000)
             {
                 this->ShowNotification(cfg::strings::Main.GetString(320));
-                this->welcomeshown = true;
+                welcome_shown = true;
             }
         }
 
@@ -485,6 +481,7 @@ namespace ui
         if(down & KEY_PLUS) this->CloseWithFadeOut();
         else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(cfg::strings::Main.GetString(229), cfg::strings::Main.GetString(230));
         else if(down & KEY_MINUS) this->helpImage_OnClick();
+        else if(down & KEY_X) ApplyRandomScheme();
     }
 
     MainMenuLayout::Ref &MainApplication::GetMainMenuLayout()
@@ -593,5 +590,11 @@ namespace ui
         String copymsg = cfg::strings::Main.GetString(258);
         if(global_app->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = cfg::strings::Main.GetString(257);
         global_app->ShowNotification(copymsg);
+    }
+
+    void ApplyRandomScheme()
+    {
+        global_settings.custom_scheme = GenerateRandomScheme();
+        global_app->OnLoad();
     }
 }

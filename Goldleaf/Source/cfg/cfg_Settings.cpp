@@ -26,7 +26,7 @@
 
 namespace cfg
 {
-    static std::string ColorToHex(pu::ui::Color clr)
+    inline std::string ColorToHex(pu::ui::Color clr)
     {
         char str[0x20] = {0};
         sprintf(str, "#%02X%02X%02X%02X", clr.R, clr.G, clr.B, clr.A);

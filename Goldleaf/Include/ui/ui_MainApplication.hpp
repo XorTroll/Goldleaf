@@ -142,7 +142,6 @@ namespace ui
             ClickableImage::Ref userImage;
             ClickableImage::Ref helpImage;
             pu::ui::extras::Toast::Ref toast;
-            bool welcomeshown;
             std::chrono::time_point<std::chrono::steady_clock> start;
     };
 
@@ -150,4 +149,6 @@ namespace ui
     static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
 
     void UpdateClipboard(String Path);
+
+    void ApplyRandomScheme();
 }

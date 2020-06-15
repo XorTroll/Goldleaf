@@ -210,14 +210,14 @@ namespace hos
     TitlePlayStats Title::GetGlobalPlayStats()
     {
         PdmPlayStatistics pdmstats;
-        pdmqryQueryPlayStatisticsByApplicationId(ApplicationId, &pdmstats);
+        pdmqryQueryPlayStatisticsByApplicationId(ApplicationId, false, &pdmstats);
         return ProcessFromPdm(pdmstats);
     }
     
     TitlePlayStats Title::GetUserPlayStats(AccountUid UserId)
     {
         PdmPlayStatistics pdmstats;
-        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId, &pdmstats);
+        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId, false, &pdmstats);
         return ProcessFromPdm(pdmstats);
     }
 

@@ -1,4 +1,4 @@
-
+ 
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
@@ -88,5 +88,43 @@ namespace ui
             auto infodesc = sres + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
             global_app->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + serr + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + infomod + "\n" + cfg::strings::Main.GetString(265) + ": " + infodesc + "", { cfg::strings::Main.GetString(234) }, false);
         }
+    }
+
+    inline u8 VariateImpl(u8 input, u8 v)
+    {
+        u32 tmp = (u32)input + v;
+        if(tmp > 255) return 255;
+        return (u8)tmp;
+    }
+
+    inline pu::ui::Color GenerateVariation(pu::ui::Color clr, u8 min_v, u8 max_v)
+    {
+        auto v = (u8)RandomFromRange(min_v, max_v);
+        return { VariateImpl(clr.R, v), VariateImpl(clr.G, v), VariateImpl(clr.B, v), clr.A };
+    }
+
+    inline bool IsColorDark(pu::ui::Color clr)
+    {
+        u8 low_cmp_no = 0;
+        if(clr.R < 128) low_cmp_no++;
+        if(clr.G < 128) low_cmp_no++;
+        if(clr.B < 128) low_cmp_no++;
+        return low_cmp_no >= 2;
+    }
+
+    ColorScheme GenerateRandomScheme()
+    {
+        ColorScheme scheme = {};
+        u8 r = (u8)RandomFromRange(0, 0xff);
+        u8 g = (u8)RandomFromRange(0, 0xff);
+        u8 b = (u8)RandomFromRange(0, 0xff);
+        pu::ui::Color clr = { r, g, b, 0xff };
+        scheme.Base = clr;
+        scheme.Background = GenerateVariation(clr, 30, 50);
+        scheme.BaseFocus = GenerateVariation(clr, 20, 30);
+        auto av = (r + g + b) / 3;
+        if(av < 128) scheme.Text = { 225, 225, 225, 255 };
+        else scheme.Text = { 15, 15, 15, 255 };
+        return scheme;
     }
 }
