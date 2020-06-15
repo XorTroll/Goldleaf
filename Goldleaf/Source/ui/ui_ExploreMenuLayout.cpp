@@ -55,10 +55,13 @@ namespace ui
         this->pcDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
         this->pcDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->pcDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::pcDrive_Click, this));
+        // fsp-usb is not ready yet
+        /*
         this->usbDriveMenuItem = pu::ui::elm::MenuItem::New("[Debug] USB drives");
         this->usbDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
         this->usbDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->usbDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::usbDrive_Click, this));
+        */
         this->nandProfInfoFMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (PRODINFOF)");
         this->nandProfInfoFMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
         this->nandProfInfoFMenuItem->SetColor(global_settings.custom_scheme.Text);
@@ -77,7 +80,9 @@ namespace ui
         this->nandSystemMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandSystem_Click, this));
         this->mountsMenu->AddItem(this->sdCardMenuItem);
         this->mountsMenu->AddItem(this->pcDriveMenuItem);
+        /*
         this->mountsMenu->AddItem(this->usbDriveMenuItem);
+        */
         this->mountsMenu->AddItem(this->nandProfInfoFMenuItem);
         this->mountsMenu->AddItem(this->nandSafeMenuItem);
         this->mountsMenu->AddItem(this->nandUserMenuItem);
