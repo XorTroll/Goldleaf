@@ -338,22 +338,4 @@ namespace fs
         for(auto &file: files) sz += this->GetFileSize(path + "/" + file);
         return sz;
     }
-
-    void Explorer::DeleteDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        auto dirs = this->GetDirectories(path);
-        for(auto &dir: dirs)
-        {
-            String pd = path + "/" + dir;
-            this->DeleteDirectory(pd);
-        }
-        auto files = this->GetFiles(path);
-        for(auto &file: files)
-        {
-            String pd = path + "/" + file;
-            this->DeleteFile(pd);
-        }
-        this->DeleteDirectorySingle(path);
-    }
 }

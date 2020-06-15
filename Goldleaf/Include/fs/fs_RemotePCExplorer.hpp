@@ -38,7 +38,7 @@ namespace fs
             virtual void RenameFile(String Path, String NewName) override;
             virtual void RenameDirectory(String Path, String NewName) override;
             virtual void DeleteFile(String Path) override;
-            virtual void DeleteDirectorySingle(String Path) override;
+            virtual void DeleteDirectory(String Path) override;
             virtual void StartFile(String path, FileMode mode) override;
             virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) override;
             virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) override;
