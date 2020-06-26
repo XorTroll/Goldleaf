@@ -29,7 +29,7 @@ namespace es
     void Exit();
     bool HasInitialized();
 
-    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CertSize);
+    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CommonCertificateSize);
     Result DeleteTicket(const RightsId *RId, size_t RIdSize);
     Result CountCommonTicket(u32 *out_Count);
     Result CountPersonalizedTicket(u32 *out_Count);

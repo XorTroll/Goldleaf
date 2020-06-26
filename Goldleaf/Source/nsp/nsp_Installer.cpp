@@ -78,11 +78,19 @@ namespace nsp
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
         nand_sys_explorer->CreateDirectory("Contents/temp");
+
+        if(tik_file_size > 0)
+        {
+            auto tik_path = nand_sys_explorer->FullPathFor("Contents/temp/" + tik_file_name);
+            this->pfs0_file.SaveFile(tik_file_idx, nand_sys_explorer, tik_path);
+            this->tik_file = hos::ReadTicket(tik_path);
+        }
+
         auto cnmt_nca_temp_path = nand_sys_explorer->FullPathFor("Contents/temp/" + cnmt_nca_file_name);
         nand_sys_explorer->DeleteFile(cnmt_nca_temp_path);
         pfs0_file.SaveFile(cnmt_nca_file_idx, nand_sys_explorer, cnmt_nca_temp_path);
 
-        char cnmt_nca_content_path[FS_MAX_PATH] = {0};
+        char cnmt_nca_content_path[FS_MAX_PATH] = {};
         sprintf(cnmt_nca_content_path, "@SystemContent://temp/%s", cnmt_nca_file_name.AsUTF8().c_str());
         FsRightsId tmp_rid;
         ERR_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, &keygen, &tmp_rid));
@@ -113,7 +121,7 @@ namespace nsp
 
         ncm::ContentRecord record = {};
         record.ContentId = hos::StringAsContentId(cnmt_nca_content_id);
-        *(u64*)record.Size = (cnmt_nca_file_size & 0xffffffffffff);
+        *reinterpret_cast<u64*>(record.Size) = cnmt_nca_file_size;
         record.Type = ncm::ContentType::Meta;
         this->cnt_meta_key = cnmt.GetContentMetaKey();
         ERR_RC_UNLESS(!hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
@@ -125,13 +133,6 @@ namespace nsp
         this->cnmt.GetInstallContentMeta(this->cnmt_buf, record, global_settings.ignore_required_fw_ver);
         this->base_app_id = hos::GetBaseApplicationId(this->cnt_meta_key.id, static_cast<ncm::ContentMetaType>(this->cnt_meta_key.type));
         this->nacp_data = {};
-
-        auto tik_path = nand_sys_explorer->FullPathFor("Contents/temp/" + tik_file_name);
-        if(tik_file_size > 0)
-        {
-            this->pfs0_file.SaveFile(tik_file_idx, nand_sys_explorer, tik_path);
-            this->tik_data = hos::ReadTicket(tik_path);
-        }
 
         for(auto &rec: this->cnmt.GetContentRecords())
         {
@@ -174,9 +175,11 @@ namespace nsp
     {
         ERR_RC_TRY(ncmContentMetaDatabaseSet(&this->cnt_meta_db, &this->cnt_meta_key, this->cnmt_buf.GetData(), this->cnmt_buf.GetSize()));
         ERR_RC_TRY(ncmContentMetaDatabaseCommit(&this->cnt_meta_db));
+
         s32 content_meta_count = 0;
         auto rc = nsCountApplicationContentMeta(this->base_app_id, &content_meta_count);
         if(rc == 0x410) rc = err::result::ResultSuccess;
+
         ERR_RC_TRY(rc);
         std::vector<ns::ContentStorageRecord> content_storage_records;
         if(content_meta_count > 0)
@@ -186,21 +189,23 @@ namespace nsp
             ERR_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, tmp_buf, content_meta_count * sizeof(ns::ContentStorageRecord), &real_count));
             for(u32 i = 0; i < real_count; i++) content_storage_records.push_back(tmp_buf[i]);
         }
+
         ns::ContentStorageRecord content_storage_record = {};
         content_storage_record.Record = this->cnt_meta_key;
         content_storage_record.StorageId = this->storage_id;
         content_storage_records.push_back(content_storage_record);
         ns::DeleteApplicationRecord(this->base_app_id);
         ERR_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_records.data(), content_storage_records.size() * sizeof(ns::ContentStorageRecord)));
+
         if(this->tik_file_size > 0)
         {
             auto tmp_buf = fs::GetWorkBuffer();
             auto tik_path = "Contents/temp/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
             nand_sys_explorer->StartFile(tik_path, fs::FileMode::Read);
-            nand_sys_explorer->ReadFileBlock(tik_path, 0, this->tik_file_size, tmp_buf);
+            nand_sys_explorer->ReadFileBlock(tik_path, 0, this->tik_file.GetFullSize(), tmp_buf);
             nand_sys_explorer->EndFile(fs::FileMode::Read);
-            ERR_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CertData, es::CertSize));
+            ERR_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
         }
         return err::result::ResultSuccess;
     }
@@ -230,9 +235,9 @@ namespace nsp
         return this->tik_file_size > 0;
     }
 
-    hos::TicketData Installer::GetTicketData()
+    hos::TicketFile Installer::GetTicketFile()
     {
-        return this->tik_data;
+        return this->tik_file;
     }
 
     u8 Installer::GetKeyGeneration()

@@ -43,7 +43,7 @@ namespace nsp
             PFS0 pfs0_file;
             NacpStruct nacp_data;
             u8 keygen;
-            hos::TicketData tik_data;
+            hos::TicketFile tik_file;
             ncm::ContentMeta cnmt;
             NcmStorageId storage_id;
             ByteBuffer cnmt_buf;
@@ -67,7 +67,7 @@ namespace nsp
             std::string GetExportedIconPath();
             NacpStruct *GetNACP();
             bool HasTicket();
-            hos::TicketData GetTicketData();
+            hos::TicketFile GetTicketFile();
             u8 GetKeyGeneration();
             std::vector<ncm::ContentRecord> GetNCAs();
             Result WriteContents(OnContentsWriteFunction OnContentWrite);

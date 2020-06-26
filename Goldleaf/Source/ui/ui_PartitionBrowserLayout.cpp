@@ -298,7 +298,7 @@ namespace ui
                         if(sopt == 0)
                         {
                             auto btik = this->gexp->ReadFile(fullitm);
-                            Result rc = es::ImportTicket(btik.data(), btik.size(), es::CertData, es::CertSize);
+                            Result rc = es::ImportTicket(btik.data(), btik.size(), es::CommonCertificateData, es::CommonCertificateSize);
                             if(R_FAILED(rc)) HandleResult(rc, cfg::strings::Main.GetString(103));
                         }
                         break;

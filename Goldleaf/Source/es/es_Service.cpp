@@ -41,7 +41,7 @@ namespace es
         return serviceIsActive(&es_srv);
     }
 
-    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CertSize)
+    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CommonCertificateSize)
     {
         return serviceDispatch(&es_srv, 1,
             .buffer_attrs = {
@@ -50,7 +50,7 @@ namespace es
             },
             .buffers = {
                 { Ticket, TicketSize },
-                { Cert, CertSize },
+                { Cert, CommonCertificateSize },
             },
         );
     }

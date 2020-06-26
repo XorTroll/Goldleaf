@@ -238,8 +238,8 @@ void Exit()
         sdcd->RenameFile(consts::TempUpdatedNro, cur_nro_file);
     }
 
-    auto fsopsbuf = fs::GetWorkBuffer();
-    operator delete[](fsopsbuf, std::align_val_t(0x1000));
+    auto work_buf = fs::GetWorkBuffer();
+    operator delete[](work_buf, std::align_val_t(0x1000));
     
     delete nsys;
     delete nsfe;

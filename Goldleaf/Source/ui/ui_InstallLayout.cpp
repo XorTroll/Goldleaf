@@ -207,11 +207,11 @@ namespace ui
 
             if(inst.HasTicket())
             {
-                auto Tik = inst.GetTicketData();
+                auto ticket = inst.GetTicketFile();
                 info += "\n\n" + cfg::strings::Main.GetString(94) + "\n\n";
-                info += cfg::strings::Main.GetString(235) + " " + Tik.TitleKey;
+                info += cfg::strings::Main.GetString(235) + " " + ticket.GetTitleKey();
                 info += "\n" + cfg::strings::Main.GetString(236) + " ";
-                switch(Tik.Signature)
+                switch(ticket.signature)
                 {
                     case hos::TicketSignature::RSA_4096_SHA1:
                         info += "RSA 4096 (SHA1)";

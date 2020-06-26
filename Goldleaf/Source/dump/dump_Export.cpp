@@ -111,7 +111,7 @@ namespace dump
             String tkey;
             String orid;
             String fappid = hos::FormatApplicationId(ApplicationId);
-            String outdir = "sdmc:/" + consts::Root + "/dump/title/" + fappid;
+            String outdir = consts::Root + "/dump/title/" + fappid;
             u32 tmpsz = 0;
             while(true)
             {
@@ -170,7 +170,7 @@ namespace dump
             {
                 auto fcert = outdir + "/" + orid + ".cert";
                 exp->StartFile(fcert, fs::FileMode::Write);
-                exp->WriteFileBlock(fcert, const_cast<u8*>(es::CertData), es::CertSize);
+                exp->WriteFileBlock(fcert, const_cast<u8*>(es::CommonCertificateData), es::CommonCertificateSize);
                 exp->EndFile(fs::FileMode::Write);
             }
         }

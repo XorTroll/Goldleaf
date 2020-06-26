@@ -239,6 +239,14 @@ namespace hos
         return tostr;
     }
 
+    String TicketFile::GetTitleKey()
+    {
+        std::stringstream strm;
+        strm << std::uppercase << std::setfill('0') << std::hex;
+        for(u32 i = 0; i < 0x10; i++) strm << (u32)this->data.title_key_block[i];
+        return strm.str();
+    }
+
     std::string FormatApplicationId(u64 ApplicationId)
     {
         std::stringstream strm;
@@ -430,55 +438,18 @@ namespace hos
         return ApplicationIdMask::Invalid;
     }
 
-    TicketData ReadTicket(String Path)
+    TicketFile ReadTicket(String Path)
     {
-        auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
-        TicketData tik;
-        u64 off = 0;
+        TicketFile tik = {};
+
+        auto fexp = fs::GetExplorerForPath(Path);
         fexp->StartFile(Path, fs::FileMode::Read);
-        fexp->ReadFileBlock(Path, off, sizeof(tik.Signature), &tik.Signature);
-        u32 sigsz = 0;
-        u32 padsz = 0;
-        switch(tik.Signature)
-        {
-            case TicketSignature::RSA_4096_SHA1:
-                sigsz = 0x200;
-                padsz = 0x3c;
-                break;
-            case TicketSignature::RSA_2048_SHA1:
-                sigsz = 0x100;
-                padsz = 0x3c;
-                break;
-            case TicketSignature::ECDSA_SHA1:
-                sigsz = 0x3c;
-                padsz = 0x40;
-                break;
-            case TicketSignature::RSA_4096_SHA256:
-                sigsz = 0x200;
-                padsz = 0x3c;
-                break;
-            case TicketSignature::RSA_2048_SHA256:
-                sigsz = 0x100;
-                padsz = 0x3c;
-                break;
-            case TicketSignature::ECDSA_SHA256:
-                sigsz = 0x3c;
-                padsz = 0x40;
-                break;
-        }
-        u32 tikdata = (4 + sigsz + padsz);
-        off = tikdata + 0x40;
-        u8 tkey[0x10] = {};
-        fexp->ReadFileBlock(Path, off, 0x10, tkey);
-        std::stringstream strm;
-        strm << std::uppercase << std::setfill('0') << std::hex;
-        for(u32 i = 0; i < 0x10; i++) strm << (u32)tkey[i];
-        tik.TitleKey = strm.str();
-        off = tikdata + 0x160 + 0xf;
-        u8 kgen = 0;
-        fexp->ReadFileBlock(Path, off, 1, &kgen);
+        fexp->ReadFileBlock(Path, 0, sizeof(tik.signature), &tik.signature);
+
+        auto ticket_data_offset = GetTicketSignatureSize(tik.signature);
+        fexp->ReadFileBlock(Path, ticket_data_offset, sizeof(tik.data), &tik.data);
+        
         fexp->EndFile(fs::FileMode::Read);
-        tik.KeyGeneration = kgen;
         return tik;
     }
 

@@ -167,7 +167,7 @@ namespace hos
     void PayloadProcess(String Path)
     {
         u8 *block = new (std::align_val_t(0x1000)) u8[MaxPayloadSize]();
-        auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
+        auto fexp = fs::GetExplorerForPath(Path);
         auto size = fexp->GetFileSize(Path);
         if((size == 0) || (size > MaxPayloadSize)) return;
         
