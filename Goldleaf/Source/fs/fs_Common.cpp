@@ -130,27 +130,6 @@ namespace fs
         if(exp != nullptr) exp->RenameDirectory(Old, New);
     }
 
-    bool IsFileBinary(String Path)
-    {
-        if(GetFileSize(Path) == 0) return true;
-        bool bin = false;
-        FILE *f = fopen(Path.AsUTF8().c_str(), "r");
-        if(f)
-        {
-            int ch = 0;
-            while((ch = fgetc(f)) != EOF)
-            {
-                if(!isascii(ch) || (iscntrl(ch) && !isspace(ch)))
-                {
-                    bin = true;
-                    break;
-                }
-            }
-        }
-        fclose(f);
-        return bin;
-    }
-
     void WriteFile(String Path, std::vector<u8> Data)
     {
         auto exp = GetExplorerForPath(Path);
@@ -280,30 +259,6 @@ namespace fs
         std::stringstream strm;
         strm << rbt;
         return (strm.str() + sufs[plc]);
-    }
-
-    String SearchForFileInPath(String Base, String Extension)
-    {
-        String path;
-        DIR *dp = opendir(Base.AsUTF8().c_str());
-        if(dp)
-        {
-            dirent *dt;
-            while(true)
-            {
-                dt = readdir(dp);
-                if(dt == nullptr) break;
-                String pth = String(dt->d_name);
-                String seq = pth.substr(pth.length() - Extension.length());
-                if(seq == Extension)
-                {
-                    path = pth;
-                    break;
-                }
-            }
-        }
-        closedir(dp);
-        return path;
     }
 
     u8 *GetWorkBuffer()

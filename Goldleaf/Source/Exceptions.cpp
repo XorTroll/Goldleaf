@@ -1,8 +1,5 @@
 #include <hos/hos_Common.hpp>
 
-alignas(16) u8 __nx_exception_stack[0x1000];
-u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
-
 static u64 GetBaseAddress()
 {
     u32 p;
@@ -17,6 +14,9 @@ static u64 GetBaseAddress()
 
 extern "C"
 {
+    alignas(16) u8 __nx_exception_stack[0x1000];
+    u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
+
     void __libnx_exception_handler(ThreadExceptionDump *context)
     {
         auto baseaddr = GetBaseAddress();

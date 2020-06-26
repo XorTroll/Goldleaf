@@ -112,14 +112,17 @@ bool Version::IsLower(Version Other)
     else if(this->Major == Other.Major)
     {
         if(this->Minor > Other.Minor) return true;
-        else if(this->Minor == Other.Minor) if(this->Micro > Other.Micro) return true;
+        else if(this->Minor == Other.Minor)
+        {
+            if(this->Micro > Other.Micro) return true;
+        }
     }
     return false;
 }
 
 bool Version::IsHigher(Version Other)
 {
-    return !IsLower(Other);
+    return !this->IsLower(Other) && !this->IsEqual(Other);
 }
 
 bool Version::IsEqual(Version Other)
@@ -149,11 +152,6 @@ LaunchMode GetLaunchMode()
             break;
     }
     return mode;
-}
-
-String GetVersion()
-{
-    return String(GOLDLEAF_VERSION);
 }
 
 bool IsAtmosphere()
@@ -224,21 +222,25 @@ Result Initialize()
 
 void Exit()
 {
-    // If Goldleaf updated itself in this session...
-    if(global_app_updated)
-    {
-        romfsExit();
-        fs::DeleteFile(__system_argv[0]);
-        fs::RenameFile("sdmc:/" + consts::Root + "/update_tmp.nro", __system_argv[0]);
-    }
-
-    auto fsopsbuf = fs::GetWorkBuffer();
-    operator delete[](fsopsbuf, std::align_val_t(0x1000));
     auto nsys = fs::GetNANDSystemExplorer();
     auto nsfe = fs::GetNANDSafeExplorer();
     auto nusr = fs::GetNANDUserExplorer();
     auto prif = fs::GetPRODINFOFExplorer();
     auto sdcd = fs::GetSdCardExplorer();
+
+    // If we updated ourselves in this session...
+    if(global_app_updated)
+    {
+        romfsExit();
+
+        const auto cur_nro_file = __system_argv[0];
+        sdcd->DeleteFile(cur_nro_file);
+        sdcd->RenameFile(consts::TempUpdatedNro, cur_nro_file);
+    }
+
+    auto fsopsbuf = fs::GetWorkBuffer();
+    operator delete[](fsopsbuf, std::align_val_t(0x1000));
+    
     delete nsys;
     delete nsfe;
     delete nusr;

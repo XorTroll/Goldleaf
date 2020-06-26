@@ -193,44 +193,45 @@ namespace ui
             else if((ext == "jpg") || (ext == "jpeg")) msg += cfg::strings::Main.GetString(59);
             else msg += cfg::strings::Main.GetString(270);
             msg += "\n\n" + cfg::strings::Main.GetString(64) + " " + fs::FormatSize(this->gexp->GetFileSize(fullitm));
+            const auto is_bin = this->gexp->IsFileBinary(fullitm);
             std::vector<String> vopts;
-            u32 copt = 6;
+            u32 copt = 5;
             if(ext == "nsp")
             {
                 vopts.push_back(cfg::strings::Main.GetString(65));
-                copt = 7;
+                copt++;
             }
             else if(ext == "nro")
             {
                 vopts.push_back(cfg::strings::Main.GetString(66));
-                copt = 7;
+                copt++;
             }
             else if(ext == "tik")
             {
                 vopts.push_back(cfg::strings::Main.GetString(67));
-                copt = 7;
+                copt++;
             }
             else if(ext == "nxtheme")
             {
                 vopts.push_back(cfg::strings::Main.GetString(65));
-                copt = 7;
+                copt++;
             }
             else if(ext == "nacp")
             {
                 vopts.push_back(cfg::strings::Main.GetString(69));
-                copt = 7;
+                copt++;
             }
             else if((ext == "jpg") || (ext == "jpeg"))
             {
                 vopts.push_back(cfg::strings::Main.GetString(70));
-                copt = 7;
+                copt++;
             }
             else if(ext == "bin")
             {
                 if(IsAtmosphere())
                 {
                     vopts.push_back(cfg::strings::Main.GetString(66));
-                    copt = 7;
+                    copt++;
                 }
             }
             vopts.push_back(cfg::strings::Main.GetString(71));
@@ -239,7 +240,7 @@ namespace ui
             vopts.push_back(cfg::strings::Main.GetString(74));
             vopts.push_back(cfg::strings::Main.GetString(75));
             vopts.push_back(cfg::strings::Main.GetString(18));
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(76), msg, vopts, true);
+            auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(76), msg, vopts, true);
             if(sopt < 0) return;
             int osopt = sopt;
             if(ext == "nsp")
@@ -418,17 +419,21 @@ namespace ui
                         break;
                 }
             }
-            int viewtextopt = copt - 6;
-            int viewhexopt = copt - 5;
+            else if(!is_bin)
+            {
+                switch(sopt)
+                {
+                    case 0:
+                        global_app->LoadLayout(global_app->GetFileContentLayout());
+                        global_app->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, false);
+                        break;
+                }
+            }
+            int viewopt = copt - 5;
             int copyopt = copt - 4;
             int delopt = copt - 3;
             int renopt = copt - 2;
-            if((osopt == viewtextopt) && (this->gexp->GetFileSize(fullitm) > 0))
-            {
-                global_app->LoadLayout(global_app->GetFileContentLayout());
-                global_app->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, false);
-            }
-            if((osopt == viewhexopt) && (this->gexp->GetFileSize(fullitm) > 0))
+            if((osopt == viewopt) && (this->gexp->GetFileSize(fullitm) > 0))
             {
                 global_app->LoadLayout(global_app->GetFileContentLayout());
                 global_app->GetFileContentLayout()->LoadFile(pfullitm, fullitm, this->gexp, true);

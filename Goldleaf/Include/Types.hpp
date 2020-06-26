@@ -30,18 +30,10 @@
 #include <pu/Plutonium>
 
 using JSON = nlohmann::json;
-template<typename ...Args>
-using ResultWith = std::tuple<Result, Args...>;
 
 using String = pu::String;
 
 String LowerCaseString(String str);
-
-template<typename ...Args>
-inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)
-{
-    return std::make_tuple(res, std::forward<Args>(args)...);
-}
 
 // Thanks SciresM
 #define R_TRY(res_expr) \
@@ -57,6 +49,7 @@ namespace consts
     static const std::string Root = "switch/Goldleaf";
     static const std::string Log = Root + "/goldleaf.log";
     static const std::string Settings = Root + "/settings.json";
+    static const std::string TempUpdatedNro = Root + "/update_tmp.nro";
 }
 
 enum class ExecutableMode
@@ -131,7 +124,6 @@ namespace logging
 
 ExecutableMode GetExecutableMode();
 LaunchMode GetLaunchMode();
-String GetVersion();
 u64 GetApplicationId();
 bool HasKeyFile();
 bool IsAtmosphere();

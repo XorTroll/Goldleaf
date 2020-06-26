@@ -156,7 +156,7 @@ namespace ui
         if(GetLaunchMode() == LaunchMode::Applet) lmode = cfg::strings::Main.GetString(290);
         if(GetLaunchMode() == LaunchMode::Application) lmode = cfg::strings::Main.GetString(291);
 
-        global_app->LoadMenuData("Goldleaf v" + GetVersion(), "Info", exmode.AsUTF8() + ", " + lmode.AsUTF8());
+        global_app->LoadMenuData("Goldleaf v" GOLDLEAF_VERSION, "Info", exmode.AsUTF8() + ", " + lmode.AsUTF8());
         global_app->LoadLayout(global_app->GetAboutLayout());
     }
 }

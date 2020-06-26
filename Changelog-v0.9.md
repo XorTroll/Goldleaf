@@ -16,7 +16,9 @@
 
 - Fixed resetting a title's launch version, which wasn't properly implemented on previous releases
 
-- Random color schemes/pallets are the default in Goldleaf now # TODO: finish this, and decide whether to support them by default
+- Random color schemes/pallets are the default in Goldleaf now //// TODO: finish this, and decide whether we will support them by default
+
+- Introducing fsp-usb support - fsp-usb is not finished yet, but since there are some compiled builds out there, Goldleaf will support them unless breaking changes are made. Note: fsp-usb isn't fully stable yet, so use it at your own risk!
 
 - Other minor code improvements or small bug fixes
 

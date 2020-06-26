@@ -57,7 +57,6 @@ namespace fs
     void DeleteDirectory(String Path);
     void RenameFile(String Old, String New);
     void RenameDirectory(String Old, String New);
-    bool IsFileBinary(String Path);
     void WriteFile(String Path, std::vector<u8> Data);
     u64 GetFileSize(String Path);
     u64 GetDirectorySize(String Path);
