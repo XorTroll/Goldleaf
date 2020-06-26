@@ -57,10 +57,10 @@ namespace nsp
         header.StringTableSize = strtablesize;
         auto outexp = fs::GetExplorerForPath(Out);
         outexp->StartFile(Out, fs::FileMode::Write);
-        outexp->WriteFileBlock(Out, (u8*)&header, sizeof(PFS0Header));
+        outexp->WriteFileBlock(Out, &header, sizeof(header));
         for(auto &entry: fentries)
         {
-            outexp->WriteFileBlock(Out, (u8*)&entry.Entry, sizeof(PFS0FileEntry));
+            outexp->WriteFileBlock(Out, &entry.Entry, sizeof(entry.Entry));
         }
         outexp->WriteFileBlock(Out, strtable, strtablesize);
         size_t done = 0;

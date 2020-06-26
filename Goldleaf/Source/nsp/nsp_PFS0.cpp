@@ -32,7 +32,7 @@ namespace nsp
         this->headersize = 0;
         this->stringtable = nullptr;
         Exp->StartFile(this->path, fs::FileMode::Read);
-        Exp->ReadFileBlock(this->path, 0, sizeof(this->header), (u8*)&this->header);
+        Exp->ReadFileBlock(this->path, 0, sizeof(this->header), &this->header);
         if(this->header.Magic == Magic)
         {
             this->ok = true;
@@ -40,17 +40,15 @@ namespace nsp
             this->stringtable = new u8[this->header.StringTableSize]();
             this->headersize = strtoff + this->header.StringTableSize;
             Exp->ReadFileBlock(this->path, strtoff, this->header.StringTableSize, this->stringtable);
-            this->files.reserve(this->header.FileCount);
             for(u32 i = 0; i < this->header.FileCount; i++)
             {
                 u64 offset = sizeof(PFS0Header) + (i * sizeof(PFS0FileEntry));
                 PFS0FileEntry ent = {};
-                memset(&ent, 0, sizeof(ent));
-                Exp->ReadFileBlock(this->path, offset, sizeof(ent), (u8*)&ent);
+                Exp->ReadFileBlock(this->path, offset, sizeof(ent), &ent);
                 String name;
-                for(u32 i = ent.StringTableOffset; i < this->header.StringTableSize; i++)
+                for(u32 j = ent.StringTableOffset; j < this->header.StringTableSize; j++)
                 {
-                    char ch = (char)this->stringtable[i];
+                    char ch = (char)this->stringtable[j];
                     if(ch == '\0') break;
                     name += ch;
                 }

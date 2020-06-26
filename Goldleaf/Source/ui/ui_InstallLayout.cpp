@@ -41,7 +41,10 @@ namespace ui
 
     void InstallLayout::StartInstall(String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation)
     {
+        global_app->CreateShowDialog("Ah", Path, { "Q" }, false);
         nsp::Installer inst(Path, Exp, Location);
+
+        global_app->CreateShowDialog("A", "A", { "Q" }, false);
 
         auto rc = inst.PrepareInstallation();
         if(R_FAILED(rc))

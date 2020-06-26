@@ -43,8 +43,8 @@ namespace fs
             virtual void DeleteFile(String Path) override;
             virtual void DeleteDirectory(String Path) override;
             virtual void StartFile(String path, FileMode mode) override;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) override;
+            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out) override;
+            virtual u64 WriteFileBlock(String Path, void *Data, u64 Size) override;
             virtual void EndFile(FileMode mode) override;
             virtual u64 GetFileSize(String Path) override;
             virtual u64 GetTotalSpace() override;

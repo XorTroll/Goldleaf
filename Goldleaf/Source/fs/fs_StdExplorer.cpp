@@ -163,7 +163,7 @@ namespace fs
         else this->w_file_obj = fopen(npath.AsUTF8().c_str(), fmode);
     }
 
-    u64 StdExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out)
+    u64 StdExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out)
     {
         u64 rsz = 0;
 
@@ -185,7 +185,7 @@ namespace fs
         return rsz;
     }
 
-    u64 StdExplorer::WriteFileBlock(String Path, u8 *Data, u64 Size)
+    u64 StdExplorer::WriteFileBlock(String Path, void *Data, u64 Size)
     {
         u64 wsz = 0;
         

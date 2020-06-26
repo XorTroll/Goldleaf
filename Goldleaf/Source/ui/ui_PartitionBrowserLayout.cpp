@@ -341,7 +341,7 @@ namespace ui
                             return;
                         }
                         this->gexp->StartFile(fullitm, fs::FileMode::Read);
-                        this->gexp->ReadFileBlock(fullitm, 0, sizeof(NacpStruct), (u8*)&nacp);
+                        this->gexp->ReadFileBlock(fullitm, 0, sizeof(nacp), &nacp);
                         this->gexp->EndFile(fs::FileMode::Read);
                         NacpStruct *snacp = &nacp;
                         u8 *rnacp = (u8*)snacp;

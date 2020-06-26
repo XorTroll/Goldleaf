@@ -31,6 +31,10 @@
 
 extern cfg::Settings global_settings;
 
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref global_app;
+
 namespace nsp
 {
     Installer::~Installer()
@@ -45,9 +49,9 @@ namespace nsp
         ERR_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
 
         String cnmt_nca_file_name;
-        u32 cnmt_nca_file_idx = 0;
+        u32 cnmt_nca_file_idx = PFS0::InvalidFileIndex;
         u64 cnmt_nca_file_size = 0;
-        u32 tik_file_idx = 0;
+        u32 tik_file_idx = PFS0::InvalidFileIndex;
         tik_file_size = 0;
         auto pfs0_files = pfs0_file.GetFiles();
         for(u32 i = 0; i < pfs0_files.size(); i++)
@@ -59,11 +63,17 @@ namespace nsp
                 tik_file_idx = i;
                 tik_file_size = pfs0_file.GetFileSize(i);
             }
-            else if(file.substr(file.length() - 8) == "cnmt.nca")
+            else
             {
-                cnmt_nca_file_name = file;
-                cnmt_nca_file_idx = i;
-                cnmt_nca_file_size = pfs0_file.GetFileSize(i);
+                if(file.length() >= 8)
+                {
+                    if(file.substr(file.length() - 8) == "cnmt.nca")
+                    {
+                        cnmt_nca_file_name = file;
+                        cnmt_nca_file_idx = i;
+                        cnmt_nca_file_size = pfs0_file.GetFileSize(i);
+                    }
+                }
             }
         }
         ERR_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), err::result::ResultMetaNotFound);
@@ -155,7 +165,7 @@ namespace nsp
                             }
                         }
                         control_nca_fs_obj.StartFile("control.nacp", fs::FileMode::Read);
-                        control_nca_fs_obj.ReadFileBlock("control.nacp", 0, sizeof(NacpStruct), (u8*)&nacp_data);
+                        control_nca_fs_obj.ReadFileBlock("control.nacp", 0, sizeof(nacp_data), &nacp_data);
                         control_nca_fs_obj.EndFile(fs::FileMode::Read);
                     }
                 }

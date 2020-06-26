@@ -75,8 +75,8 @@ namespace fs
             virtual void DeleteDirectory(String Path) = 0;
             
             virtual void StartFile(String path, FileMode mode) = 0;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) = 0;
-            virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) = 0;
+            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out) = 0;
+            virtual u64 WriteFileBlock(String Path, void *Data, u64 Size) = 0;
             virtual void EndFile(FileMode mode) = 0;
 
             virtual u64 GetFileSize(String Path) = 0;

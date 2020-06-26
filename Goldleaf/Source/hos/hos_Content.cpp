@@ -64,7 +64,7 @@ namespace hos
                 {
                     u32 rawver = 0;
                     fwfs.StartFile(f, fs::FileMode::Read);
-                    fwfs.ReadFileBlock(f, 8, sizeof(u32), (u8*)&rawver);
+                    fwfs.ReadFileBlock(f, 8, sizeof(rawver), &rawver);
                     fwfs.EndFile(fs::FileMode::Read);
                     out->Major = (u8)((rawver >> 26) & 0x3f);
                     out->Minor = (u8)((rawver >> 20) & 0x3f);

@@ -437,7 +437,7 @@ namespace hos
         u64 off = 0;
         u32 tiksig = 0;
         fexp->StartFile(Path, fs::FileMode::Read);
-        fexp->ReadFileBlock(Path, off, sizeof(u32), (u8*)&tiksig);
+        fexp->ReadFileBlock(Path, off, sizeof(tiksig), &tiksig);
         tik.Signature = static_cast<TicketSignature>(tiksig);
         u32 sigsz = 0;
         u32 padsz = 0;
