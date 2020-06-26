@@ -31,10 +31,6 @@
 
 extern cfg::Settings global_settings;
 
-#include <ui/ui_MainApplication.hpp>
-
-extern ui::MainApplication::Ref global_app;
-
 namespace nsp
 {
     Installer::~Installer()
