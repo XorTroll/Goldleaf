@@ -232,7 +232,7 @@ void Exit()
         fs::RenameFile("sdmc:/" + consts::Root + "/update_tmp.nro", __system_argv[0]);
     }
 
-    auto fsopsbuf = fs::GetFileSystemOperationsBuffer();
+    auto fsopsbuf = fs::GetWorkBuffer();
     operator delete[](fsopsbuf, std::align_val_t(0x1000));
     auto nsys = fs::GetNANDSystemExplorer();
     auto nsfe = fs::GetNANDSafeExplorer();

@@ -36,7 +36,7 @@ namespace nsp
         PFS0Header header = {};
         header.FileCount = (u32)files.size();
         header.Magic = Magic;
-        u8 *strtable = fs::GetFileSystemOperationsBuffer();
+        u8 *strtable = fs::GetWorkBuffer();
         size_t strtablesize = 0;
         std::vector<PFS0File> fentries;
         size_t base_offset = 0;
@@ -67,8 +67,8 @@ namespace nsp
         for(auto &entry: fentries)
         {
             size_t toread = entry.Entry.Size;
-            u8 *buf = fs::GetFileSystemOperationsBuffer();
-            size_t readsz = fs::GetFileSystemOperationsBufferSize();
+            u8 *buf = fs::GetWorkBuffer();
+            size_t readsz = fs::WorkBufferSize;
             size_t fdone = 0;
             auto fentry = Input + "/" + entry.Name;
             exp->StartFile(fentry, fs::FileMode::Read);

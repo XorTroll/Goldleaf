@@ -104,7 +104,7 @@ namespace nsp
             }
             ERR_RC_UNLESS(!cnmt_file_name.empty(), err::result::ResultMetaNotFound);
             auto cnmt_file_size = cnmt_nca_fs_obj.GetFileSize(cnmt_file_name);
-            auto cnmt_tmp_buf = fs::GetFileSystemOperationsBuffer();
+            auto cnmt_tmp_buf = fs::GetWorkBuffer();
             cnmt_nca_fs_obj.StartFile(cnmt_file_name, fs::FileMode::Read);
             cnmt_nca_fs_obj.ReadFileBlock(cnmt_file_name, 0, cnmt_file_size, cnmt_tmp_buf);
             cnmt_nca_fs_obj.EndFile(fs::FileMode::Read);
@@ -181,7 +181,7 @@ namespace nsp
         std::vector<ns::ContentStorageRecord> content_storage_records;
         if(content_meta_count > 0)
         {
-            auto tmp_buf = reinterpret_cast<ns::ContentStorageRecord*>(fs::GetFileSystemOperationsBuffer());
+            auto tmp_buf = reinterpret_cast<ns::ContentStorageRecord*>(fs::GetWorkBuffer());
             u32 real_count = 0;
             ERR_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, tmp_buf, content_meta_count * sizeof(ns::ContentStorageRecord), &real_count));
             for(u32 i = 0; i < real_count; i++) content_storage_records.push_back(tmp_buf[i]);
@@ -194,7 +194,7 @@ namespace nsp
         ERR_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_records.data(), content_storage_records.size() * sizeof(ns::ContentStorageRecord)));
         if(this->tik_file_size > 0)
         {
-            auto tmp_buf = fs::GetFileSystemOperationsBuffer();
+            auto tmp_buf = fs::GetWorkBuffer();
             auto tik_path = "Contents/temp/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
             nand_sys_explorer->StartFile(tik_path, fs::FileMode::Read);
@@ -248,8 +248,8 @@ namespace nsp
     Result Installer::WriteContents(OnContentsWriteFunction OnContentWrite)
     {
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        auto read_size = fs::GetFileSystemOperationsBufferSize();
-        auto tmp_buf = fs::GetFileSystemOperationsBuffer();
+        auto read_size = fs::WorkBufferSize;
+        auto tmp_buf = fs::GetWorkBuffer();
         u64 total_size = 0;
         u64 total_written_size = 0;
         std::vector<u32> content_file_idxs;

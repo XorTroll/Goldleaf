@@ -39,8 +39,8 @@ namespace dump
         if(f)
         {
             s64 off = 0;
-            u64 rmax = fs::GetFileSystemOperationsBufferSize();
-            u8 *data = fs::GetFileSystemOperationsBuffer();
+            u64 rmax = fs::WorkBufferSize;
+            u8 *data = fs::GetWorkBuffer();
             while(szrem)
             {
                 u64 rsize = std::min(rmax, szrem);
@@ -67,7 +67,7 @@ namespace dump
             {
                 if(metas[i].id == ApplicationId)
                 {
-                    memcpy(out, &metas[i], sizeof(NcmContentMetaKey));
+                    *out = metas[i];
                     got = true;
                     break;
                 }
@@ -116,7 +116,7 @@ namespace dump
             while(true)
             {
                 if(!tkey.empty()) break;
-                u8 *tkdata = fs::GetFileSystemOperationsBuffer();
+                u8 *tkdata = fs::GetWorkBuffer();
                 FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
                 if(fr) break;
                 if(tmpsz == 0) break;

@@ -20,7 +20,6 @@
 */
 
 #include <es/es_Service.hpp>
-#include <cstring>
 
 namespace es
 {
@@ -64,22 +63,6 @@ namespace es
         );
     }
 
-    Result GetTitleKey(const RightsId *RId, u8 *out_Key, size_t out_KeySize)
-    {
-        struct
-        {
-            RightsId RId;
-            u32 KeyGen; 
-        } in;
-        memcpy(&in.RId, RId, sizeof(RightsId));
-        in.KeyGen = 0;
-
-        return serviceDispatchIn(&es_srv, 8, in,
-            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_Key, out_KeySize } },
-        );
-    }
-
     Result CountCommonTicket(u32 *out_Count)
     {
         return serviceDispatchOut(&es_srv, 9, *out_Count);
@@ -103,14 +86,6 @@ namespace es
         return serviceDispatchOut(&es_srv, 12, *out_Written,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
             .buffers = { { out_Ids, out_IdsSize } },
-        );
-    }
-
-    Result GetCommonTicketData(const RightsId *RId, void *out_Data, size_t out_DataSize, u64 *out_Unk)
-    {
-        return serviceDispatchInOut(&es_srv, 16, *RId, *out_Unk,
-            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_Data, out_DataSize } },
         );
     }
 }

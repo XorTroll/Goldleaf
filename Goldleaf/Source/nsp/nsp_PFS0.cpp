@@ -117,8 +117,8 @@ namespace nsp
         if(IsInvalidFileIndex(Index)) return;
         if(Index >= this->files.size()) return;
         u64 fsize = this->GetFileSize(Index);
-        u64 rsize = fs::GetFileSystemOperationsBufferSize();
-        u8 *bdata = fs::GetFileSystemOperationsBuffer();
+        u64 rsize = fs::WorkBufferSize;
+        u8 *bdata = fs::GetWorkBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         Exp->DeleteFile(Path);

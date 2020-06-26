@@ -435,42 +435,40 @@ namespace hos
         auto fexp = fs::GetExplorerForMountName(fs::GetPathRoot(Path));
         TicketData tik;
         u64 off = 0;
-        u32 tiksig = 0;
         fexp->StartFile(Path, fs::FileMode::Read);
-        fexp->ReadFileBlock(Path, off, sizeof(tiksig), &tiksig);
-        tik.Signature = static_cast<TicketSignature>(tiksig);
+        fexp->ReadFileBlock(Path, off, sizeof(tik.Signature), &tik.Signature);
         u32 sigsz = 0;
         u32 padsz = 0;
-        switch(tiksig)
+        switch(tik.Signature)
         {
-            case 0x10000:
+            case TicketSignature::RSA_4096_SHA1:
                 sigsz = 0x200;
                 padsz = 0x3c;
                 break;
-            case 0x10001:
+            case TicketSignature::RSA_2048_SHA1:
                 sigsz = 0x100;
                 padsz = 0x3c;
                 break;
-            case 0x10002:
+            case TicketSignature::ECDSA_SHA1:
                 sigsz = 0x3c;
                 padsz = 0x40;
                 break;
-            case 0x10003:
+            case TicketSignature::RSA_4096_SHA256:
                 sigsz = 0x200;
                 padsz = 0x3c;
                 break;
-            case 0x10004:
+            case TicketSignature::RSA_2048_SHA256:
                 sigsz = 0x100;
                 padsz = 0x3c;
                 break;
-            case 0x10005:
+            case TicketSignature::ECDSA_SHA256:
                 sigsz = 0x3c;
                 padsz = 0x40;
                 break;
         }
         u32 tikdata = (4 + sigsz + padsz);
         off = tikdata + 0x40;
-        u8 tkey[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        u8 tkey[0x10] = {};
         fexp->ReadFileBlock(Path, off, 0x10, tkey);
         std::stringstream strm;
         strm << std::uppercase << std::setfill('0') << std::hex;

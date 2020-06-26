@@ -36,7 +36,7 @@ namespace hos
         Personalized,
     };
 
-    enum class TicketSignature
+    enum class TicketSignature : u32
     {
         Invalid,
         RSA_4096_SHA1 = 0x10000,

@@ -40,7 +40,8 @@ namespace fs
     using ifstream = std::basic_ifstream<char16_t>;
     using ofstream = std::basic_ofstream<char16_t>;
 
-    static constexpr u64 Size4GB = 0x100000000;
+    constexpr u64 Size4GB = 0x100000000;
+    constexpr u64 WorkBufferSize = 0x800000; // 8MB
 
     bool Exists(String Path);
     bool IsFile(String Path);
@@ -68,9 +69,6 @@ namespace fs
     u64 GetTotalSpaceForPartition(Partition Partition);
     u64 GetFreeSpaceForPartition(Partition Partition);
     String FormatSize(u64 Bytes);
-    String SearchForFile(FsFileSystem FS, String Extension);
-    String SearchForFileInPath(String Base, String Extension);
 
-    u8 *GetFileSystemOperationsBuffer();
-    size_t GetFileSystemOperationsBufferSize();
+    u8 *GetWorkBuffer();
 }

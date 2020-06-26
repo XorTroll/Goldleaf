@@ -36,8 +36,7 @@
 
 namespace fs
 {
-    static u8 *opsbuf = nullptr;
-    static size_t opsbufsz = 0x800000;
+    static u8 *work_buf = nullptr;
 
     bool Exists(String Path)
     {
@@ -307,15 +306,10 @@ namespace fs
         return path;
     }
 
-    u8 *GetFileSystemOperationsBuffer()
+    u8 *GetWorkBuffer()
     {
-        if(opsbuf == nullptr) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
-        memset(opsbuf, 0, opsbufsz);
-        return opsbuf;
-    }
-
-    size_t GetFileSystemOperationsBufferSize()
-    {
-        return opsbufsz;
+        if(work_buf == nullptr) work_buf = new (std::align_val_t(0x1000)) u8[WorkBufferSize]();
+        memset(work_buf, 0, WorkBufferSize);
+        return work_buf;
     }
 }

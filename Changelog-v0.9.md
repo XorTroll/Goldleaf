@@ -18,6 +18,8 @@
 
 - Random color schemes/pallets are the default in Goldleaf now # TODO: finish this, and decide whether to support them by default
 
+- Other minor code improvements or small bug fixes
+
 ## Quark
 
 - Several improvements related to various small errors

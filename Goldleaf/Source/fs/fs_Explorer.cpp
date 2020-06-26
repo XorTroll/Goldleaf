@@ -104,8 +104,8 @@ namespace fs
         auto ex = GetExplorerForPath(NewPath);
         String npath = ex->MakeFull(NewPath);
         u64 fsize = this->GetFileSize(path);
-        u64 rsize = GetFileSystemOperationsBufferSize();
-        u8 *data = GetFileSystemOperationsBuffer();
+        u64 rsize = WorkBufferSize;
+        u8 *data = GetWorkBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         this->StartFile(path, fs::FileMode::Read);
@@ -127,8 +127,8 @@ namespace fs
         auto ex = GetExplorerForPath(NewPath);
         String npath = ex->MakeFull(NewPath);
         u64 fsize = this->GetFileSize(path);
-        u64 rsize = GetFileSystemOperationsBufferSize();
-        u8 *data = GetFileSystemOperationsBuffer();
+        u64 rsize = WorkBufferSize;
+        u8 *data = GetWorkBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         this->StartFile(path, fs::FileMode::Read);
@@ -187,7 +187,7 @@ namespace fs
         u64 fsize = this->GetFileSize(path);
         if(fsize == 0) return true;
         u64 toread = std::min(fsize, (u64)0x200); // 0x200, like GodMode9
-        u8 *ptr = GetFileSystemOperationsBuffer();
+        u8 *ptr = GetWorkBuffer();
         u64 rsize = this->ReadFileBlock(path, 0, toread, ptr);
         for(u32 i = 0; i < rsize; i++)
         {
@@ -224,11 +224,11 @@ namespace fs
         u32 tmpo = 0;
         u64 szrem = fsize;
         u64 off = 0;
-        u8 *tmpdata = GetFileSystemOperationsBuffer();
+        u8 *tmpdata = GetWorkBuffer();
         bool end = false;
         while(szrem && !end)
         {
-            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)GetFileSystemOperationsBufferSize(), szrem), tmpdata);
+            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)WorkBufferSize, szrem), tmpdata);
             if(rsize == 0) return data;
             szrem -= rsize;
             off += rsize;
