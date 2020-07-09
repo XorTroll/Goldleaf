@@ -1,6 +1,6 @@
 # Goldleaf
 
-[![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
+[![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) ![License](https://img.shields.io/badge/License-GPLv3-blue.svg) **(thanks for 1M downloads 💜)**
 
 > Goldleaf is multipurpose homebrew tool for Nintendo Switch.
 
@@ -20,71 +20,149 @@
 6. [Contributing](#contributing)
 7. [Credits and support](#credits-and-support)
 
-> Having any issues? Check [this help document](docs/FAQ.md) for help!
+> Having any issues? Check [our FAQ](docs/FAQ.md) for help!
 
 ## **[Download it from here!](https://github.com/XorTroll/Goldleaf/releases)**
 
 <p>
 <a href="https://www.patreon.com/xortroll"><img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" height="50" width="220"></a>
 <br>
-<b>Do you like my work? Become a patron and supporting it!</b>
+<b>Do you like my work? Become a patron and support it!</b>
 </p>
 
 ## Features
 
-Goldleaf has a very similar concept to [FBI](https://github.com/Steveice10/FBI), which is a similar tool for Nintendo 3DS homebrew.
+> Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s, a Nintendo 3DS homebrew tool.
 
-These are its main features:
+- **Content explorer**: An easy-to-use but fully featured filesystem browser.
 
-- **SD card browser**:  A simple but fully equiped file browser for the SD card, supporting several file formats (such as NSP, NRO, NACP, NXTheme, JPEG, tickets...), and with support for copying, pasting, renaming, deleting and creating files and directories.
+  - Supported locations/devices:
 
-- **Console memory browser**: Same browser but to be used with NAND partitions, which also warns when writing or deleting content as it can be dangerous.
+    - *SD card*
 
-- **Remote PC browser**: Via this feature, one can browse a PC's drives like any other filesystem, connected by a USB-C cable.
+    - *Console memory (SAVE, SYSTEM, USER and PRODINFOF partitions)*
 
-- **Content manager**: Browse any kind of content in your SD card, console memory or game cartridge. You can browse all the NCAs, and as title options, you can remove the content, or export it as a NSP. NAND SYSTEM contents (system titles or contents) aren't allowed to be deleted. Invidual contents such as updates or DLC can be removed individually. You have also the option to remove unused tickets or tickets belonging to contents, plus the options to reset launch version (in order to remove the update nag) or to export base, updates or DLCs to installable NSPs.
+    - *Remote systems (via remote tools connected to Goldleaf like Quark)*
 
-- **Web browser (console's web-applet)**: Using the console's web applets, Goldleaf allows to search and navigate through web pages. You can even save pages as bookmarks to browse them quickly anytime.
+    - *Game savedata (check below how to mount it)*
 
-- **User account manager**: Select a user account, and easily change things as the user's nickname or even delete it. Via the file browsers you can replace a user's icon with a JPEG image, but it can be a risky action. The icon needs to be a valid JPEG, with 256x256 dimensions. Goldleaf checks if the icon is valid to replace the other one. Linked accounts can also be unlinked (locally).
+    > Note: game savedata will be automatically unmounted when Goldleaf is exited
 
-- **emuiibo manager**: You can control emuiibo (0.4 or higher) via Goldleaf, selecting custom amiibos, or enabling/disabling amiibo emulation, to make amiibo emulation way more comfortable than before.
+    - **[Experimental, not fully stable]** *USB drives (via fsp-usb WIP Atmosphere extension)*
 
-- **Console or Goldleaf settings**: In this menu you can manage the console's update (view it's version or dump it as a directory installable with Choi or a NSP), and pending update in case it's present (auto-downloaded updates, which can also be viewed, dumped or deleted)
+  - Features:
 
-Among all this features, Goldleaf is a very intuitive tool, with a fancy UI, and fully translated into 5 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
+    - Basic file operations: create, delete, copy, rename, view as hex/text, get size
 
-### Common controls
+    - Basic directory operations: create, delete, copy, rename, (un)set archive bit, get full size
 
-- **(LR-stick / R-stick / D-pad)** Move through the current menu
+    - Install NSP packages as applications/games, updates, etc. (**note: THIS INVOLVES BAN RISK!**)
 
-- **(ZL / ZR)** Show a dialog to shut down or reboot the console.
+    - Launch other NRO homebrews
 
-- **(Minus / -)** Show a dialog with this information.
+    - Execute .bin files as RCM payloads
 
-#### NRO-only controls
+    - Set JPG/JPEG files as user icons (**note: THIS INVOLVES BAN RISK!**)
 
-- **(Plus / +)** Exit the application in order to return to hbmenu.
+    - // TODO
+
+- **Content manager**: an easy-to-use but fully featured content manager:
+
+  - Basic content (application/title, update, DLC, etc.) operations:
+
+    - View content information (ID, size, version, play stats...)
+
+    - Uninstall/completely remove the content (won't remove savedata)
+
+    - Export to NSP package
+
+    - Mount savedata to navigate it (check the **Content explorer** above)
+
+    - Remove ticket if present (**note: ONLY PLAY WITH THIS IF YOU KNOW WHAT YOU'RE DOING!**)
+
+    - Reset launch version (useful to be able to play a base game after an update has been removed)
+
+    > Note: some of this operations are not available with system titles or gamecart titles.
+
+  - Check unused tickets, and remove them (**note: ONLY PLAY WITH THIS IF YOU KNOW WHAT YOU'RE DOING!**)
+
+- **Web browser**: makes use of the console's web applet:
+
+  - Browse user-submitted URLs
+
+  - Create and save bookmarks (used to quickly browse pages)
+
+- **Account manager**: select a user (or uses the selected one) and manage it:
+
+  - Change nickname
+
+  - Delete user (only if there is more than one in the system)
+
+  > Note: to change the user's icon, check the **Content explorer** above
+
+- **Amiibo dump**: create a virtual amiibo (for emuiibo) from a real amiibo figure.
+
+- **emuiibo manager**: serves as a manager for emuiibo:
+
+  - Toggle emulation (on/off)
+
+  - Select virtual amiibo as active amiibo
+
+  - Connect/disconnect currently selected virtual amiibo
+
+- **Settings**: check both system and Goldleaf settings:
+
+  - Firmware and updates:
+
+    - Check current firmware information (version, hash, key generation)
+
+    - Check for pending updates, and remove them if present
+
+    - Export current firmware or pending update data
+
+  - Memory: check free and total space on different locations
+
+  - Goldleaf settings: check settings present in `settings.json`
+
+- **Updates**: check for latest Goldleaf updates, and if a new release is out, update to it
+
+- **About**: check Goldleaf's version and how it was launched (as an applet or an application)
+
+> Goldleaf is also translated into 5 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
+
+### Controls
+
+- Common:
+
+  - **(LR-stick / R-stick / D-pad)**: Move through the current menu
+
+  - **(ZL / ZR)**: Show a dialog to shut down or reboot the console.
+
+  - **(Minus / -)**: Show a dialog with this control information.
+
+  - **(Plus / +)**: Exit the application in order to return to hbmenu.
+
+- Content explorer:
+
+  - **(X)**: Unmount the selected location (only when a savedata location is selected)
+
+  - **(Y)**: Select folder (might take some time with folders with many sub-items)
 
 ## Disclaimer
 
 ### NSP installs
 
-Always keep in mind that installing NSPs can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a smaller chance to get banned.
+Always keep in mind that installing NSP packages can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a smaller chance to get banned.
 
-**NEVER** install untrusted NSPs. Goldleaf doesn't do any special verification, so please make sure that what you decide to install was obtained from trustworthy sources.
+**NEVER** install untrusted NSPs. Goldleaf doesn't do any special verification, so please be very careful about installing untrusted packages.
 
 ### Tickets
 
-Tickets represent a game purchase, but technically speaking, you can't boot a title if the ticket isn't present (in case the title requires the ticket).
+Tickets represent a game purchase - technically speaking, you can't launch a title if the ticket isn't present and the title requires it (official titles require them). NSP packages which don't have (nor require) a ticket are standard-crypto.
 
-NSPs which don't have (nor require) a ticket are "standard crypto" NSPs. Standard-crypto titles aren't offical (usually reconverted content to avoid importing tickets).
+Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access a title's content. Otherwise, they are undecryptable, hence unlaunchable by the system.
 
-Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access titles' content which require a ticket. Otherwise, they are undecryptable, hence unlaunchable by the system.
-
-**TL;DR:** **Always** try to avoid untrusted NSPs, and if you go ahead and install CDN NSPs with tickets, avoid going online, or use special tools such as 90DNS, or you'll be banned for sure.
-
-## Quark and remote PC
+## Quark and remote browsing
 
 Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It should work on Windows, Linux or Mac.
 
@@ -139,17 +217,17 @@ So, via this configurations, UI's images, resources, element sizes and even tran
 
 ## Known bugs
 
-- Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on that specific versions. Any non-7.x firmware doesn't have this issue.
+- Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on those specific versions. Any non-7.x firmware doesn't have this issue.
 
-- Apparently, after browsing (more than 4 times?) and then browsing (specific?) empty directories crashes Goldleaf. This issue is strangely common and needs to be looked into.
-
-- Certain characters (Japanese/Chinese ones, for instance) aren't properly displayed due to the lack of those characters in the default font.
+- Apparently, after browsing (more than 4 directories?) and then browsing (specific?) empty directories crashes Goldleaf. This issue is strangely common and needs to be looked into.
 
 ## Contributing
 
 If you would like to contribute with new features, you are free to fork Goldleaf and open pull requests showcasing your additions.
 
 If you just would like to suggest new ideas, but without actual code implementations, you're free to open an issue. Please try not to duplicate those, if the idea or problem is already reported in another issue.
+
+You can always contact me on my Discord server (invite link below) as an easier way to suggest ideas or directly report issues.
 
 ### Translations
 
@@ -171,7 +249,7 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - All the graphics except Goldleaf's logo (see credit above) were grabbed from [Icons8](https://icons8.com).
 
-- 2767mr, for all the support given in Goldtree.
+- 2767mr, for all the support given in Goldtree (former Quark tool).
 
 - developer.su for [NS-USBloader](https://github.com/developersu/ns-usbloader), which helped a lot on the development of Quark, mainly on the usage of usb4java and the base of a multi-platform JavaFX Java project.
 

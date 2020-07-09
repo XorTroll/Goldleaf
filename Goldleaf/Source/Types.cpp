@@ -19,12 +19,11 @@
 
 */
 
-#include <Types.hpp>
 #include <fs/fs_FileSystem.hpp>
 #include <usb/usb_Detail.hpp>
 #include <es/es_Service.hpp>
 
-extern char** __system_argv;
+extern char **__system_argv;
 extern bool global_app_updated;
 
 String LowerCaseString(String str)
