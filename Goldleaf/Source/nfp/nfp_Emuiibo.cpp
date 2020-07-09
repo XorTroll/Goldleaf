@@ -113,28 +113,25 @@ namespace nfp::emu
 
     String SaveAmiiboImageById(String id)
     {
-        std::string imgpath = (String("sdmc:/") + consts::Root + "/amiibocache/" + id + ".png").AsUTF8();
-        if(fs::IsFile(imgpath)) return imgpath;
+        auto sd_exp = fs::GetSdCardExplorer();
+        auto img_path = consts::AmiiboCache + id + ".png";
+        if(sd_exp->IsFile(img_path)) return img_path;
         auto json = net::RetrieveContent("https://www.amiiboapi.com/api/amiibo/?id=" + id.AsUTF8(), "application/json");
         if(!json.empty())
         {
             try
             {
-                JSON j = JSON::parse(json);
+                auto j = JSON::parse(json);
                 if(j.count("amiibo"))
                 {
                     auto img = j["amiibo"].value("image", "");
-                    if(!img.empty())
-                    {
-                        imgpath = (String("sdmc:/") + consts::Root + "/amiibocache/" + id + ".png").AsUTF8();
-                        net::RetrieveToFile(img, imgpath, [&](double, double){});
-                    }
+                    if(!img.empty()) net::RetrieveToFile(img, ("sdmc:/" + img_path).AsUTF8(), [&](double, double){});
                 }
             }
             catch(std::exception&) {}
         }
-        if(!fs::IsFile(imgpath)) return "";
-        return imgpath;
+        if(!sd_exp->IsFile(img_path)) return "";
+        return img_path;
     }
 
     VirtualAmiibo LoadVirtualAmiibo(String path)

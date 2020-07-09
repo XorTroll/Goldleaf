@@ -50,6 +50,7 @@ namespace consts
     static const std::string Log = Root + "/goldleaf.log";
     static const std::string Settings = Root + "/settings.json";
     static const std::string TempUpdatedNro = Root + "/update_tmp.nro";
+    static const std::string AmiiboCache = Root + "/amiibocache";
 }
 
 enum class ExecutableMode

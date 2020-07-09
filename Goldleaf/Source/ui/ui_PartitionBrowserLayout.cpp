@@ -306,16 +306,20 @@ namespace ui
             }
             else if(ext == "nxtheme")
             {
+                // TODO: shall we continue supporting this?
+                // This implementation is really shitty, and only works for SD files...
                 switch(sopt)
                 {
                     case 0:
-                        std::string ntnro = "sdmc:/switch/nxthemes_installer/nxthemesinstaller.nro";
-                        if(!fs::IsFile(ntnro))
+                        std::string nxthemes_nro = "switch/nxthemes_installer/nxthemesinstaller.nro";
+                        auto nxthemes_nro_path = "sdmc:/" + nxthemes_nro;
+                        auto sd_exp = fs::GetSdCardExplorer();
+                        if(!sd_exp->IsFile(nxthemes_nro))
                         {
                             global_app->CreateShowDialog(cfg::strings::Main.GetString(104), cfg::strings::Main.GetString(105), { cfg::strings::Main.GetString(234) }, false);
                             return;
                         }
-                        std::string arg = ntnro + " installtheme=" + fullitm.AsUTF8();
+                        std::string arg = nxthemes_nro_path + " installtheme=" + fullitm.AsUTF8();
                         size_t index = 0;
                         while(true)
                         {
@@ -323,7 +327,7 @@ namespace ui
                             if(index == std::string::npos) break;
                             arg.replace(index, 1, "(_)");
                         }
-                        envSetNextLoad(ntnro.c_str(), arg.c_str());
+                        envSetNextLoad(nxthemes_nro_path.c_str(), arg.c_str());
                         global_app->CloseWithFadeOut();
                         return;
                         break;

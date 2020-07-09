@@ -45,8 +45,10 @@ namespace ui
         global_app->CallForRender();
         NcmStorageId stid = static_cast<NcmStorageId>(Target.Location);
         String fappid = hos::FormatApplicationId(Target.ApplicationId);
+        
+        auto sd_exp = fs::GetSdCardExplorer();
         String outdir = "sdmc:/" + consts::Root + "/dump/title/" + fappid;
-        fs::CreateDirectory(outdir);
+        sd_exp->CreateDirectory(outdir);
         this->dumpText->SetText(cfg::strings::Main.GetString(192));
         global_app->CallForRender();
         if(HasTicket) dump::GenerateTicketCert(Target.ApplicationId);
@@ -309,13 +311,13 @@ namespace ui
             global_app->CallForRender();
         });
         hos::UnlockAutoSleep();
-        fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump/temp");
-        fs::DeleteDirectory(outdir);
+        sd_exp->DeleteDirectory(consts::Root + "/dump/temp");
+        sd_exp->DeleteDirectory(outdir);
         if(ok) global_app->ShowNotification(cfg::strings::Main.GetString(197) + " '" + fout + "'");
         else
         {
             HandleResult(err::result::ResultCouldNotBuildNSP, cfg::strings::Main.GetString(198));
-            fs::DeleteDirectory("sdmc:/" + consts::Root + "/dump");
+            sd_exp->DeleteDirectory(consts::Root + "/dump");
             EnsureDirectories();
         }
         serviceClose(&cst.s);

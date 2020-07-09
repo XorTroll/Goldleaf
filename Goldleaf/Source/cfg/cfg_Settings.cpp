@@ -54,7 +54,8 @@ namespace cfg
             json["web"]["bookmarks"][i]["name"] = bmk.name;
             json["web"]["bookmarks"][i]["url"] = bmk.url;
         }
-        fs::DeleteFile("sdmc:/" + consts::Settings);
+        auto sd_exp = fs::GetSdCardExplorer();
+        sd_exp->DeleteFile("sdmc:/" + consts::Settings);
         std::ofstream ofs("sdmc:/" + consts::Settings);
         ofs << std::setw(4) << json;
         ofs.close();
@@ -62,11 +63,12 @@ namespace cfg
 
     std::string Settings::PathForResource(std::string Path)
     {
-        std::string outres = "romfs:" + Path;
+        auto outres = "romfs:" + Path;
         if(this->has_external_romfs)
         {
-            std::string tmpres = this->external_romfs + "/" + Path;
-            if(fs::IsFile(tmpres)) outres = tmpres;
+            auto tmpres = this->external_romfs + "/" + Path;
+            auto sd_exp = fs::GetSdCardExplorer();
+            if(sd_exp->IsFile(tmpres)) outres = tmpres;
         }
         return outres;
     }
@@ -228,6 +230,7 @@ namespace cfg
 
     bool Exists()
     {
-        return fs::IsFile("sdmc:/" + consts::Settings);
+        auto sd_exp = fs::GetSdCardExplorer();
+        return sd_exp->IsFile(consts::Settings);
     }
 }

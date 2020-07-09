@@ -242,7 +242,8 @@ namespace ui
             else
             {
                 auto usericon = acc::GetCachedUserIcon();
-                if(fs::Exists(usericon)) this->userImage->SetImage(usericon);
+                auto sd_exp = fs::GetSdCardExplorer();
+                if(sd_exp->Exists(usericon)) this->userImage->SetImage(usericon);
                 else this->userImage->SetImage(global_settings.PathForResource("/Common/User.png"));
             }
             this->userImage->SetWidth(70);
@@ -306,9 +307,10 @@ namespace ui
         {
             if(clipboard != "")
             {
-                bool cdir = fs::IsDirectory(clipboard);
+                auto exp = fs::GetExplorerForPath(clipboard);
+                const bool clipboard_is_dir = exp->IsDirectory(clipboard);
                 std::string fsicon;
-                if(cdir) fsicon = global_settings.PathForResource("/FileSystem/Directory.png");
+                if(clipboard_is_dir) fsicon = global_settings.PathForResource("/FileSystem/Directory.png");
                 else
                 {
                     String ext = fs::GetExtension(clipboard);
@@ -323,9 +325,9 @@ namespace ui
                 int sopt = this->CreateShowDialog(cfg::strings::Main.GetString(222), cfg::strings::Main.GetString(223) + "\n(" + clipboard + ")", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true, fsicon);
                 if(sopt == 0)
                 {
-                    String cname = fs::GetFileName(clipboard);
+                    auto cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
-                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer());
+                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), clipboard_is_dir, this->browser->GetExplorer());
                     global_app->LoadLayout(this->browser);
                     this->browser->UpdateElements();
                     clipboard = "";
@@ -351,11 +353,11 @@ namespace ui
         }
         else if(down & KEY_R)
         {
-            String cdir = AskForText(cfg::strings::Main.GetString(250), "");
-            if(cdir != "")
+            String clipboard_is_dir = AskForText(cfg::strings::Main.GetString(250), "");
+            if(clipboard_is_dir != "")
             {
-                String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
-                String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
+                String fdir = this->browser->GetExplorer()->FullPathFor(clipboard_is_dir);
+                String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(clipboard_is_dir);
                 if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 else
                 {

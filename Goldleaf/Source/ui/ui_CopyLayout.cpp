@@ -57,7 +57,7 @@ namespace ui
                 int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(153), cfg::strings::Main.GetString(143), { cfg::strings::Main.GetString(239), cfg::strings::Main.GetString(18) }, true);
                 if(sopt < 0) return;
             }
-            fs::DeleteFile(NewPath);
+            Exp->DeleteFile(NewPath);
             fs::CopyFileProgress(Path, NewPath, [&](double done, double total)
             {
                 this->copyBar->SetMaxValue(total);

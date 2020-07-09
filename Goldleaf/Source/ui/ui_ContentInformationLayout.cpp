@@ -58,8 +58,9 @@ namespace ui
         msg += cfg::strings::Main.GetString(170) + " ";
         std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), "Mount save data" };
         std::string icn;
-        hos::Title cnt = this->tcontents[idx];
-        if(fs::IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
+        auto &cnt = this->tcontents[idx];
+        auto sd_exp = fs::GetSdCardExplorer();
+        if(sd_exp->IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
         switch(cnt.Type)
         {
             case ncm::ContentMetaType::Application:

@@ -155,8 +155,9 @@ namespace acc
                 res = accountProfileLoadImage(&prof, icon, iconsize, &tmpsz);
                 if(res == 0)
                 {
-                    std::string iconpth = GetCachedUserIcon();
-                    fs::DeleteFile(iconpth);
+                    auto iconpth = GetCachedUserIcon();
+                    auto sd_exp = fs::GetSdCardExplorer();
+                    sd_exp->DeleteFile(iconpth);
                     FILE *f = fopen(iconpth.c_str(), "wb");
                     if(f)
                     {

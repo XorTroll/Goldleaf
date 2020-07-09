@@ -22,7 +22,6 @@
 #include <nfp/nfp_Amiibo.hpp>
 #include <sstream>
 #include <iomanip>
-#include <sys/stat.h>
 
 namespace nfp
 {
@@ -108,12 +107,14 @@ namespace nfp
 
     Result DumpToEmuiibo(NfpTagInfo &tag, NfpRegisterInfo &reg, NfpCommonInfo &common, NfpModelInfo &model)
     {
-        auto outdir = "sdmc:/emuiibo/amiibo/" + String(reg.amiibo_name);
-        fsdevDeleteDirectoryRecursively(outdir.AsUTF8().c_str());
+        auto sd_exp = fs::GetSdCardExplorer();
+        auto amiibo_path = "emuiibo/amiibo/" + String(reg.amiibo_name);
+        auto outdir = "sdmc:/" + amiibo_path;
+        sd_exp->DeleteDirectory(amiibo_path);
 
-        fs::CreateDirectory("sdmc:/emuiibo");
-        fs::CreateDirectory("sdmc:/emuiibo/amiibo");
-        fs::CreateDirectory(outdir);
+        sd_exp->CreateDirectory("emuiibo");
+        sd_exp->CreateDirectory("emuiibo/amiibo");
+        sd_exp->CreateDirectory(amiibo_path);
 
         auto jtag = JSON::object();
         std::stringstream strm;

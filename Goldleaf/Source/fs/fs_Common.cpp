@@ -20,6 +20,8 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
+#include <sstream>
+/*
 #include <fstream>
 #include <cstdlib>
 #include <cstdio>
@@ -33,168 +35,30 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <sys/stat.h>
+*/
 
 namespace fs
 {
     static u8 *work_buf = nullptr;
-
-    bool Exists(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) return exp->Exists(Path);
-        return false;
-    }
-
-    bool IsFile(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) return exp->IsFile(Path);
-        return false;
-    }
-
-    bool IsDirectory(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) return exp->IsDirectory(Path);
-        return false;
-    }
-
-    void CreateFile(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) exp->CreateFile(Path);
-    }
 
     void CreateConcatenationFile(String Path)
     {
         fsdevCreateFile(Path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
     }
 
-    void CreateDirectory(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) exp->CreateDirectory(Path);
-    }
-
-    void CopyFile(String Path, String NewPath)
-    {
-        Explorer *gexp = GetExplorerForPath(Path);
-        Explorer *ogexp = GetExplorerForPath(NewPath);
-        auto fsize = gexp->GetFileSize(Path);
-        if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
-        gexp->CopyFile(Path, NewPath);
-    }
-
     void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
     {
-        Explorer *gexp = GetExplorerForPath(Path);
-        Explorer *ogexp = GetExplorerForPath(NewPath);
+        auto gexp = GetExplorerForPath(Path);
+        auto ogexp = GetExplorerForPath(NewPath);
         auto fsize = gexp->GetFileSize(Path);
         if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
         gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 
-    void CopyDirectory(String Dir, String NewDir)
-    {
-        Explorer *gexp = GetExplorerForPath(Dir);
-        gexp->CopyDirectory(Dir, NewDir);
-    }
-
     void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
     {
-        Explorer *gexp = GetExplorerForPath(Dir);
+        auto gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
-    }
-
-    void DeleteFile(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) exp->DeleteFile(Path);
-    }
-
-    void DeleteDirectory(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != nullptr) exp->DeleteDirectory(Path);
-    }
-
-    void RenameFile(String Old, String New)
-    {
-        auto exp = GetExplorerForPath(Old);
-        if(exp != nullptr) exp->RenameFile(Old, New);
-    }
-
-    void RenameDirectory(String Old, String New)
-    {
-        auto exp = GetExplorerForPath(Old);
-        if(exp != nullptr) exp->RenameDirectory(Old, New);
-    }
-
-    void WriteFile(String Path, std::vector<u8> Data)
-    {
-        auto exp = GetExplorerForPath(Path);
-        exp->DeleteFile(Path);
-        exp->WriteFileBlock(Path, Data.data(), Data.size());
-    }
-
-    u64 GetFileSize(String Path)
-    {
-        u64 sz = 0;
-        FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
-        if(f)
-        {
-            fseek(f, 0, SEEK_END);
-            sz = ftell(f);
-            rewind(f);
-            fclose(f);
-        }
-        return sz;
-    }
-
-    u64 GetDirectorySize(String Path)
-    {
-        u64 sz = 0;
-        DIR *d = opendir(Path.AsUTF8().c_str());
-        if(d)
-        {
-            struct dirent *dent;
-            while(true)
-            {
-                dent = readdir(d);
-                if(dent == nullptr) break;
-                String nd = dent->d_name;
-                String pd = Path + "/" + nd;
-                if(fs::IsFile(pd)) sz += GetFileSize(pd);
-                else sz += GetDirectorySize(pd);
-            }
-        }
-        closedir(d);
-        return sz;
-    }
-
-    String GetFileName(String Path)
-    {
-        return Path.substr(Path.find_last_of("/\\") + 1);
-    }
-
-    String GetBaseDirectory(String Path)
-    {
-        return Path.substr(0, Path.find_last_of("/\\"));
-    }
-
-    String GetExtension(String Path)
-    {
-        return Path.substr(Path.find_last_of(".") + 1);
-    }
-
-    String GetPathRoot(String Path)
-    {
-        return Path.substr(0, Path.find_first_of(":"));
-    }
-
-    String GetPathWithoutRoot(String Path)
-    {
-        return Path.substr(Path.find_first_of(":") + 1);
     }
 
     u64 GetTotalSpaceForPartition(Partition Partition)
@@ -249,16 +113,17 @@ namespace fs
         return space;
     }
 
+    static const char *SizeSuffixes[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
+
     String FormatSize(u64 Bytes)
     {
-        String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
-        if(Bytes == 0) return "0" + sufs[0];
+        if(Bytes == 0) return String("0") + SizeSuffixes[0];
         u32 plc = floor((log(Bytes) / log(1024)));
         double btnum = (double)(Bytes / pow(1024, plc));
         double rbt = ((int)(btnum * 100.0) / 100.0);
         std::stringstream strm;
         strm << rbt;
-        return (strm.str() + sufs[plc]);
+        return (strm.str() + SizeSuffixes[plc]);
     }
 
     u8 *GetWorkBuffer()
