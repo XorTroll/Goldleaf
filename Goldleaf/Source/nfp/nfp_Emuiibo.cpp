@@ -22,6 +22,7 @@
 #include <nfp/nfp_Emuiibo.hpp>
 #include <net/net_Network.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <sm/sm_Service.hpp>
 
 namespace nfp::emu
 {
@@ -29,11 +30,7 @@ namespace nfp::emu
 
     bool IsEmuiiboAccessible()
     {
-        Handle tmph = 0;
-        auto rc = smRegisterService(&tmph, ServiceName, false, 1);
-        if(R_FAILED(rc)) return true;
-        smUnregisterService(ServiceName);
-        return false;
+        return sm::HasService(ServiceName);
     }
 
     Result Initialize()

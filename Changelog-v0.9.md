@@ -2,7 +2,7 @@
 
 ## General
 
-- Simplified directory deleting logic for both Goldleaf and Quark (thanks @pheki)
+- Simplified directory deleting logic for both Goldleaf and Quark, making everything less slower (thanks @pheki)
 
 ## Goldleaf
 
@@ -16,7 +16,9 @@
 
 - Fixed resetting a title's launch version, which wasn't properly implemented on previous releases
 
-- Random color schemes/pallets are the default in Goldleaf now //// TODO: finish this, and decide whether we will support them by default
+- Reboot-to-payload functionality (which can be used with .bin files) has been internally improved with Atmosphere's bpc:ams extensions
+
+- Random color schemes/pallets are used by default now, instead of default light/dark blue schemes
 
 - Introducing fsp-usb support - fsp-usb is not finished yet, but since there are some compiled builds out there, Goldleaf will support them unless breaking changes are made. Note: fsp-usb isn't fully stable yet, so use it at your own risk!
 

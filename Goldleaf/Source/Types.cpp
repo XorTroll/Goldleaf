@@ -153,12 +153,6 @@ LaunchMode GetLaunchMode()
     return mode;
 }
 
-bool IsAtmosphere()
-{
-    u64 tmpc = 0;
-    return R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &tmpc));
-}
-
 u64 GetCurrentApplicationId()
 {
     u64 appid = 0;
@@ -169,8 +163,10 @@ u64 GetCurrentApplicationId()
 u32 RandomFromRange(u32 Min, u32 Max)
 {
     u32 diff = Max - Min;
-    u32 rval = rand() % (diff + 1);
-    return rval + Min;
+    u32 random_val;
+    randomGet(&random_val, sizeof(random_val));
+    random_val %= (diff + 1);
+    return random_val + Min;
 }
 
 void EnsureDirectories()
@@ -199,7 +195,7 @@ void Close()
 
 Result Initialize()
 {
-    srand(time(NULL));
+    srand(time(nullptr));
     EnsureDirectories();
 
     R_TRY(accountInitialize(AccountServiceType_Administrator));
@@ -210,7 +206,6 @@ Result Initialize()
     R_TRY(setInitialize());
     R_TRY(setsysInitialize());
     R_TRY(usb::detail::Initialize());
-    R_TRY(splInitialize());
     R_TRY(nifmInitialize(NifmServiceType_Admin));
     R_TRY(pdmqryInitialize());
 
@@ -246,7 +241,6 @@ void Exit()
     delete prif;
     delete sdcd;
 
-    splExit();
     usb::detail::Exit();
     setsysExit();
     setExit();

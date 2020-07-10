@@ -35,9 +35,9 @@ namespace hos
 
     bool IsCharging()
     {
-        ChargerType charger = ChargerType_None;
+        auto charger = ChargerType_None;
         psmGetChargerType(&charger);
-        return (charger > ChargerType_None);
+        return charger > ChargerType_None;
     }
 
     std::string GetCurrentTime()
@@ -49,7 +49,7 @@ namespace hos
         int s = times->tm_sec;
         char timestr[0x10] = {0};
         sprintf(timestr, "%02d:%02d:%02d", h, min, s);
-        return std::string(timestr);
+        return timestr;
     }
 
     std::string FormatHex128(AccountUid Number)
@@ -131,57 +131,6 @@ namespace hos
         return base;
     }
 
-    u64 GetSdCardFreeSpaceForInstalls()
-    {
-        return fs::GetFreeSpaceForPartition(fs::Partition::SdCard);
-    }
-
-    u64 GetNANDFreeSpaceForInstalls()
-    {
-        return fs::GetFreeSpaceForPartition(fs::Partition::NANDUser);
-    }
-
-    void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size)
-    {
-        u8 *block = new (std::align_val_t(0x1000)) u8[0x1000]();
-        memcpy(block, Data, Size);
-        SecmonArgs args = {};
-        args.X[0] = 0xF0000201;
-        args.X[1] = (uintptr_t)block;
-        args.X[2] = IRAMAddress;
-        args.X[3] = Size;
-        args.X[4] = 1;
-        svcCallSecureMonitor(&args);
-        memcpy(Data, block, Size);
-        operator delete[](block, std::align_val_t(0x1000));
-    }
-
-    void IRAMClear()
-    {
-        u8 *block = new (std::align_val_t(0x1000)) u8[0x1000]();
-        memset(block, 0xFF, 0x1000);
-        for(u32 i = 0; i < MaxPayloadSize; i += 0x1000) IRAMWrite(block, (IRAMPayloadBaseAddress + i), 0x1000);
-        operator delete[](block, std::align_val_t(0x1000));
-    }
-
-    void PayloadProcess(String Path)
-    {
-        u8 *block = new (std::align_val_t(0x1000)) u8[MaxPayloadSize]();
-        auto fexp = fs::GetExplorerForPath(Path);
-        auto size = fexp->GetFileSize(Path);
-        if((size == 0) || (size > MaxPayloadSize)) return;
-        
-        fexp->StartFile(Path, fs::FileMode::Read);
-        fexp->ReadFileBlock(Path, 0, size, block);
-        fexp->EndFile(fs::FileMode::Read);
-
-        IRAMClear();
-        for(u32 i = 0; i < MaxPayloadSize; i += 0x1000) IRAMWrite(&block[i], (IRAMPayloadBaseAddress + i), 0x1000);
-        operator delete[](block, std::align_val_t(0x1000));
-
-        splSetConfig((SplConfigItem)65001, 2);
-    }
-
     void LockAutoSleep()
     {
         if(GetLaunchMode() == LaunchMode::Application) appletBeginBlockingHomeButton(0);
@@ -205,6 +154,15 @@ namespace hos
             fsStorageClose(&boot0);
             return (u8)keygen_ver;
         }
+        return 0;
+    }
+
+    Result PerformShutdown(bool do_reboot)
+    {
+        R_TRY(spsmInitialize());
+        R_TRY(spsmShutdown(do_reboot));
+        spsmExit();
+
         return 0;
     }
 }

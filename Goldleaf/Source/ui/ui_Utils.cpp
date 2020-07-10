@@ -51,11 +51,14 @@ namespace ui
 
     void ShowPowerTasksDialog(String Title, String Message)
     {
-        int sopt = global_app->CreateShowDialog(Title, Message, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
-        if(sopt < 0) return;
-        spsmInitialize();
-        spsmShutdown(sopt == 1);
-        spsmExit();
+        auto sopt = global_app->CreateShowDialog(Title, Message, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
+        switch(sopt)
+        {
+            case 0:
+                hos::PowerOff();
+            case 1:
+                hos::Reboot();
+        }
     }
 
     String AskForText(String Guide, String Initial, int MaxSize)
@@ -103,28 +106,22 @@ namespace ui
         return { VariateImpl(clr.R, v), VariateImpl(clr.G, v), VariateImpl(clr.B, v), clr.A };
     }
 
-    inline bool IsColorDark(pu::ui::Color clr)
-    {
-        u8 low_cmp_no = 0;
-        if(clr.R < 128) low_cmp_no++;
-        if(clr.G < 128) low_cmp_no++;
-        if(clr.B < 128) low_cmp_no++;
-        return low_cmp_no >= 2;
-    }
+    constexpr pu::ui::Color TextLight = { 225, 225, 225, 0xff };
+    constexpr pu::ui::Color TextDark = { 15, 15, 15, 0xff };
 
     ColorScheme GenerateRandomScheme()
     {
         ColorScheme scheme = {};
-        u8 r = (u8)RandomFromRange(0, 0xff);
-        u8 g = (u8)RandomFromRange(0, 0xff);
-        u8 b = (u8)RandomFromRange(0, 0xff);
+        auto r = static_cast<u8>(RandomFromRange(0, 0xff));
+        auto g = static_cast<u8>(RandomFromRange(0, 0xff));
+        auto b = static_cast<u8>(RandomFromRange(0, 0xff));
         pu::ui::Color clr = { r, g, b, 0xff };
         scheme.Base = clr;
         scheme.Background = GenerateVariation(clr, 30, 50);
         scheme.BaseFocus = GenerateVariation(clr, 20, 30);
         auto av = (r + g + b) / 3;
-        if(av < 128) scheme.Text = { 225, 225, 225, 255 };
-        else scheme.Text = { 15, 15, 15, 255 };
+        if(av < 128) scheme.Text = TextLight;
+        else scheme.Text = TextDark;
         return scheme;
     }
 }

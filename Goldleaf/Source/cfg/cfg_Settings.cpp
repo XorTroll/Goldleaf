@@ -127,10 +127,7 @@ namespace cfg
         gset.menu_item_size = 80;
         gset.ignore_required_fw_ver = true;
 
-        ColorSetId csid = ColorSetId_Light;
-        setsysGetColorSetId(&csid);
-        if(csid == ColorSetId_Dark) gset.custom_scheme = ui::DefaultDark;
-        else gset.custom_scheme = ui::DefaultLight;
+        gset.custom_scheme = ui::GenerateRandomScheme();
 
         std::ifstream ifs("sdmc:/" + consts::Settings);
         if(ifs.good())

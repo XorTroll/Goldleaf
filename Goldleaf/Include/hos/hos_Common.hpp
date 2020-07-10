@@ -32,6 +32,7 @@ namespace hos
 {
     u32 GetBatteryLevel();
     bool IsCharging();
+
     std::string GetCurrentTime();
     
     template<typename N>
@@ -46,15 +47,21 @@ namespace hos
     std::string DoubleToString(double Number);
     std::string FormatResult(Result rc);
     std::string FormatTime(u64 Seconds);
-    u64 GetSdCardFreeSpaceForInstalls();
-    u64 GetNANDFreeSpaceForInstalls();
-    void IRAMWrite(void *Data, uintptr_t IRAMAddress, size_t Size);
-    void IRAMClear();
-    void PayloadProcess(String Path);
+
     void LockAutoSleep();
     void UnlockAutoSleep();
+
     u8 ComputeSystemKeyGeneration();
 
-    static constexpr size_t MaxPayloadSize = 0x2F000;
-    static constexpr size_t IRAMPayloadBaseAddress = 0x40010000;
+    Result PerformShutdown(bool do_reboot);
+
+    inline Result PowerOff()
+    {
+        return PerformShutdown(false);
+    }
+    
+    inline Result Reboot()
+    {
+        return PerformShutdown(true);
+    }
 }

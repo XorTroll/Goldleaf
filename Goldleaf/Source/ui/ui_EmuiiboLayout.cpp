@@ -117,75 +117,68 @@ namespace ui
         this->optionsMenu->SetVisible(false);
         this->optionsMenu->ClearItems();
         global_app->CallForRender();
-        if(nfp::emu::IsEmuiiboAccessible())
+        
+        char curamiibo[FS_MAX_PATH] = {0};
+        auto rc = nfp::emu::Initialize();
+        if(R_SUCCEEDED(rc))
         {
-            char curamiibo[FS_MAX_PATH] = {0};
-            auto rc = nfp::emu::Initialize();
+            nfp::emu::Version v = {};
+            auto rc = nfp::emu::GetVersion(&v);
             if(R_SUCCEEDED(rc))
             {
-                nfp::emu::Version v = {};
-                auto rc = nfp::emu::GetVersion(&v);
-                if(R_SUCCEEDED(rc))
+                Version otherv = Version::MakeVersion(v.major, v.minor, v.micro);
+                if(otherv.IsLower(Version::MakeVersion(0, 4, 0))) global_app->ShowNotification("Only emuiibo 0.4.0 or newer is supported.");
+                else
                 {
-                    Version otherv = Version::MakeVersion(v.major, v.minor, v.micro);
-                    if(otherv.IsLower(Version::MakeVersion(0, 4, 0))) global_app->ShowNotification("Only emuiibo 0.4.0 or newer is supported.");
-                    else
+                    auto sdex = fs::GetSdCardExplorer();
+                    String emupath = "emuiibo/amiibo";
+                    String sdemupath = "sdmc:/emuiibo/amiibo";
+                    auto dirs = sdex->GetDirectories(emupath);
+
+                    auto curamiiborc = nfp::emu::GetCurrentAmiibo(curamiibo, FS_MAX_PATH);
+
+                    auto sitm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(399));
+                    sitm->SetColor(global_settings.custom_scheme.Text);
+                    sitm->AddOnClick(std::bind(&EmuiiboLayout::state_Click, this));
+                    this->optionsMenu->AddItem(sitm);
+
+                    for(auto &emudir: dirs)
                     {
-                        auto sdex = fs::GetSdCardExplorer();
-                        String emupath = "emuiibo/amiibo";
-                        String sdemupath = "sdmc:/emuiibo/amiibo";
-                        auto dirs = sdex->GetDirectories(emupath);
-
-                        auto curamiiborc = nfp::emu::GetCurrentAmiibo(curamiibo, FS_MAX_PATH);
-
-                        auto sitm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(399));
-                        sitm->SetColor(global_settings.custom_scheme.Text);
-                        sitm->AddOnClick(std::bind(&EmuiiboLayout::state_Click, this));
-                        this->optionsMenu->AddItem(sitm);
-
-                        for(auto &emudir: dirs)
+                        if(sdex->IsFile(emupath + "/" + emudir + "/model.json") && sdex->IsFile(emupath + "/" + emudir + "/tag.json") && sdex->IsFile(emupath + "/" + emudir + "/register.json") && sdex->IsFile(emupath + "/" + emudir + "/common.json"))
                         {
-                            if(sdex->IsFile(emupath + "/" + emudir + "/model.json") && sdex->IsFile(emupath + "/" + emudir + "/tag.json") && sdex->IsFile(emupath + "/" + emudir + "/register.json") && sdex->IsFile(emupath + "/" + emudir + "/common.json"))
+                            String amiibopath = sdemupath + "/" + emudir;
+                            auto amiibo = nfp::emu::LoadVirtualAmiibo(amiibopath);
+                            if(!amiibo.name.empty())
                             {
-                                String amiibopath = sdemupath + "/" + emudir;
-                                auto amiibo = nfp::emu::LoadVirtualAmiibo(amiibopath);
-                                if(!amiibo.name.empty())
+                                String name = amiibo.name;
+                                if(R_SUCCEEDED(curamiiborc) && (strcasecmp(curamiibo, amiibopath.AsUTF8().c_str()) == 0))
                                 {
-                                    String name = amiibo.name;
-                                    if(R_SUCCEEDED(curamiiborc) && (strcasecmp(curamiibo, amiibopath.AsUTF8().c_str()) == 0))
-                                    {
-                                        name = "[" + cfg::strings::Main.GetString(400) + "] ";
-                                        name += amiibo.name;
-                                    }
-                                    auto aitm = pu::ui::elm::MenuItem::New(name);
-                                    aitm->SetColor(global_settings.custom_scheme.Text);
-                                    aitm->AddOnClick(std::bind(&EmuiiboLayout::amiibo_Click, this, amiibopath));
-                                    auto img = nfp::emu::SaveAmiiboImageById(amiibo.id);
-                                    if(img.HasAny()) aitm->SetIcon(img.AsUTF8());
-                                    else aitm->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
-                                    this->optionsMenu->AddItem(aitm);
+                                    name = "[" + cfg::strings::Main.GetString(400) + "] ";
+                                    name += amiibo.name;
                                 }
+                                auto aitm = pu::ui::elm::MenuItem::New(name);
+                                aitm->SetColor(global_settings.custom_scheme.Text);
+                                aitm->AddOnClick(std::bind(&EmuiiboLayout::amiibo_Click, this, amiibopath));
+                                auto img = nfp::emu::SaveAmiiboImageById(amiibo.id);
+                                if(img.HasAny()) aitm->SetIcon(img.AsUTF8());
+                                else aitm->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
+                                this->optionsMenu->AddItem(aitm);
                             }
                         }
                     }
                 }
             }
-            if(R_FAILED(rc))
-            {
-                HandleResult(rc, cfg::strings::Main.GetString(401));
-                global_app->ReturnToMainMenu();
-            }
-            else
-            {
-                this->optionsMenu->SetSelectedIndex(0);
-                this->infoText->SetVisible(false);
-                this->optionsMenu->SetVisible(true);
-            }
+        }
+        if(R_FAILED(rc))
+        {
+            HandleResult(rc, cfg::strings::Main.GetString(401));
+            global_app->ReturnToMainMenu();
         }
         else
         {
-            global_app->ShowNotification(cfg::strings::Main.GetString(402));
-            global_app->ReturnToMainMenu();
+            this->optionsMenu->SetSelectedIndex(0);
+            this->infoText->SetVisible(false);
+            this->optionsMenu->SetVisible(true);
         }
     }
 }

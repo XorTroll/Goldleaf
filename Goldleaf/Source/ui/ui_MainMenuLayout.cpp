@@ -129,9 +129,13 @@ namespace ui
 
     void MainMenuLayout::emuiiboMenuItem_Click()
     {
-        global_app->LoadMenuData("emuiibo manager", "Emuiibo", "Loading status...");
-        global_app->LoadLayout(global_app->GetEmuiiboLayout());
-        global_app->GetEmuiiboLayout()->Reload();
+        if(nfp::emu::IsEmuiiboAccessible())
+        {
+            global_app->LoadMenuData("emuiibo manager", "Emuiibo", "Loading status...");
+            global_app->LoadLayout(global_app->GetEmuiiboLayout());
+            global_app->GetEmuiiboLayout()->Reload();
+        }
+        else global_app->ShowNotification(cfg::strings::Main.GetString(402));
     }
 
     void MainMenuLayout::settingsMenuItem_Click()

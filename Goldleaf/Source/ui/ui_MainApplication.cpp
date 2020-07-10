@@ -483,7 +483,6 @@ namespace ui
         if(down & KEY_PLUS) this->CloseWithFadeOut();
         else if((down & KEY_ZL) || (down & KEY_ZR)) ShowPowerTasksDialog(cfg::strings::Main.GetString(229), cfg::strings::Main.GetString(230));
         else if(down & KEY_MINUS) this->helpImage_OnClick();
-        else if(down & KEY_X) ApplyRandomScheme();
     }
 
     MainMenuLayout::Ref &MainApplication::GetMainMenuLayout()
@@ -592,11 +591,5 @@ namespace ui
         String copymsg = cfg::strings::Main.GetString(258);
         if(global_app->GetBrowserLayout()->GetExplorer()->IsFile(Path)) copymsg = cfg::strings::Main.GetString(257);
         global_app->ShowNotification(copymsg);
-    }
-
-    void ApplyRandomScheme()
-    {
-        global_settings.custom_scheme = GenerateRandomScheme();
-        global_app->OnLoad();
     }
 }

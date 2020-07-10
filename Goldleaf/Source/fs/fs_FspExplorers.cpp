@@ -29,7 +29,7 @@ namespace fs
 
     static std::string AllocateMountName()
     {
-        int id = rand();
+        auto id = randomGet64();
         std::string name = "gmount-" + hos::FormatHex(id);
         for(auto &mount_name: mount_name_table)
         {

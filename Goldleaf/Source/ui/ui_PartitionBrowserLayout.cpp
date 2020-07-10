@@ -21,6 +21,7 @@
 
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
+#include <hos/hos_Payload.hpp>
 
 extern ui::MainApplication::Ref global_app;
 extern cfg::Settings global_settings;
@@ -228,11 +229,8 @@ namespace ui
             }
             else if(ext == "bin")
             {
-                if(IsAtmosphere())
-                {
-                    vopts.push_back(cfg::strings::Main.GetString(66));
-                    copt++;
-                }
+                vopts.push_back(cfg::strings::Main.GetString(66));
+                copt++;
             }
             vopts.push_back(cfg::strings::Main.GetString(71));
             vopts.push_back(cfg::strings::Main.GetString(72));
@@ -414,12 +412,13 @@ namespace ui
             }
             else if(ext == "bin") 
             {
-                if(IsAtmosphere()) switch(sopt)
+                switch(sopt)
                 {
                     case 0:
                         sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(125), cfg::strings::Main.GetString(126), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                         if(sopt < 0) return;
-                        hos::PayloadProcess(fullitm);
+                        auto res = hos::RebootWithPayload(fullitm);
+                        if(!res) global_app->ShowNotification("Something failed...");
                         break;
                 }
             }
