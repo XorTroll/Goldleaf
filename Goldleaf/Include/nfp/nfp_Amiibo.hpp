@@ -25,6 +25,22 @@
 
 namespace nfp
 {
+    struct CharacterId
+    {
+        u16 game_character_id;
+        u8 character_variant;
+    } PACKED;
+    static_assert(sizeof(CharacterId) == 3);
+
+    struct AmiiboId
+    {
+        CharacterId character_id;
+        u8 series;
+        u16 model_number;
+        u8 figure_type;
+    } PACKED;
+    static_assert(sizeof(AmiiboId) == 7);
+
     Result Initialize();
     bool IsReady();
     Result Open();

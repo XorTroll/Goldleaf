@@ -102,8 +102,6 @@ namespace ui
         this->fileContent = FileContentLayout::New();
         this->fileContent->SetOnInput(std::bind(&MainApplication::fileContent_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->copy = CopyLayout::New();
-        this->emuiibo = EmuiiboLayout::New();
-        this->emuiibo->SetOnInput(std::bind(&MainApplication::emuiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->exploreMenu = ExploreMenuLayout::New();
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->pcExplore = PCExploreLayout::New();
@@ -138,7 +136,6 @@ namespace ui
         MAINAPP_MENU_SET_BASE(this->pcExplore);
         MAINAPP_MENU_SET_BASE(this->fileContent);
         MAINAPP_MENU_SET_BASE(this->copy);
-        MAINAPP_MENU_SET_BASE(this->emuiibo);
         MAINAPP_MENU_SET_BASE(this->nspInstall);
         MAINAPP_MENU_SET_BASE(this->contentInformation);
         MAINAPP_MENU_SET_BASE(this->storageContents);
@@ -369,16 +366,6 @@ namespace ui
         }
     }
 
-    void MainApplication::emuiibo_Input(u64 down, u64 up, u64 held)
-    {
-        this->emuiibo->UpdateState();
-        if(down & KEY_B)
-        {
-            nfp::emu::Exit();
-            this->ReturnToMainMenu();
-        }
-    }
-
     void MainApplication::exploreMenu_Input(u64 down, u64 up, u64 held)
     {
         if(down & KEY_B) this->ReturnToMainMenu();
@@ -503,11 +490,6 @@ namespace ui
     CopyLayout::Ref &MainApplication::GetCopyLayout()
     {
         return this->copy;
-    }
-
-    EmuiiboLayout::Ref &MainApplication::GetEmuiiboLayout()
-    {
-        return this->emuiibo;
     }
 
     ExploreMenuLayout::Ref &MainApplication::GetExploreMenuLayout()

@@ -52,10 +52,6 @@ namespace ui
         this->amiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
         this->amiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
-        this->emuiiboMenuItem = pu::ui::elm::MenuItem::New("emuiibo management");
-        this->emuiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
-        this->emuiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->emuiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::emuiiboMenuItem_Click, this));
         this->settingsMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(375));
         this->settingsMenuItem->SetIcon(global_settings.PathForResource("/Common/Settings.png"));
         this->settingsMenuItem->SetColor(global_settings.custom_scheme.Text);
@@ -73,7 +69,6 @@ namespace ui
         this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->amiiboMenuItem);
-        this->optionMenu->AddItem(this->emuiiboMenuItem);
         this->optionMenu->AddItem(this->settingsMenuItem);
         this->optionMenu->AddItem(this->updateMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
@@ -125,17 +120,6 @@ namespace ui
         global_app->LoadLayout(global_app->GetAmiiboDumpLayout());
         global_app->GetAmiiboDumpLayout()->StartDump();
         global_app->ReturnToMainMenu();
-    }
-
-    void MainMenuLayout::emuiiboMenuItem_Click()
-    {
-        if(nfp::emu::IsEmuiiboAccessible())
-        {
-            global_app->LoadMenuData("emuiibo manager", "Emuiibo", "Loading status...");
-            global_app->LoadLayout(global_app->GetEmuiiboLayout());
-            global_app->GetEmuiiboLayout()->Reload();
-        }
-        else global_app->ShowNotification(cfg::strings::Main.GetString(402));
     }
 
     void MainMenuLayout::settingsMenuItem_Click()

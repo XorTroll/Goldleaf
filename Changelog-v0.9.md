@@ -12,6 +12,10 @@
 
 - Updated libnx and Plutonium - this implies support for previously unsupported special text (Japanese and Chinese characters, etc.) with last Plutonium
 
+- Removed emuiibo manager - emuiibo's overlay is now the optimal and recommended manager for emuiibo
+
+- Amiibo dumping support was updated to match emuiibo v0.5.x's format
+
 - Non-lowercase file extensions (.TXT, .BIN, .Nsp, etc.) are now properly supported
 
 - Fixed resetting a title's launch version, which wasn't properly implemented on previous releases

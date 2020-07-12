@@ -76,16 +76,10 @@ String Version::AsString()
     return txt;
 }
 
-Version Version::MakeVersion(u32 major, u32 minor, u32 micro)
-{
-    return { major, minor, (s32)micro };
-}
-
 Version Version::FromString(String StrVersion)
 {
-    String strv = StrVersion;
-    Version v;
-    memset(&v, 0, sizeof(v));
+    auto strv = StrVersion;
+    Version v = {};
     size_t pos = 0;
     String token;
     u32 c = 0;

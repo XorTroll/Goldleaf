@@ -26,7 +26,6 @@
 #include <ui/ui_ContentInformationLayout.hpp>
 #include <ui/ui_ContentManagerLayout.hpp>
 #include <ui/ui_CopyLayout.hpp>
-#include <ui/ui_EmuiiboLayout.hpp>
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_FileContentLayout.hpp>
 #include <ui/ui_InstallLayout.hpp>
@@ -60,7 +59,6 @@ namespace ui
             void LoadMenuHead(String Head);
             void UnloadMenuData();
             void browser_Input(u64 down, u64 up, u64 held);
-            void emuiibo_Input(u64 down, u64 up, u64 held);
             void exploreMenu_Input(u64 down, u64 up, u64 held);
             void pcExplore_Input(u64 down, u64 up, u64 held);
             void fileContent_Input(u64 down, u64 up, u64 held);
@@ -82,7 +80,6 @@ namespace ui
             PartitionBrowserLayout::Ref &GetBrowserLayout();
             FileContentLayout::Ref &GetFileContentLayout();
             CopyLayout::Ref &GetCopyLayout();
-            EmuiiboLayout::Ref &GetEmuiiboLayout();
             ExploreMenuLayout::Ref &GetExploreMenuLayout();
             PCExploreLayout::Ref &GetPCExploreLayout();
             InstallLayout::Ref &GetInstallLayout();
@@ -111,7 +108,6 @@ namespace ui
             PartitionBrowserLayout::Ref browser;
             FileContentLayout::Ref fileContent;
             CopyLayout::Ref copy;
-            EmuiiboLayout::Ref emuiibo;
             ExploreMenuLayout::Ref exploreMenu;
             PCExploreLayout::Ref pcExplore;
             InstallLayout::Ref nspInstall;

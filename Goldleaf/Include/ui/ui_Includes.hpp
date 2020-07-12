@@ -31,7 +31,6 @@
 #include <ncm/ncm_Types.hpp>
 #include <net/net_Network.hpp>
 #include <nfp/nfp_Amiibo.hpp>
-#include <nfp/nfp_Emuiibo.hpp>
 #include <ns/ns_Service.hpp>
 #include <nsp/nsp_Installer.hpp>
 #include <nsp/nsp_Builder.hpp>

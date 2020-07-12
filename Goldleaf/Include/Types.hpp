@@ -102,7 +102,12 @@ struct Version
     s32 Micro;
 
     String AsString();
-    static Version MakeVersion(u32 major, u32 minor, u32 micro);
+
+    static inline constexpr Version MakeVersion(u32 major, u32 minor, u32 micro)
+    {
+        return { major, minor, static_cast<s32>(micro) };
+    }
+
     static Version FromString(String StrVersion);
     bool IsLower(Version Other);
     bool IsHigher(Version Other);

@@ -232,7 +232,11 @@ namespace ui
                 vopts.push_back(cfg::strings::Main.GetString(66));
                 copt++;
             }
-            vopts.push_back(cfg::strings::Main.GetString(71));
+            else if(!is_bin)
+            {
+                vopts.push_back(cfg::strings::Main.GetString(71));
+                copt++;
+            }
             vopts.push_back(cfg::strings::Main.GetString(72));
             vopts.push_back(cfg::strings::Main.GetString(73));
             vopts.push_back(cfg::strings::Main.GetString(74));

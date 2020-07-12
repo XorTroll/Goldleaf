@@ -104,7 +104,7 @@ namespace fs
     void StdExplorer::CreateFile(String Path)
     {
         String path = this->MakeFull(Path);
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
+        fsdevCreateFile(path.AsUTF8().c_str(), 0, 0);
         this->commit_fn();
     }
 
@@ -170,7 +170,7 @@ namespace fs
         if(this->r_file_obj != nullptr)
         {
             fseek(this->r_file_obj, Offset, SEEK_SET);
-            rsz = fread(Out, 1, Size, this->r_file_obj);
+            rsz = fread(Out, Size, 1, this->r_file_obj);
             return rsz;
         }
 
@@ -179,7 +179,7 @@ namespace fs
         if(f)
         {
             fseek(f, Offset, SEEK_SET);
-            rsz = fread(Out, 1, Size, f);
+            rsz = fread(Out, Size, 1, f);
             fclose(f);
         }
         return rsz;
@@ -188,11 +188,10 @@ namespace fs
     u64 StdExplorer::WriteFileBlock(String Path, void *Data, u64 Size)
     {
         u64 wsz = 0;
-        
 
         if(this->w_file_obj != nullptr)
         {
-            wsz = fwrite(Data, 1, Size, this->w_file_obj);
+            wsz = fwrite(Data, Size, 1, this->w_file_obj);
             return wsz;
         }
 
@@ -201,7 +200,7 @@ namespace fs
         FILE *f = fopen(path.AsUTF8().c_str(), "ab+");
         if(f)
         {
-            wsz = fwrite(Data, 1, Size, f);
+            wsz = fwrite(Data, Size, 1, f);
             fclose(f);
         }
         return wsz;
