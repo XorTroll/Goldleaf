@@ -33,7 +33,7 @@ namespace ui
 
             void Refresh();
             void input_Click();
-            void bookmark_Click(cfg::WebBookmark bmk);
+            void bookmark_Click(cfg::WebBookmark &bmk);
         private:
             pu::ui::elm::Menu::Ref optionsMenu;
     };

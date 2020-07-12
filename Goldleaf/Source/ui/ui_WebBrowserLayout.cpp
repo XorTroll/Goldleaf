@@ -52,7 +52,7 @@ namespace ui
         }
     }
 
-    static void LaunchWeb(std::string page)
+    inline void LaunchWeb(const std::string &page)
     {
         WebCommonConfig web;
         webPageCreate(&web, page.c_str());
@@ -68,17 +68,106 @@ namespace ui
         if(sopt == 0)
         {
             auto name = AskForText(cfg::strings::Main.GetString(381));
-            cfg::WebBookmark bmk = {};
-            bmk.name = name.AsUTF8();
-            bmk.url = out.AsUTF8();
-            global_settings.bookmarks.push_back(bmk);
-            global_settings.Save();
-            global_app->ShowNotification(cfg::strings::Main.GetString(382));
+            if(!name.empty())
+            {
+                cfg::WebBookmark bmk = {};
+                bmk.name = name.AsUTF8();
+                bmk.url = out.AsUTF8();
+                global_settings.bookmarks.push_back(bmk);
+                global_settings.Save();
+                this->Refresh();
+                global_app->ShowNotification(cfg::strings::Main.GetString(382));
+            }
         }
     }
     
-    void WebBrowserLayout::bookmark_Click(cfg::WebBookmark bmk)
+    void WebBrowserLayout::bookmark_Click(cfg::WebBookmark &bmk)
     {
-        LaunchWeb(bmk.url);
+        auto sopt = global_app->CreateShowDialog("Web bookmark", "What would you like to do with this bookmark?", { "Browse", "Edit", "Remove", "Cancel" }, true);
+        switch(sopt)
+        {
+            case 0:
+            {
+                LaunchWeb(bmk.url);
+                break;
+            }
+            case 1:
+            {
+                auto sopt2 = global_app->CreateShowDialog("Edit bookmark", "What field would you like to edit?", { "Name", "URL", "Cancel" }, true);
+                switch(sopt2)
+                {
+                    case 0:
+                    {
+                        auto name = AskForText("Name");
+                        if(!name.empty())
+                        {
+                            for(auto &bookmark: global_settings.bookmarks)
+                            {
+                                if(bookmark.name == bmk.name)
+                                {
+                                    bookmark.name = name.AsUTF8();
+                                    global_settings.Save();
+                                    this->Refresh();
+                                    global_app->ShowNotification("Name was changed.");
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case 1:
+                    {
+                        auto url = AskForText("URL", "https://");
+                        if(!url.empty())
+                        {
+                            for(auto &bookmark: global_settings.bookmarks)
+                            {
+                                if(bookmark.name == bmk.name)
+                                {
+                                    bookmark.url = url.AsUTF8();
+                                    global_settings.Save();
+                                    this->Refresh();
+                                    global_app->ShowNotification("URL was changed.");
+                                }
+                            }
+                            
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+            case 2:
+            {
+                auto sopt2 = global_app->CreateShowDialog("Remove bookmark", "Are you sure you want to remove this bookmark?", { "Yes", "Cancel" }, true);
+                switch(sopt2)
+                {
+                    case 0:
+                    {
+                        u32 idx = 0;
+                        bool found = false;
+                        for(u32 i = 0; i < global_settings.bookmarks.size(); i++)
+                        {
+                            auto &bookmark = global_settings.bookmarks[i];
+                            if(bmk.name == bookmark.name)
+                            {
+                                idx = i;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(found)
+                        {
+                            global_settings.bookmarks.erase(global_settings.bookmarks.begin() + idx);
+                            global_settings.Save();
+                            this->Refresh();
+                            global_app->ShowNotification("The bookmark was deleted.");
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        
     }
 }
