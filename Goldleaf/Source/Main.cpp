@@ -48,6 +48,6 @@ int main()
     global_app->Prepare();
     global_app->ShowWithFadeIn();
 
-    Exit();
+    Exit(0);
     return 0;
 }

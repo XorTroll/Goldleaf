@@ -452,10 +452,9 @@ namespace ui
                 {
                     sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(127), cfg::strings::Main.GetString(128), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                     if(sopt < 0) return;
-                    Result rc = 0;
                     this->gexp->DeleteFile(fullitm);
-                    if(R_SUCCEEDED(rc)) global_app->ShowNotification(cfg::strings::Main.GetString(129));
-                    else HandleResult(rc, cfg::strings::Main.GetString(253));
+                    global_app->ShowNotification(cfg::strings::Main.GetString(129));
+                    // else HandleResult(rc, cfg::strings::Main.GetString(253));
                     u32 tmpidx = this->browseMenu->GetSelectedIndex();
                     if(tmpidx > 0) tmpidx--;
                     this->UpdateElements(tmpidx);
@@ -463,22 +462,18 @@ namespace ui
             }
             else if(osopt == renopt)
             {
-                String kbdt = AskForText(cfg::strings::Main.GetString(130), item);
-                if(kbdt != "")
+                String new_name = AskForText(cfg::strings::Main.GetString(130), item);
+                if(!new_name.empty())
                 {
-                    if(kbdt == item) return;
-                    String newren = kbdt;
-                    if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
+                    if(new_name == item) return;
+                    auto new_path = this->gexp->FullPathFor(new_name);
+                    if(this->gexp->IsFile(new_path) || this->gexp->IsDirectory(new_path)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
                     else if(this->WarnNANDWriteAccess())
                     {
-                        int rc = 0;
-                        this->gexp->RenameFile(fullitm, newren);
-                        if(rc) HandleResult(err::result::MakeErrnoResult(), cfg::strings::Main.GetString(254));
-                        else
-                        {
-                            global_app->ShowNotification(cfg::strings::Main.GetString(133));
-                            this->UpdateElements(this->browseMenu->GetSelectedIndex());
-                        }
+                        this->gexp->RenameFile(fullitm, new_path);
+                        // if(rc) HandleResult(err::result::MakeErrnoResult(), cfg::strings::Main.GetString(254));
+                        global_app->ShowNotification(cfg::strings::Main.GetString(133));
+                        this->UpdateElements(this->browseMenu->GetSelectedIndex());
                     }
                 }
             }
@@ -555,10 +550,10 @@ namespace ui
                             Storage dst = Storage::SdCard;
                             if(sopt == 0) dst = Storage::SdCard;
                             else if(sopt == 1) dst = Storage::NANDUser;
-                            for(u32 i = 0; i < nsps.size(); i++)
+                            for(auto &nsp_path: nsps)
                             {
-                                auto nsp = fullitm + "/" + nsps[i];
-                                auto pnsp = pfullitm + "/" + nsps[i];
+                                auto nsp = fullitm + "/" + nsp_path;
+                                auto pnsp = pfullitm + "/" + nsp_path;
                                 
                                 u64 fsize = this->gexp->GetFileSize(nsp);
                                 u64 rsize = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));

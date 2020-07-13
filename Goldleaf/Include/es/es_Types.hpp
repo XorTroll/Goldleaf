@@ -24,10 +24,15 @@
 
 namespace es
 {
-    struct RightsId
+    union RightsId
     {
-        u8 RId[0x10];
-    } PACKED;
+        struct {
+            u64 app_id;
+            u64 key_gen;
+        };
+        u8 id[0x10];
+    };
+    static_assert(sizeof(RightsId) == 0x10);
 
     constexpr u8 CommonCertificateData[] =
     {

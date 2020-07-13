@@ -50,7 +50,7 @@ namespace usb
 
     void InCommandBlock::WriteBuffer(void *Buf, size_t Size)
     {
-        memcpy(&base.blockbuf[base.position], Buf, Size);
+        memcpy(&base.blockbuf + base.position, Buf, Size);
         base.position += Size;
     }
 
@@ -110,7 +110,7 @@ namespace usb
 
     void OutCommandBlock::ReadBuffer(void *Buf, size_t Size)
     {
-        memcpy(Buf, &base.blockbuf[base.position], Size);
+        memcpy(Buf, &base.blockbuf + base.position, Size);
         base.position += Size;
     }
 

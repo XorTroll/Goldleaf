@@ -1,13 +1,13 @@
 #include <hos/hos_Common.hpp>
 
-static u64 GetBaseAddress()
+inline u64 GetBaseAddress()
 {
     u32 p;
     MemoryInfo info;
 
     // Find the memory region in which the function itself is stored.
     // The start of it will be the base address the homebrew was mapped to.
-    svcQueryMemory(&info, &p, (u64) &GetBaseAddress);
+    svcQueryMemory(&info, &p, (u64)&GetBaseAddress);
 
     return info.addr;
 }
@@ -32,7 +32,7 @@ extern "C"
             ofs.close();
         }
 
-        Exit();
+        Exit(0);
     }
 
     void __wrap_fatalThrow(Result rc) // This way, any kind of fatal thrown by us or libnx gets saved to a simple report, and Goldleaf simply closes itself
@@ -47,6 +47,6 @@ extern "C"
             ofs.close();
         }
 
-        Exit();
+        Exit(rc);
     }
 }

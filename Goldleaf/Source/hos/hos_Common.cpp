@@ -54,9 +54,10 @@ namespace hos
 
     std::string FormatHex128(AccountUid Number)
     {
-        u8 *ptr = (u8*)Number.uid;
+        auto ptr = reinterpret_cast<u8*>(Number.uid);
         std::stringstream strm;
-        for(u32 i = 0; i < 16; i++) strm << std::hex << std::uppercase << (int)ptr[i];
+        strm << std::hex << std::uppercase;
+        for(u32 i = 0; i < 16; i++) strm << (u32)ptr[i];
         return strm.str();
     }
 

@@ -136,7 +136,7 @@ u64 GetCurrentApplicationId();
 u32 RandomFromRange(u32 Min, u32 Max);
 void EnsureDirectories();
 Result Initialize();
-void Close();
+void Close(Result rc);
 
 // Exit calls Close!
-void Exit();
+void Exit(Result rc);

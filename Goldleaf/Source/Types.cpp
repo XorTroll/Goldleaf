@@ -181,10 +181,15 @@ void EnsureDirectories()
     sd->CreateDirectory(consts::Root + "/dump/title");
 }
 
-void Close()
+extern "C"
+{
+    void NORETURN __nx_exit(Result rc, LoaderReturnFn retaddr);
+}
+
+void Close(Result rc)
 {
     if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
-    else exit(0);
+    else __nx_exit(rc, envGetExitFuncPtr());
 }
 
 Result Initialize()
@@ -208,7 +213,7 @@ Result Initialize()
     return 0;
 }
 
-void Exit()
+void Exit(Result rc)
 {
     auto nsys = fs::GetNANDSystemExplorer();
     auto nsfe = fs::GetNANDSafeExplorer();
@@ -245,5 +250,5 @@ void Exit()
     ncmExit();
     nifmExit();
     pdmqryExit();
-    Close();
+    Close(rc);
 }
