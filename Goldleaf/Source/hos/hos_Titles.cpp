@@ -392,29 +392,6 @@ namespace hos
         return "sdmc:/" + consts::Root + "/title/" + FormatApplicationId(ApplicationId) + ".nacp";
     }
 
-    u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
-    {
-        auto appid = ApplicationId;
-        switch(Type)
-        {
-            case ncm::ContentMetaType::Patch:
-                appid = (ApplicationId ^ 0x800);
-                break;
-            case ncm::ContentMetaType::AddOnContent:
-                appid = ((ApplicationId ^ 0x1000) & ~0xfff);
-                break;
-            default:
-                appid = ApplicationId;
-                break;
-        }
-        return appid;
-    }
-
-    u32 GetIdFromDLCApplicationId(u64 ApplicationId)
-    {
-        return (ApplicationId & 0xfff);
-    }
-
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId)
     {
         String fappid = FormatApplicationId(ApplicationId);

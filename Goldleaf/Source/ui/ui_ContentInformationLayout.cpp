@@ -38,11 +38,11 @@ namespace ui
     void ContentInformationLayout::UpdateElements()
     {
         this->optionsMenu->ClearItems();
-        if(!this->tcontents.empty()) for(u32 i = 0; i < this->tcontents.size(); i++)
+        for(auto &content: this->tcontents)
         {
-            String name = cfg::strings::Main.GetString(261);
-            if(this->tcontents[i].IsUpdate()) name = cfg::strings::Main.GetString(262);
-            if(this->tcontents[i].IsDLC()) name = cfg::strings::Main.GetString(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(this->tcontents[i].ApplicationId));
+            auto name = cfg::strings::Main.GetString(261);
+            if(content.IsUpdate()) name = cfg::strings::Main.GetString(262);
+            if(content.IsDLC()) name = cfg::strings::Main.GetString(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(content.ApplicationId));
             auto subcnt = pu::ui::elm::MenuItem::New(name);
             subcnt->SetColor(global_settings.custom_scheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
@@ -56,7 +56,7 @@ namespace ui
         u32 idx = this->optionsMenu->GetSelectedIndex();
         String msg = cfg::strings::Main.GetString(169) + "\n\n";
         msg += cfg::strings::Main.GetString(170) + " ";
-        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), "Mount save data" };
+        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(414) };
         std::string icn;
         auto &cnt = this->tcontents[idx];
         auto sd_exp = fs::GetSdCardExplorer();
@@ -148,7 +148,7 @@ namespace ui
                 if(sopt < 0) return;
                 remtik = (sopt == 0);
             }
-            Result rc = hos::RemoveTitle(cnt);
+            auto rc = hos::RemoveTitle(cnt);
             if(R_SUCCEEDED(rc))
             {
                 if(remtik) rc = hos::RemoveTicket(stik);
@@ -157,9 +157,8 @@ namespace ui
                     global_app->ShowNotification(cfg::strings::Main.GetString(246));
                     global_app->ReturnToMainMenu();
                 }
-                else HandleResult(rc, cfg::strings::Main.GetString(247));
             }
-            else HandleResult(rc, cfg::strings::Main.GetString(247));
+            if(R_FAILED(rc)) HandleResult(rc, cfg::strings::Main.GetString(247));
         }
         else if(sopt == 1)
         {
@@ -176,17 +175,17 @@ namespace ui
         {
             if(!cnt.IsBaseTitle())
             {
-                global_app->CreateShowDialog("Content save data", "This can only be done with titles, not updates or DLC.", { "Ok" }, true);
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(409), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
             if(cnt.Location == Storage::NANDSystem)
             {
-                global_app->CreateShowDialog("Content save data", "This cannot be done with system titles.", { "Ok" }, true);
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(410), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
             if(!acc::HasUser())
             {
-                global_app->CreateShowDialog("Content save data", "Select an account to browse the save data first.", { "Ok" }, true);
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(411), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
 
@@ -201,19 +200,17 @@ namespace ui
             if(R_SUCCEEDED(rc))
             {
                 auto exp = new fs::FspExplorer("SaveData-0x" + hos::FormatApplicationId(cnt.ApplicationId), fs);
-                global_app->GetExploreMenuLayout()->AddMountedExplorer(exp, "Game save data", icn);
-                global_app->ShowNotification("Save data was mounted. Check it in the contents browsing section.");
+                exp->SetShouldWarnOnWriteAccess(true);
+                global_app->GetExploreMenuLayout()->AddMountedExplorer(exp, cfg::strings::Main.GetString(408), icn);
+                global_app->ShowNotification(cfg::strings::Main.GetString(412));
             }
-            else
-            {
-                HandleResult(rc, "An error ocurred attempting to mount the save data of this title and user:");
-            }
+            else HandleResult(rc, cfg::strings::Main.GetString(413));
         }
         else if(hastik && (sopt == 3))
         {
             sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(205), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
-            Result rc = es::DeleteTicket(&stik.RId, sizeof(es::RightsId));
+            auto rc = es::DeleteTicket(&stik.RId, sizeof(stik.RId));
             if(R_SUCCEEDED(rc))
             {
                 global_app->ShowNotification(cfg::strings::Main.GetString(206));
@@ -238,9 +235,9 @@ namespace ui
         this->tcontents.clear();
         this->tcontents.push_back(Content);
         std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Content.Location);
-        for(u32 i = 0; i < tts.size(); i++)
+        for(auto &title: tts)
         {
-            if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
+            if(Content.CheckBase(title)) this->tcontents.push_back(title);
         }
         NacpStruct *nacp = Content.TryGetNACP();
         String tcnt = hos::FormatApplicationId(Content.ApplicationId);
@@ -255,7 +252,6 @@ namespace ui
         {
             icon = hos::GetExportedIconPath(Content.ApplicationId);
             delete[] cicon;
-            cicon = nullptr;
         }
         global_app->LoadMenuData(cfg::strings::Main.GetString(187), icon, tcnt, false);
         this->UpdateElements();

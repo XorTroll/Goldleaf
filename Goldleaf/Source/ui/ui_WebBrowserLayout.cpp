@@ -83,7 +83,7 @@ namespace ui
     
     void WebBrowserLayout::bookmark_Click(cfg::WebBookmark &bmk)
     {
-        auto sopt = global_app->CreateShowDialog("Web bookmark", "What would you like to do with this bookmark?", { "Browse", "Edit", "Remove", "Cancel" }, true);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(383), cfg::strings::Main.GetString(384), { cfg::strings::Main.GetString(385), cfg::strings::Main.GetString(386), cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
         switch(sopt)
         {
             case 0:
@@ -93,12 +93,12 @@ namespace ui
             }
             case 1:
             {
-                auto sopt2 = global_app->CreateShowDialog("Edit bookmark", "What field would you like to edit?", { "Name", "URL", "Cancel" }, true);
+                auto sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(387), cfg::strings::Main.GetString(388), { cfg::strings::Main.GetString(389), cfg::strings::Main.GetString(390), cfg::strings::Main.GetString(18) }, true);
                 switch(sopt2)
                 {
                     case 0:
                     {
-                        auto name = AskForText("Name");
+                        auto name = AskForText(cfg::strings::Main.GetString(391));
                         if(!name.empty())
                         {
                             for(auto &bookmark: global_settings.bookmarks)
@@ -108,7 +108,7 @@ namespace ui
                                     bookmark.name = name.AsUTF8();
                                     global_settings.Save();
                                     this->Refresh();
-                                    global_app->ShowNotification("Name was changed.");
+                                    global_app->ShowNotification(cfg::strings::Main.GetString(393));
                                 }
                             }
                         }
@@ -116,7 +116,7 @@ namespace ui
                     }
                     case 1:
                     {
-                        auto url = AskForText("URL", "https://");
+                        auto url = AskForText(cfg::strings::Main.GetString(392), "https://");
                         if(!url.empty())
                         {
                             for(auto &bookmark: global_settings.bookmarks)
@@ -126,7 +126,7 @@ namespace ui
                                     bookmark.url = url.AsUTF8();
                                     global_settings.Save();
                                     this->Refresh();
-                                    global_app->ShowNotification("URL was changed.");
+                                    global_app->ShowNotification(cfg::strings::Main.GetString(394));
                                 }
                             }
                             
@@ -138,7 +138,7 @@ namespace ui
             }
             case 2:
             {
-                auto sopt2 = global_app->CreateShowDialog("Remove bookmark", "Are you sure you want to remove this bookmark?", { "Yes", "Cancel" }, true);
+                auto sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(395), cfg::strings::Main.GetString(396), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                 switch(sopt2)
                 {
                     case 0:
@@ -159,8 +159,9 @@ namespace ui
                         {
                             global_settings.bookmarks.erase(global_settings.bookmarks.begin() + idx);
                             global_settings.Save();
+                            this->optionsMenu->SetSelectedIndex(this->optionsMenu->GetSelectedIndex() - 1);
                             this->Refresh();
-                            global_app->ShowNotification("The bookmark was deleted.");
+                            global_app->ShowNotification(cfg::strings::Main.GetString(397));
                         }
                         break;
                     }

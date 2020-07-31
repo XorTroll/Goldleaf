@@ -98,7 +98,7 @@ namespace ui
                     break;
             }
             info += "\n";
-            hos::ApplicationIdMask idmask = hos::IsValidApplicationId(inst.GetApplicationId());
+            auto idmask = hos::IsValidApplicationId(inst.GetApplicationId());
             switch(idmask)
             {
                 case hos::ApplicationIdMask::Official:
@@ -113,30 +113,22 @@ namespace ui
             }
             info += "\n" + cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(inst.GetApplicationId());
             info += "\n\n";
-            auto NACP = inst.GetNACP();
-            if(NACP->display_version[0] != '\0')
+            auto nacp = inst.GetNACP();
+            if(strlen(nacp->display_version) > 0)
             {
-                NacpLanguageEntry *lent;
-                nacpGetLanguageEntry(NACP, &lent);
-                if(lent == nullptr) for(u32 i = 0; i < 16; i++)
-                {
-                    lent = &NACP->lang[i];
-                    if((lent->name[0] != '\0') && (lent->author[0] != '\0')) break;
-                }
                 info += cfg::strings::Main.GetString(91) + " ";
-                info += lent->name;
+                info += hos::GetNACPName(nacp);
                 info += "\n" + cfg::strings::Main.GetString(92) + " ";
-                info += lent->author;
+                info += hos::GetNACPAuthor(nacp);
                 info += "\n" + cfg::strings::Main.GetString(109) + " ";
-                info += NACP->display_version;
+                info += hos::GetNACPVersion(nacp);
                 info += "\n\n";
             }
-            auto NCAs = inst.GetNCAs();
+            auto ncas = inst.GetNCAs();
             info += cfg::strings::Main.GetString(93) + " ";
-            for(u32 i = 0; i < NCAs.size(); i++)
+            for(auto &nca: ncas)
             {
-                ncm::ContentType t = NCAs[i].Type;
-                switch(t)
+                switch(nca.Type)
                 {
                     case ncm::ContentType::Control:
                         info += cfg::strings::Main.GetString(166);
@@ -159,8 +151,9 @@ namespace ui
                     default:
                         break;
                 }
-                if(i != (NCAs.size() - 1)) info += ", ";
+                info += ", ";
             }
+            info = info.substr(0, info.length() - 2);
 
             u8 kgen = inst.GetKeyGeneration();
             u8 masterkey = kgen - 1;
@@ -192,10 +185,13 @@ namespace ui
                     info += "(7.0.0 - 8.0.1)";
                     break;
                 case 8:
-                    info += "(8.1.0)";
+                    info += "(8.1.0 - 8.1.1)";
                     break;
                 case 9:
-                    info += "(9.0.0)";
+                    info += "(9.0.0 - 9.2.0)";
+                    break;
+                case 10:
+                    info += "(10.0.0 -)";
                     break;
                 default:
                     info += cfg::strings::Main.GetString(96);

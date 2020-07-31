@@ -180,8 +180,30 @@ namespace hos
     Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
     String GetExportedNACPPath(u64 ApplicationId);
-    u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
-    u32 GetIdFromDLCApplicationId(u64 ApplicationId);
+    
+    inline constexpr u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
+    {
+        auto appid = ApplicationId;
+        switch(Type)
+        {
+            case ncm::ContentMetaType::Patch:
+                appid = (ApplicationId ^ 0x800);
+                break;
+            case ncm::ContentMetaType::AddOnContent:
+                appid = ((ApplicationId ^ 0x1000) & ~0xfff);
+                break;
+            default:
+                appid = ApplicationId;
+                break;
+        }
+        return appid;
+    }
+
+    inline constexpr u32 GetIdFromDLCApplicationId(u64 ApplicationId)
+    {
+        return (ApplicationId & 0xfff);
+    }
+
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
     TicketFile ReadTicket(String Path);
     String GetNACPName(NacpStruct *NACP);

@@ -39,7 +39,7 @@ namespace ui
             void UpdateElements(int Idx = 0);
             void HandleFileDirectly(String Path);
             bool GoBack();
-            bool WarnNANDWriteAccess();
+            bool WarnWriteAccess();
             void fsItems_Click(String item);
             void fsItems_Click_Y(String item);
             fs::Explorer *GetExplorer();

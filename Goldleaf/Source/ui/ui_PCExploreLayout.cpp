@@ -82,7 +82,7 @@ namespace ui
             itm->AddOnClick(std::bind(&PCExploreLayout::path_Click, this));
             this->pathsMenu->AddItem(itm);
         }
-        auto fselitm = pu::ui::elm::MenuItem::New("Select file from PC");
+        auto fselitm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
         fselitm->SetColor(global_settings.custom_scheme.Text);
         fselitm->SetIcon(global_settings.PathForResource("/FileSystem/File.png"));
         fselitm->AddOnClick(std::bind(&PCExploreLayout::fileSelect_Click, this));

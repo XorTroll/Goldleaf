@@ -34,12 +34,17 @@ namespace fs
 
     class Explorer
     {
+        protected:
+            String dspname;
+            String mntname;
+            String ecwd;
+            bool warn_write;
+
         public:
             virtual ~Explorer()
             {
             }
             
-            virtual bool ShouldWarnOnWriteAccess();
             void SetNames(String MountName, String DisplayName);
             bool NavigateBack();
             bool NavigateForward(String Path);
@@ -62,6 +67,16 @@ namespace fs
             std::vector<String> ReadFileFormatHex(String Path, u32 LineOffset, u32 LineCount);
             u64 GetDirectorySize(String Path);
 
+            inline void SetShouldWarnOnWriteAccess(bool should_warn)
+            {
+                this->warn_write = should_warn;
+            }
+
+            inline bool ShouldWarnOnWriteAccess()
+            {
+                return this->warn_write;
+            }
+
             virtual std::vector<String> GetDirectories(String Path) = 0;
             virtual std::vector<String> GetFiles(String Path) = 0;
             virtual bool Exists(String Path) = 0;
@@ -83,10 +98,6 @@ namespace fs
             virtual u64 GetTotalSpace() = 0;
             virtual u64 GetFreeSpace() = 0;
             virtual void SetArchiveBit(String Path) = 0;
-        protected:
-            String dspname;
-            String mntname;
-            String ecwd;
     };
 
     String Explorer::FullPathFor(String Path)

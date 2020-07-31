@@ -59,13 +59,15 @@ namespace drive
                 auto intf_id = drive_list[i];
                 u8 fs_type = 0;
                 rc = serviceDispatchInOut(&fspusb_srv, 1, intf_id, fs_type);
-                if(R_SUCCEEDED(rc)) {
+                if(R_SUCCEEDED(rc))
+                {
                     char label[0x10] = {0};
                     rc = serviceDispatchIn(&fspusb_srv, 2, intf_id,
                         .buffer_attrs = { SfBufferAttr_Out | SfBufferAttr_HipcMapAlias },
                         .buffers = { { label, 0x10 } },
                     );
-                    if(R_SUCCEEDED(rc)) {
+                    if(R_SUCCEEDED(rc))
+                    {
                         Drive drv = {};
                         drv.interface_id = intf_id;
                         drv.label = label;

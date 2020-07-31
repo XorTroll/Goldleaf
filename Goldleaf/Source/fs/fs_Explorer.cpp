@@ -37,11 +37,6 @@ namespace fs
         return (a.AsUTF16() < b.AsUTF16());
     }
 
-    bool Explorer::ShouldWarnOnWriteAccess()
-    {
-        return false;
-    }
-
     void Explorer::SetNames(String MountName, String DisplayName)
     {
         this->dspname = DisplayName;

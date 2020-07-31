@@ -53,7 +53,6 @@ namespace fs
             static FsFileSystem MountNANDFileSystem(Partition part);
             static std::string GetNANDPartitionName(Partition part);
             Partition GetPartition();
-            virtual bool ShouldWarnOnWriteAccess() override;
         private:
             Partition part;
     };

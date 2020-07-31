@@ -43,17 +43,16 @@ namespace fs
     std::vector<String> StdExplorer::GetDirectories(String Path)
     {
         std::vector<String> dirs;
-        String path = this->MakeFull(Path);
-        DIR *dp = opendir(path.AsUTF8().c_str());
+        auto path = this->MakeFull(Path);
+        auto dp = opendir(path.AsUTF8().c_str());
         if(dp)
         {
-            struct dirent *dt;
             while(true)
             {
-                dt = readdir(dp);
+                auto dt = readdir(dp);
                 if(dt == nullptr) break;
                 std::string ent = dt->d_name;
-                if(this->IsDirectory(path + "/" + ent)) dirs.push_back(ent);
+                if(dt->d_type & DT_DIR) dirs.push_back(ent);
             }
             closedir(dp);
         }
@@ -63,17 +62,16 @@ namespace fs
     std::vector<String> StdExplorer::GetFiles(String Path)
     {
         std::vector<String> files;
-        String path = this->MakeFull(Path);
-        DIR *dp = opendir(path.AsUTF8().c_str());
+        auto path = this->MakeFull(Path);
+        auto dp = opendir(path.AsUTF8().c_str());
         if(dp)
         {
-            struct dirent *dt;
             while(true)
             {
-                dt = readdir(dp);
+                auto dt = readdir(dp);
                 if(dt == nullptr) break;
                 std::string ent = dt->d_name;
-                if(this->IsFile(path + "/" + ent)) files.push_back(ent);
+                if(dt->d_type & DT_REG) files.push_back(ent);
             }
             closedir(dp);
         }

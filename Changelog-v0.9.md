@@ -16,13 +16,15 @@
 
 - Amiibo dumping support was updated to match emuiibo v0.5.x's format
 
-- Non-lowercase file extensions (.TXT, .BIN, .Nsp, etc.) are now properly supported
+- Non-lowercase file extensions (.TXT, .biN, .Nsp, etc.) are now properly supported
 
 - Fixed resetting a title's launch version, which wasn't properly implemented on previous releases
 
 - Reboot-to-payload functionality (which can be used with .bin files) has been internally improved with Atmosphere's bpc:ams extensions
 
 - Random color schemes/pallets are used by default now, instead of default light/dark blue schemes
+
+- Fixed a small bug where no personalized tickets would be detected if no common tickets were present in the console
 
 - Introducing fsp-usb support - fsp-usb is not finished yet, but since there are some compiled builds out there, Goldleaf will support them unless breaking changes are made. Note: fsp-usb isn't fully stable yet, so use it at your own risk!
 

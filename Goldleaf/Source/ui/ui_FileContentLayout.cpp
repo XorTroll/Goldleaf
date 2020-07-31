@@ -57,7 +57,7 @@ namespace ui
         }
         this->rlines = lines.size();
         String alines;
-        if(this->rlines > 0) for(u32 i = 0; i < this->rlines; i++)
+        for(u32 i = 0; i < this->rlines; i++)
         {
             if(i > 0) alines += "\n";
             alines += lines[i];

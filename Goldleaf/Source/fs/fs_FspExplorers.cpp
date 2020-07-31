@@ -116,6 +116,7 @@ namespace fs
 
     NANDExplorer::NANDExplorer(Partition Part) : FspExplorer(NANDExplorer::GetNANDPartitionName(Part), NANDExplorer::MountNANDFileSystem(Part)), part(Part)
     {
+        this->SetShouldWarnOnWriteAccess(true);
     }
 
     std::string NANDExplorer::GetNANDPartitionName(Partition part)
@@ -173,11 +174,6 @@ namespace fs
     Partition NANDExplorer::GetPartition()
     {
         return this->part;
-    }
-
-    bool NANDExplorer::ShouldWarnOnWriteAccess()
-    {
-        return true;
     }
 
     USBDriveExplorer::USBDriveExplorer(drive::Drive drive) : FspExplorer(USBDriveExplorer::GetDrivePresentableName(drive), USBDriveExplorer::MountDrive(drive)), drv(drive)

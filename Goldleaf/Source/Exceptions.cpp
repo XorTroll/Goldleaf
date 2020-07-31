@@ -23,12 +23,31 @@ extern "C"
         auto pcstr = hos::FormatHex(context->pc.x - baseaddr);
 
         auto fname = "crash_" + pcstr + ".log";
-        String crashtxt = "\nGoldleaf crash report\n\n";
-        crashtxt += String(" - Goldleaf version: ") + GOLDLEAF_VERSION + "\n - Current time: " + hos::GetCurrentTime() + "\n - Crash address: " + pcstr;
+        std::string crashtxt = "\nGoldleaf crash report\n\n";
+        
+        crashtxt += std::string(" - Goldleaf version: ") + GOLDLEAF_VERSION + "\n";
+        crashtxt += "- Current time: " + hos::GetCurrentTime() + "\n";
+        
+        crashtxt += "- Crash address: " + pcstr + "\n";
+        for(u32 i = 0; i < 29; i++)
+        {
+            crashtxt += " * At[" + std::to_string(i)  + "]: ";
+            auto reg = context->cpu_gprs[i].x;
+            if(reg > baseaddr)
+            {
+                crashtxt += hos::FormatHex(context->cpu_gprs[i].x - baseaddr);
+            }
+            crashtxt += "\n";
+        }
+
+        ErrorSystemConfig error;
+        errorSystemCreate(&error, "Crash happened", crashtxt.c_str());
+        errorSystemShow(&error);
+
         std::ofstream ofs("sdmc:/" + consts::Root + "/reports/" + fname);
         if(ofs.good())
         {
-            ofs << crashtxt.AsUTF8();
+            ofs << crashtxt;
             ofs.close();
         }
 
@@ -38,12 +57,18 @@ extern "C"
     void __wrap_fatalThrow(Result rc) // This way, any kind of fatal thrown by us or libnx gets saved to a simple report, and Goldleaf simply closes itself
     {
         auto fname = "fatal_" + hos::FormatHex(rc) + ".log";
-        String crashtxt = "\nGoldleaf fatal report\n\n";
-        crashtxt += String(" - Goldleaf version: ") + GOLDLEAF_VERSION + "\n - Current time: " + hos::GetCurrentTime() + "\n - Fatal result: " + hos::FormatHex(rc);
+        std::string crashtxt = "\nGoldleaf fatal report\n\n";
+        crashtxt += std::string(" - Goldleaf version: ") + GOLDLEAF_VERSION + "\n - Current time: " + hos::GetCurrentTime() + "\n - Fatal result: " + hos::FormatHex(rc);
+        
+        ErrorSystemConfig error;
+        errorSystemCreate(&error, "Fatal happened", crashtxt.c_str());
+        errorSystemSetCode(&error, errorCodeCreateResult(rc));
+        errorSystemShow(&error);
+        
         std::ofstream ofs("sdmc:/" + consts::Root + "/reports/" + fname);
         if(ofs.good())
         {
-            ofs << crashtxt.AsUTF8();
+            ofs << crashtxt;
             ofs.close();
         }
 

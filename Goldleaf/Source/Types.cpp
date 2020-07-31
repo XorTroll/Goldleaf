@@ -183,13 +183,26 @@ void EnsureDirectories()
 
 extern "C"
 {
+    void __appExit();
     void NORETURN __nx_exit(Result rc, LoaderReturnFn retaddr);
+
+    void NORETURN __libnx_exit(Result rc)
+    {
+        // Call destructors.
+        void __libc_fini_array(void);
+        __libc_fini_array();
+
+        // Clean up services.
+        __appExit();
+
+        __nx_exit(rc, envGetExitFuncPtr());
+    }
 }
 
 void Close(Result rc)
 {
     if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
-    else __nx_exit(rc, envGetExitFuncPtr());
+    else __libnx_exit(rc);
 }
 
 Result Initialize()
@@ -213,8 +226,17 @@ Result Initialize()
     return 0;
 }
 
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref global_app;
+
 void Exit(Result rc)
 {
+    if(global_app)
+    {
+        global_app->Close();
+    }
+
     auto nsys = fs::GetNANDSystemExplorer();
     auto nsfe = fs::GetNANDSafeExplorer();
     auto nusr = fs::GetNANDUserExplorer();

@@ -91,7 +91,7 @@ namespace ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
-        global_app->LoadMenuData("Web browser", "Browser", "Use the console's web browser library applet.");
+        global_app->LoadMenuData(cfg::strings::Main.GetString(36), "Browser", cfg::strings::Main.GetString(14));
         global_app->GetWebBrowserLayout()->Refresh();
         global_app->LoadLayout(global_app->GetWebBrowserLayout());
     }

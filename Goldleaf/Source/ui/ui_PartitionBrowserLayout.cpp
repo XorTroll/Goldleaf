@@ -165,7 +165,7 @@ namespace ui
         return this->gexp->NavigateBack();
     }
 
-    bool PartitionBrowserLayout::WarnNANDWriteAccess()
+    bool PartitionBrowserLayout::WarnWriteAccess()
     {
         if(!this->gexp->ShouldWarnOnWriteAccess()) return true;
         auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(50), cfg::strings::Main.GetString(51), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
@@ -448,7 +448,7 @@ namespace ui
             else if(osopt == copyopt) UpdateClipboard(fullitm);
             else if(osopt == delopt)
             {
-                if(this->WarnNANDWriteAccess())
+                if(this->WarnWriteAccess())
                 {
                     sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(127), cfg::strings::Main.GetString(128), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                     if(sopt < 0) return;
@@ -468,7 +468,7 @@ namespace ui
                     if(new_name == item) return;
                     auto new_path = this->gexp->FullPathFor(new_name);
                     if(this->gexp->IsFile(new_path) || this->gexp->IsDirectory(new_path)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
-                    else if(this->WarnNANDWriteAccess())
+                    else if(this->WarnWriteAccess())
                     {
                         this->gexp->RenameFile(fullitm, new_path);
                         // if(rc) HandleResult(err::result::MakeErrnoResult(), cfg::strings::Main.GetString(254));
@@ -507,7 +507,7 @@ namespace ui
                     UpdateClipboard(fullitm);
                     break;
                 case 1:
-                    if(this->WarnNANDWriteAccess())
+                    if(this->WarnWriteAccess())
                     {
                         sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(325), cfg::strings::Main.GetString(326), {cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18)}, true);
                         if(sopt < 0) return;
@@ -524,7 +524,7 @@ namespace ui
                             if(kbdt == item) return;
                             String newren = this->gexp->FullPathFor(kbdt);
                             if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
-                            else if(this->WarnNANDWriteAccess())
+                            else if(this->WarnWriteAccess())
                             {
                                 int rc = 0;
                                 this->gexp->RenameDirectory(fullitm, newren);

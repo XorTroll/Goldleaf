@@ -53,7 +53,7 @@ namespace usb
 
     struct BlockBase
     {
-        u32 position;
+        u64 position;
         u8 *blockbuf;
     };
 

@@ -55,7 +55,7 @@ namespace ui
         this->pcDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
         this->pcDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->pcDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::pcDrive_Click, this));
-        this->usbDriveMenuItem = pu::ui::elm::MenuItem::New("[Debug] USB drives");
+        this->usbDriveMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(398));
         this->usbDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
         this->usbDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->usbDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::usbDrive_Click, this));
@@ -111,22 +111,22 @@ namespace ui
     {
         if(!drive::IsFspUsbAccessible())
         {
-            global_app->CreateShowDialog("USB drives", "fsp-usb isn't present.", { "Ok" }, false);
+            global_app->CreateShowDialog(cfg::strings::Main.GetString(399), cfg::strings::Main.GetString(400), { cfg::strings::Main.GetString(234) }, false);
             return;
         }
 
         auto drives = drive::ListDrives();
         std::vector<String> opts;
         for(auto &drive: drives) opts.push_back(drive.label);
-        opts.push_back("Cancel");
-        int sopt = global_app->CreateShowDialog("USB drive info", "USB drive count: " + std::to_string(drives.size()), opts, true);
+        opts.push_back(cfg::strings::Main.GetString(18));
+        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(402) + " " + std::to_string(drives.size()), opts, true);
         if(!drives.empty())
         {
             if(sopt < drives.size())
             {
                 auto drv = drives[sopt];
                 global_app->GetBrowserLayout()->ChangePartitionUSBDrive(drv);
-                global_app->LoadMenuData("USB drive browser", "Drive", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+                global_app->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
                 global_app->LoadLayout(global_app->GetBrowserLayout());
             }
         }
@@ -169,7 +169,7 @@ namespace ui
 
     void ExploreMenuLayout::explorer_Click_X(fs::Explorer *exp)
     {
-        auto sopt = global_app->CreateShowDialog("Unmount contents", "Would you like to unmount this content?", { "Yes", "Cancel" }, true);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(404), cfg::strings::Main.GetString(405), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(sopt == 0)
         {
             u32 idx = 0;
@@ -189,6 +189,7 @@ namespace ui
                 this->mountedExplorers.erase(this->mountedExplorers.begin() + idx);
                 this->mounts.erase(this->mounts.begin() + idx);
                 this->UpdateMenu();
+                global_app->ShowNotification(cfg::strings::Main.GetString(406));
             }
         }
     }

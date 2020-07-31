@@ -43,7 +43,7 @@ namespace ui
 
     void StorageContentsLayout::contents_Click()
     {
-        hos::Title selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
+        auto &selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
         global_app->GetContentInformationLayout()->LoadContent(selcnt);
         global_app->LoadLayout(global_app->GetContentInformationLayout());
     }
@@ -55,17 +55,14 @@ namespace ui
             this->contentsMenu->ClearItems();
             this->contents.clear();
         }
-        std::vector<hos::Title> cnts = hos::SearchTitles(ncm::ContentMetaType::Any, Location);
-        if(!cnts.empty()) for(u32 i = 0; i < cnts.size(); i++)
+        auto cnts = hos::SearchTitles(ncm::ContentMetaType::Any, Location);
+        for(auto &cnt: cnts)
         {
-            hos::Title cnt = cnts[i];
             bool ok = true;
-            if(!this->contents.empty()) for(u32 j = 0; j < this->contents.size(); j++)
+            for(auto content: this->contents)
             {
-                u64 curappid = cnt.ApplicationId;
-                u64 curbaseid = hos::GetBaseApplicationId(curappid, cnt.Type);
-                u64 cntappid = this->contents[j].ApplicationId;
-                u64 cntbaseid = hos::GetBaseApplicationId(cntappid, this->contents[j].Type);
+                auto curbaseid = hos::GetBaseApplicationId(cnt.ApplicationId, cnt.Type);
+                auto cntbaseid = hos::GetBaseApplicationId(content.ApplicationId, content.Type);
 
                 if(curbaseid == cntbaseid)
                 {
@@ -75,21 +72,19 @@ namespace ui
             }
             if(ok) this->contents.push_back(cnt);
         }
-        cnts.clear();
-        if(this->contents.empty())
-        {
-            this->noContentsText->SetVisible(true);
-            this->contentsMenu->SetVisible(false);
-        }
-        else
+
+        const auto empty = this->contents.empty();
+        this->noContentsText->SetVisible(empty);
+        this->contentsMenu->SetVisible(!empty);
+        if(!empty)
         {
             this->contentsMenu->SetCooldownEnabled(true);
             this->noContentsText->SetVisible(false);
             this->contentsMenu->SetVisible(true);
-            for(u32 i = 0; i < this->contents.size(); i++)
+            for(auto &content: this->contents)
             {
-                NacpStruct *nacp = this->contents[i].TryGetNACP();
-                String name = hos::FormatApplicationId(this->contents[i].ApplicationId);
+                auto nacp = content.TryGetNACP();
+                String name = hos::FormatApplicationId(content.ApplicationId);
                 if(nacp != nullptr)
                 {
                     name = hos::GetNACPName(nacp);
@@ -97,8 +92,7 @@ namespace ui
                 }
                 auto itm = pu::ui::elm::MenuItem::New(name);
                 itm->SetColor(global_settings.custom_scheme.Text);
-                bool hicon = this->contents[i].DumpControlData();
-                if(hicon) itm->SetIcon(hos::GetExportedIconPath(this->contents[i].ApplicationId));
+                if(content.DumpControlData()) itm->SetIcon(hos::GetExportedIconPath(content.ApplicationId));
                 itm->AddOnClick(std::bind(&StorageContentsLayout::contents_Click, this));
                 this->contentsMenu->AddItem(itm);
             }

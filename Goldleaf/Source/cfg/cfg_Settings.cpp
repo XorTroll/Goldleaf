@@ -55,7 +55,7 @@ namespace cfg
             json["web"]["bookmarks"][i]["url"] = bmk.url;
         }
         auto sd_exp = fs::GetSdCardExplorer();
-        sd_exp->DeleteFile("sdmc:/" + consts::Settings);
+        sd_exp->DeleteFile(consts::Settings);
         std::ofstream ofs("sdmc:/" + consts::Settings);
         ofs << std::setw(4) << json;
         ofs.close();
