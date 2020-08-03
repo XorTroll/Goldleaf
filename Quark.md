@@ -42,6 +42,16 @@ Now you can run Quark using ```java -jar Quark.jar```.
 
 ### Mac
 
-> TODO
+Install OpenJDK 11 (or higher) in the terminal:
+
+- Install brew ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
+
+- Run ```brew tap AdoptOpenJDK/openjdk```
+
+- Run ```brew cask install adoptopenjdk11```
+
+- Finally, run ```java -version``` to check the JDK version
+
+Now you can run Quark using ```java -jar Quark.jar```.
 
 Having done all this, Quark <-> Goldleaf USB should work fine.
