@@ -96,32 +96,10 @@ namespace ui
         global_app->ShowNotification(cfg::strings::Main.GetString(358) + " '" + outdir + "'.");
     }
 
-    void SettingsLayout::ExportUpdateToNSP(String Input, SetSysFirmwareVersion Fw)
-    {
-        auto sd = fs::GetSdCardExplorer();
-        auto exp = fs::GetNANDSystemExplorer();
-        this->optsMenu->SetVisible(false);
-        this->progressInfo->SetVisible(true);
-        global_app->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + Fw.display_version + "...");
-        auto outnsp = sd->FullPathFor(consts::Root + "/dump/update/" + Fw.display_version + ".nsp");
-        sd->DeleteFile(outnsp);
-        nsp::GenerateFrom(exp->FullPathFor(Input), outnsp, [&](u64 Done, u64 Total)
-        {
-            this->progressInfo->SetMaxValue((double)Total);
-            this->progressInfo->SetProgress((double)Done);
-            global_app->CallForRender();
-        });
-        global_app->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
-        this->optsMenu->SetVisible(true);
-        this->progressInfo->SetVisible(false);
-        global_app->ShowNotification(cfg::strings::Main.GetString(358) + " '" + outnsp + "'.");
-    }
-
     void SettingsLayout::HandleUpdate(String Base, SetSysFirmwareVersion Fw)
     {
-        auto sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(360), cfg::strings::Main.GetString(361), { cfg::strings::Main.GetString(377), cfg::strings::Main.GetString(53), cfg::strings::Main.GetString(18)}, true);
-        if(sopt2 == 0) ExportUpdateToDirectory(Base, Fw);
-        else if(sopt2 == 1) ExportUpdateToNSP(Base, Fw);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(360), cfg::strings::Main.GetString(361), { cfg::strings::Main.GetString(377), cfg::strings::Main.GetString(18)}, true);
+        if(sopt == 0) ExportUpdateToDirectory(Base, Fw);
     }
 
     void SettingsLayout::optsFirmware_Click()

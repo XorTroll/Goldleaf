@@ -22,6 +22,8 @@
 
 - Now dumped firmware will be compatible with Atmosphere's Daybreak firmware tool, deprecating Choi support (as Daybreak is a better and safer alternative)
 
+- Removed support for dumping firmware as NSP packages, as no relevent firmware tool makes use of that format
+
 - Reboot-to-payload functionality (which can be used with .bin files) has been internally improved with Atmosphere's bpc:ams extensions
 
 - Random color schemes/pallets are used by default now, instead of default light/dark blue schemes
