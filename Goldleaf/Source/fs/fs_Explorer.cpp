@@ -28,6 +28,10 @@
 #include <iomanip>
 #include <cctype>
 
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref global_app;
+
 namespace fs
 {
     static bool InternalCaseCompare(String a, String b)

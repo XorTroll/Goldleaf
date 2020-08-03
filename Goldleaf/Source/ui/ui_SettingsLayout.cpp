@@ -74,6 +74,22 @@ namespace ui
             this->progressInfo->SetProgress(Done);
             global_app->CallForRender();
         });
+        // Rename meta NCAs to .cnmt.nca so that this update is valid for Daybreak
+        auto files = sd->GetFiles(outdir);
+        for(auto file: files)
+        {
+            auto original_nca = "@SystemContent:/registered/" + file;
+            FsFileSystem nca_fs;
+            auto rc = fsOpenFileSystemWithId(&nca_fs, 0, FsFileSystemType_ContentMeta, original_nca.AsUTF8().c_str());
+            if(R_SUCCEEDED(rc))
+            {
+                // Is a meta NCA
+                auto out_nca_path = outdir + "/" + file;
+                auto out_nca_path_noext = out_nca_path.substr(0, out_nca_path.length() - 3);
+                auto out_cnmt_nca_path = out_nca_path_noext + "cnmt.nca";
+                sd->RenameFile(out_nca_path, out_cnmt_nca_path);
+            }
+        }
         global_app->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
         this->optsMenu->SetVisible(true);
         this->progressInfo->SetVisible(false);

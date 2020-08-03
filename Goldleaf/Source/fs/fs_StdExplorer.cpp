@@ -168,7 +168,7 @@ namespace fs
         if(this->r_file_obj != nullptr)
         {
             fseek(this->r_file_obj, Offset, SEEK_SET);
-            rsz = fread(Out, Size, 1, this->r_file_obj);
+            rsz = fread(Out, 1, Size, this->r_file_obj);
             return rsz;
         }
 
@@ -177,7 +177,7 @@ namespace fs
         if(f)
         {
             fseek(f, Offset, SEEK_SET);
-            rsz = fread(Out, Size, 1, f);
+            rsz = fread(Out, 1, Size, f);
             fclose(f);
         }
         return rsz;
@@ -189,7 +189,7 @@ namespace fs
 
         if(this->w_file_obj != nullptr)
         {
-            wsz = fwrite(Data, Size, 1, this->w_file_obj);
+            wsz = fwrite(Data, 1, Size, this->w_file_obj);
             return wsz;
         }
 
@@ -198,7 +198,7 @@ namespace fs
         FILE *f = fopen(path.AsUTF8().c_str(), "ab+");
         if(f)
         {
-            wsz = fwrite(Data, Size, 1, f);
+            wsz = fwrite(Data, 1, Size, f);
             fclose(f);
         }
         return wsz;
