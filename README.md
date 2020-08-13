@@ -128,7 +128,7 @@
 
 - **About**: check Goldleaf's version and how it was launched (as an applet or an application)
 
-> Goldleaf is also translated into 5 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
+> Goldleaf is also translated into 6 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
 
 ### Controls
 
