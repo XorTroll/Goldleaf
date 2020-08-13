@@ -8,6 +8,10 @@
 
 - Introducing savedata browsing! select a game from the game manager menu, and mount it's savedata. Note that, if you forget to unmount them manually, they will be automatically unmounted when Goldleaf is exited
 
+- Support for firmware installing, via Atmosphere's ams:su service extension!
+
+- Now fatal crashes are avoided, and Goldleaf will just display an error message via the console's error applet, and save its own report with information about the crash/error.
+
 - Simplified and cleaned a lot of internal code, hopefully making everything more stable
 
 - Updated libnx and Plutonium - this implies support for previously unsupported special text (Japanese and Chinese characters, etc.) with last Plutonium

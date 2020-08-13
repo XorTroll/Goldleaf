@@ -114,6 +114,20 @@ struct Version
     bool IsEqual(Version Other);
 };
 
+class OnScopeExit
+{
+    private:
+        std::function<void()> call;
+
+    public:
+        OnScopeExit(std::function<void()> call) : call(call) {}
+
+        ~OnScopeExit()
+        {
+            this->call();
+        }
+};
+
 namespace logging
 {
     template<typename ...Args>

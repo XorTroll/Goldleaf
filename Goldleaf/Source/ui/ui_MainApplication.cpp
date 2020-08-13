@@ -125,6 +125,7 @@ namespace ui
         this->memory = MemoryLayout::New();
         this->memory->SetOnInput(std::bind(&MainApplication::memory_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->update = UpdateLayout::New();
+        this->updateInstall = UpdateInstallLayout::New();
         this->webBrowser = WebBrowserLayout::New();
         this->webBrowser->SetOnInput(std::bind(&MainApplication::webBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->about = AboutLayout::New();
@@ -147,6 +148,7 @@ namespace ui
         MAINAPP_MENU_SET_BASE(this->settings);
         MAINAPP_MENU_SET_BASE(this->memory);
         MAINAPP_MENU_SET_BASE(this->update);
+        MAINAPP_MENU_SET_BASE(this->updateInstall);
         MAINAPP_MENU_SET_BASE(this->webBrowser);
         MAINAPP_MENU_SET_BASE(this->about);
 
@@ -555,6 +557,11 @@ namespace ui
     UpdateLayout::Ref &MainApplication::GetUpdateLayout()
     {
         return this->update;
+    }
+
+    UpdateInstallLayout::Ref &MainApplication::GetUpdateInstallLayout()
+    {
+        return this->updateInstall;
     }
 
     WebBrowserLayout::Ref &MainApplication::GetWebBrowserLayout()

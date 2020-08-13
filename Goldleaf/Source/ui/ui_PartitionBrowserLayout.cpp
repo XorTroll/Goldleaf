@@ -22,6 +22,7 @@
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 #include <hos/hos_Payload.hpp>
+#include <amssu/amssu_Service.hpp>
 
 extern ui::MainApplication::Ref global_app;
 extern cfg::Settings global_settings;
@@ -482,8 +483,22 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click_Y(String item)
     {
-        String fullitm = this->gexp->FullPathFor(item);
-        String pfullitm = this->gexp->FullPresentablePathFor(item);
+        auto rc = amssu::Initialize();
+        auto has_amssu = R_SUCCEEDED(rc);
+        
+        OnScopeExit ex([&]()
+        {
+            if(has_amssu) amssu::Exit();
+        });
+
+        auto fullitm = this->gexp->FullPathFor(item);
+        auto pfullitm = this->gexp->FullPresentablePathFor(item);
+
+        auto ipc_fullitm = this->gexp->RemoveMountName(fullitm);
+        amssu::UpdateInformation update_info = {};
+        rc = amssu::GetUpdateInformation(ipc_fullitm.AsUTF8().c_str(), &update_info);
+        auto is_valid_update = R_SUCCEEDED(rc);
+
         if(this->gexp->IsDirectory(fullitm))
         {
             auto files = this->gexp->GetFiles(fullitm);
@@ -499,14 +514,47 @@ namespace ui
             extraopts.push_back(cfg::strings::Main.GetString(18));
             String msg = cfg::strings::Main.GetString(134);
             msg += "\n\n" + cfg::strings::Main.GetString(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(135), msg, { cfg::strings::Main.GetString(73), cfg::strings::Main.GetString(74), cfg::strings::Main.GetString(75), cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(18) }, true);
+            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(135), msg, { "View update", cfg::strings::Main.GetString(73), cfg::strings::Main.GetString(74), cfg::strings::Main.GetString(75), cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
             switch(sopt)
             {
                 case 0:
-                    UpdateClipboard(fullitm);
+                    if(is_valid_update)
+                    {
+                        String update_msg = "";
+                        update_msg += "Update version: " + std::to_string((update_info.version >> 26) & 0x1F) + "." + std::to_string((update_info.version >> 20) & 0x1F) + "." + std::to_string((update_info.version >> 16) & 0xF) + "\n\n";
+                        update_msg += String(" - exFAT supported: ") + (update_info.exfat_supported ? "yes" : "no") + "\n";
+                        update_msg += " - Firmware variation count: " + std::to_string(update_info.fw_variation_count);
+                        
+                        sopt = global_app->CreateShowDialog("Update information", update_msg, { "Continue (validate update)", "Cancel" }, true);
+                        if(sopt == 0)
+                        {
+                            amssu::UpdateValidationInfo update_validation_info = {};
+                            auto rc = amssu::ValidateUpdate(ipc_fullitm.AsUTF8().c_str(), &update_validation_info);
+                            auto is_validated = R_SUCCEEDED(rc) && R_SUCCEEDED(update_validation_info.result) && R_SUCCEEDED(update_validation_info.exfat_result);
+                            if(is_validated)
+                            {
+                                auto sopt = global_app->CreateShowDialog("Update installation - validate", "Update was correctly validated.", { "Continue (setup update)", "Cancel" }, true);
+                                if(sopt == 0)
+                                {
+                                    sopt = global_app->CreateShowDialog("Update installation - setup", "Would you like to install the update with exFAT support?", { "Yes", "No", "Cancel" }, true);
+                                    if((sopt == 0) || (sopt == 1))
+                                    {
+                                        auto with_exfat = sopt == 0;
+                                        global_app->LoadLayout(global_app->GetUpdateInstallLayout());
+                                        global_app->GetUpdateInstallLayout()->InstallUpdate(ipc_fullitm, with_exfat);
+                                    }
+                                }
+                            }
+                            else global_app->ShowNotification("Not a correctly validated update");
+                        }
+                    }
+                    else global_app->ShowNotification("Not a valid update");
                     break;
                 case 1:
+                    UpdateClipboard(fullitm);
+                    break;
+                case 2:
                     if(this->WarnWriteAccess())
                     {
                         sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(325), cfg::strings::Main.GetString(326), {cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18)}, true);
@@ -516,7 +564,7 @@ namespace ui
                         this->UpdateElements();
                     }
                     break;
-                case 2:
+                case 3:
                     {
                         String kbdt = AskForText(cfg::strings::Main.GetString(238), item);
                         if(kbdt != "")
@@ -535,7 +583,7 @@ namespace ui
                         }
                     }
                     break;
-                case 3:
+                case 4:
                     int sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(134), extraopts, true);
                     switch(sopt2)
                     {

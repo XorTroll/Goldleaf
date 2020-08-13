@@ -38,6 +38,7 @@
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
+#include <ui/ui_UpdateInstallLayout.hpp>
 #include <ui/ui_WebBrowserLayout.hpp>
 
 #include <ui/ui_ClickableImage.hpp>
@@ -93,6 +94,7 @@ namespace ui
             SettingsLayout::Ref &GetSettingsLayout();
             MemoryLayout::Ref &GetMemoryLayout();
             UpdateLayout::Ref &GetUpdateLayout();
+            UpdateInstallLayout::Ref &GetUpdateInstallLayout();
             WebBrowserLayout::Ref &GetWebBrowserLayout();
             AboutLayout::Ref &GetAboutLayout();
             
@@ -121,6 +123,7 @@ namespace ui
             SettingsLayout::Ref settings;
             MemoryLayout::Ref memory;
             UpdateLayout::Ref update;
+            UpdateInstallLayout::Ref updateInstall;
             WebBrowserLayout::Ref webBrowser;
             AboutLayout::Ref about;
             pu::ui::elm::Image::Ref baseImage;

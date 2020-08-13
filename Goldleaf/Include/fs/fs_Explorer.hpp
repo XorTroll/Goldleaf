@@ -52,11 +52,48 @@ namespace fs
             String GetMountName();
             String GetCwd();
             String GetPresentableCwd();
-            inline String FullPathFor(String Path);
-            inline String AbsolutePathFor(String Path);
-            inline String FullPresentablePathFor(String Path);
-            inline String MakeFull(String Path);
-            inline bool IsFullPath(String Path);
+        
+            inline String FullPathFor(String Path)
+            {
+                auto fpath = this->ecwd;
+                if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
+                fpath += Path;
+                return fpath;
+            }
+
+            inline String AbsolutePathFor(String Path)
+            {
+                auto fpath = this->mntname + ":";
+                if(Path.substr(0, 1) != "/") fpath += "/";
+                fpath += Path;
+                return fpath;
+            }
+
+            inline String FullPresentablePathFor(String Path)
+            {
+                auto pcwd = this->GetPresentableCwd();
+                auto fpath = pcwd;
+                if(pcwd.substr(pcwd.length() - 1) != "/") fpath += "/";
+                fpath += Path;
+                return fpath;
+            }
+
+            inline String MakeFull(String Path)
+            {
+                return (this->IsFullPath(Path) ? Path : this->FullPathFor(Path));
+            }
+
+            inline String RemoveMountName(String path)
+            {
+                // Remove "mount-name:" so that the path still maintains the initial slash
+                return path.substr(this->mntname.length() + 1);
+            }
+
+            inline bool IsFullPath(String Path)
+            {
+                return (Path.find(":/") != String::npos);
+            }
+
             void CopyFile(String Path, String NewPath);
             void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback);
             void CopyDirectory(String Dir, String NewDir);
@@ -99,39 +136,4 @@ namespace fs
             virtual u64 GetFreeSpace() = 0;
             virtual void SetArchiveBit(String Path) = 0;
     };
-
-    String Explorer::FullPathFor(String Path)
-    {
-        String fpath = this->ecwd;
-        if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    String Explorer::AbsolutePathFor(String Path)
-    {
-        String fpath = this->mntname + ":";
-        if(Path.substr(0, 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    String Explorer::FullPresentablePathFor(String Path)
-    {
-        String pcwd = this->GetPresentableCwd();
-        String fpath = pcwd;
-        if(pcwd.substr(pcwd.length() - 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    String Explorer::MakeFull(String Path)
-    {
-        return (this->IsFullPath(Path) ? Path : this->FullPathFor(Path));
-    }
-
-    bool Explorer::IsFullPath(String Path)
-    {
-        return (Path.find(":/") != String::npos);
-    }
 }
