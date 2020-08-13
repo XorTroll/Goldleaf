@@ -42,12 +42,14 @@ namespace ui
     {
         if(Directory)
         {
+            hos::LockAutoSleep();
             fs::CopyDirectoryProgress(Path, NewPath, [&](double done, double total)
             {
                 this->copyBar->SetMaxValue(total);
                 this->copyBar->SetProgress(done);
                 global_app->CallForRender();
             });
+            hos::UnlockAutoSleep();
             global_app->ShowNotification(cfg::strings::Main.GetString(141));
         }
         else
@@ -58,12 +60,14 @@ namespace ui
                 if(sopt < 0) return;
             }
             Exp->DeleteFile(NewPath);
+            hos::LockAutoSleep();
             fs::CopyFileProgress(Path, NewPath, [&](double done, double total)
             {
                 this->copyBar->SetMaxValue(total);
                 this->copyBar->SetProgress(done);
                 global_app->CallForRender();
             });
+            hos::UnlockAutoSleep();
             global_app->ShowNotification(cfg::strings::Main.GetString(240));
         }
     }

@@ -68,12 +68,14 @@ namespace ui
                 global_app->CallForRender();
                 
                 this->downloadBar->SetVisible(true);
+                hos::LockAutoSleep();
                 net::RetrieveToFile(newnro, "sdmc:/" + consts::TempUpdatedNro, [&](double Done, double Total)
                 {
                     this->downloadBar->SetMaxValue(Total);
                     this->downloadBar->SetProgress(Done);
                     global_app->CallForRender();
                 });
+                hos::UnlockAutoSleep();
                 if(sd_ex->IsFile(consts::TempUpdatedNro)) global_app_updated = true;
 
                 this->downloadBar->SetVisible(false);

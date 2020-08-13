@@ -43,9 +43,10 @@ namespace ui
 
     void UpdateInstallLayout::InstallUpdate(String path, bool with_exfat)
     {
-        this->infoText->SetText("Preparing update...");
+        this->infoText->SetText(cfg::strings::Main.GetString(426));
         global_app->CallForRender();
         this->processBar->SetVisible(true);
+        hos::UnlockAutoSleep();
         auto rc = amssu::SetupUpdate(nullptr, UpdateWorkBufferSize, path.AsUTF8().c_str(), with_exfat);
         if(R_SUCCEEDED(rc))
         {
@@ -88,25 +89,23 @@ namespace ui
                 if(wait_ok)
                 {
                     this->processBar->SetVisible(false);
-                    this->infoText->SetText("Applying update...");
+                    this->infoText->SetText(cfg::strings::Main.GetString(427));
                     global_app->CallForRender();
                     rc = amssu::ApplyPreparedUpdate();
-                    this->infoText->SetText("Update applied");
-                    global_app->CallForRender();
                     if(R_SUCCEEDED(rc))
                     {
-                        global_app->CreateShowDialog("Update applied", "Installation done, have to reboot", { "Ok" }, true);
+                        global_app->CreateShowDialog(cfg::strings::Main.GetString(424), cfg::strings::Main.GetString(431) + "\n" + cfg::strings::Main.GetString(432), { cfg::strings::Main.GetString(234) }, true);
                         hos::Reboot();
                     }
-                    else global_app->ShowNotification("Failed to apply the update");
+                    else global_app->ShowNotification(cfg::strings::Main.GetString(430));
                 }
-                else global_app->ShowNotification("Failed to prepare the update");
+                else global_app->ShowNotification(cfg::strings::Main.GetString(429));
             }
-            else global_app->ShowNotification("Failed to request to prepare the update");
+            else global_app->ShowNotification(cfg::strings::Main.GetString(429));
         }
-        else global_app->ShowNotification("Failed to setup update");
+        else global_app->ShowNotification(cfg::strings::Main.GetString(428));
 
-        global_app->CreateShowDialog("Update - must reboot", "Must reboot", { "Ok" }, true);
+        global_app->CreateShowDialog(cfg::strings::Main.GetString(424), cfg::strings::Main.GetString(432), { cfg::strings::Main.GetString(234) }, true);
         hos::Reboot();
     }
 }

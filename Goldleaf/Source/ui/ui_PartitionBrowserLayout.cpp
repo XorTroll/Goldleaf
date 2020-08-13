@@ -514,7 +514,7 @@ namespace ui
             extraopts.push_back(cfg::strings::Main.GetString(18));
             String msg = cfg::strings::Main.GetString(134);
             msg += "\n\n" + cfg::strings::Main.GetString(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(135), msg, { "View update", cfg::strings::Main.GetString(73), cfg::strings::Main.GetString(74), cfg::strings::Main.GetString(75), cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(18) }, true);
+            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(135), msg, { cfg::strings::Main.GetString(415), cfg::strings::Main.GetString(73), cfg::strings::Main.GetString(74), cfg::strings::Main.GetString(75), cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
             switch(sopt)
             {
@@ -522,34 +522,43 @@ namespace ui
                     if(is_valid_update)
                     {
                         String update_msg = "";
-                        update_msg += "Update version: " + std::to_string((update_info.version >> 26) & 0x1F) + "." + std::to_string((update_info.version >> 20) & 0x1F) + "." + std::to_string((update_info.version >> 16) & 0xF) + "\n\n";
-                        update_msg += String(" - exFAT supported: ") + (update_info.exfat_supported ? "yes" : "no") + "\n";
-                        update_msg += " - Firmware variation count: " + std::to_string(update_info.fw_variation_count);
+                        String version_str = std::to_string((update_info.version >> 26) & 0x1F) + "." + std::to_string((update_info.version >> 20) & 0x1F) + "." + std::to_string((update_info.version >> 16) & 0xF);
+                        update_msg += " - " + cfg::strings::Main.GetString(417) + " " + version_str + "\n\n";
+                        update_msg += " - " + cfg::strings::Main.GetString(418) + " " + (update_info.exfat_supported ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
                         
-                        sopt = global_app->CreateShowDialog("Update information", update_msg, { "Continue (validate update)", "Cancel" }, true);
+                        sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(416), update_msg, { cfg::strings::Main.GetString(419), cfg::strings::Main.GetString(18) }, true);
                         if(sopt == 0)
                         {
                             amssu::UpdateValidationInfo update_validation_info = {};
                             auto rc = amssu::ValidateUpdate(ipc_fullitm.AsUTF8().c_str(), &update_validation_info);
-                            auto is_validated = R_SUCCEEDED(rc) && R_SUCCEEDED(update_validation_info.result) && R_SUCCEEDED(update_validation_info.exfat_result);
-                            if(is_validated)
+                            if(R_SUCCEEDED(rc) && R_SUCCEEDED(update_validation_info.result) && R_SUCCEEDED(update_validation_info.exfat_result))
                             {
-                                auto sopt = global_app->CreateShowDialog("Update installation - validate", "Update was correctly validated.", { "Continue (setup update)", "Cancel" }, true);
+                                auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(420), cfg::strings::Main.GetString(421), { cfg::strings::Main.GetString(423), cfg::strings::Main.GetString(18) }, true);
                                 if(sopt == 0)
                                 {
-                                    sopt = global_app->CreateShowDialog("Update installation - setup", "Would you like to install the update with exFAT support?", { "Yes", "No", "Cancel" }, true);
+                                    sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(424), cfg::strings::Main.GetString(425), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112), cfg::strings::Main.GetString(18) }, true);
                                     if((sopt == 0) || (sopt == 1))
                                     {
                                         auto with_exfat = sopt == 0;
+                                        SetSysFirmwareVersion fwver = {};
+                                        setsysGetFirmwareVersion(&fwver);
+                                        global_app->LoadMenuData(cfg::strings::Main.GetString(424), "Update", String(fwver.display_version) + " → " + version_str + "...");
                                         global_app->LoadLayout(global_app->GetUpdateInstallLayout());
                                         global_app->GetUpdateInstallLayout()->InstallUpdate(ipc_fullitm, with_exfat);
                                     }
                                 }
                             }
-                            else global_app->ShowNotification("Not a correctly validated update");
+                            else
+                            {
+                                auto failed_rc = 0;
+                                if(R_FAILED(rc)) failed_rc = rc;
+                                if(R_FAILED(update_validation_info.result)) failed_rc = update_validation_info.result;
+                                if(R_FAILED(update_validation_info.exfat_result)) failed_rc = update_validation_info.exfat_result;
+                                HandleResult(failed_rc, cfg::strings::Main.GetString(422));
+                            }
                         }
                     }
-                    else global_app->ShowNotification("Not a valid update");
+                    else global_app->ShowNotification(cfg::strings::Main.GetString(433));
                     break;
                 case 1:
                     UpdateClipboard(fullitm);
