@@ -210,12 +210,12 @@ namespace hos
 
     u64 Ticket::GetApplicationId()
     {
-        return this->RId.app_id;
+        return __builtin_bswap64(this->RId.app_id);
     }
 
     u64 Ticket::GetKeyGeneration()
     {
-        return this->RId.key_gen;
+        return __builtin_bswap64(this->RId.key_gen);
     }
 
     String Ticket::ToString()
