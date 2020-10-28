@@ -9,8 +9,10 @@ jobs:
     container: devkitpro/devkita64:latest
 
     steps:
-    - uses: actions/checkout@v2
-      name: Checkout repository
+    - uses: actions/checkout@v1
+    - name: Update submodule
+      run: |
+        git submodule update --init --recursive
 
     - name: Update submodule
       run: |
