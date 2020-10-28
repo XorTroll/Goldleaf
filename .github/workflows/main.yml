@@ -10,7 +10,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      name: Checkout repository and update submodules
+      name: Checkout repository
+
+    - name: Update submodule
       run: |
         git submodule update --init --recursive
         
