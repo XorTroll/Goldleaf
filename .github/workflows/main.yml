@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Update repo.
+      name: Update repo.
       with:
         submodule: true
         
