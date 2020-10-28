@@ -1,7 +1,7 @@
 
 name: Build Goldleaf
 
-on: [push]
+on: [push, pull_request]
 jobs:
   build:
 
@@ -10,20 +10,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Update submodule
-      run: |
-        git submodule update --init --recursive
 
     - name: Update submodule
       run: |
         git submodule update --init --recursive
         
-    - name: Build Goldleaf
+    - name: Build
       run: |
-        echo ##########################
-        echo #     SETTING PATH       #
-        echo ##########################
-        echo
         export DEVKITPRO=/opt/devkitpro
         export DEVKITARM=${DEVKITPRO}/devkitARM
         export DEVKITPPC=${DEVKITPRO}/devkitPPC
@@ -31,7 +24,7 @@ jobs:
         make -j$(nproc)
         
     - uses: actions/upload-artifact@master
-      name: "Publish artifacts"
+      name: Publish artifacts
       with:
         name: Goldleaf
         path: Goldleaf/Goldleaf.nro
