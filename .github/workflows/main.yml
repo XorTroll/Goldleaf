@@ -6,18 +6,13 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
 
     steps:
     - uses: actions/checkout@v1
     - name: Update repo.
-      run: |
-        git submodule update --init --recursive
-        
-    - name: Install devkitpro
-      run: |
-        wget https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.amd64.deb
-        sudo dpkg -i devkitpro-pacman.amd64.deb
-        sudo dkp-pacman -S $(dkp-pacman -Ssq switch-*) --noconfirm
+      with:
+        submodule: true
         
     - name: Building Goldleaf
       run: |
