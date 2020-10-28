@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v2
       name: Checkout repository and update submodules
       with:
-        submodule: 'recursive'
+        submodules: 'recursive'
         
     - name: Build Goldleaf
       run: |
