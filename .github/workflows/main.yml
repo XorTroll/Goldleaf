@@ -11,8 +11,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       name: Checkout repository and update submodules
-      with:
-        submodules: 'recursive'
+      run: |
+        git submodule update --init --recursive
         
     - name: Build Goldleaf
       run: |
