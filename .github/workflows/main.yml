@@ -10,11 +10,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      name: Update repo.
+      name: Checkout repository and update submodules
       with:
-        submodule: true
+        submodule: 'recursive'
         
-    - name: Building Goldleaf
+    - name: Build Goldleaf
       run: |
         echo ##########################
         echo #     SETTING PATH       #
@@ -27,6 +27,7 @@ jobs:
         make -j$(nproc)
         
     - uses: actions/upload-artifact@master
+      name: "Publish artifacts"
       with:
         name: Goldleaf
         path: Goldleaf/Goldleaf.nro
