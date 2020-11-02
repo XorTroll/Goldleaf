@@ -64,7 +64,8 @@ namespace ui
                 }
                 nfp::Close();
             }
+            nfp::Exit();
         }
-        nfp::Exit();
+        // if(R_FAILED(rc)) HandleResult(rc, "Amiibo:");
     }
 }
