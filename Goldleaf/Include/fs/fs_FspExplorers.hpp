@@ -21,7 +21,6 @@
 
 #pragma once
 #include <fs/fs_StdExplorer.hpp>
-#include <drive/drive_Drives.hpp>
 
 namespace fs
 {
@@ -55,17 +54,6 @@ namespace fs
             Partition GetPartition();
         private:
             Partition part;
-    };
-
-    class USBDriveExplorer final : public FspExplorer
-    {
-        public:
-            USBDriveExplorer(drive::Drive drive);
-            static FsFileSystem MountDrive(drive::Drive drive);
-            static std::string GetDrivePresentableName(drive::Drive drive);
-            drive::Drive GetDrive();
-        private:
-            drive::Drive drv;
     };
 
     class TitleSaveDataExplorer final : public FspExplorer

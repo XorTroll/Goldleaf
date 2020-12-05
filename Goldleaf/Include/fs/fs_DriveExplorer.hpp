@@ -20,22 +20,21 @@
 */
 
 #pragma once
-#include <fs/fs_Common.hpp>
-#include <fs/fs_Explorer.hpp>
 #include <fs/fs_StdExplorer.hpp>
-#include <fs/fs_FspExplorers.hpp>
-#include <fs/fs_DriveExplorer.hpp>
-#include <fs/fs_RemotePCExplorer.hpp>
+#include <drive/drive_Drives.hpp>
 
 namespace fs
 {
-    SdCardExplorer *GetSdCardExplorer();
-    NANDExplorer *GetPRODINFOFExplorer();
-    NANDExplorer *GetNANDSafeExplorer();
-    NANDExplorer *GetNANDUserExplorer();
-    NANDExplorer *GetNANDSystemExplorer();
-    RemotePCExplorer *GetRemotePCExplorer(String MountName);
-    DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive);
-    Explorer *GetExplorerForMountName(String MountName);
-    Explorer *GetExplorerForPath(String Path);
+    class DriveExplorer final : public StdExplorer
+    {
+        public:
+            DriveExplorer(UsbHsFsDevice &drive);
+
+            inline UsbHsFsDevice &GetDrive()
+            {
+                return this->drv;
+            }
+        private:
+            UsbHsFsDevice drv;
+    };
 }

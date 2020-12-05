@@ -54,7 +54,7 @@ extern "C"
         Exit(0);
     }
 
-    void __wrap_fatalThrow(Result rc) // This way, any kind of fatal thrown by us or libnx gets saved to a simple report, and Goldleaf simply closes itself
+    NORETURN void diagAbortWithResult(Result rc) // This way, any kind of result abort by us or libnx gets saved to a simple report, and Goldleaf simply closes itself
     {
         auto fname = "fatal_" + hos::FormatHex(rc) + ".log";
         std::string crashtxt = "\nGoldleaf fatal report\n\n";

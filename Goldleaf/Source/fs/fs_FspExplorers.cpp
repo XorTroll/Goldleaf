@@ -176,28 +176,6 @@ namespace fs
         return this->part;
     }
 
-    USBDriveExplorer::USBDriveExplorer(drive::Drive drive) : FspExplorer(USBDriveExplorer::GetDrivePresentableName(drive), USBDriveExplorer::MountDrive(drive)), drv(drive)
-    {
-    }
-
-    FsFileSystem USBDriveExplorer::MountDrive(drive::Drive drive)
-    {
-        FsFileSystem fs;
-        drive::OpenDrive(drive, &fs);
-        return fs;
-    }
-
-    std::string USBDriveExplorer::GetDrivePresentableName(drive::Drive drive)
-    {
-        if(drive.label.empty()) return "Unnamed-Drive";
-        return drive.label;
-    }
-
-    drive::Drive USBDriveExplorer::GetDrive()
-    {
-        return this->drv;
-    }
-
     TitleSaveDataExplorer::TitleSaveDataExplorer(u64 app_id, AccountUid user_id) : FspExplorer(std::string("SaveData-0x") + hos::FormatApplicationId(app_id), TitleSaveDataExplorer::MountTitleSaveData(app_id, user_id)), appid(app_id), uid(user_id)
     {
         this->SetCommitFunction(std::bind(&TitleSaveDataExplorer::DoCommit, this));

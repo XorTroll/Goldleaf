@@ -109,26 +109,28 @@ namespace ui
 
     void ExploreMenuLayout::usbDrive_Click()
     {
-        if(!drive::IsFspUsbAccessible())
-        {
-            global_app->CreateShowDialog(cfg::strings::Main.GetString(399), cfg::strings::Main.GetString(400), { cfg::strings::Main.GetString(234) }, false);
-            return;
-        }
-
         auto drives = drive::ListDrives();
         std::vector<String> opts;
-        for(auto &drive: drives) opts.push_back(drive.label);
+        for(auto &drive: drives) opts.push_back(drive.name);
         opts.push_back(cfg::strings::Main.GetString(18));
         int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(402) + " " + std::to_string(drives.size()), opts, true);
         if(!drives.empty())
         {
             if(sopt < drives.size())
             {
-                auto drv = drives[sopt];
-                global_app->GetBrowserLayout()->ChangePartitionUSBDrive(drv);
+                auto &drv = drives[sopt];
+                global_app->GetBrowserLayout()->ChangePartitionDrive(drv);
                 global_app->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
                 global_app->LoadLayout(global_app->GetBrowserLayout());
             }
+            else
+            {
+                global_app->CreateShowDialog("EY", "No drives 2...", { "Ok" }, true);
+            }
+        }
+        else
+        {
+            global_app->CreateShowDialog("EY", "No drives...", { "Ok" }, true);
         }
     }
 

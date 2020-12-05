@@ -29,7 +29,7 @@ int main()
 {
     // Initialize services
     auto rc = Initialize();
-    if(R_FAILED(rc)) fatalThrow(rc);
+    if(R_FAILED(rc)) diagAbortWithResult(rc);
 
     // Create the UI renderer and the application - it will initialize romfs
     auto renderer = pu::ui::render::Renderer::New(pu::ui::render::RendererInitOptions(SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags).WithIMG(pu::ui::render::IMGAllFlags).WithMixer(pu::ui::render::MixerAllFlags).WithTTF().WithDefaultFontSize(35).WithRomfs());

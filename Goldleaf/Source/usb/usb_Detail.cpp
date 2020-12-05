@@ -215,9 +215,9 @@ namespace usb::detail
 
     bool IsStateOk()
     {
-        u32 state = 0;
+        auto state = UsbState_Detached;
         usbDsGetState(&state);
-        return (state == 5);
+        return state == UsbState_Configured;
     }
 
     static Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info)
@@ -376,9 +376,9 @@ namespace usb::detail
 
     static inline Result TransferImpl(void *buf, size_t size, UsbDsEndpoint *ep)
     {
-        u32 state = 0;
+        auto state = UsbState_Detached;
         usbDsGetState(&state);
-        if(state != 5) return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
+        if(state != UsbState_Configured) return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
 
         u32 urbid = 0;
         auto rc = usbDsEndpoint_PostBufferAsync(ep, buf, size, &urbid);

@@ -32,7 +32,7 @@ namespace fs
     static NANDExplorer *enus = nullptr;
     static NANDExplorer *enss = nullptr;
     static RemotePCExplorer *epcdrv = nullptr;
-    static USBDriveExplorer *eusbdrv = nullptr;
+    static DriveExplorer *eusbdrv = nullptr;
 
     SdCardExplorer *GetSdCardExplorer()
     {
@@ -94,16 +94,16 @@ namespace fs
         return epcdrv;
     }
 
-    USBDriveExplorer *GetUSBDriveExplorer(drive::Drive drive)
+    DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive)
     {
-        if(eusbdrv == nullptr) eusbdrv = new USBDriveExplorer(drive);
+        if(eusbdrv == nullptr) eusbdrv = new DriveExplorer(drive);
         else
         {
             auto drv = eusbdrv->GetDrive();
-            if(drv.interface_id != drive.interface_id)
+            if(!drive::DrivesEqual(drv, drive))
             {
                 delete eusbdrv;
-                eusbdrv = new USBDriveExplorer(drive);
+                eusbdrv = new DriveExplorer(drive);
             }
         }
         return eusbdrv;

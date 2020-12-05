@@ -84,9 +84,9 @@ namespace ui
         this->ChangePartitionExplorer(fs::GetRemotePCExplorer(Mount), Update);
     }
 
-    void PartitionBrowserLayout::ChangePartitionUSBDrive(drive::Drive drv, bool Update)
+    void PartitionBrowserLayout::ChangePartitionDrive(UsbHsFsDevice &drv, bool Update)
     {
-        this->ChangePartitionExplorer(fs::GetUSBDriveExplorer(drv), Update);
+        this->ChangePartitionExplorer(fs::GetDriveExplorer(drv), Update);
     }
 
     void PartitionBrowserLayout::UpdateElements(int Idx)

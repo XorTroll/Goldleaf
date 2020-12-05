@@ -220,8 +220,7 @@ Result Initialize()
     R_TRY(usb::detail::Initialize());
     R_TRY(nifmInitialize(NifmServiceType_Admin));
     R_TRY(pdmqryInitialize());
-
-    if(drive::IsFspUsbAccessible()) R_TRY(drive::Initialize());
+    R_TRY(drive::Initialize());
 
     return 0;
 }
@@ -262,6 +261,7 @@ void Exit(Result rc)
     delete prif;
     delete sdcd;
 
+    drive::Exit();
     usb::detail::Exit();
     setsysExit();
     setExit();

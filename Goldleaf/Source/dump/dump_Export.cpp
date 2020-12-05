@@ -26,7 +26,7 @@
 #include <sstream>
 #include <iomanip>
 
-FsStorage fatfs_bin;
+FsStorage g_ff_bis_storage;
 
 namespace dump
 {
@@ -99,15 +99,14 @@ namespace dump
 
     void GenerateTicketCert(u64 ApplicationId)
     {
-        auto rc = fsOpenBisStorage(&fatfs_bin, FsBisPartitionId_System);
+        auto rc = fsOpenBisStorage(&g_ff_bis_storage, FsBisPartitionId_System);
         if(R_SUCCEEDED(rc))
         {
             auto exp = fs::GetSdCardExplorer();
             FATFS fs;
             FIL save;
             f_mount(&fs, "0", 1);
-            f_chdir("/save");
-            f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
+            f_open(&save, "0:save/80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
             String tkey;
             String orid;
             String fappid = hos::FormatApplicationId(ApplicationId);
@@ -152,9 +151,9 @@ namespace dump
                             if(fappid == tid)
                             {
                                 orid = rid;
-                                auto ftik = outdir + "/" + rid + ".tik";
-                                exp->StartFile(ftik, fs::FileMode::Write);
-                                exp->WriteFileBlock(ftik, &tkdata[j], 0x400);
+                                auto tik_file = outdir + "/" + rid + ".tik";
+                                exp->StartFile(tik_file, fs::FileMode::Write);
+                                exp->WriteFileBlock(tik_file, &tkdata[j], 0x400);
                                 exp->EndFile(fs::FileMode::Write);
                                 tkey = etkey;
                                 break;
@@ -164,8 +163,8 @@ namespace dump
                 }
             }
             f_close(&save);
-            f_mount(NULL, "0", 1);
-            fsStorageClose(&fatfs_bin);
+            f_mount(nullptr, "0", 1);
+            fsStorageClose(&g_ff_bis_storage);
             if(!tkey.empty())
             {
                 auto fcert = outdir + "/" + orid + ".cert";

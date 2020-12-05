@@ -28,6 +28,7 @@
 #include <json.hpp>
 #include <codecvt>
 #include <pu/Plutonium>
+#include <usbhsfs.h>
 
 using JSON = nlohmann::json;
 
