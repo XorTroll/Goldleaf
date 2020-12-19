@@ -397,7 +397,7 @@
     "Lesezeichen löschen",
     "Soll das Lesezeichen gelöscht werden?",
     "Das Lesezeichen wurde gelöscht.",
-    "USB Laufwerk (fsp-usb)",
+    "USB Laufwerk",
     "USB Laufwerk",
     "fsp-usb ist nicht vorhanden oder aktiv.",
     "USB Laufwerks Informationen",
@@ -432,5 +432,9 @@
     "Ein Fehler beim updaten trat auf:",
     "Das Update wurde erfolgreich installiert.",
     "Die Konsole muss neugestartet werden.",
-    "Der Ordner beinhaltet kein gültiges Update."
+    "Der Ordner beinhaltet kein gültiges Update.",
+    "What would you like to do with this USB drive?",
+    "Safely remove",
+    "The USB drive was removed successfully.",
+    "Unable to safely remove the USB drive..."
 ]

@@ -3,7 +3,7 @@
 
 all:
 	@$(MAKE) -C Plutonium/
-	@$(MAKE) -C libusbhsfs/
+	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL
 	@$(MAKE) -C Goldleaf/
 
 allclean: libclean clean

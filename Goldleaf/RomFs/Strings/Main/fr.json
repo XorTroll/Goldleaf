@@ -432,5 +432,9 @@
     "Une erreur s'est produite lors de l'application de la mise à jour :",
     "La mise à jour s'est installée avec succès.",
     "La console doit être redémarrée.",
-    "Ce dossier ne contient pas de mise à jour valide."
+    "Ce dossier ne contient pas de mise à jour valide.",
+    "What would you like to do with this USB drive?",
+    "Safely remove",
+    "The USB drive was removed successfully.",
+    "Unable to safely remove the USB drive..."
 ]

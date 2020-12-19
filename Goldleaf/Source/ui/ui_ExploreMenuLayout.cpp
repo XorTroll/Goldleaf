@@ -119,18 +119,25 @@ namespace ui
             if(sopt < drives.size())
             {
                 auto &drv = drives[sopt];
-                global_app->GetBrowserLayout()->ChangePartitionDrive(drv);
-                global_app->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-                global_app->LoadLayout(global_app->GetBrowserLayout());
+                sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(434), { cfg::strings::Main.GetString(136), cfg::strings::Main.GetString(435), cfg::strings::Main.GetString(18) }, true);
+                if(sopt == 0)
+                {
+                    global_app->GetBrowserLayout()->ChangePartitionDrive(drv);
+                    global_app->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+                    global_app->LoadLayout(global_app->GetBrowserLayout());
+                }
+                else if(sopt == 1)
+                {
+                    if(drive::UnmountDrive(drv))
+                    {
+                        global_app->ShowNotification(cfg::strings::Main.GetString(436));
+                    }
+                    else
+                    {
+                        global_app->ShowNotification(cfg::strings::Main.GetString(437));
+                    }
+                }
             }
-            else
-            {
-                global_app->CreateShowDialog("EY", "No drives 2...", { "Ok" }, true);
-            }
-        }
-        else
-        {
-            global_app->CreateShowDialog("EY", "No drives...", { "Ok" }, true);
         }
     }
 

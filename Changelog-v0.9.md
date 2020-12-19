@@ -34,7 +34,9 @@
 
 - Fixed a small bug where no personalized tickets would be detected if no common tickets were present in the console
 
-- Introducing fsp-usb support - fsp-usb is not finished yet, but since there are some compiled builds out there, Goldleaf will support them unless breaking changes are made. Note: fsp-usb isn't fully stable yet, so use it at your own risk!
+- Introducing USB drive support, thanks to me and DarkMatterCore's new project: [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs), a library to include USB drive support in your homebrew projects!
+
+  - Both FAT (including exFAT) and NTFS filesystems are supported ;)
 
 - Other minor code improvements or small bug fixes
 

@@ -56,6 +56,7 @@ namespace ui
     {
         WebCommonConfig web;
         webPageCreate(&web, page.c_str());
+        webConfigSetWhitelist(&web, ".*");
         webConfigShow(&web, nullptr);
     }
 

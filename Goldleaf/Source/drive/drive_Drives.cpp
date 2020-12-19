@@ -32,4 +32,9 @@ namespace drive
 
         return drives;
     }
+
+    bool UnmountDrive(UsbHsFsDevice &drv)
+    {
+        return usbHsFsUnmountDevice(&drv, false);
+    }
 }

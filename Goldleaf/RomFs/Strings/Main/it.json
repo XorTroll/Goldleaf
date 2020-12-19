@@ -397,7 +397,7 @@
     "Elimina segnalibro",
     "Confermi l'eliminazione?",
     "Il segnalibro è stato eliminato.",
-    "Dischi USB (fsp-usb)",
+    "Dischi USB",
     "Dischi USB",
     "fsp-usb non è installato o non è attivo.",
     "Informazioni disco USB",
@@ -432,5 +432,9 @@
     "Si è verificato un errore durante l'applicazione dell'aggiornamento:",
     "L'aggiornamento è stato installato.",
     "La console deve essere riavviata.",
-    "Questa cartella non contiene un aggiornamento valido."
+    "Questa cartella non contiene un aggiornamento valido.",
+    "What would you like to do with this USB drive?",
+    "Safely remove",
+    "The USB drive was removed successfully.",
+    "Unable to safely remove the USB drive..."
 ]

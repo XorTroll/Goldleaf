@@ -40,4 +40,5 @@ namespace drive
     }
 
     std::vector<UsbHsFsDevice> ListDrives();
+    bool UnmountDrive(UsbHsFsDevice &drv);
 }

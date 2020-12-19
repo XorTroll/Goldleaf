@@ -14,7 +14,7 @@
     "Remove bookmark",
     "Are you sure you want to remove this bookmark?",
     "The bookmark was removed.",
-    "USB drives (fsp-usb)",
+    "USB drives",
     "USB drives",
     "fsp-usb is not present or active.",
     "USB drive information",
@@ -49,5 +49,9 @@
     "An error ocurred attempting to apply the update:",
     "The update was succesfully installed.",
     "The console must be rebooted.",
-    "This folder does not contain a valid update."
+    "This folder does not contain a valid update.",
+    "What would you like to do with this USB drive?",
+    "Safely remove",
+    "The USB drive was removed successfully.",
+    "Unable to safely remove the USB drive..."
 ]

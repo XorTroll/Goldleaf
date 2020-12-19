@@ -397,7 +397,7 @@
     "Eliminar marcador",
     "¿Seguro que quiere eliminar este marcador?",
     "El marcador ha sido eliminado.",
-    "Dispositivos USB (fsp-usb)",
+    "Dispositivos USB",
     "Dispositivos USB",
     "fsp-usb no está presente o activo.",
     "Información de dispositivos USB",
@@ -432,5 +432,9 @@
     "Se ha producido un error al intentar aplicar la actualización:",
     "La actualización ha sido instalada con éxito.",
     "Se debe reiniciar la consola.",
-    "Esta carpeta no contiene una actualización válida."
+    "Esta carpeta no contiene una actualización válida.",
+    "¿Qué le gustaría hacer con este dispositivo USB?",
+    "Expulsar de forma segura",
+    "El dispositivo USB fue expulsado con éxito.",
+    "No se pudo expulsar de forma segura el dispositivo USB..."
 ]

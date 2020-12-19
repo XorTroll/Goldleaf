@@ -397,7 +397,7 @@
     "Verwijder bladwijzer",
     "Weet je zeker dat je deze bladwijzer wilt verwijderen?",
     "De bladwijzer is verwijdert.",
-    "USB drives (fsp-usb)",
+    "USB drives",
     "USB drives",
     "fsp-usb is niet active of present",
     "USB drive informatie",
@@ -432,5 +432,9 @@
     "Er is een fout opgetreden bij het toepassen van de update:",
     "De update is succesvol geïnstalleerd.",
     "De update is succesvol geïnstalleerd",
-    "Deze map bevat geen geldige update."
+    "Deze map bevat geen geldige update.",
+    "What would you like to do with this USB drive?",
+    "Safely remove",
+    "The USB drive was removed successfully.",
+    "Unable to safely remove the USB drive..."
 ]
