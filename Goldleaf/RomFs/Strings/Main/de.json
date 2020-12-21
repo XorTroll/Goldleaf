@@ -433,8 +433,8 @@
     "Das Update wurde erfolgreich installiert.",
     "Die Konsole muss neugestartet werden.",
     "Der Ordner beinhaltet kein gültiges Update.",
-    "What would you like to do with this USB drive?",
-    "Safely remove",
-    "The USB drive was removed successfully.",
-    "Unable to safely remove the USB drive..."
+    "Was möchtest du mit dem USB Laufwerk machen?",
+    "Sicher entfernen",
+    "Das USB Laufwerk wurde erfolgreich getrennt.",
+    "USB Laufwerk konnte nicht getrennt werden..."
 ]

@@ -433,8 +433,8 @@
     "L'aggiornamento è stato installato.",
     "La console deve essere riavviata.",
     "Questa cartella non contiene un aggiornamento valido.",
-    "What would you like to do with this USB drive?",
-    "Safely remove",
-    "The USB drive was removed successfully.",
-    "Unable to safely remove the USB drive..."
+    "Cosa vorresti fare con questo driver USB?",
+    "Rimuovi in modo sicuro",
+    "Il driver usb è stato rimosso con successo",
+    "Impossibile rimuovere in modo sicuro il driver USB..."
 ]
