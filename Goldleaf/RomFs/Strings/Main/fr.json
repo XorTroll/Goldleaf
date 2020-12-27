@@ -433,8 +433,8 @@
     "La mise à jour s'est installée avec succès.",
     "La console doit être redémarrée.",
     "Ce dossier ne contient pas de mise à jour valide.",
-    "What would you like to do with this USB drive?",
-    "Safely remove",
-    "The USB drive was removed successfully.",
-    "Unable to safely remove the USB drive..."
+    "Que voulez-vous faire avec ce périphérique USB ?",
+    "Retirer sans risque",
+    "Le périphérique USB a été retiré avec succès.",
+    "Impossible de retirer le stockage USB sans risque..."
 ]
