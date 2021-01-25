@@ -80,7 +80,7 @@ namespace acc
         u8 st_out[0x18] = {0};
         size_t repsz;
 
-        auto res = libappletLaunch(AppletId_playerSelect, &args, st_in, 0xA0, st_out, 0x18, &repsz);
+        auto res = libappletLaunch(AppletId_LibraryAppletPlayerSelect, &args, st_in, 0xA0, st_out, 0x18, &repsz);
         if(R_SUCCEEDED(res))
         {
             u64 lres = *(u64*)st_out;

@@ -39,14 +39,17 @@ namespace nfp::emu
 
     Result Initialize()
     {
-        atomicIncrement64(&nfpemu_refcnt);
+		// emuiiboo is not working todo
+        //atomicIncrement64(&nfpemu_refcnt);
         if(serviceIsActive(&nfpemu_srv)) return 0;
         return smGetService(&nfpemu_srv, NFP_EMU_SERVICE);
     }
 
     void Exit()
     {
-        if(atomicDecrement64(&nfpemu_refcnt) == 0) serviceClose(&nfpemu_srv);
+		
+       // if(atomicDecrement64(&nfpemu_refcnt) == 0)
+		serviceClose(&nfpemu_srv);
     }
 
     Result GetCurrentAmiibo(char *out, size_t out_len)

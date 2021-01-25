@@ -57,7 +57,7 @@ namespace dump
         s32 total = 0;
         s32 written = 0;
         bool got = false;
-        Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, hos::MaxTitleCount, NcmContentMetaType_Unknown, ApplicationId, 0, U64_MAX, NcmContentInstallType_Full);
+        Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, hos::MaxTitleCount, NcmContentMetaType_Unknown, ApplicationId, 0, UINT64_MAX, NcmContentInstallType_Full);
         if((R_SUCCEEDED(rc)) && (written > 0)) 
         {
             for(s32 i = 0; i < written; i++)

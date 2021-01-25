@@ -211,14 +211,14 @@ namespace hos
     TitlePlayStats Title::GetGlobalPlayStats()
     {
         PdmPlayStatistics pdmstats;
-        pdmqryQueryPlayStatisticsByApplicationId(ApplicationId, &pdmstats);
+        pdmqryQueryPlayStatisticsByApplicationId(ApplicationId,0, &pdmstats);
         return ProcessFromPdm(pdmstats);
     }
     
     TitlePlayStats Title::GetUserPlayStats(AccountUid UserId)
     {
         PdmPlayStatistics pdmstats;
-        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId, &pdmstats);
+        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(ApplicationId, UserId,0, &pdmstats);
         return ProcessFromPdm(pdmstats);
     }
 
@@ -257,7 +257,7 @@ namespace hos
             NcmContentMetaKey *recs = new NcmContentMetaKey[MaxTitleCount]();
             s32 wrt = 0;
             s32 total = 0;
-            rc = ncmContentMetaDatabaseList(&metadb, &total, &wrt, recs, MaxTitleCount, static_cast<NcmContentMetaType>(Type), 0, 0, U64_MAX, NcmContentInstallType_Full);
+            rc = ncmContentMetaDatabaseList(&metadb, &total, &wrt, recs, MaxTitleCount, static_cast<NcmContentMetaType>(Type), 0, 0, UINT64_MAX, NcmContentInstallType_Full);
             if((R_SUCCEEDED(rc)) && (wrt > 0))
             {
                 titles.reserve(wrt);
