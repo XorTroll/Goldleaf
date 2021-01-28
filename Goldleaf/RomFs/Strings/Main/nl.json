@@ -433,8 +433,8 @@
     "De update is succesvol geïnstalleerd.",
     "De update is succesvol geïnstalleerd",
     "Deze map bevat geen geldige update.",
-    "What would you like to do with this USB drive?",
-    "Safely remove",
-    "The USB drive was removed successfully.",
-    "Unable to safely remove the USB drive..."
+    "Wat wil je doen met deze usb schijf",
+    "Veilig verwijderen",
+    "De usb schijf is succesvol verwijderd",
+    "Kon de usb schijf niet veilig verwijderen..."
 ]
