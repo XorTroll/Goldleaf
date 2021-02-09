@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ namespace acc
         u8 st_out[0x18] = {0};
         size_t repsz;
 
-        auto res = libappletLaunch(AppletId_playerSelect, &args, st_in, 0xA0, st_out, 0x18, &repsz);
+        auto res = libappletLaunch(AppletId_LibraryAppletPlayerSelect, &args, st_in, 0xA0, st_out, 0x18, &repsz);
         if(R_SUCCEEDED(res))
         {
             u64 lres = *(u64*)st_out;
@@ -155,8 +155,9 @@ namespace acc
                 res = accountProfileLoadImage(&prof, icon, iconsize, &tmpsz);
                 if(res == 0)
                 {
-                    std::string iconpth = GetCachedUserIcon();
-                    fs::DeleteFile(iconpth);
+                    auto iconpth = GetCachedUserIcon();
+                    auto sd_exp = fs::GetSdCardExplorer();
+                    sd_exp->DeleteFile(iconpth);
                     FILE *f = fopen(iconpth.c_str(), "wb");
                     if(f)
                     {

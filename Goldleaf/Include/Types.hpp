@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,19 +26,15 @@
 #include <arpa/inet.h>
 #include <ByteBuffer.hpp>
 #include <json.hpp>
+#include <codecvt>
 #include <pu/Plutonium>
+#include <usbhsfs.h>
 
 using JSON = nlohmann::json;
-template<typename ...Args>
-using ResultWith = std::tuple<Result, Args...>;
 
 using String = pu::String;
 
-template<typename ...Args>
-inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)
-{
-    return std::make_tuple(res, std::forward<Args>(args)...);
-}
+String LowerCaseString(String str);
 
 // Thanks SciresM
 #define R_TRY(res_expr) \
@@ -49,20 +45,13 @@ inline constexpr ResultWith<Args...> MakeResultWith(Result res, Args &...args)
     } \
 })
 
-namespace result
-{
-    namespace module
-    {
-        static constexpr u32 Goldleaf = 356;
-        static constexpr u32 Errno = 357;
-        static constexpr u32 ExGUSB = 358;
-    }
-}
-
 namespace consts
 {
-    extern std::string Root;
-    extern std::string Log;
+    static const std::string Root = "switch/Goldleaf";
+    static const std::string Log = Root + "/goldleaf.log";
+    static const std::string Settings = Root + "/settings.json";
+    static const std::string TempUpdatedNro = Root + "/update_tmp.nro";
+    static const std::string AmiiboCache = Root + "/amiibocache";
 }
 
 enum class ExecutableMode
@@ -114,22 +103,41 @@ struct Version
     s32 Micro;
 
     String AsString();
-    static Version MakeVersion(u32 major, u32 minor, u32 micro);
+
+    static inline constexpr Version MakeVersion(u32 major, u32 minor, u32 micro)
+    {
+        return { major, minor, static_cast<s32>(micro) };
+    }
+
     static Version FromString(String StrVersion);
     bool IsLower(Version Other);
     bool IsHigher(Version Other);
     bool IsEqual(Version Other);
 };
 
+class OnScopeExit
+{
+    private:
+        std::function<void()> call;
+
+    public:
+        OnScopeExit(std::function<void()> call) : call(call) {}
+
+        ~OnScopeExit()
+        {
+            this->call();
+        }
+};
+
 namespace logging
 {
     template<typename ...Args>
-    void LogFmt(String fmt, Args &&...args)
+    inline void LogFmt(std::string fmt, Args &&...args)
     {
-        FILE *f = fopen(("sdmc:/" + consts::Log).c_str(), "a+");
+        auto f = fopen(("sdmc:/" + consts::Log).c_str(), "a+");
         if(f)
         {
-            fprintf(f, (fmt.AsUTF8() + "\n").c_str(), args...);
+            fprintf(f, (fmt + "\n").c_str(), args...);
             fclose(f);
         }
     }
@@ -137,15 +145,13 @@ namespace logging
 
 ExecutableMode GetExecutableMode();
 LaunchMode GetLaunchMode();
-String GetVersion();
 u64 GetApplicationId();
 bool HasKeyFile();
-bool IsAtmosphere();
 u64 GetCurrentApplicationId();
 u32 RandomFromRange(u32 Min, u32 Max);
 void EnsureDirectories();
 Result Initialize();
-void Close();
+void Close(Result rc);
 
 // Exit calls Close!
-void Exit();
+void Exit(Result rc);

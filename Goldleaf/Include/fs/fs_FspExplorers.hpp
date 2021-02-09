@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,37 +24,47 @@
 
 namespace fs
 {
-    class SdCardExplorer final : public StdExplorer
+    class FspExplorer : public StdExplorer
     {
         public:
-            SdCardExplorer();
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-    };
-
-    class NANDExplorer final : public StdExplorer
-    {
-        public:
-            NANDExplorer(Partition Part);
-            ~NANDExplorer();
-            Partition GetPartition();
-            virtual bool ShouldWarnOnWriteAccess() override;
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-        private:
-            Partition part;
-            FsFileSystem fs;
-    };
-
-    class FileSystemExplorer final : public StdExplorer
-    {
-        public:
-            FileSystemExplorer(String MountName, String DisplayName, FsFileSystem *FileSystem);
-            ~FileSystemExplorer();
+            FspExplorer(String DisplayName, FsFileSystem FileSystem);
+            FspExplorer(String DisplayName, std::string mount_name, FsFileSystem FileSystem);
+            ~FspExplorer();
+            bool IsOk();
             FsFileSystem *GetFileSystem();
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
         private:
-            FsFileSystem *fs;
+            bool dispose;
+            FsFileSystem fs;
+    };
+
+    class SdCardExplorer final : public FspExplorer
+    {
+        public:
+            SdCardExplorer();
+    };
+
+    class NANDExplorer final : public FspExplorer
+    {
+        public:
+            NANDExplorer(Partition Part);
+            static FsFileSystem MountNANDFileSystem(Partition part);
+            static std::string GetNANDPartitionName(Partition part);
+            Partition GetPartition();
+        private:
+            Partition part;
+    };
+
+    class TitleSaveDataExplorer final : public FspExplorer
+    {
+        public:
+            TitleSaveDataExplorer(u64 app_id, AccountUid user_id);
+            static FsFileSystem MountTitleSaveData(u64 app_id, AccountUid user_id);
+            void DoCommit();
+            bool Matches(u64 app_id, AccountUid user_id);
+        private:
+            u64 appid;
+            AccountUid uid;
     };
 }

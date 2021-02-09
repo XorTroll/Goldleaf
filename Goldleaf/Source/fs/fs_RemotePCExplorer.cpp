@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ namespace fs
         usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(1), usb::InString(path));
     }
 
-    void RemotePCExplorer::DeleteDirectorySingle(String Path)
+    void RemotePCExplorer::DeleteDirectory(String Path)
     {
         String path = this->MakeFull(Path);
         usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(2), usb::InString(path));
@@ -147,7 +147,7 @@ namespace fs
         usb::ProcessCommand<usb::CommandId::StartFile>(usb::InString(npath), usb::In32((u32)mode));
     }
 
-    u64 RemotePCExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out)
+    u64 RemotePCExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out)
     {
         u64 rsize = 0;
         String path = this->MakeFull(Path);
@@ -155,7 +155,7 @@ namespace fs
         return rsize;
     }
 
-    u64 RemotePCExplorer::WriteFileBlock(String Path, u8 *Data, u64 Size)
+    u64 RemotePCExplorer::WriteFileBlock(String Path, void *Data, u64 Size)
     {
         String path = this->MakeFull(Path);
         usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(path), usb::In64(Size), usb::InBuffer(Data, Size));

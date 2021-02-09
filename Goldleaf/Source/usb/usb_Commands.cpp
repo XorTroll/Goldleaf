@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ namespace usb
 
     void InCommandBlock::WriteBuffer(void *Buf, size_t Size)
     {
-        memcpy(&base.blockbuf[base.position], Buf, Size);
+        memcpy(base.blockbuf + base.position, Buf, Size);
         base.position += Size;
     }
 
@@ -101,7 +101,7 @@ namespace usb
     String OutCommandBlock::ReadString()
     {
         u32 len = Read32();
-        char16_t *str = new char16_t[len + 1]();
+        auto str = new char16_t[len + 1]();
         ReadBuffer(str, len * sizeof(char16_t));
         String nstr(str);
         delete[] str;
@@ -110,7 +110,7 @@ namespace usb
 
     void OutCommandBlock::ReadBuffer(void *Buf, size_t Size)
     {
-        memcpy(Buf, &base.blockbuf[base.position], Size);
+        memcpy(Buf, base.blockbuf + base.position, Size);
         base.position += Size;
     }
 

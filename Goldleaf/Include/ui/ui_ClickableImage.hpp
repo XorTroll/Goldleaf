@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ namespace ui
             void OnInput(u64 down, u64 up, u64 held, pu::ui::Touch Pos);
         protected:
             String img;
-            pu::ui::render::NativeTexture ntex;
+            pu::sdl2::Texture ntex;
             s32 x;
             s32 y;
             s32 w;

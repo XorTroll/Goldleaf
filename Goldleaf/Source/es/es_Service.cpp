@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,23 +20,20 @@
 */
 
 #include <es/es_Service.hpp>
-#include <cstring>
-
-static Service es_srv;
-static u64 es_refcnt = 0;
 
 namespace es
 {
+    static Service es_srv;
+
     Result Initialize()
     {
-        atomicIncrement64(&es_refcnt);
         if(serviceIsActive(&es_srv)) return 0;
         return smGetService(&es_srv, "es");
     }
 
     void Exit()
     {
-        if(atomicDecrement64(&es_refcnt) == 0) serviceClose(&es_srv);
+        if(serviceIsActive(&es_srv)) serviceClose(&es_srv);
     }
 
     bool HasInitialized()
@@ -44,7 +41,7 @@ namespace es
         return serviceIsActive(&es_srv);
     }
 
-    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CertSize)
+    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CommonCertificateSize)
     {
         return serviceDispatch(&es_srv, 1,
             .buffer_attrs = {
@@ -53,7 +50,7 @@ namespace es
             },
             .buffers = {
                 { Ticket, TicketSize },
-                { Cert, CertSize },
+                { Cert, CommonCertificateSize },
             },
         );
     }
@@ -63,22 +60,6 @@ namespace es
         return serviceDispatch(&es_srv, 3,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
             .buffers = { { RId, RIdSize }, },
-        );
-    }
-
-    Result GetTitleKey(const RightsId *RId, u8 *out_Key, size_t out_KeySize)
-    {
-        struct
-        {
-            RightsId RId;
-            u32 KeyGen; 
-        } in;
-        memcpy(&in.RId, RId, sizeof(RightsId));
-        in.KeyGen = 0;
-
-        return serviceDispatchIn(&es_srv, 8, in,
-            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_Key, out_KeySize } },
         );
     }
 
@@ -105,14 +86,6 @@ namespace es
         return serviceDispatchOut(&es_srv, 12, *out_Written,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
             .buffers = { { out_Ids, out_IdsSize } },
-        );
-    }
-
-    Result GetCommonTicketData(const RightsId *RId, void *out_Data, size_t out_DataSize, u64 *out_Unk)
-    {
-        return serviceDispatchInOut(&es_srv, 16, *RId, *out_Unk,
-            .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_Data, out_DataSize } },
         );
     }
 }

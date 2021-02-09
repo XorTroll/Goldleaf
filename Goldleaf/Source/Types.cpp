@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,18 +19,19 @@
 
 */
 
-#include <Types.hpp>
 #include <fs/fs_FileSystem.hpp>
 #include <usb/usb_Detail.hpp>
 #include <es/es_Service.hpp>
 
-extern char** __system_argv;
-extern bool gupdated;
+extern char **__system_argv;
+extern bool global_app_updated;
 
-namespace consts
+String LowerCaseString(String str)
 {
-    std::string Root = "switch/Goldleaf";
-    std::string Log = Root + "/Goldleaf.log";
+    String ret;
+    auto u8str = str.AsUTF8();
+    std::transform(u8str.begin(), u8str.end(), u8str.begin(), tolower);
+    return u8str;
 }
 
 std::string LanguageToString(Language lang)
@@ -75,16 +76,10 @@ String Version::AsString()
     return txt;
 }
 
-Version Version::MakeVersion(u32 major, u32 minor, u32 micro)
-{
-    return { major, minor, (s32)micro };
-}
-
 Version Version::FromString(String StrVersion)
 {
-    String strv = StrVersion;
-    Version v;
-    memset(&v, 0, sizeof(v));
+    auto strv = StrVersion;
+    Version v = {};
     size_t pos = 0;
     String token;
     u32 c = 0;
@@ -110,14 +105,17 @@ bool Version::IsLower(Version Other)
     else if(this->Major == Other.Major)
     {
         if(this->Minor > Other.Minor) return true;
-        else if(this->Minor == Other.Minor) if(this->Micro > Other.Micro) return true;
+        else if(this->Minor == Other.Minor)
+        {
+            if(this->Micro > Other.Micro) return true;
+        }
     }
     return false;
 }
 
 bool Version::IsHigher(Version Other)
 {
-    return !IsLower(Other);
+    return !this->IsLower(Other) && !this->IsEqual(Other);
 }
 
 bool Version::IsEqual(Version Other)
@@ -149,17 +147,6 @@ LaunchMode GetLaunchMode()
     return mode;
 }
 
-String GetVersion()
-{
-    return String(GOLDLEAF_VERSION);
-}
-
-bool IsAtmosphere()
-{
-    u64 tmpc = 0;
-    return R_SUCCEEDED(splGetConfig((SplConfigItem)65000, &tmpc));
-}
-
 u64 GetCurrentApplicationId()
 {
     u64 appid = 0;
@@ -170,8 +157,10 @@ u64 GetCurrentApplicationId()
 u32 RandomFromRange(u32 Min, u32 Max)
 {
     u32 diff = Max - Min;
-    u32 rval = rand() % (diff + 1);
-    return rval + Min;
+    u32 random_val;
+    randomGet(&random_val, sizeof(random_val));
+    random_val %= (diff + 1);
+    return random_val + Min;
 }
 
 void EnsureDirectories()
@@ -192,15 +181,33 @@ void EnsureDirectories()
     sd->CreateDirectory(consts::Root + "/dump/title");
 }
 
-void Close()
+extern "C"
+{
+    void __appExit();
+    void NORETURN __nx_exit(Result rc, LoaderReturnFn retaddr);
+
+    void NORETURN __libnx_exit(Result rc)
+    {
+        // Call destructors.
+        void __libc_fini_array(void);
+        __libc_fini_array();
+
+        // Clean up services.
+        __appExit();
+
+        __nx_exit(rc, envGetExitFuncPtr());
+    }
+}
+
+void Close(Result rc)
 {
     if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
-    else exit(0);
+    else __libnx_exit(rc);
 }
 
 Result Initialize()
 {
-    srand(time(NULL));
+    srand(time(nullptr));
     EnsureDirectories();
 
     R_TRY(accountInitialize(AccountServiceType_Administrator));
@@ -211,37 +218,50 @@ Result Initialize()
     R_TRY(setInitialize());
     R_TRY(setsysInitialize());
     R_TRY(usb::detail::Initialize());
-    R_TRY(splInitialize());
     R_TRY(nifmInitialize(NifmServiceType_Admin));
     R_TRY(pdmqryInitialize());
+    R_TRY(drive::Initialize());
 
     return 0;
 }
 
-void Exit()
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref global_app;
+
+void Exit(Result rc)
 {
-    // If Goldleaf updated itself in this session...
-    if(gupdated)
+    if(global_app)
     {
-        romfsExit();
-        fs::DeleteFile(__system_argv[0]);
-        fs::RenameFile("sdmc:/" + consts::Root + "/update_tmp.nro", __system_argv[0]);
+        global_app->Close();
     }
 
-    auto fsopsbuf = fs::GetFileSystemOperationsBuffer();
-    operator delete[](fsopsbuf, std::align_val_t(0x1000));
     auto nsys = fs::GetNANDSystemExplorer();
     auto nsfe = fs::GetNANDSafeExplorer();
     auto nusr = fs::GetNANDUserExplorer();
     auto prif = fs::GetPRODINFOFExplorer();
     auto sdcd = fs::GetSdCardExplorer();
+
+    // If we updated ourselves in this session...
+    if(global_app_updated)
+    {
+        romfsExit();
+
+        const auto cur_nro_file = __system_argv[0];
+        sdcd->DeleteFile(cur_nro_file);
+        sdcd->RenameFile(consts::TempUpdatedNro, cur_nro_file);
+    }
+
+    auto work_buf = fs::GetWorkBuffer();
+    operator delete[](work_buf, std::align_val_t(0x1000));
+    
     delete nsys;
     delete nsfe;
     delete nusr;
     delete prif;
     delete sdcd;
 
-    splExit();
+    drive::Exit();
     usb::detail::Exit();
     setsysExit();
     setExit();
@@ -252,5 +272,5 @@ void Exit()
     ncmExit();
     nifmExit();
     pdmqryExit();
-    Close();
+    Close(rc);
 }

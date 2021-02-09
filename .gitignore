@@ -3,6 +3,7 @@ Build/
 Output/
 *.nso
 *.nro
+*.nacp
 *.nsp
 *.elf
 keys.dat

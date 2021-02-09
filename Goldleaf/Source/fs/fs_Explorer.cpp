@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,10 @@
 #include <iomanip>
 #include <cctype>
 
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref global_app;
+
 namespace fs
 {
     static bool InternalCaseCompare(String a, String b)
@@ -35,11 +39,6 @@ namespace fs
         std::transform(a.begin(), a.end(), a.begin(), ::tolower);
         std::transform(b.begin(), b.end(), b.begin(), ::tolower);
         return (a.AsUTF16() < b.AsUTF16());
-    }
-
-    bool Explorer::ShouldWarnOnWriteAccess()
-    {
-        return false;
     }
 
     void Explorer::SetNames(String MountName, String DisplayName)
@@ -104,8 +103,8 @@ namespace fs
         auto ex = GetExplorerForPath(NewPath);
         String npath = ex->MakeFull(NewPath);
         u64 fsize = this->GetFileSize(path);
-        u64 rsize = GetFileSystemOperationsBufferSize();
-        u8 *data = GetFileSystemOperationsBuffer();
+        u64 rsize = WorkBufferSize;
+        u8 *data = GetWorkBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         this->StartFile(path, fs::FileMode::Read);
@@ -127,8 +126,8 @@ namespace fs
         auto ex = GetExplorerForPath(NewPath);
         String npath = ex->MakeFull(NewPath);
         u64 fsize = this->GetFileSize(path);
-        u64 rsize = GetFileSystemOperationsBufferSize();
-        u8 *data = GetFileSystemOperationsBuffer();
+        u64 rsize = WorkBufferSize;
+        u8 *data = GetWorkBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         this->StartFile(path, fs::FileMode::Read);
@@ -187,7 +186,7 @@ namespace fs
         u64 fsize = this->GetFileSize(path);
         if(fsize == 0) return true;
         u64 toread = std::min(fsize, (u64)0x200); // 0x200, like GodMode9
-        u8 *ptr = GetFileSystemOperationsBuffer();
+        u8 *ptr = GetWorkBuffer();
         u64 rsize = this->ReadFileBlock(path, 0, toread, ptr);
         for(u32 i = 0; i < rsize; i++)
         {
@@ -224,11 +223,11 @@ namespace fs
         u32 tmpo = 0;
         u64 szrem = fsize;
         u64 off = 0;
-        u8 *tmpdata = GetFileSystemOperationsBuffer();
+        u8 *tmpdata = GetWorkBuffer();
         bool end = false;
         while(szrem && !end)
         {
-            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)GetFileSystemOperationsBufferSize(), szrem), tmpdata);
+            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)WorkBufferSize, szrem), tmpdata);
             if(rsize == 0) return data;
             szrem -= rsize;
             off += rsize;
@@ -337,23 +336,5 @@ namespace fs
         auto files = this->GetFiles(path);
         for(auto &file: files) sz += this->GetFileSize(path + "/" + file);
         return sz;
-    }
-
-    void Explorer::DeleteDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        auto dirs = this->GetDirectories(path);
-        for(auto &dir: dirs)
-        {
-            String pd = path + "/" + dir;
-            this->DeleteDirectory(pd);
-        }
-        auto files = this->GetFiles(path);
-        for(auto &file: files)
-        {
-            String pd = path + "/" + file;
-            this->DeleteFile(pd);
-        }
-        this->DeleteDirectorySingle(path);
     }
 }

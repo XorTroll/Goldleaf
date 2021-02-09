@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,18 @@ namespace nsp
     class PFS0
     {
         public:
+            static constexpr u32 InvalidFileIndex = UINT32_MAX;
+
+            NX_CONSTEXPR bool IsValidFileIndex(u32 idx)
+            {
+                return idx != InvalidFileIndex;
+            }
+            
+            NX_CONSTEXPR bool IsInvalidFileIndex(u32 idx)
+            {
+                return !IsValidFileIndex;
+            }
+
             PFS0(fs::Explorer *Exp, String Path);
             ~PFS0();
             u32 GetCount();

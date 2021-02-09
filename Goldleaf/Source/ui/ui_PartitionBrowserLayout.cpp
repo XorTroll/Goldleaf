@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,13 +21,15 @@
 
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
+#include <hos/hos_Payload.hpp>
+#include <amssu/amssu_Service.hpp>
 
 extern ui::MainApplication::Ref global_app;
 extern cfg::Settings global_settings;
 
 namespace ui
 {
-    std::vector<u32> expidxstack;
+    std::vector<u32> g_entry_idx_stack;
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout()
     {
@@ -43,43 +45,52 @@ namespace ui
         this->Add(this->dirEmptyText);
     }
 
+    void PartitionBrowserLayout::ChangePartitionExplorer(fs::Explorer *exp, bool Update)
+    {
+        this->gexp = exp;
+        if(Update) this->UpdateElements();
+    }
+
     void PartitionBrowserLayout::ChangePartitionSdCard(bool Update)
     {
-        this->gexp = fs::GetSdCardExplorer();
-        if(Update) this->UpdateElements();
+        this->ChangePartitionExplorer(fs::GetSdCardExplorer(), Update);
     }
 
     void PartitionBrowserLayout::ChangePartitionNAND(fs::Partition Partition, bool Update)
     {
+        fs::Explorer *exp = nullptr;
         switch(Partition)
         {
             case fs::Partition::PRODINFOF:
-                this->gexp = fs::GetPRODINFOFExplorer();
+                exp = fs::GetPRODINFOFExplorer();
                 break;
             case fs::Partition::NANDSafe:
-                this->gexp = fs::GetNANDSafeExplorer();
+                exp = fs::GetNANDSafeExplorer();
                 break;
             case fs::Partition::NANDUser:
-                this->gexp = fs::GetNANDUserExplorer();
+                exp = fs::GetNANDUserExplorer();
                 break;
             case fs::Partition::NANDSystem:
-                this->gexp = fs::GetNANDSystemExplorer();
+                exp = fs::GetNANDSystemExplorer();
                 break;
             default:
-                break;
+                return;
         }
-        if(Update) this->UpdateElements();
+        this->ChangePartitionExplorer(exp, Update);
     }
     
     void PartitionBrowserLayout::ChangePartitionPCDrive(String Mount, bool Update)
     {
-        this->gexp = fs::GetRemotePCExplorer(Mount);
-        if(Update) this->UpdateElements();
+        this->ChangePartitionExplorer(fs::GetRemotePCExplorer(Mount), Update);
+    }
+
+    void PartitionBrowserLayout::ChangePartitionDrive(UsbHsFsDevice &drv, bool Update)
+    {
+        this->ChangePartitionExplorer(fs::GetDriveExplorer(drv), Update);
     }
 
     void PartitionBrowserLayout::UpdateElements(int Idx)
     {
-        if(!this->elems.empty()) this->elems.clear();
         this->elems = this->gexp->GetContents();
         this->browseMenu->ClearItems();
         global_app->LoadMenuHead(this->gexp->GetPresentableCwd());
@@ -94,13 +105,12 @@ namespace ui
             this->dirEmptyText->SetVisible(false);
             for(auto &itm: this->elems)
             {
-                bool isdir = this->gexp->IsDirectory(itm);
                 auto mitm = pu::ui::elm::MenuItem::New(itm);
                 mitm->SetColor(global_settings.custom_scheme.Text);
-                if(isdir) mitm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
+                if(this->gexp->IsDirectory(itm)) mitm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
                 else
                 {
-                    String ext = fs::GetExtension(itm);
+                    auto ext = LowerCaseString(fs::GetExtension(itm));
                     if(ext == "nsp") mitm->SetIcon(global_settings.PathForResource("/FileSystem/NSP.png"));
                     else if(ext == "nro") mitm->SetIcon(global_settings.PathForResource("/FileSystem/NRO.png"));
                     else if(ext == "tik") mitm->SetIcon(global_settings.PathForResource("/FileSystem/TIK.png"));
@@ -118,15 +128,16 @@ namespace ui
             u32 tmpidx = 0;
             if(Idx < 0)
             {
-                if(!expidxstack.empty())
+                if(!g_entry_idx_stack.empty())
                 {
-                    tmpidx = expidxstack[expidxstack.size() - 1];
-                    expidxstack.pop_back();
+                    tmpidx = g_entry_idx_stack.back();
+                    g_entry_idx_stack.pop_back();
                 }
             }
             else
             {
-                if(this->elems.size() > (u32)Idx) tmpidx = Idx;
+                tmpidx = static_cast<u32>(Idx);
+                if(tmpidx >= this->elems.size()) tmpidx = 0;
             }
             this->browseMenu->SetSelectedIndex(tmpidx);
         }
@@ -155,27 +166,26 @@ namespace ui
         return this->gexp->NavigateBack();
     }
 
-    bool PartitionBrowserLayout::WarnNANDWriteAccess()
+    bool PartitionBrowserLayout::WarnWriteAccess()
     {
         if(!this->gexp->ShouldWarnOnWriteAccess()) return true;
-        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(50), cfg::strings::Main.GetString(51), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-        return (sopt == 0);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(50), cfg::strings::Main.GetString(51), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        return sopt == 0;
     }
 
     void PartitionBrowserLayout::fsItems_Click(String item)
     {
-        if(this->elems.empty()) return;
-        String fullitm = this->gexp->FullPathFor(item);
-        String pfullitm = this->gexp->FullPresentablePathFor(item);
+        auto fullitm = this->gexp->FullPathFor(item);
+        auto pfullitm = this->gexp->FullPresentablePathFor(item);
         if(this->gexp->NavigateForward(fullitm))
         {
-            expidxstack.push_back(this->browseMenu->GetSelectedIndex());
+            g_entry_idx_stack.push_back(this->browseMenu->GetSelectedIndex());
             this->UpdateElements();
         }
         else
         {
-            String ext = fs::GetExtension(item);
-            String msg = cfg::strings::Main.GetString(52) + " ";
+            auto ext = LowerCaseString(fs::GetExtension(item));
+            auto msg = cfg::strings::Main.GetString(52) + " ";
             if(ext == "nsp") msg += cfg::strings::Main.GetString(53);
             else if(ext == "nro") msg += cfg::strings::Main.GetString(54);
             else if(ext == "tik") msg += cfg::strings::Main.GetString(55);
@@ -185,58 +195,55 @@ namespace ui
             else if((ext == "jpg") || (ext == "jpeg")) msg += cfg::strings::Main.GetString(59);
             else msg += cfg::strings::Main.GetString(270);
             msg += "\n\n" + cfg::strings::Main.GetString(64) + " " + fs::FormatSize(this->gexp->GetFileSize(fullitm));
+            const auto is_bin = this->gexp->IsFileBinary(fullitm);
             std::vector<String> vopts;
             u32 copt = 5;
-            bool ibin = this->gexp->IsFileBinary(fullitm);
             if(ext == "nsp")
             {
                 vopts.push_back(cfg::strings::Main.GetString(65));
-                copt = 6;
+                copt++;
             }
             else if(ext == "nro")
             {
                 vopts.push_back(cfg::strings::Main.GetString(66));
-                copt = 6;
+                copt++;
             }
             else if(ext == "tik")
             {
                 vopts.push_back(cfg::strings::Main.GetString(67));
-                copt = 6;
+                copt++;
             }
             else if(ext == "nxtheme")
             {
                 vopts.push_back(cfg::strings::Main.GetString(65));
-                copt = 6;
+                copt++;
             }
             else if(ext == "nacp")
             {
                 vopts.push_back(cfg::strings::Main.GetString(69));
-                copt = 6;
+                copt++;
             }
             else if((ext == "jpg") || (ext == "jpeg"))
             {
                 vopts.push_back(cfg::strings::Main.GetString(70));
-                copt = 6;
+                copt++;
             }
             else if(ext == "bin")
             {
-                if(IsAtmosphere())
-                {
-                    vopts.push_back(cfg::strings::Main.GetString(66));
-                    copt = 6;
-                }
+                vopts.push_back(cfg::strings::Main.GetString(66));
+                copt++;
             }
-            else if(!ibin)
+            else if(!is_bin)
             {
                 vopts.push_back(cfg::strings::Main.GetString(71));
-                copt = 6;
+                copt++;
             }
             vopts.push_back(cfg::strings::Main.GetString(72));
             vopts.push_back(cfg::strings::Main.GetString(73));
             vopts.push_back(cfg::strings::Main.GetString(74));
             vopts.push_back(cfg::strings::Main.GetString(75));
             vopts.push_back(cfg::strings::Main.GetString(18));
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(76), msg, vopts, true);
+            auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(76), msg, vopts, true);
             if(sopt < 0) return;
             int osopt = sopt;
             if(ext == "nsp")
@@ -294,7 +301,7 @@ namespace ui
                         if(sopt == 0)
                         {
                             auto btik = this->gexp->ReadFile(fullitm);
-                            Result rc = es::ImportTicket(btik.data(), btik.size(), es::CertData, es::CertSize);
+                            Result rc = es::ImportTicket(btik.data(), btik.size(), es::CommonCertificateData, es::CommonCertificateSize);
                             if(R_FAILED(rc)) HandleResult(rc, cfg::strings::Main.GetString(103));
                         }
                         break;
@@ -302,24 +309,28 @@ namespace ui
             }
             else if(ext == "nxtheme")
             {
+                // TODO: shall we continue supporting this?
+                // This implementation is really shitty, and only works for SD files...
                 switch(sopt)
                 {
                     case 0:
-                        std::string ntnro = "sdmc:/switch/nxthemes_installer/nxthemesinstaller.nro";
-                        if(!fs::IsFile(ntnro))
+                        std::string nxthemes_nro = "switch/nxthemes_installer/nxthemesinstaller.nro";
+                        auto nxthemes_nro_path = "sdmc:/" + nxthemes_nro;
+                        auto sd_exp = fs::GetSdCardExplorer();
+                        if(!sd_exp->IsFile(nxthemes_nro))
                         {
                             global_app->CreateShowDialog(cfg::strings::Main.GetString(104), cfg::strings::Main.GetString(105), { cfg::strings::Main.GetString(234) }, false);
                             return;
                         }
-                        std::string arg = ntnro + " installtheme=" + fullitm.AsUTF8();
+                        std::string arg = nxthemes_nro_path + " installtheme=" + fullitm.AsUTF8();
                         size_t index = 0;
                         while(true)
                         {
                             index = arg.find(" ", index);
-                            if(index == String::npos) break;
+                            if(index == std::string::npos) break;
                             arg.replace(index, 1, "(_)");
                         }
-                        envSetNextLoad(ntnro.c_str(), arg.c_str());
+                        envSetNextLoad(nxthemes_nro_path.c_str(), arg.c_str());
                         global_app->CloseWithFadeOut();
                         return;
                         break;
@@ -338,16 +349,16 @@ namespace ui
                             return;
                         }
                         this->gexp->StartFile(fullitm, fs::FileMode::Read);
-                        this->gexp->ReadFileBlock(fullitm, 0, sizeof(NacpStruct), (u8*)&nacp);
+                        this->gexp->ReadFileBlock(fullitm, 0, sizeof(nacp), &nacp);
                         this->gexp->EndFile(fs::FileMode::Read);
                         NacpStruct *snacp = &nacp;
                         u8 *rnacp = (u8*)snacp;
-                        NacpLanguageEntry *lent = NULL;
+                        NacpLanguageEntry *lent = nullptr;
                         nacpGetLanguageEntry(snacp, &lent);
                         String name = cfg::strings::Main.GetString(106);
                         String author = cfg::strings::Main.GetString(107);
                         String version = String(snacp->display_version);
-                        if(lent != NULL)
+                        if(lent != nullptr)
                         {
                             name = String(lent->name);
                             author = String(lent->author);
@@ -406,16 +417,17 @@ namespace ui
             }
             else if(ext == "bin") 
             {
-                if(IsAtmosphere()) switch(sopt)
+                switch(sopt)
                 {
                     case 0:
                         sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(125), cfg::strings::Main.GetString(126), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                         if(sopt < 0) return;
-                        hos::PayloadProcess(fullitm);
+                        auto res = hos::RebootWithPayload(fullitm);
+                        if(!res) global_app->ShowNotification("Something failed...");
                         break;
                 }
             }
-            else if(!ibin)
+            else if(!is_bin)
             {
                 switch(sopt)
                 {
@@ -437,14 +449,13 @@ namespace ui
             else if(osopt == copyopt) UpdateClipboard(fullitm);
             else if(osopt == delopt)
             {
-                if(this->WarnNANDWriteAccess())
+                if(this->WarnWriteAccess())
                 {
                     sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(127), cfg::strings::Main.GetString(128), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                     if(sopt < 0) return;
-                    Result rc = 0;
                     this->gexp->DeleteFile(fullitm);
-                    if(R_SUCCEEDED(rc)) global_app->ShowNotification(cfg::strings::Main.GetString(129));
-                    else HandleResult(rc, cfg::strings::Main.GetString(253));
+                    global_app->ShowNotification(cfg::strings::Main.GetString(129));
+                    // else HandleResult(rc, cfg::strings::Main.GetString(253));
                     u32 tmpidx = this->browseMenu->GetSelectedIndex();
                     if(tmpidx > 0) tmpidx--;
                     this->UpdateElements(tmpidx);
@@ -452,22 +463,18 @@ namespace ui
             }
             else if(osopt == renopt)
             {
-                String kbdt = AskForText(cfg::strings::Main.GetString(130), item);
-                if(kbdt != "")
+                String new_name = AskForText(cfg::strings::Main.GetString(130), item);
+                if(!new_name.empty())
                 {
-                    if(kbdt == item) return;
-                    String newren = kbdt;
-                    if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
-                    else if(this->WarnNANDWriteAccess())
+                    if(new_name == item) return;
+                    auto new_path = this->gexp->FullPathFor(new_name);
+                    if(this->gexp->IsFile(new_path) || this->gexp->IsDirectory(new_path)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
+                    else if(this->WarnWriteAccess())
                     {
-                        int rc = 0;
-                        this->gexp->RenameFile(fullitm, newren);
-                        if(rc) HandleResult(err::result::MakeErrnoResult(), cfg::strings::Main.GetString(254));
-                        else
-                        {
-                            global_app->ShowNotification(cfg::strings::Main.GetString(133));
-                            this->UpdateElements(this->browseMenu->GetSelectedIndex());
-                        }
+                        this->gexp->RenameFile(fullitm, new_path);
+                        // if(rc) HandleResult(err::result::MakeErrnoResult(), cfg::strings::Main.GetString(254));
+                        global_app->ShowNotification(cfg::strings::Main.GetString(133));
+                        this->UpdateElements(this->browseMenu->GetSelectedIndex());
                     }
                 }
             }
@@ -476,31 +483,88 @@ namespace ui
 
     void PartitionBrowserLayout::fsItems_Click_Y(String item)
     {
-        String fullitm = this->gexp->FullPathFor(item);
-        String pfullitm = this->gexp->FullPresentablePathFor(item);
+        auto rc = amssu::Initialize();
+        auto has_amssu = R_SUCCEEDED(rc);
+        
+        OnScopeExit ex([&]()
+        {
+            if(has_amssu) amssu::Exit();
+        });
+
+        auto fullitm = this->gexp->FullPathFor(item);
+        auto pfullitm = this->gexp->FullPresentablePathFor(item);
+
+        auto ipc_fullitm = this->gexp->RemoveMountName(fullitm);
+        amssu::UpdateInformation update_info = {};
+        rc = amssu::GetUpdateInformation(ipc_fullitm.AsUTF8().c_str(), &update_info);
+        auto is_valid_update = R_SUCCEEDED(rc);
+
         if(this->gexp->IsDirectory(fullitm))
         {
             auto files = this->gexp->GetFiles(fullitm);
             std::vector<String> nsps;
-            for(u32 i = 0; i < files.size(); i++)
+            for(auto &file: files)
             {
-                auto path = fullitm + "/" + files[i];
-                if(fs::GetExtension(path) == "nsp") nsps.push_back(files[i]);
+                auto path = fullitm + "/" + file;
+                auto ext = LowerCaseString(fs::GetExtension(path));
+                if(ext == "nsp") nsps.push_back(file);
             }
             std::vector<String> extraopts = { cfg::strings::Main.GetString(281) };
             if(!nsps.empty()) extraopts.push_back(cfg::strings::Main.GetString(282));
             extraopts.push_back(cfg::strings::Main.GetString(18));
             String msg = cfg::strings::Main.GetString(134);
             msg += "\n\n" + cfg::strings::Main.GetString(237) + " " + fs::FormatSize(this->gexp->GetDirectorySize(fullitm));
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(135), msg, { cfg::strings::Main.GetString(73), cfg::strings::Main.GetString(74), cfg::strings::Main.GetString(75), cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(18) }, true);
+            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(135), msg, { cfg::strings::Main.GetString(415), cfg::strings::Main.GetString(73), cfg::strings::Main.GetString(74), cfg::strings::Main.GetString(75), cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
             switch(sopt)
             {
                 case 0:
-                    UpdateClipboard(fullitm);
+                    if(is_valid_update)
+                    {
+                        String update_msg = "";
+                        String version_str = std::to_string((update_info.version >> 26) & 0x1F) + "." + std::to_string((update_info.version >> 20) & 0x1F) + "." + std::to_string((update_info.version >> 16) & 0xF);
+                        update_msg += " - " + cfg::strings::Main.GetString(417) + " " + version_str + "\n\n";
+                        update_msg += " - " + cfg::strings::Main.GetString(418) + " " + (update_info.exfat_supported ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
+                        
+                        sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(416), update_msg, { cfg::strings::Main.GetString(419), cfg::strings::Main.GetString(18) }, true);
+                        if(sopt == 0)
+                        {
+                            amssu::UpdateValidationInfo update_validation_info = {};
+                            auto rc = amssu::ValidateUpdate(ipc_fullitm.AsUTF8().c_str(), &update_validation_info);
+                            if(R_SUCCEEDED(rc) && R_SUCCEEDED(update_validation_info.result) && R_SUCCEEDED(update_validation_info.exfat_result))
+                            {
+                                auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(420), cfg::strings::Main.GetString(421), { cfg::strings::Main.GetString(423), cfg::strings::Main.GetString(18) }, true);
+                                if(sopt == 0)
+                                {
+                                    sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(424), cfg::strings::Main.GetString(425), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112), cfg::strings::Main.GetString(18) }, true);
+                                    if((sopt == 0) || (sopt == 1))
+                                    {
+                                        auto with_exfat = sopt == 0;
+                                        SetSysFirmwareVersion fwver = {};
+                                        setsysGetFirmwareVersion(&fwver);
+                                        global_app->LoadMenuData(cfg::strings::Main.GetString(424), "Update", String(fwver.display_version) + " → " + version_str + "...");
+                                        global_app->LoadLayout(global_app->GetUpdateInstallLayout());
+                                        global_app->GetUpdateInstallLayout()->InstallUpdate(ipc_fullitm, with_exfat);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                auto failed_rc = 0;
+                                if(R_FAILED(rc)) failed_rc = rc;
+                                if(R_FAILED(update_validation_info.result)) failed_rc = update_validation_info.result;
+                                if(R_FAILED(update_validation_info.exfat_result)) failed_rc = update_validation_info.exfat_result;
+                                HandleResult(failed_rc, cfg::strings::Main.GetString(422));
+                            }
+                        }
+                    }
+                    else global_app->ShowNotification(cfg::strings::Main.GetString(433));
                     break;
                 case 1:
-                    if(this->WarnNANDWriteAccess())
+                    UpdateClipboard(fullitm);
+                    break;
+                case 2:
+                    if(this->WarnWriteAccess())
                     {
                         sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(325), cfg::strings::Main.GetString(326), {cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18)}, true);
                         if(sopt < 0) return;
@@ -509,7 +573,7 @@ namespace ui
                         this->UpdateElements();
                     }
                     break;
-                case 2:
+                case 3:
                     {
                         String kbdt = AskForText(cfg::strings::Main.GetString(238), item);
                         if(kbdt != "")
@@ -517,7 +581,7 @@ namespace ui
                             if(kbdt == item) return;
                             String newren = this->gexp->FullPathFor(kbdt);
                             if(this->gexp->IsFile(newren) || this->gexp->IsDirectory(newren)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
-                            else if(this->WarnNANDWriteAccess())
+                            else if(this->WarnWriteAccess())
                             {
                                 int rc = 0;
                                 this->gexp->RenameDirectory(fullitm, newren);
@@ -528,7 +592,7 @@ namespace ui
                         }
                     }
                     break;
-                case 3:
+                case 4:
                     int sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(280), cfg::strings::Main.GetString(134), extraopts, true);
                     switch(sopt2)
                     {
@@ -543,10 +607,10 @@ namespace ui
                             Storage dst = Storage::SdCard;
                             if(sopt == 0) dst = Storage::SdCard;
                             else if(sopt == 1) dst = Storage::NANDUser;
-                            for(u32 i = 0; i < nsps.size(); i++)
+                            for(auto &nsp_path: nsps)
                             {
-                                auto nsp = fullitm + "/" + nsps[i];
-                                auto pnsp = pfullitm + "/" + nsps[i];
+                                auto nsp = fullitm + "/" + nsp_path;
+                                auto pnsp = pfullitm + "/" + nsp_path;
                                 
                                 u64 fsize = this->gexp->GetFileSize(nsp);
                                 u64 rsize = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));

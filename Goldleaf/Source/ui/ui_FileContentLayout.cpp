@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ namespace ui
     {
         this->cntText = pu::ui::elm::TextBlock::New(40, 180, "");
         this->cntText->SetColor(global_settings.custom_scheme.Text);
-        this->cntText->SetFont(pu::ui::render::LoadFont(global_settings.PathForResource("/FileSystem/FileDataFont.ttf"), 25));
+        this->cntText->SetFont("FileContentFont");
         this->Add(this->cntText);
         this->loffset = 0;
     }
@@ -57,7 +57,7 @@ namespace ui
         }
         this->rlines = lines.size();
         String alines;
-        if(this->rlines > 0) for(u32 i = 0; i < this->rlines; i++)
+        for(u32 i = 0; i < this->rlines; i++)
         {
             if(i > 0) alines += "\n";
             alines += lines[i];

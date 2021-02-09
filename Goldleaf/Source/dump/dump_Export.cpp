@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #include <sstream>
 #include <iomanip>
 
-FsStorage fatfs_bin;
+FsStorage g_ff_bis_storage;
 
 namespace dump
 {
@@ -36,19 +36,22 @@ namespace dump
         ncmContentStorageGetSizeFromContentId(ncst, &ncasize, &NCAId);
         u64 szrem = ncasize;
         FILE *f = fopen(Path.AsUTF8().c_str(), "wb");
-        s64 off = 0;
-        u64 rmax = fs::GetFileSystemOperationsBufferSize();
-        u8 *data = fs::GetFileSystemOperationsBuffer();
-        while(szrem)
+        if(f)
         {
-            u64 rsize = std::min(rmax, szrem);
-            if(ncmContentStorageReadContentIdFile(ncst, data, rsize, &NCAId, off) != 0) break;
-            fwrite(data, 1, rsize, f);
-            szrem -= rsize;
-            off += rsize;
-            Callback((double)off, (double)ncasize);
+            s64 off = 0;
+            u64 rmax = fs::WorkBufferSize;
+            u8 *data = fs::GetWorkBuffer();
+            while(szrem)
+            {
+                u64 rsize = std::min(rmax, szrem);
+                if(ncmContentStorageReadContentIdFile(ncst, data, rsize, &NCAId, off) != 0) break;
+                fwrite(data, 1, rsize, f);
+                szrem -= rsize;
+                off += rsize;
+                Callback((double)off, (double)ncasize);
+            }
+            fclose(f);
         }
-        fclose(f);
     }
 
     bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmContentMetaKey *out)
@@ -57,14 +60,14 @@ namespace dump
         s32 total = 0;
         s32 written = 0;
         bool got = false;
-        Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, hos::MaxTitleCount, NcmContentMetaType_Unknown, ApplicationId, 0, U64_MAX, NcmContentInstallType_Full);
-        if((R_SUCCEEDED(rc)) && (written > 0)) 
+        Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, hos::MaxTitleCount, NcmContentMetaType_Unknown, ApplicationId, 0, UINT64_MAX, NcmContentInstallType_Full);
+        if(R_SUCCEEDED(rc) && (written > 0)) 
         {
             for(s32 i = 0; i < written; i++)
             {
                 if(metas[i].id == ApplicationId)
                 {
-                    memcpy(out, &metas[i], sizeof(NcmContentMetaKey));
+                    *out = metas[i];
                     got = true;
                     break;
                 }
@@ -96,24 +99,23 @@ namespace dump
 
     void GenerateTicketCert(u64 ApplicationId)
     {
-        auto rc = fsOpenBisStorage(&fatfs_bin, FsBisPartitionId_System);
+        auto rc = fsOpenBisStorage(&g_ff_bis_storage, FsBisPartitionId_System);
         if(R_SUCCEEDED(rc))
         {
             auto exp = fs::GetSdCardExplorer();
             FATFS fs;
             FIL save;
             f_mount(&fs, "0", 1);
-            f_chdir("/save");
-            f_open(&save, "80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
+            f_open(&save, "0:save/80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
             String tkey;
             String orid;
             String fappid = hos::FormatApplicationId(ApplicationId);
-            String outdir = "sdmc:/" + consts::Root + "/dump/title/" + fappid;
+            String outdir = consts::Root + "/dump/title/" + fappid;
             u32 tmpsz = 0;
             while(true)
             {
                 if(!tkey.empty()) break;
-                u8 *tkdata = fs::GetFileSystemOperationsBuffer();
+                u8 *tkdata = fs::GetWorkBuffer();
                 FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
                 if(fr) break;
                 if(tmpsz == 0) break;
@@ -149,9 +151,9 @@ namespace dump
                             if(fappid == tid)
                             {
                                 orid = rid;
-                                auto ftik = outdir + "/" + rid + ".tik";
-                                exp->StartFile(ftik, fs::FileMode::Write);
-                                exp->WriteFileBlock(ftik, &tkdata[j], 0x400);
+                                auto tik_file = outdir + "/" + rid + ".tik";
+                                exp->StartFile(tik_file, fs::FileMode::Write);
+                                exp->WriteFileBlock(tik_file, &tkdata[j], 0x400);
                                 exp->EndFile(fs::FileMode::Write);
                                 tkey = etkey;
                                 break;
@@ -161,13 +163,13 @@ namespace dump
                 }
             }
             f_close(&save);
-            f_mount(NULL, "0", 1);
-            fsStorageClose(&fatfs_bin);
+            f_mount(nullptr, "0", 1);
+            fsStorageClose(&g_ff_bis_storage);
             if(!tkey.empty())
             {
                 auto fcert = outdir + "/" + orid + ".cert";
                 exp->StartFile(fcert, fs::FileMode::Write);
-                exp->WriteFileBlock(fcert, const_cast<u8*>(es::CertData), es::CertSize);
+                exp->WriteFileBlock(fcert, const_cast<u8*>(es::CommonCertificateData), es::CommonCertificateSize);
                 exp->EndFile(fs::FileMode::Write);
             }
         }

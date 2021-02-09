@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,11 +38,11 @@ namespace ui
     void ContentInformationLayout::UpdateElements()
     {
         this->optionsMenu->ClearItems();
-        if(!this->tcontents.empty()) for(u32 i = 0; i < this->tcontents.size(); i++)
+        for(auto &content: this->tcontents)
         {
-            String name = cfg::strings::Main.GetString(261);
-            if(this->tcontents[i].IsUpdate()) name = cfg::strings::Main.GetString(262);
-            if(this->tcontents[i].IsDLC()) name = cfg::strings::Main.GetString(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(this->tcontents[i].ApplicationId));
+            auto name = cfg::strings::Main.GetString(261);
+            if(content.IsUpdate()) name = cfg::strings::Main.GetString(262);
+            if(content.IsDLC()) name = cfg::strings::Main.GetString(263) + " " + std::to_string(hos::GetIdFromDLCApplicationId(content.ApplicationId));
             auto subcnt = pu::ui::elm::MenuItem::New(name);
             subcnt->SetColor(global_settings.custom_scheme.Text);
             subcnt->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
@@ -56,10 +56,11 @@ namespace ui
         u32 idx = this->optionsMenu->GetSelectedIndex();
         String msg = cfg::strings::Main.GetString(169) + "\n\n";
         msg += cfg::strings::Main.GetString(170) + " ";
-        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244) };
+        std::vector<String> opts = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(414) };
         std::string icn;
-        hos::Title cnt = this->tcontents[idx];
-        if(fs::IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
+        auto &cnt = this->tcontents[idx];
+        auto sd_exp = fs::GetSdCardExplorer();
+        if(sd_exp->IsFile(hos::GetExportedIconPath(cnt.ApplicationId))) icn = hos::GetExportedIconPath(cnt.ApplicationId);
         switch(cnt.Type)
         {
             case ncm::ContentMetaType::Application:
@@ -147,7 +148,7 @@ namespace ui
                 if(sopt < 0) return;
                 remtik = (sopt == 0);
             }
-            Result rc = hos::RemoveTitle(cnt);
+            auto rc = hos::RemoveTitle(cnt);
             if(R_SUCCEEDED(rc))
             {
                 if(remtik) rc = hos::RemoveTicket(stik);
@@ -156,9 +157,8 @@ namespace ui
                     global_app->ShowNotification(cfg::strings::Main.GetString(246));
                     global_app->ReturnToMainMenu();
                 }
-                else HandleResult(rc, cfg::strings::Main.GetString(247));
             }
-            else HandleResult(rc, cfg::strings::Main.GetString(247));
+            if(R_FAILED(rc)) HandleResult(rc, cfg::strings::Main.GetString(247));
         }
         else if(sopt == 1)
         {
@@ -171,11 +171,46 @@ namespace ui
                 global_app->ReturnToMainMenu();
             }
         }
-        else if(hastik && (sopt == 2))
+        else if(sopt == 2)
+        {
+            if(!cnt.IsBaseTitle())
+            {
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(409), { cfg::strings::Main.GetString(234) }, true);
+                return;
+            }
+            if(cnt.Location == Storage::NANDSystem)
+            {
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(410), { cfg::strings::Main.GetString(234) }, true);
+                return;
+            }
+            if(!acc::HasUser())
+            {
+                global_app->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(411), { cfg::strings::Main.GetString(234) }, true);
+                return;
+            }
+
+            FsFileSystem fs;
+
+            FsSaveDataAttribute attr = {};
+            attr.application_id = cnt.ApplicationId;
+            attr.uid = acc::GetSelectedUser();
+            attr.save_data_type = FsSaveDataType_Account;
+            auto rc = fsOpenSaveDataFileSystem(&fs, FsSaveDataSpaceId_User, &attr);
+
+            if(R_SUCCEEDED(rc))
+            {
+                auto exp = new fs::FspExplorer("SaveData-0x" + hos::FormatApplicationId(cnt.ApplicationId), fs);
+                exp->SetShouldWarnOnWriteAccess(true);
+                global_app->GetExploreMenuLayout()->AddMountedExplorer(exp, cfg::strings::Main.GetString(408), icn);
+                global_app->ShowNotification(cfg::strings::Main.GetString(412));
+            }
+            else HandleResult(rc, cfg::strings::Main.GetString(413));
+        }
+        else if(hastik && (sopt == 3))
         {
             sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(205), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt < 0) return;
-            Result rc = es::DeleteTicket(&stik.RId, sizeof(es::RightsId));
+            auto rc = es::DeleteTicket(&stik.RId, sizeof(stik.RId));
             if(R_SUCCEEDED(rc))
             {
                 global_app->ShowNotification(cfg::strings::Main.GetString(206));
@@ -183,7 +218,7 @@ namespace ui
             }
             else HandleResult(rc, cfg::strings::Main.GetString(207));
         }
-        else if((hastik && sopt == 3) || (!hastik && sopt == 2))
+        else if((hastik && sopt == 4) || (!hastik && sopt == 3))
         {
             auto rc = ns::PushLaunchVersion(cnt.ApplicationId, 0);
             if(R_SUCCEEDED(rc))
@@ -200,24 +235,23 @@ namespace ui
         this->tcontents.clear();
         this->tcontents.push_back(Content);
         std::vector<hos::Title> tts = hos::SearchTitles(ncm::ContentMetaType::Any, Content.Location);
-        for(u32 i = 0; i < tts.size(); i++)
+        for(auto &title: tts)
         {
-            if(Content.CheckBase(tts[i])) this->tcontents.push_back(tts[i]);
+            if(Content.CheckBase(title)) this->tcontents.push_back(title);
         }
         NacpStruct *nacp = Content.TryGetNACP();
         String tcnt = hos::FormatApplicationId(Content.ApplicationId);
-        if(nacp != NULL)
+        if(nacp != nullptr)
         {
             tcnt = hos::GetNACPName(nacp) + " (" + String(nacp->display_version) + ")";
             delete nacp;
         }
         std::string icon;
         u8 *cicon = Content.TryGetIcon();
-        if(cicon != NULL)
+        if(cicon != nullptr)
         {
             icon = hos::GetExportedIconPath(Content.ApplicationId);
             delete[] cicon;
-            cicon = NULL;
         }
         global_app->LoadMenuData(cfg::strings::Main.GetString(187), icon, tcnt, false);
         this->UpdateElements();

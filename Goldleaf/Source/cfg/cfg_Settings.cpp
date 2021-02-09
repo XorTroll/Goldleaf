@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 namespace cfg
 {
-    static std::string ColorToHex(pu::ui::Color clr)
+    inline std::string ColorToHex(pu::ui::Color clr)
     {
         char str[0x20] = {0};
         sprintf(str, "#%02X%02X%02X%02X", clr.R, clr.G, clr.B, clr.A);
@@ -54,19 +54,21 @@ namespace cfg
             json["web"]["bookmarks"][i]["name"] = bmk.name;
             json["web"]["bookmarks"][i]["url"] = bmk.url;
         }
-        fs::DeleteFile("sdmc:/" + consts::Root + "/settings.json");
-        std::ofstream ofs("sdmc:/" + consts::Root + "/settings.json");
+        auto sd_exp = fs::GetSdCardExplorer();
+        sd_exp->DeleteFile(consts::Settings);
+        std::ofstream ofs("sdmc:/" + consts::Settings);
         ofs << std::setw(4) << json;
         ofs.close();
     }
 
     std::string Settings::PathForResource(std::string Path)
     {
-        std::string outres = "romfs:" + Path;
+        auto outres = "romfs:" + Path;
         if(this->has_external_romfs)
         {
-            std::string tmpres = this->external_romfs + "/" + Path;
-            if(fs::IsFile(tmpres)) outres = tmpres;
+            auto tmpres = this->external_romfs + "/" + Path;
+            auto sd_exp = fs::GetSdCardExplorer();
+            if(sd_exp->IsFile(tmpres)) outres = tmpres;
         }
         return outres;
     }
@@ -125,12 +127,9 @@ namespace cfg
         gset.menu_item_size = 80;
         gset.ignore_required_fw_ver = true;
 
-        ColorSetId csid = ColorSetId_Light;
-        setsysGetColorSetId(&csid);
-        if(csid == ColorSetId_Dark) gset.custom_scheme = ui::DefaultDark;
-        else gset.custom_scheme = ui::DefaultLight;
+        gset.custom_scheme = ui::GenerateRandomScheme();
 
-        std::ifstream ifs("sdmc:/" + consts::Root + "/settings.json");
+        std::ifstream ifs("sdmc:/" + consts::Settings);
         if(ifs.good())
         {
             JSON settings = JSON::parse(ifs);
@@ -228,6 +227,7 @@ namespace cfg
 
     bool Exists()
     {
-        return fs::IsFile("sdmc:/" + consts::Root + "/settings.json");
+        auto sd_exp = fs::GetSdCardExplorer();
+        return sd_exp->IsFile(consts::Settings);
     }
 }

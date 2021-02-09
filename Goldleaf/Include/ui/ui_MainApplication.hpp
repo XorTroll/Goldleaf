@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@
 #include <ui/ui_ContentInformationLayout.hpp>
 #include <ui/ui_ContentManagerLayout.hpp>
 #include <ui/ui_CopyLayout.hpp>
-#include <ui/ui_EmuiiboLayout.hpp>
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_FileContentLayout.hpp>
 #include <ui/ui_InstallLayout.hpp>
@@ -39,6 +38,7 @@
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
+#include <ui/ui_UpdateInstallLayout.hpp>
 #include <ui/ui_WebBrowserLayout.hpp>
 
 #include <ui/ui_ClickableImage.hpp>
@@ -60,7 +60,6 @@ namespace ui
             void LoadMenuHead(String Head);
             void UnloadMenuData();
             void browser_Input(u64 down, u64 up, u64 held);
-            void emuiibo_Input(u64 down, u64 up, u64 held);
             void exploreMenu_Input(u64 down, u64 up, u64 held);
             void pcExplore_Input(u64 down, u64 up, u64 held);
             void fileContent_Input(u64 down, u64 up, u64 held);
@@ -82,7 +81,6 @@ namespace ui
             PartitionBrowserLayout::Ref &GetBrowserLayout();
             FileContentLayout::Ref &GetFileContentLayout();
             CopyLayout::Ref &GetCopyLayout();
-            EmuiiboLayout::Ref &GetEmuiiboLayout();
             ExploreMenuLayout::Ref &GetExploreMenuLayout();
             PCExploreLayout::Ref &GetPCExploreLayout();
             InstallLayout::Ref &GetInstallLayout();
@@ -96,6 +94,7 @@ namespace ui
             SettingsLayout::Ref &GetSettingsLayout();
             MemoryLayout::Ref &GetMemoryLayout();
             UpdateLayout::Ref &GetUpdateLayout();
+            UpdateInstallLayout::Ref &GetUpdateInstallLayout();
             WebBrowserLayout::Ref &GetWebBrowserLayout();
             AboutLayout::Ref &GetAboutLayout();
             
@@ -111,7 +110,6 @@ namespace ui
             PartitionBrowserLayout::Ref browser;
             FileContentLayout::Ref fileContent;
             CopyLayout::Ref copy;
-            EmuiiboLayout::Ref emuiibo;
             ExploreMenuLayout::Ref exploreMenu;
             PCExploreLayout::Ref pcExplore;
             InstallLayout::Ref nspInstall;
@@ -125,6 +123,7 @@ namespace ui
             SettingsLayout::Ref settings;
             MemoryLayout::Ref memory;
             UpdateLayout::Ref update;
+            UpdateInstallLayout::Ref updateInstall;
             WebBrowserLayout::Ref webBrowser;
             AboutLayout::Ref about;
             pu::ui::elm::Image::Ref baseImage;
@@ -142,7 +141,6 @@ namespace ui
             ClickableImage::Ref userImage;
             ClickableImage::Ref helpImage;
             pu::ui::extras::Toast::Ref toast;
-            bool welcomeshown;
             std::chrono::time_point<std::chrono::steady_clock> start;
     };
 
@@ -150,4 +148,6 @@ namespace ui
     static const ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
 
     void UpdateClipboard(String Path);
+
+    void ApplyRandomScheme();
 }

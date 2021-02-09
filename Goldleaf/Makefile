@@ -39,25 +39,25 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	Source/fatfs Source/acc Source/dump Source/err Source/es Source/fs Source/hos Source/ncm Source/net Source/ns Source/nsp Source/cfg Source/nfp Source/ui Source/usb Source
+SOURCES		:=	Source/fatfs Source/acc Source/sm Source/amssu Source/bpcams Source/dump Source/err Source/es Source/fs Source/drive Source/hos Source/ncm Source/net Source/ns Source/nsp Source/cfg Source/nfp Source/ui Source/usb Source
+INCLUDES	:=	Include
 DATA		:=	data
-INCLUDES	:=	Include/fatfs Include/acc Include/dump Include/err Include/es Include/fs Include/hos Include/ncm Include/net Include/nfp Include/ns Include/nsp Include/cfg Include/ui Include/usb Include
 ROMFS	:=	RomFs
 
 VER_MAJOR	:= 0
-VER_MINOR	:= 8
+VER_MINOR	:= 9
 VER_MICRO	:= 0
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
-# "-dev" prefix is manually appended when a new version has started development.
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)# -dev
+# "-dev" prefix is manually appended when a new version is under development.
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -Wl,-wrap,fatalThrow
+ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
@@ -70,13 +70,13 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lusbhsfs -lntfs-3g -llwext4 -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/Output
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/Output $(CURDIR)/../libusbhsfs
 
 
 #---------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,14 +22,10 @@
 #include <nfp/nfp_Amiibo.hpp>
 #include <sstream>
 #include <iomanip>
-#include <sys/stat.h>
 
 namespace nfp
 {
     static NfcDeviceHandle dhandle;
-    static Event available;
-    static Event activate;
-    static Event deactivate;
     static bool init = false;
 
     Result Initialize()
@@ -38,23 +34,11 @@ namespace nfp
         auto rc = nfpInitialize(NfpServiceType_Debug);
         if(R_SUCCEEDED(rc))
         {
-            rc = nfpAttachAvailabilityChangeEvent(&available);
+            rc = nfpListDevices(nullptr, &dhandle, 1);
             if(R_SUCCEEDED(rc))
             {
-                rc = nfpListDevices(NULL, &dhandle, 1);
-                if(R_SUCCEEDED(rc))
-                {
-                    rc = nfpAttachActivateEvent(&dhandle, &activate);
-                    if(R_SUCCEEDED(rc))
-                    {
-                        rc = nfpAttachDeactivateEvent(&dhandle, &deactivate);
-                        if(R_SUCCEEDED(rc))
-                        {
-                            rc = nfpStartDetection(&dhandle);
-                            init = true;
-                        }
-                    }
-                }
+                rc = nfpStartDetection(&dhandle);
+                init = true;
             }
         }
         return rc;
@@ -65,7 +49,7 @@ namespace nfp
         if(!init) return false;
         NfpDeviceState dst = NfpDeviceState_Unavailable;
         nfpGetDeviceState(&dhandle, &dst);
-        return (dst == NfpDeviceState_TagFound);
+        return dst == NfpDeviceState_TagFound;
     }
 
     Result Open()
@@ -108,63 +92,50 @@ namespace nfp
 
     Result DumpToEmuiibo(NfpTagInfo &tag, NfpRegisterInfo &reg, NfpCommonInfo &common, NfpModelInfo &model)
     {
-        auto outdir = "sdmc:/emuiibo/amiibo/" + String(reg.amiibo_name);
-        fsdevDeleteDirectoryRecursively(outdir.AsUTF8().c_str());
+        auto sd_exp = fs::GetSdCardExplorer();
 
-        fs::CreateDirectory("sdmc:/emuiibo");
-        fs::CreateDirectory("sdmc:/emuiibo/amiibo");
-        fs::CreateDirectory(outdir);
+        String emuiibo_path = "emuiibo";
+        sd_exp->CreateDirectory(emuiibo_path);
+        emuiibo_path += "/amiibo";
+        sd_exp->CreateDirectory(emuiibo_path);
 
-        auto jtag = JSON::object();
-        std::stringstream strm;
-        for(u32 i = 0; i < 10; i++) strm << std::hex << std::setw(2) << std::setfill('0') << (int)tag.uuid[i];
-        jtag["uuid"] = strm.str();
-        std::ofstream ofs((outdir + "/tag.json").AsUTF8());
-        ofs << std::setw(4) << jtag;
-        ofs.close();
+        auto amiibo_path = emuiibo_path + "/" + reg.amiibo_name;
+        sd_exp->DeleteDirectory(amiibo_path);
+        sd_exp->CreateDirectory(amiibo_path);
+        
+        sd_exp->CreateFile(amiibo_path + "/amiibo.flag");
 
-        auto jmodel = JSON::object();
-        strm.str("");
-        strm.clear();
-        for(u32 i = 0; i < 8; i++) strm << std::hex << std::setw(2) << std::setfill('0') << (int)model.amiibo_id[i];
-        jmodel["amiiboId"] = strm.str();
-        ofs = std::ofstream((outdir + "/model.json").AsUTF8());
-        ofs << std::setw(4) << jmodel;
-        ofs.close();
+        auto amiibo = JSON::object();
+        
+        amiibo["first_write_date"]["d"] = static_cast<u8>(reg.first_write_day);
+        amiibo["first_write_date"]["m"] = static_cast<u8>(reg.first_write_month);
+        amiibo["first_write_date"]["y"] = static_cast<u16>(reg.first_write_year);
 
-        FILE *f = fopen((outdir + "/mii-charinfo.bin").AsUTF8().c_str(), "wb");
-        if(f)
-        {
-            fwrite(&reg.mii, 1, sizeof(reg.mii), f);
-            fclose(f);
-        }
+        amiibo["last_write_date"]["d"] = static_cast<u8>(common.last_write_day);
+        amiibo["last_write_date"]["m"] = static_cast<u8>(common.last_write_month);
+        amiibo["last_write_date"]["y"] = static_cast<u16>(common.last_write_year);
 
-        auto jreg = JSON::object();
-        jreg["name"] = std::string(reg.amiibo_name);
-        jreg["miiCharInfo"] = "mii-charinfo.bin";
-        strm.str("");
-        strm.clear();
-        strm << std::dec << reg.first_write_year << "-";
-        strm << std::dec << std::setw(2) << std::setfill('0') << (int)reg.first_write_month << "-";
-        strm << std::dec << std::setw(2) << std::setfill('0') << (int)reg.first_write_day;
-        jreg["firstWriteDate"] = strm.str();
-        ofs = std::ofstream((outdir + "/register.json").AsUTF8());
-        ofs << std::setw(4) << jreg;
-        ofs.close();
+        auto mii_charinfo = "mii-charinfo.bin";
+        amiibo["mii_charinfo_file"] = mii_charinfo;
+        sd_exp->WriteFileBlock(amiibo_path + "/" + mii_charinfo, &reg.mii, sizeof(reg.mii));
 
-        auto jcommon = JSON::object();
-        strm.str("");
-        strm.clear();
-        strm << std::dec << common.last_write_year << "-";
-        strm << std::dec << std::setw(2) << std::setfill('0') << (int)common.last_write_month << "-";
-        strm << std::dec << std::setw(2) << std::setfill('0') << (int)common.last_write_day;
-        jcommon["lastWriteDate"] = strm.str();
-        jcommon["writeCounter"] = (int)common.write_counter;
-        jcommon["version"] = (int)common.version;
-        ofs = std::ofstream((outdir + "/common.json").AsUTF8());
-        ofs << std::setw(4) << jcommon;
-        ofs.close();
+        for(u32 i = 0; i < sizeof(tag.uuid); i++) amiibo["uuid"][i] = tag.uuid[i];
 
+        amiibo["name"] = reg.amiibo_name;
+
+        amiibo["version"] = static_cast<u16>(common.version);
+
+        amiibo["write_counter"] = static_cast<u16>(common.write_counter);
+
+        auto id_ref = reinterpret_cast<AmiiboId*>(model.amiibo_id);
+        amiibo["id"]["character_variant"] = id_ref->character_id.character_variant;
+        amiibo["id"]["game_character_id"] = static_cast<u16>(id_ref->character_id.game_character_id);
+        amiibo["id"]["series"] = id_ref->series;
+        amiibo["id"]["model_number"] = __builtin_bswap16(static_cast<u16>(id_ref->model_number));
+        amiibo["id"]["figure_type"] = id_ref->figure_type;
+        
+        auto amiibo_json = amiibo.dump(4);
+        sd_exp->WriteFileBlock(amiibo_path + "/amiibo.json", amiibo_json.data(), amiibo_json.length());
         return 0;
     }
 

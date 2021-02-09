@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,209 +20,36 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
-#include <fstream>
-#include <cstdlib>
-#include <cstdio>
-#include <cmath>
-#include <memory>
-#include <iomanip>
-#include <algorithm>
-#include <cctype>
 #include <sstream>
-#include <dirent.h>
-#include <unistd.h>
-#include <malloc.h>
-#include <sys/stat.h>
 
 namespace fs
 {
-    static u8 *opsbuf = NULL;
-    static size_t opsbufsz = 0x800000;
-
-    bool Exists(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) return exp->Exists(Path);
-        return false;
-    }
-
-    bool IsFile(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) return exp->IsFile(Path);
-        return false;
-    }
-
-    bool IsDirectory(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) return exp->IsDirectory(Path);
-        return false;
-    }
-
-    void CreateFile(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->CreateFile(Path);
-    }
+    static u8 *work_buf = nullptr;
 
     void CreateConcatenationFile(String Path)
     {
         fsdevCreateFile(Path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
     }
 
-    void CreateDirectory(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->CreateDirectory(Path);
-    }
-
-    void CopyFile(String Path, String NewPath)
-    {
-        Explorer *gexp = GetExplorerForPath(Path);
-        Explorer *ogexp = GetExplorerForPath(NewPath);
-        auto fsize = gexp->GetFileSize(Path);
-        if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
-        gexp->CopyFile(Path, NewPath);
-    }
-
     void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
     {
-        Explorer *gexp = GetExplorerForPath(Path);
-        Explorer *ogexp = GetExplorerForPath(NewPath);
+        auto gexp = GetExplorerForPath(Path);
+        auto ogexp = GetExplorerForPath(NewPath);
         auto fsize = gexp->GetFileSize(Path);
         if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
         gexp->CopyFileProgress(Path, NewPath, Callback);
     }
 
-    void CopyDirectory(String Dir, String NewDir)
-    {
-        Explorer *gexp = GetExplorerForPath(Dir);
-        gexp->CopyDirectory(Dir, NewDir);
-    }
-
     void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
     {
-        Explorer *gexp = GetExplorerForPath(Dir);
+        auto gexp = GetExplorerForPath(Dir);
         gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
-    }
-
-    void DeleteFile(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->DeleteFile(Path);
-    }
-
-    void DeleteDirectory(String Path)
-    {
-        auto exp = GetExplorerForPath(Path);
-        if(exp != NULL) exp->DeleteDirectory(Path);
-    }
-
-    void RenameFile(String Old, String New)
-    {
-        auto exp = GetExplorerForPath(Old);
-        if(exp != NULL) exp->RenameFile(Old, New);
-    }
-
-    void RenameDirectory(String Old, String New)
-    {
-        auto exp = GetExplorerForPath(Old);
-        if(exp != NULL) exp->RenameDirectory(Old, New);
-    }
-
-    bool IsFileBinary(String Path)
-    {
-        if(GetFileSize(Path) == 0) return true;
-        bool bin = false;
-        FILE *f = fopen(Path.AsUTF8().c_str(), "r");
-        if(f)
-        {
-            int ch = 0;
-            while((ch = fgetc(f)) != EOF)
-            {
-                if(!isascii(ch) || (iscntrl(ch) && !isspace(ch)))
-                {
-                    bin = true;
-                    break;
-                }
-            }
-        }
-        fclose(f);
-        return bin;
-    }
-
-    void WriteFile(String Path, std::vector<u8> Data)
-    {
-        auto exp = GetExplorerForPath(Path);
-        exp->DeleteFile(Path);
-        exp->WriteFileBlock(Path, Data.data(), Data.size());
-    }
-
-    u64 GetFileSize(String Path)
-    {
-        u64 sz = 0;
-        FILE *f = fopen(Path.AsUTF8().c_str(), "rb");
-        if(f)
-        {
-            fseek(f, 0, SEEK_END);
-            sz = ftell(f);
-            rewind(f);
-            fclose(f);
-        }
-        return sz;
-    }
-
-    u64 GetDirectorySize(String Path)
-    {
-        u64 sz = 0;
-        DIR *d = opendir(Path.AsUTF8().c_str());
-        if(d)
-        {
-            struct dirent *dent;
-            while(true)
-            {
-                dent = readdir(d);
-                if(dent == NULL) break;
-                String nd = dent->d_name;
-                String pd = Path + "/" + nd;
-                if(fs::IsFile(pd)) sz += GetFileSize(pd);
-                else sz += GetDirectorySize(pd);
-            }
-        }
-        closedir(d);
-        return sz;
-    }
-
-    String GetFileName(String Path)
-    {
-        return Path.substr(Path.find_last_of("/\\") + 1);
-    }
-
-    String GetBaseDirectory(String Path)
-    {
-        return Path.substr(0, Path.find_last_of("/\\"));
-    }
-
-    String GetExtension(String Path)
-    {
-        return Path.substr(Path.find_last_of(".") + 1);
-    }
-
-    String GetPathRoot(String Path)
-    {
-        return Path.substr(0, Path.find_first_of(":"));
-    }
-
-    String GetPathWithoutRoot(String Path)
-    {
-        return Path.substr(Path.find_first_of(":") + 1);
     }
 
     u64 GetTotalSpaceForPartition(Partition Partition)
     {
         u64 space = 0;
-        fs::Explorer *fexp = NULL;
+        fs::Explorer *fexp = nullptr;
         switch(Partition)
         {
             case Partition::PRODINFOF:
@@ -241,14 +68,14 @@ namespace fs
                 fexp = fs::GetSdCardExplorer();
                 break;
         }
-        if(fexp != NULL) space = fexp->GetTotalSpace();
+        if(fexp != nullptr) space = fexp->GetTotalSpace();
         return space;
     }
 
     u64 GetFreeSpaceForPartition(Partition Partition)
     {
         u64 space = 0;
-        fs::Explorer *fexp = NULL;
+        fs::Explorer *fexp = nullptr;
         switch(Partition)
         {
             case Partition::PRODINFOF:
@@ -267,55 +94,27 @@ namespace fs
                 fexp = fs::GetSdCardExplorer();
                 break;
         }
-        if(fexp != NULL) space = fexp->GetFreeSpace();
+        if(fexp != nullptr) space = fexp->GetFreeSpace();
         return space;
     }
 
+    static const char *SizeSuffixes[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
+
     String FormatSize(u64 Bytes)
     {
-        String sufs[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
-        if(Bytes == 0) return "0" + sufs[0];
+        if(Bytes == 0) return String("0") + SizeSuffixes[0];
         u32 plc = floor((log(Bytes) / log(1024)));
         double btnum = (double)(Bytes / pow(1024, plc));
         double rbt = ((int)(btnum * 100.0) / 100.0);
         std::stringstream strm;
         strm << rbt;
-        return (strm.str() + sufs[plc]);
+        return (strm.str() + SizeSuffixes[plc]);
     }
 
-    String SearchForFileInPath(String Base, String Extension)
+    u8 *GetWorkBuffer()
     {
-        String path;
-        DIR *dp = opendir(Base.AsUTF8().c_str());
-        if(dp)
-        {
-            dirent *dt;
-            while(true)
-            {
-                dt = readdir(dp);
-                if(dt == NULL) break;
-                String pth = String(dt->d_name);
-                String seq = pth.substr(pth.length() - Extension.length());
-                if(seq == Extension)
-                {
-                    path = pth;
-                    break;
-                }
-            }
-        }
-        closedir(dp);
-        return path;
-    }
-
-    u8 *GetFileSystemOperationsBuffer()
-    {
-        if(opsbuf == NULL) opsbuf = new (std::align_val_t(0x1000)) u8[opsbufsz]();
-        memset(opsbuf, 0, opsbufsz);
-        return opsbuf;
-    }
-
-    size_t GetFileSystemOperationsBufferSize()
-    {
-        return opsbufsz;
+        if(work_buf == nullptr) work_buf = new (std::align_val_t(0x1000)) u8[WorkBufferSize]();
+        memset(work_buf, 0, WorkBufferSize);
+        return work_buf;
     }
 }

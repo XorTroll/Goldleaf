@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 extern ui::MainApplication::Ref global_app;
 extern cfg::Settings global_settings;
-extern bool gupdated;
+extern bool global_app_updated;
 
 namespace ui
 {
@@ -41,11 +41,11 @@ namespace ui
 
     void UpdateLayout::StartUpdateSearch()
     {
-        if(gupdated) return;
+        if(global_app_updated) return;
         this->downloadBar->SetVisible(false);
         this->infoText->SetText(cfg::strings::Main.GetString(305));
         global_app->CallForRender();
-        std::string js = net::RetrieveContent("https://api.github.com/repos/xortroll/goldleaf/releases", "application/json");
+        std::string js = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
         JSON j = JSON::parse(js);
         std::string latestid = j[0]["tag_name"].get<std::string>();
         this->infoText->SetText(cfg::strings::Main.GetString(306));
@@ -58,21 +58,29 @@ namespace ui
             int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(308), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(sopt == 0)
             {
+                auto sd_ex = fs::GetSdCardExplorer();
+                EnsureDirectories();
+
                 std::string newnro = "https://github.com/XorTroll/Goldleaf/releases/download/" + latestid + "/Goldleaf.nro";
-                fs::CreateDirectory("sdmc:/switch/Goldleaf");
-                fs::DeleteFile("sdmc:/" + consts::Root + "/update_tmp.nro");
+                sd_ex->DeleteFile(consts::TempUpdatedNro);
+
                 this->infoText->SetText(cfg::strings::Main.GetString(309));
                 global_app->CallForRender();
+                
                 this->downloadBar->SetVisible(true);
-                net::RetrieveToFile(newnro, "sdmc:/" + consts::Root + "/update_tmp.nro", [&](double Done, double Total)
+                hos::LockAutoSleep();
+                net::RetrieveToFile(newnro, "sdmc:/" + consts::TempUpdatedNro, [&](double Done, double Total)
                 {
                     this->downloadBar->SetMaxValue(Total);
                     this->downloadBar->SetProgress(Done);
                     global_app->CallForRender();
                 });
-                if(fs::IsFile("sdmc:/" + consts::Root + "/update_tmp.nro")) gupdated = true;
+                hos::UnlockAutoSleep();
+                if(sd_ex->IsFile(consts::TempUpdatedNro)) global_app_updated = true;
+
                 this->downloadBar->SetVisible(false);
                 global_app->CallForRender();
+
                 global_app->ShowNotification(cfg::strings::Main.GetString(314) + " " + cfg::strings::Main.GetString(315));
             }
         }

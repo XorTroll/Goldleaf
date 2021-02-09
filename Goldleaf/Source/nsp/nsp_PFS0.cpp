@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,8 +30,9 @@ namespace nsp
         this->gexp = Exp;
         this->ok = false;
         this->headersize = 0;
+        this->stringtable = nullptr;
         Exp->StartFile(this->path, fs::FileMode::Read);
-        Exp->ReadFileBlock(this->path, 0, sizeof(this->header), (u8*)&this->header);
+        Exp->ReadFileBlock(this->path, 0, sizeof(this->header), &this->header);
         if(this->header.Magic == Magic)
         {
             this->ok = true;
@@ -39,17 +40,15 @@ namespace nsp
             this->stringtable = new u8[this->header.StringTableSize]();
             this->headersize = strtoff + this->header.StringTableSize;
             Exp->ReadFileBlock(this->path, strtoff, this->header.StringTableSize, this->stringtable);
-            this->files.reserve(this->header.FileCount);
             for(u32 i = 0; i < this->header.FileCount; i++)
             {
                 u64 offset = sizeof(PFS0Header) + (i * sizeof(PFS0FileEntry));
                 PFS0FileEntry ent = {};
-                memset(&ent, 0, sizeof(ent));
-                Exp->ReadFileBlock(this->path, offset, sizeof(ent), (u8*)&ent);
+                Exp->ReadFileBlock(this->path, offset, sizeof(ent), &ent);
                 String name;
-                for(u32 i = ent.StringTableOffset; i < this->header.StringTableSize; i++)
+                for(u32 j = ent.StringTableOffset; j < this->header.StringTableSize; j++)
                 {
-                    char ch = (char)this->stringtable[i];
+                    char ch = (char)this->stringtable[j];
                     if(ch == '\0') break;
                     name += ch;
                 }
@@ -64,7 +63,7 @@ namespace nsp
 
     PFS0::~PFS0()
     {
-        delete[] this->stringtable;
+        if(this->stringtable != nullptr) delete[] this->stringtable;
     }
 
     u32 PFS0::GetCount()
@@ -74,6 +73,7 @@ namespace nsp
 
     String PFS0::GetFile(u32 Index)
     {
+        if(IsInvalidFileIndex(Index)) return "";
         if(Index >= this->files.size()) return "";
         return this->files[Index].Name;
     }
@@ -107,16 +107,18 @@ namespace nsp
 
     u64 PFS0::GetFileSize(u32 Index)
     {
+        if(IsInvalidFileIndex(Index)) return 0;
         if(Index >= this->files.size()) return 0;
         return this->files[Index].Entry.Size;
     }
 
     void PFS0::SaveFile(u32 Index, fs::Explorer *Exp, String Path)
     {
+        if(IsInvalidFileIndex(Index)) return;
         if(Index >= this->files.size()) return;
         u64 fsize = this->GetFileSize(Index);
-        u64 rsize = fs::GetFileSystemOperationsBufferSize();
-        u8 *bdata = fs::GetFileSystemOperationsBuffer();
+        u64 rsize = fs::WorkBufferSize;
+        u8 *bdata = fs::GetWorkBuffer();
         u64 szrem = fsize;
         u64 off = 0;
         Exp->DeleteFile(Path);
@@ -137,12 +139,18 @@ namespace nsp
 
     u32 PFS0::GetFileIndexByName(String File)
     {
+        auto found = false;
         u32 idx = 0;
         for(auto &file: this->files)
         {
-            if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0) break;
+            if(strcasecmp(file.Name.AsUTF8().c_str(), File.AsUTF8().c_str()) == 0)
+            {
+                found = true;
+                break;
+            }
             idx++;
         }
+        if(!found) return InvalidFileIndex;
         return idx;
     }
 }

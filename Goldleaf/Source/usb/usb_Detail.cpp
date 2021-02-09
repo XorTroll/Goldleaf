@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ namespace usb::detail
     static Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info);
 
     static void _usbCommsUpdateInterfaceDescriptor(struct usb_interface_descriptor *desc, const UsbCommsInterfaceInfo *info) {
-        if (info != NULL) {
+        if (info != nullptr) {
             desc->bInterfaceClass = info->bInterfaceClass;
             desc->bInterfaceSubClass = info->bInterfaceSubClass;
             desc->bInterfaceProtocol = info->bInterfaceProtocol;
@@ -72,7 +72,7 @@ namespace usb::detail
                     u8 iManufacturer, iProduct, iSerialNumber;
                     static const u16 supported_langs[1] = {0x0409};
                     // Send language descriptor
-                    rc = usbDsAddUsbLanguageStringDescriptor(NULL, supported_langs, sizeof(supported_langs)/sizeof(u16));
+                    rc = usbDsAddUsbLanguageStringDescriptor(nullptr, supported_langs, sizeof(supported_langs)/sizeof(u16));
                     // Send manufacturer
                     if (R_SUCCEEDED(rc)) rc = usbDsAddUsbStringDescriptor(&iManufacturer, "Nintendo homebrew");
                     // Send product
@@ -138,7 +138,7 @@ namespace usb::detail
                         rwlockWriteLock(&intf->lock);
                         rwlockWriteLock(&intf->lock_in);
                         rwlockWriteLock(&intf->lock_out);
-                        rc = _usbCommsInterfaceInit(i, infos == NULL ? NULL : infos + i);
+                        rc = _usbCommsInterfaceInit(i, infos == nullptr ? nullptr : infos + i);
                         rwlockWriteUnlock(&intf->lock_out);
                         rwlockWriteUnlock(&intf->lock_in);
                         rwlockWriteUnlock(&intf->lock);
@@ -169,7 +169,7 @@ namespace usb::detail
 
     Result Initialize(void)
     {
-        return InitializeImpl(1, NULL);
+        return InitializeImpl(1, nullptr);
     }
 
     static void _usbCommsInterfaceFree(usbCommsInterface *interface)
@@ -185,9 +185,9 @@ namespace usb::detail
 
         interface->initialized = 0;
 
-        interface->endpoint_in = NULL;
-        interface->endpoint_out = NULL;
-        interface->interface = NULL;
+        interface->endpoint_in = nullptr;
+        interface->endpoint_out = nullptr;
+        interface->interface = nullptr;
 
         rwlockWriteUnlock(&interface->lock_out);
         rwlockWriteUnlock(&interface->lock_in);
@@ -215,9 +215,9 @@ namespace usb::detail
 
     bool IsStateOk()
     {
-        u32 state = 0;
+        auto state = UsbState_Detached;
         usbDsGetState(&state);
-        return (state == 5);
+        return state == UsbState_Configured;
     }
 
     static Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info)
@@ -376,15 +376,15 @@ namespace usb::detail
 
     static inline Result TransferImpl(void *buf, size_t size, UsbDsEndpoint *ep)
     {
-        u32 state = 0;
+        auto state = UsbState_Detached;
         usbDsGetState(&state);
-        if(state != 5) return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
+        if(state != UsbState_Configured) return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
 
         u32 urbid = 0;
         auto rc = usbDsEndpoint_PostBufferAsync(ep, buf, size, &urbid);
         if(R_SUCCEEDED(rc))
         {
-            rc = eventWait(&ep->CompletionEvent, U64_MAX);
+            rc = eventWait(&ep->CompletionEvent, UINT64_MAX);
             eventClear(&ep->CompletionEvent);
             
             if(R_SUCCEEDED(rc))
@@ -392,7 +392,7 @@ namespace usb::detail
                 UsbDsReportData reportdata;
                 rc = usbDsEndpoint_GetReportData(ep, &reportdata);
                 u32 gotsize = 0;
-                if(R_SUCCEEDED(rc)) rc = usbDsParseReportData(&reportdata, urbid, NULL, &gotsize);
+                if(R_SUCCEEDED(rc)) rc = usbDsParseReportData(&reportdata, urbid, nullptr, &gotsize);
                 if(gotsize != size) rc = 0XDEAD;
             }
         }

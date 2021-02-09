@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,12 +42,14 @@ namespace ui
     {
         if(Directory)
         {
+            hos::LockAutoSleep();
             fs::CopyDirectoryProgress(Path, NewPath, [&](double done, double total)
             {
                 this->copyBar->SetMaxValue(total);
                 this->copyBar->SetProgress(done);
                 global_app->CallForRender();
             });
+            hos::UnlockAutoSleep();
             global_app->ShowNotification(cfg::strings::Main.GetString(141));
         }
         else
@@ -57,13 +59,15 @@ namespace ui
                 int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(153), cfg::strings::Main.GetString(143), { cfg::strings::Main.GetString(239), cfg::strings::Main.GetString(18) }, true);
                 if(sopt < 0) return;
             }
-            fs::DeleteFile(NewPath);
+            Exp->DeleteFile(NewPath);
+            hos::LockAutoSleep();
             fs::CopyFileProgress(Path, NewPath, [&](double done, double total)
             {
                 this->copyBar->SetMaxValue(total);
                 this->copyBar->SetProgress(done);
                 global_app->CallForRender();
             });
+            hos::UnlockAutoSleep();
             global_app->ShowNotification(cfg::strings::Main.GetString(240));
         }
     }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,38 +74,32 @@ namespace ui
             this->progressInfo->SetProgress(Done);
             global_app->CallForRender();
         });
+        // Rename meta NCAs to .cnmt.nca so that this update is valid for Daybreak
+        auto files = sd->GetFiles(outdir);
+        for(auto file: files)
+        {
+            auto original_nca = "@SystemContent:/registered/" + file;
+            FsFileSystem nca_fs;
+            auto rc = fsOpenFileSystemWithId(&nca_fs, 0, FsFileSystemType_ContentMeta, original_nca.AsUTF8().c_str());
+            if(R_SUCCEEDED(rc))
+            {
+                // Is a meta NCA
+                auto out_nca_path = outdir + "/" + file;
+                auto out_nca_path_noext = out_nca_path.substr(0, out_nca_path.length() - 3);
+                auto out_cnmt_nca_path = out_nca_path_noext + "cnmt.nca";
+                sd->RenameFile(out_nca_path, out_cnmt_nca_path);
+            }
+        }
         global_app->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
         this->optsMenu->SetVisible(true);
         this->progressInfo->SetVisible(false);
         global_app->ShowNotification(cfg::strings::Main.GetString(358) + " '" + outdir + "'.");
     }
 
-    void SettingsLayout::ExportUpdateToNSP(String Input, SetSysFirmwareVersion Fw)
-    {
-        auto sd = fs::GetSdCardExplorer();
-        auto exp = fs::GetNANDSystemExplorer();
-        this->optsMenu->SetVisible(false);
-        this->progressInfo->SetVisible(true);
-        global_app->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + Fw.display_version + "...");
-        auto outnsp = sd->FullPathFor(consts::Root + "/dump/update/" + Fw.display_version + ".nsp");
-        sd->DeleteFile(outnsp);
-        nsp::GenerateFrom(exp->FullPathFor(Input), outnsp, [&](u64 Done, u64 Total)
-        {
-            this->progressInfo->SetMaxValue((double)Total);
-            this->progressInfo->SetProgress((double)Done);
-            global_app->CallForRender();
-        });
-        global_app->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
-        this->optsMenu->SetVisible(true);
-        this->progressInfo->SetVisible(false);
-        global_app->ShowNotification(cfg::strings::Main.GetString(358) + " '" + outnsp + "'.");
-    }
-
     void SettingsLayout::HandleUpdate(String Base, SetSysFirmwareVersion Fw)
     {
-        auto sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(360), cfg::strings::Main.GetString(361), { cfg::strings::Main.GetString(377), cfg::strings::Main.GetString(53), cfg::strings::Main.GetString(18)}, true);
-        if(sopt2 == 0) ExportUpdateToDirectory(Base, Fw);
-        else if(sopt2 == 1) ExportUpdateToNSP(Base, Fw);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(360), cfg::strings::Main.GetString(361), { cfg::strings::Main.GetString(377), cfg::strings::Main.GetString(18)}, true);
+        if(sopt == 0) ExportUpdateToDirectory(Base, Fw);
     }
 
     void SettingsLayout::optsFirmware_Click()

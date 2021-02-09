@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,7 +89,8 @@ namespace ui
         acc::CacheSelectedUserIcon();
         bool deficon = false;
         auto usericon = acc::GetCachedUserIcon();
-        if(fs::Exists(usericon))
+        auto sd_exp = fs::GetSdCardExplorer();
+        if(sd_exp->Exists(usericon))
         {
             deficon = true;
             usericon = "Accounts";

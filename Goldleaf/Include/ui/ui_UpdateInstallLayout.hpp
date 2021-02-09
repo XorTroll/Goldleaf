@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,19 +25,17 @@
 
 namespace ui
 {
-    class EmuiiboLayout : public pu::ui::Layout
+    constexpr size_t UpdateWorkBufferSize = 0x100000;
+
+    class UpdateInstallLayout : public pu::ui::Layout
     {
         public:
-            EmuiiboLayout();
-            PU_SMART_CTOR(EmuiiboLayout)
+            UpdateInstallLayout();
+            PU_SMART_CTOR(UpdateInstallLayout)
 
-            void state_Click();
-            
-            void amiibo_Click(String path);
-            void UpdateState();
-            void Reload();
+            void InstallUpdate(String path, bool with_exfat);
         private:
             pu::ui::elm::TextBlock::Ref infoText;
-            pu::ui::elm::Menu::Ref optionsMenu;
+            pu::ui::elm::ProgressBar::Ref processBar;
     };
 }

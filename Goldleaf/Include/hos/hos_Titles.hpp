@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ namespace hos
         Personalized,
     };
 
-    enum class TicketSignature
+    enum class TicketSignature : u32
     {
         Invalid,
         RSA_4096_SHA1 = 0x10000,
@@ -123,12 +123,53 @@ namespace hos
 
     struct TicketData
     {
-        TicketSignature Signature;
-        std::string TitleKey;
-        u8 KeyGeneration;
+        u8 issuer[0x40];
+        u8 title_key_block[0x100];
+        u8 unk[0x6];
+        u8 master_key_gen;
+        u8 unk_2;
+        u8 unk_3[0x8];
+        u8 ticket_id[0x8];
+        u8 device_id[0x8];
+        es::RightsId rights_id;
+        u8 account_id[0x4];
+        u8 unk_4[0xC];
+    };
+    static_assert(sizeof(TicketData) == 0x180);
+
+    constexpr u64 TicketSize = 0x2C0;
+
+    inline constexpr u64 GetTicketSignatureSize(TicketSignature sig)
+    {
+        switch(sig)
+        {
+            case TicketSignature::RSA_4096_SHA1:
+            case TicketSignature::RSA_4096_SHA256:
+                return sizeof(sig) + 0x200 + 0x3C;
+            case TicketSignature::RSA_2048_SHA1:
+            case TicketSignature::RSA_2048_SHA256:
+                return sizeof(sig) + 0x100 + 0x3C;
+            case TicketSignature::ECDSA_SHA1:
+            case TicketSignature::ECDSA_SHA256:
+                return sizeof(sig) + 0x3C + 0x40;
+        }
+        return 0;
+    }
+
+    struct TicketFile
+    {
+        TicketSignature signature;
+        TicketData data;
+
+        String GetTitleKey();
+
+        inline constexpr u64 GetFullSize()
+        {
+            return GetTicketSignatureSize(this->signature) + sizeof(this->data);
+        }
     };
 
-    static constexpr u32 MaxTitleCount = 64000;
+    constexpr u32 MaxTitleCount = 64000;
 
     std::string FormatApplicationId(u64 ApplicationId);
     std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
@@ -139,10 +180,32 @@ namespace hos
     Result RemoveTicket(Ticket &ToRemove);
     std::string GetExportedIconPath(u64 ApplicationId);
     String GetExportedNACPPath(u64 ApplicationId);
-    u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type);
-    u32 GetIdFromDLCApplicationId(u64 ApplicationId);
+    
+    inline constexpr u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
+    {
+        auto appid = ApplicationId;
+        switch(Type)
+        {
+            case ncm::ContentMetaType::Patch:
+                appid = (ApplicationId ^ 0x800);
+                break;
+            case ncm::ContentMetaType::AddOnContent:
+                appid = ((ApplicationId ^ 0x1000) & ~0xfff);
+                break;
+            default:
+                appid = ApplicationId;
+                break;
+        }
+        return appid;
+    }
+
+    inline constexpr u32 GetIdFromDLCApplicationId(u64 ApplicationId)
+    {
+        return (ApplicationId & 0xfff);
+    }
+
     ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
-    TicketData ReadTicket(String Path);
+    TicketFile ReadTicket(String Path);
     String GetNACPName(NacpStruct *NACP);
     String GetNACPAuthor(NacpStruct *NACP);
     String GetNACPVersion(NacpStruct *NACP);

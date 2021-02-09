@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,50 +20,54 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref global_app;
 
 namespace fs
 {
-    static SdCardExplorer *esdc = NULL;
-    static NANDExplorer *eprd = NULL;
-    static NANDExplorer *ensf = NULL;
-    static NANDExplorer *enus = NULL;
-    static NANDExplorer *enss = NULL;
-    static RemotePCExplorer *epcdrv = NULL;
+    static SdCardExplorer *esdc = nullptr;
+    static NANDExplorer *eprd = nullptr;
+    static NANDExplorer *ensf = nullptr;
+    static NANDExplorer *enus = nullptr;
+    static NANDExplorer *enss = nullptr;
+    static RemotePCExplorer *epcdrv = nullptr;
+    static DriveExplorer *eusbdrv = nullptr;
 
     SdCardExplorer *GetSdCardExplorer()
     {
-        if(esdc == NULL) esdc = new SdCardExplorer();
+        if(esdc == nullptr) esdc = new SdCardExplorer();
         return esdc;
     }
 
     NANDExplorer *GetPRODINFOFExplorer()
     {
-        if(eprd == NULL) eprd = new NANDExplorer(Partition::PRODINFOF);
+        if(eprd == nullptr) eprd = new NANDExplorer(Partition::PRODINFOF);
         return eprd;
     }
 
     NANDExplorer *GetNANDSafeExplorer()
     {
-        if(ensf == NULL) ensf = new NANDExplorer(Partition::NANDSafe);
+        if(ensf == nullptr) ensf = new NANDExplorer(Partition::NANDSafe);
         return ensf;
     }
 
     NANDExplorer *GetNANDUserExplorer()
     {
-        if(enus == NULL) enus = new NANDExplorer(Partition::NANDUser);
+        if(enus == nullptr) enus = new NANDExplorer(Partition::NANDUser);
         return enus;
     }
 
     NANDExplorer *GetNANDSystemExplorer()
     {
-        if(enss == NULL) enss = new NANDExplorer(Partition::NANDSystem);
+        if(enss == nullptr) enss = new NANDExplorer(Partition::NANDSystem);
         return enss;
     }
 
     RemotePCExplorer *GetRemotePCExplorer(String MountName)
     {
         String mname = fs::GetPathRoot(MountName);
-        if(epcdrv == NULL)
+        if(epcdrv == nullptr)
         {
             epcdrv = new RemotePCExplorer(mname);
             if(MountName != mname)
@@ -90,16 +94,36 @@ namespace fs
         return epcdrv;
     }
 
+    DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive)
+    {
+        if(eusbdrv == nullptr) eusbdrv = new DriveExplorer(drive);
+        else
+        {
+            auto drv = eusbdrv->GetDrive();
+            if(!drive::DrivesEqual(drv, drive))
+            {
+                delete eusbdrv;
+                eusbdrv = new DriveExplorer(drive);
+            }
+        }
+        return eusbdrv;
+    }
+
     Explorer *GetExplorerForMountName(String MountName)
     {
-        Explorer *ex = NULL;
-        if(esdc != NULL) if(esdc->GetMountName() == MountName) return esdc;
-        if(eprd != NULL) if(eprd->GetMountName() == MountName) return eprd;
-        if(ensf != NULL) if(ensf->GetMountName() == MountName) return ensf;
-        if(enus != NULL) if(enus->GetMountName() == MountName) return enus;
-        if(enss != NULL) if(enss->GetMountName() == MountName) return enss;
-        if(epcdrv != NULL) if(epcdrv->GetMountName() == MountName) return epcdrv;
-        return ex;
+        if(esdc != nullptr) if(esdc->GetMountName() == MountName) return esdc;
+        if(eprd != nullptr) if(eprd->GetMountName() == MountName) return eprd;
+        if(ensf != nullptr) if(ensf->GetMountName() == MountName) return ensf;
+        if(enus != nullptr) if(enus->GetMountName() == MountName) return enus;
+        if(enss != nullptr) if(enss->GetMountName() == MountName) return enss;
+        if(epcdrv != nullptr) if(epcdrv->GetMountName() == MountName) return epcdrv;
+        if(eusbdrv != nullptr) if(eusbdrv->GetMountName() == MountName) return eusbdrv;
+        auto &mounted_exps = global_app->GetExploreMenuLayout()->GetMountedExplorers();
+        for(auto exp: mounted_exps)
+        {
+            if(exp->GetMountName() == MountName) return exp;
+        }
+        return nullptr;
     }
 
     Explorer *GetExplorerForPath(String Path)

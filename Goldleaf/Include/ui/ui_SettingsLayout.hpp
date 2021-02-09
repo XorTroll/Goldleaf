@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ namespace ui
             PU_SMART_CTOR(SettingsLayout)
 
             void ExportUpdateToDirectory(String Input, SetSysFirmwareVersion Fw);
-            void ExportUpdateToNSP(String Input, SetSysFirmwareVersion Fw);
             void HandleUpdate(String Base, SetSysFirmwareVersion Fw);
             void optsConfig_Click();
             void optsFirmware_Click();

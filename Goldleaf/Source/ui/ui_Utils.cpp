@@ -1,8 +1,8 @@
-
+ 
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,11 +51,14 @@ namespace ui
 
     void ShowPowerTasksDialog(String Title, String Message)
     {
-        int sopt = global_app->CreateShowDialog(Title, Message, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
-        if(sopt < 0) return;
-        spsmInitialize();
-        spsmShutdown(sopt == 1);
-        spsmExit();
+        auto sopt = global_app->CreateShowDialog(Title, Message, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
+        switch(sopt)
+        {
+            case 0:
+                hos::PowerOff();
+            case 1:
+                hos::Reboot();
+        }
     }
 
     String AskForText(String Guide, String Initial, int MaxSize)
@@ -88,5 +91,37 @@ namespace ui
             auto infodesc = sres + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
             global_app->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + serr + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + infomod + "\n" + cfg::strings::Main.GetString(265) + ": " + infodesc + "", { cfg::strings::Main.GetString(234) }, false);
         }
+    }
+
+    inline u8 VariateImpl(u8 input, u8 v)
+    {
+        u32 tmp = (u32)input + v;
+        if(tmp > 255) return 255;
+        return (u8)tmp;
+    }
+
+    inline pu::ui::Color GenerateVariation(pu::ui::Color clr, u8 min_v, u8 max_v)
+    {
+        auto v = (u8)RandomFromRange(min_v, max_v);
+        return { VariateImpl(clr.R, v), VariateImpl(clr.G, v), VariateImpl(clr.B, v), clr.A };
+    }
+
+    constexpr pu::ui::Color TextLight = { 225, 225, 225, 0xff };
+    constexpr pu::ui::Color TextDark = { 15, 15, 15, 0xff };
+
+    ColorScheme GenerateRandomScheme()
+    {
+        ColorScheme scheme = {};
+        auto r = static_cast<u8>(RandomFromRange(0, 0xff));
+        auto g = static_cast<u8>(RandomFromRange(0, 0xff));
+        auto b = static_cast<u8>(RandomFromRange(0, 0xff));
+        pu::ui::Color clr = { r, g, b, 0xff };
+        scheme.Base = clr;
+        scheme.Background = GenerateVariation(clr, 30, 50);
+        scheme.BaseFocus = GenerateVariation(clr, 20, 30);
+        auto av = (r + g + b) / 3;
+        if(av < 128) scheme.Text = TextLight;
+        else scheme.Text = TextDark;
+        return scheme;
     }
 }

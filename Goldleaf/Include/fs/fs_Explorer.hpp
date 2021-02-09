@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,8 +34,17 @@ namespace fs
 
     class Explorer
     {
+        protected:
+            String dspname;
+            String mntname;
+            String ecwd;
+            bool warn_write;
+
         public:
-            virtual bool ShouldWarnOnWriteAccess();
+            virtual ~Explorer()
+            {
+            }
+            
             void SetNames(String MountName, String DisplayName);
             bool NavigateBack();
             bool NavigateForward(String Path);
@@ -43,10 +52,48 @@ namespace fs
             String GetMountName();
             String GetCwd();
             String GetPresentableCwd();
-            inline String FullPathFor(String Path);
-            inline String FullPresentablePathFor(String Path);
-            inline String MakeFull(String Path);
-            inline bool IsFullPath(String Path);
+        
+            inline String FullPathFor(String Path)
+            {
+                auto fpath = this->ecwd;
+                if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
+                fpath += Path;
+                return fpath;
+            }
+
+            inline String AbsolutePathFor(String Path)
+            {
+                auto fpath = this->mntname + ":";
+                if(Path.substr(0, 1) != "/") fpath += "/";
+                fpath += Path;
+                return fpath;
+            }
+
+            inline String FullPresentablePathFor(String Path)
+            {
+                auto pcwd = this->GetPresentableCwd();
+                auto fpath = pcwd;
+                if(pcwd.substr(pcwd.length() - 1) != "/") fpath += "/";
+                fpath += Path;
+                return fpath;
+            }
+
+            inline String MakeFull(String Path)
+            {
+                return (this->IsFullPath(Path) ? Path : this->FullPathFor(Path));
+            }
+
+            inline String RemoveMountName(String path)
+            {
+                // Remove "mount-name:" so that the path still maintains the initial slash
+                return path.substr(this->mntname.length() + 1);
+            }
+
+            inline bool IsFullPath(String Path)
+            {
+                return (Path.find(":/") != String::npos);
+            }
+
             void CopyFile(String Path, String NewPath);
             void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback);
             void CopyDirectory(String Dir, String NewDir);
@@ -56,7 +103,16 @@ namespace fs
             std::vector<String> ReadFileLines(String Path, u32 LineOffset, u32 LineCount);
             std::vector<String> ReadFileFormatHex(String Path, u32 LineOffset, u32 LineCount);
             u64 GetDirectorySize(String Path);
-            void DeleteDirectory(String Path);
+
+            inline void SetShouldWarnOnWriteAccess(bool should_warn)
+            {
+                this->warn_write = should_warn;
+            }
+
+            inline bool ShouldWarnOnWriteAccess()
+            {
+                return this->warn_write;
+            }
 
             virtual std::vector<String> GetDirectories(String Path) = 0;
             virtual std::vector<String> GetFiles(String Path) = 0;
@@ -68,47 +124,16 @@ namespace fs
             virtual void RenameFile(String Path, String NewName) = 0;
             virtual void RenameDirectory(String Path, String NewName) = 0;
             virtual void DeleteFile(String Path) = 0;
-            virtual void DeleteDirectorySingle(String Path) = 0;
+            virtual void DeleteDirectory(String Path) = 0;
             
             virtual void StartFile(String path, FileMode mode) = 0;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) = 0;
-            virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) = 0;
+            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out) = 0;
+            virtual u64 WriteFileBlock(String Path, void *Data, u64 Size) = 0;
             virtual void EndFile(FileMode mode) = 0;
 
             virtual u64 GetFileSize(String Path) = 0;
             virtual u64 GetTotalSpace() = 0;
             virtual u64 GetFreeSpace() = 0;
             virtual void SetArchiveBit(String Path) = 0;
-        protected:
-            String dspname;
-            String mntname;
-            String ecwd;
     };
-
-    String Explorer::FullPathFor(String Path)
-    {
-        String fpath = this->ecwd;
-        if(this->ecwd.substr(this->ecwd.length() - 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    String Explorer::FullPresentablePathFor(String Path)
-    {
-        String pcwd = this->GetPresentableCwd();
-        String fpath = pcwd;
-        if(pcwd.substr(pcwd.length() - 1) != "/") fpath += "/";
-        fpath += Path;
-        return fpath;
-    }
-
-    String Explorer::MakeFull(String Path)
-    {
-        return (this->IsFullPath(Path) ? Path : this->FullPathFor(Path));
-    }
-
-    bool Explorer::IsFullPath(String Path)
-    {
-        return (Path.find(":/") != String::npos);
-    }
 }

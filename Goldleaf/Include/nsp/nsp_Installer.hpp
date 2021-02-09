@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,11 +35,31 @@
 
 namespace nsp
 {
+    using OnContentsWriteFunction = std::function<void(ncm::ContentRecord, u32, u32, double, double, u64)>;
+
     class Installer
     {
+        private:
+            PFS0 pfs0_file;
+            NacpStruct nacp_data;
+            u8 keygen;
+            hos::TicketFile tik_file;
+            ncm::ContentMeta cnmt;
+            NcmStorageId storage_id;
+            ByteBuffer cnmt_buf;
+            NcmContentMetaKey cnt_meta_key;
+            NcmContentStorage cnt_storage;
+            NcmContentMetaDatabase cnt_meta_db;
+            u64 base_app_id;
+            u64 tik_file_size;
+            String tik_file_name;
+            std::vector<ncm::ContentRecord> ncas;
+            String icon;
+
         public:
-            Installer(String Path, fs::Explorer *Exp, Storage Location);
+            Installer(String Path, fs::Explorer *Exp, Storage Location) : pfs0_file(Exp, Path), storage_id(static_cast<NcmStorageId>(Location)) {}
             ~Installer();
+    
             Result PrepareInstallation();
             Result PreProcessContents();
             ncm::ContentMetaType GetContentMetaType();
@@ -47,24 +67,11 @@ namespace nsp
             std::string GetExportedIconPath();
             NacpStruct *GetNACP();
             bool HasTicket();
-            hos::TicketData GetTicketData();
+            hos::TicketFile GetTicketFile();
             u8 GetKeyGeneration();
             std::vector<ncm::ContentRecord> GetNCAs();
-            Result WriteContents(std::function<void(ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)> OnContentWrite);
+            Result WriteContents(OnContentsWriteFunction OnContentWrite);
             void FinalizeInstallation();
-        private:
-            PFS0 nspentry;
-            NacpStruct entrynacp;
-            u8 keygen;
-            hos::TicketData entrytik;
-            ncm::ContentMeta cnmt;
-            NcmStorageId storage;
-            ByteBuffer ccnmt;
-            NcmContentMetaKey mrec;
-            u64 baseappid;
-            u64 stik;
-            String tik;
-            std::vector<ncm::ContentRecord> ncas;
-            String icon;
+        
     };
 }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,10 +52,6 @@ namespace ui
         this->amiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
         this->amiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
         this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
-        this->emuiiboMenuItem = pu::ui::elm::MenuItem::New("emuiibo management");
-        this->emuiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
-        this->emuiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->emuiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::emuiiboMenuItem_Click, this));
         this->settingsMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(375));
         this->settingsMenuItem->SetIcon(global_settings.PathForResource("/Common/Settings.png"));
         this->settingsMenuItem->SetColor(global_settings.custom_scheme.Text);
@@ -73,7 +69,6 @@ namespace ui
         this->optionMenu->AddItem(this->webMenuItem);
         this->optionMenu->AddItem(this->accountMenuItem);
         this->optionMenu->AddItem(this->amiiboMenuItem);
-        this->optionMenu->AddItem(this->emuiiboMenuItem);
         this->optionMenu->AddItem(this->settingsMenuItem);
         this->optionMenu->AddItem(this->updateMenuItem);
         this->optionMenu->AddItem(this->aboutMenuItem);
@@ -83,6 +78,7 @@ namespace ui
     void MainMenuLayout::exploreMenuItem_Click()
     {
         global_app->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
+        global_app->GetExploreMenuLayout()->UpdateMenu();
         global_app->LoadLayout(global_app->GetExploreMenuLayout());
     }
 
@@ -95,7 +91,7 @@ namespace ui
 
     void MainMenuLayout::webMenuItem_Click()
     {
-        global_app->LoadMenuData("Web browser", "Browser", "Use the console's web browser library applet.");
+        global_app->LoadMenuData(cfg::strings::Main.GetString(36), "Browser", cfg::strings::Main.GetString(14));
         global_app->GetWebBrowserLayout()->Refresh();
         global_app->LoadLayout(global_app->GetWebBrowserLayout());
     }
@@ -126,13 +122,6 @@ namespace ui
         global_app->ReturnToMainMenu();
     }
 
-    void MainMenuLayout::emuiiboMenuItem_Click()
-    {
-        global_app->LoadMenuData("emuiibo manager", "Emuiibo", "Loading status...");
-        global_app->LoadLayout(global_app->GetEmuiiboLayout());
-        global_app->GetEmuiiboLayout()->Reload();
-    }
-
     void MainMenuLayout::settingsMenuItem_Click()
     {
         global_app->LoadMenuData(cfg::strings::Main.GetString(375), "Settings", cfg::strings::Main.GetString(376));
@@ -155,7 +144,7 @@ namespace ui
         if(GetLaunchMode() == LaunchMode::Applet) lmode = cfg::strings::Main.GetString(290);
         if(GetLaunchMode() == LaunchMode::Application) lmode = cfg::strings::Main.GetString(291);
 
-        global_app->LoadMenuData("Goldleaf v" + GetVersion(), "Info", exmode.AsUTF8() + ", " + lmode.AsUTF8());
+        global_app->LoadMenuData("Goldleaf v" GOLDLEAF_VERSION, "Info", exmode.AsUTF8() + ", " + lmode.AsUTF8());
         global_app->LoadLayout(global_app->GetAboutLayout());
     }
 }

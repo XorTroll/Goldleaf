@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,10 +38,10 @@ namespace fs
             virtual void RenameFile(String Path, String NewName) override;
             virtual void RenameDirectory(String Path, String NewName) override;
             virtual void DeleteFile(String Path) override;
-            virtual void DeleteDirectorySingle(String Path) override;
+            virtual void DeleteDirectory(String Path) override;
             virtual void StartFile(String path, FileMode mode) override;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out) override;
-            virtual u64 WriteFileBlock(String Path, u8 *Data, u64 Size) override;
+            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out) override;
+            virtual u64 WriteFileBlock(String Path, void *Data, u64 Size) override;
             virtual void EndFile(FileMode mode) override;
             virtual u64 GetFileSize(String Path) override;
             virtual u64 GetTotalSpace() override;

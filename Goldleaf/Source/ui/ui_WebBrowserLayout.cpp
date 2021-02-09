@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,11 +52,12 @@ namespace ui
         }
     }
 
-    static void LaunchWeb(std::string page)
+    inline void LaunchWeb(const std::string &page)
     {
         WebCommonConfig web;
         webPageCreate(&web, page.c_str());
-        webConfigShow(&web, NULL);
+        webConfigSetWhitelist(&web, ".*");
+        webConfigShow(&web, nullptr);
     }
 
     void WebBrowserLayout::input_Click()
@@ -68,17 +69,107 @@ namespace ui
         if(sopt == 0)
         {
             auto name = AskForText(cfg::strings::Main.GetString(381));
-            cfg::WebBookmark bmk = {};
-            bmk.name = name.AsUTF8();
-            bmk.url = out.AsUTF8();
-            global_settings.bookmarks.push_back(bmk);
-            global_settings.Save();
-            global_app->ShowNotification(cfg::strings::Main.GetString(382));
+            if(!name.empty())
+            {
+                cfg::WebBookmark bmk = {};
+                bmk.name = name.AsUTF8();
+                bmk.url = out.AsUTF8();
+                global_settings.bookmarks.push_back(bmk);
+                global_settings.Save();
+                this->Refresh();
+                global_app->ShowNotification(cfg::strings::Main.GetString(382));
+            }
         }
     }
     
-    void WebBrowserLayout::bookmark_Click(cfg::WebBookmark bmk)
+    void WebBrowserLayout::bookmark_Click(cfg::WebBookmark &bmk)
     {
-        LaunchWeb(bmk.url);
+        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(383), cfg::strings::Main.GetString(384), { cfg::strings::Main.GetString(385), cfg::strings::Main.GetString(386), cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
+        switch(sopt)
+        {
+            case 0:
+            {
+                LaunchWeb(bmk.url);
+                break;
+            }
+            case 1:
+            {
+                auto sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(387), cfg::strings::Main.GetString(388), { cfg::strings::Main.GetString(389), cfg::strings::Main.GetString(390), cfg::strings::Main.GetString(18) }, true);
+                switch(sopt2)
+                {
+                    case 0:
+                    {
+                        auto name = AskForText(cfg::strings::Main.GetString(391));
+                        if(!name.empty())
+                        {
+                            for(auto &bookmark: global_settings.bookmarks)
+                            {
+                                if(bookmark.name == bmk.name)
+                                {
+                                    bookmark.name = name.AsUTF8();
+                                    global_settings.Save();
+                                    this->Refresh();
+                                    global_app->ShowNotification(cfg::strings::Main.GetString(393));
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case 1:
+                    {
+                        auto url = AskForText(cfg::strings::Main.GetString(392), "https://");
+                        if(!url.empty())
+                        {
+                            for(auto &bookmark: global_settings.bookmarks)
+                            {
+                                if(bookmark.name == bmk.name)
+                                {
+                                    bookmark.url = url.AsUTF8();
+                                    global_settings.Save();
+                                    this->Refresh();
+                                    global_app->ShowNotification(cfg::strings::Main.GetString(394));
+                                }
+                            }
+                            
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+            case 2:
+            {
+                auto sopt2 = global_app->CreateShowDialog(cfg::strings::Main.GetString(395), cfg::strings::Main.GetString(396), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+                switch(sopt2)
+                {
+                    case 0:
+                    {
+                        u32 idx = 0;
+                        bool found = false;
+                        for(u32 i = 0; i < global_settings.bookmarks.size(); i++)
+                        {
+                            auto &bookmark = global_settings.bookmarks[i];
+                            if(bmk.name == bookmark.name)
+                            {
+                                idx = i;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(found)
+                        {
+                            global_settings.bookmarks.erase(global_settings.bookmarks.begin() + idx);
+                            global_settings.Save();
+                            this->optionsMenu->SetSelectedIndex(this->optionsMenu->GetSelectedIndex() - 1);
+                            this->Refresh();
+                            global_app->ShowNotification(cfg::strings::Main.GetString(397));
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        
     }
 }

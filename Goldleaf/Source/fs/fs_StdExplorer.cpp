@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,24 +30,29 @@
 
 namespace fs
 {
-    StdExplorer::StdExplorer() : r_file_obj(NULL), w_file_obj(NULL)
+    StdExplorer::StdExplorer() : r_file_obj(nullptr), w_file_obj(nullptr)
     {
+        this->commit_fn = [](){};
+    }
+
+    void StdExplorer::SetCommitFunction(std::function<void()> fn)
+    {
+        this->commit_fn = fn;
     }
 
     std::vector<String> StdExplorer::GetDirectories(String Path)
     {
         std::vector<String> dirs;
-        String path = this->MakeFull(Path);
-        DIR *dp = opendir(path.AsUTF8().c_str());
+        auto path = this->MakeFull(Path);
+        auto dp = opendir(path.AsUTF8().c_str());
         if(dp)
         {
-            struct dirent *dt;
             while(true)
             {
-                dt = readdir(dp);
-                if(dt == NULL) break;
+                auto dt = readdir(dp);
+                if(dt == nullptr) break;
                 std::string ent = dt->d_name;
-                if(this->IsDirectory(path + "/" + ent)) dirs.push_back(ent);
+                if(dt->d_type & DT_DIR) dirs.push_back(ent);
             }
             closedir(dp);
         }
@@ -57,17 +62,16 @@ namespace fs
     std::vector<String> StdExplorer::GetFiles(String Path)
     {
         std::vector<String> files;
-        String path = this->MakeFull(Path);
-        DIR *dp = opendir(path.AsUTF8().c_str());
+        auto path = this->MakeFull(Path);
+        auto dp = opendir(path.AsUTF8().c_str());
         if(dp)
         {
-            struct dirent *dt;
             while(true)
             {
-                dt = readdir(dp);
-                if(dt == NULL) break;
+                auto dt = readdir(dp);
+                if(dt == nullptr) break;
                 std::string ent = dt->d_name;
-                if(this->IsFile(path + "/" + ent)) files.push_back(ent);
+                if(dt->d_type & DT_REG) files.push_back(ent);
             }
             closedir(dp);
         }
@@ -98,13 +102,15 @@ namespace fs
     void StdExplorer::CreateFile(String Path)
     {
         String path = this->MakeFull(Path);
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, 0);
+        fsdevCreateFile(path.AsUTF8().c_str(), 0, 0);
+        this->commit_fn();
     }
 
     void StdExplorer::CreateDirectory(String Path)
     {
         String path = this->MakeFull(Path);
         mkdir(path.AsUTF8().c_str(), 777);
+        this->commit_fn();
     }
 
     void StdExplorer::RenameFile(String Path, String NewName)
@@ -112,6 +118,7 @@ namespace fs
         String path = this->MakeFull(Path);
         String npath = this->MakeFull(NewName);
         rename(path.AsUTF8().c_str(), npath.AsUTF8().c_str());
+        this->commit_fn();
     }
 
     void StdExplorer::RenameDirectory(String Path, String NewName)
@@ -123,12 +130,14 @@ namespace fs
     {
         String path = this->MakeFull(Path);
         remove(path.AsUTF8().c_str());
+        this->commit_fn();
     }
 
-    void StdExplorer::DeleteDirectorySingle(String Path)
+    void StdExplorer::DeleteDirectory(String Path)
     {
         String path = this->MakeFull(Path);
         fsdevDeleteDirectoryRecursively(path.AsUTF8().c_str());
+        this->commit_fn();
     }
 
     void StdExplorer::StartFile(String path, FileMode mode)
@@ -152,11 +161,11 @@ namespace fs
         else this->w_file_obj = fopen(npath.AsUTF8().c_str(), fmode);
     }
 
-    u64 StdExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, u8 *Out)
+    u64 StdExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out)
     {
         u64 rsz = 0;
 
-        if(this->r_file_obj != NULL)
+        if(this->r_file_obj != nullptr)
         {
             fseek(this->r_file_obj, Offset, SEEK_SET);
             rsz = fread(Out, 1, Size, this->r_file_obj);
@@ -174,12 +183,11 @@ namespace fs
         return rsz;
     }
 
-    u64 StdExplorer::WriteFileBlock(String Path, u8 *Data, u64 Size)
+    u64 StdExplorer::WriteFileBlock(String Path, void *Data, u64 Size)
     {
         u64 wsz = 0;
-        
 
-        if(this->w_file_obj != NULL)
+        if(this->w_file_obj != nullptr)
         {
             wsz = fwrite(Data, 1, Size, this->w_file_obj);
             return wsz;
@@ -200,18 +208,19 @@ namespace fs
     {
         if(mode == FileMode::Read)
         {
-            if(this->r_file_obj != NULL)
+            if(this->r_file_obj != nullptr)
             {
                 fclose(this->r_file_obj);
-                this->r_file_obj = NULL;
+                this->r_file_obj = nullptr;
             }
         }
         else
         {
-            if(this->w_file_obj != NULL)
+            if(this->w_file_obj != nullptr)
             {
                 fclose(this->w_file_obj);
-                this->w_file_obj = NULL;
+                this->commit_fn();
+                this->w_file_obj = nullptr;
             }
         }
     }
@@ -239,5 +248,6 @@ namespace fs
     {
         String path = this->MakeFull(Path);
         fsdevSetConcatenationFileAttribute(path.AsUTF8().c_str());
+        this->commit_fn();
     }
 }

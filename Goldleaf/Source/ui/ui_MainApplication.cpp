@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ extern cfg::Settings global_settings;
 namespace ui
 {
     extern String clipboard;
+    bool welcome_shown = false;
 
     #define MAINAPP_MENU_SET_BASE(layout) { \
         layout->SetBackgroundColor(global_settings.custom_scheme.Background); \
@@ -47,11 +48,9 @@ namespace ui
 
     void MainApplication::OnLoad()
     {
-        global_settings = cfg::ProcessSettings();
-        cfg::LoadStrings();
-        if(acc::SelectFromPreselectedUser()) acc::CacheSelectedUserIcon();
+        // Load the file hex-viewer font
+        pu::ui::render::AddFontFile("FileContentFont", 25, global_settings.PathForResource("/FileSystem/FileContentFont.ttf"));
 
-        pu::ui::render::SetDefaultFont(global_settings.PathForResource("/Roboto-Medium.ttf"));
         this->preblv = 0;
         this->seluser = {};
         this->preisch = false;
@@ -61,7 +60,8 @@ namespace ui
         this->baseImage = pu::ui::elm::Image::New(0, 0, global_settings.PathForResource("/Base.png"));
         this->timeText = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
         this->timeText->SetColor(global_settings.custom_scheme.Text);
-        this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%", 20);
+        this->batteryText = pu::ui::elm::TextBlock::New(1015, 20, "0%");
+        this->batteryText->SetFont("DefaultFont@20");
         this->batteryText->SetColor(global_settings.custom_scheme.Text);
         this->batteryImage = pu::ui::elm::Image::New(960, 8, global_settings.PathForResource("/Battery/0.png"));
         this->batteryChargeImage = pu::ui::elm::Image::New(960, 8, global_settings.PathForResource("/Battery/Charge.png"));
@@ -85,14 +85,16 @@ namespace ui
         this->connImage->SetWidth(40);
         this->connImage->SetHeight(40);
         this->connImage->SetVisible(true);
-        this->ipText = pu::ui::elm::TextBlock::New(800, 20, "", 20);
+        this->ipText = pu::ui::elm::TextBlock::New(800, 20, "");
+        this->ipText->SetFont("DefaultFont@20");
         this->ipText->SetColor(global_settings.custom_scheme.Text);
         this->menuNameText = pu::ui::elm::TextBlock::New(120, 85, "-");
         this->menuNameText->SetColor(global_settings.custom_scheme.Text);
-        this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-", 20);
+        this->menuHeadText = pu::ui::elm::TextBlock::New(120, 120, "-");
+        this->menuHeadText->SetFont("DefaultFont@20");
         this->menuHeadText->SetColor(global_settings.custom_scheme.Text);
         this->UnloadMenuData();
-        this->toast = pu::ui::extras::Toast::New(":", 20, pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
+        this->toast = pu::ui::extras::Toast::New(":", "DefaultFont@20", pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
         this->mainMenu = MainMenuLayout::New();
         this->browser = PartitionBrowserLayout::New();
@@ -100,8 +102,6 @@ namespace ui
         this->fileContent = FileContentLayout::New();
         this->fileContent->SetOnInput(std::bind(&MainApplication::fileContent_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->copy = CopyLayout::New();
-        this->emuiibo = EmuiiboLayout::New();
-        this->emuiibo->SetOnInput(std::bind(&MainApplication::emuiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->exploreMenu = ExploreMenuLayout::New();
         this->exploreMenu->SetOnInput(std::bind(&MainApplication::exploreMenu_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->pcExplore = PCExploreLayout::New();
@@ -125,6 +125,7 @@ namespace ui
         this->memory = MemoryLayout::New();
         this->memory->SetOnInput(std::bind(&MainApplication::memory_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->update = UpdateLayout::New();
+        this->updateInstall = UpdateInstallLayout::New();
         this->webBrowser = WebBrowserLayout::New();
         this->webBrowser->SetOnInput(std::bind(&MainApplication::webBrowser_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->about = AboutLayout::New();
@@ -136,7 +137,6 @@ namespace ui
         MAINAPP_MENU_SET_BASE(this->pcExplore);
         MAINAPP_MENU_SET_BASE(this->fileContent);
         MAINAPP_MENU_SET_BASE(this->copy);
-        MAINAPP_MENU_SET_BASE(this->emuiibo);
         MAINAPP_MENU_SET_BASE(this->nspInstall);
         MAINAPP_MENU_SET_BASE(this->contentInformation);
         MAINAPP_MENU_SET_BASE(this->storageContents);
@@ -148,6 +148,7 @@ namespace ui
         MAINAPP_MENU_SET_BASE(this->settings);
         MAINAPP_MENU_SET_BASE(this->memory);
         MAINAPP_MENU_SET_BASE(this->update);
+        MAINAPP_MENU_SET_BASE(this->updateInstall);
         MAINAPP_MENU_SET_BASE(this->webBrowser);
         MAINAPP_MENU_SET_BASE(this->about);
 
@@ -157,7 +158,6 @@ namespace ui
         this->AddThread(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->LoadLayout(this->mainMenu);
-        this->welcomeshown = false;
         this->start = std::chrono::steady_clock::now();
     }
 
@@ -170,14 +170,14 @@ namespace ui
 
     void MainApplication::UpdateValues()
     {
-        if(!this->welcomeshown)
+        if(!welcome_shown)
         {
             auto tnow = std::chrono::steady_clock::now();
             auto timediff = std::chrono::duration_cast<std::chrono::milliseconds>(tnow - this->start).count();
             if(timediff >= 1000)
             {
                 this->ShowNotification(cfg::strings::Main.GetString(320));
-                this->welcomeshown = true;
+                welcome_shown = true;
             }
         }
 
@@ -215,7 +215,7 @@ namespace ui
         this->hasusb = usb::detail::IsStateOk();
         this->usbImage->SetVisible(this->hasusb);
         u32 connstr = 0;
-        Result rc = nifmGetInternetConnectionStatus(NULL, &connstr, NULL);
+        Result rc = nifmGetInternetConnectionStatus(nullptr, &connstr, nullptr);
         std::string connimg = "None";
         if(R_SUCCEEDED(rc)) if(connstr > 0) connimg = std::to_string(connstr);
         if(connstr != this->connstate)
@@ -241,7 +241,8 @@ namespace ui
             else
             {
                 auto usericon = acc::GetCachedUserIcon();
-                if(fs::Exists(usericon)) this->userImage->SetImage(usericon);
+                auto sd_exp = fs::GetSdCardExplorer();
+                if(sd_exp->Exists(usericon)) this->userImage->SetImage(usericon);
                 else this->userImage->SetImage(global_settings.PathForResource("/Common/User.png"));
             }
             this->userImage->SetWidth(70);
@@ -257,7 +258,7 @@ namespace ui
 
     void MainApplication::LoadMenuData(String Name, std::string ImageName, String TempHead, bool CommonIcon)
     {
-        if(this->menuImage != NULL)
+        if(this->menuImage != nullptr)
         {
             this->menuImage->SetVisible(true);
             if(CommonIcon) this->menuImage->SetImage(global_settings.PathForResource("/Common/" + ImageName + ".png"));
@@ -265,12 +266,12 @@ namespace ui
             this->menuImage->SetWidth(85);
             this->menuImage->SetHeight(85);
         }
-        if(this->menuNameText != NULL)
+        if(this->menuNameText != nullptr)
         {
             this->menuNameText->SetVisible(true);
             this->menuNameText->SetText(Name);
         }
-        if(this->menuHeadText != NULL)
+        if(this->menuHeadText != nullptr)
         {
             this->menuHeadText->SetVisible(true);
             this->LoadMenuHead(TempHead);
@@ -279,7 +280,7 @@ namespace ui
 
     void MainApplication::LoadMenuHead(String Head)
     {
-        if(this->menuHeadText != NULL) this->menuHeadText->SetText(Head);
+        if(this->menuHeadText != nullptr) this->menuHeadText->SetText(Head);
     }
 
     void MainApplication::UnloadMenuData()
@@ -305,9 +306,10 @@ namespace ui
         {
             if(clipboard != "")
             {
-                bool cdir = fs::IsDirectory(clipboard);
+                auto exp = fs::GetExplorerForPath(clipboard);
+                const bool clipboard_is_dir = exp->IsDirectory(clipboard);
                 std::string fsicon;
-                if(cdir) fsicon = global_settings.PathForResource("/FileSystem/Directory.png");
+                if(clipboard_is_dir) fsicon = global_settings.PathForResource("/FileSystem/Directory.png");
                 else
                 {
                     String ext = fs::GetExtension(clipboard);
@@ -322,9 +324,9 @@ namespace ui
                 int sopt = this->CreateShowDialog(cfg::strings::Main.GetString(222), cfg::strings::Main.GetString(223) + "\n(" + clipboard + ")", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true, fsicon);
                 if(sopt == 0)
                 {
-                    String cname = fs::GetFileName(clipboard);
+                    auto cname = fs::GetFileName(clipboard);
                     this->LoadLayout(this->GetCopyLayout());
-                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), cdir, this->browser->GetExplorer());
+                    this->GetCopyLayout()->StartCopy(clipboard, this->browser->GetExplorer()->FullPathFor(cname), clipboard_is_dir, this->browser->GetExplorer());
                     global_app->LoadLayout(this->browser);
                     this->browser->UpdateElements();
                     clipboard = "";
@@ -350,11 +352,11 @@ namespace ui
         }
         else if(down & KEY_R)
         {
-            String cdir = AskForText(cfg::strings::Main.GetString(250), "");
-            if(cdir != "")
+            String clipboard_is_dir = AskForText(cfg::strings::Main.GetString(250), "");
+            if(clipboard_is_dir != "")
             {
-                String fdir = this->browser->GetExplorer()->FullPathFor(cdir);
-                String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(cdir);
+                String fdir = this->browser->GetExplorer()->FullPathFor(clipboard_is_dir);
+                String pfdir = this->browser->GetExplorer()->FullPresentablePathFor(clipboard_is_dir);
                 if(this->browser->GetExplorer()->IsFile(fdir) || this->browser->GetExplorer()->IsDirectory(fdir)) HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 else
                 {
@@ -363,16 +365,6 @@ namespace ui
                     this->browser->UpdateElements();
                 }
             }
-        }
-    }
-
-    void MainApplication::emuiibo_Input(u64 down, u64 up, u64 held)
-    {
-        this->emuiibo->UpdateState();
-        if(down & KEY_B)
-        {
-            nfp::emu::Exit();
-            this->ReturnToMainMenu();
         }
     }
 
@@ -502,11 +494,6 @@ namespace ui
         return this->copy;
     }
 
-    EmuiiboLayout::Ref &MainApplication::GetEmuiiboLayout()
-    {
-        return this->emuiibo;
-    }
-
     ExploreMenuLayout::Ref &MainApplication::GetExploreMenuLayout()
     {
         return this->exploreMenu;
@@ -570,6 +557,11 @@ namespace ui
     UpdateLayout::Ref &MainApplication::GetUpdateLayout()
     {
         return this->update;
+    }
+
+    UpdateInstallLayout::Ref &MainApplication::GetUpdateInstallLayout()
+    {
+        return this->updateInstall;
     }
 
     WebBrowserLayout::Ref &MainApplication::GetWebBrowserLayout()

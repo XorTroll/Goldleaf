@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2019  XorTroll
+    Copyright (C) 2018-2020  XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ namespace hos
         char upper[0x20] = {0};
         memcpy(lower, NCAId.AsUTF8().c_str(), 16);
         memcpy(upper, NCAId.AsUTF8().c_str() + 16, 16);
-        *(u64*)nid.c = __bswap64(strtoul(lower, NULL, 16));
-        *(u64*)(nid.c + 0x8) = __bswap64(strtoul(upper, NULL, 16));
+        *(u64*)nid.c = __bswap64(strtoul(lower, nullptr, 16));
+        *(u64*)(nid.c + 0x8) = __bswap64(strtoul(upper, nullptr, 16));
         return nid;
     }
 
@@ -58,14 +58,12 @@ namespace hos
             auto rc = fsOpenFileSystemWithId(&ncafs, 0, FsFileSystemType_ContentMeta, path.c_str());
             if(R_SUCCEEDED(rc))
             {
-                fs::FileSystemExplorer fwfs("gpendupd", "...", &ncafs);
+                fs::FspExplorer fwfs("...", ncafs);
                 auto fs = fwfs.GetContents();
                 for(auto &f: fs)
                 {
                     u32 rawver = 0;
-                    fwfs.StartFile(f, fs::FileMode::Read);
-                    fwfs.ReadFileBlock(f, 8, sizeof(u32), (u8*)&rawver);
-                    fwfs.EndFile(fs::FileMode::Read);
+                    fwfs.ReadFileBlock(f, 8, sizeof(rawver), &rawver);
                     out->Major = (u8)((rawver >> 26) & 0x3f);
                     out->Minor = (u8)((rawver >> 20) & 0x3f);
                     out->Micro = (u8)((rawver >> 16) & 0x3f);
