@@ -55,8 +55,8 @@ import xorTroll.goldleaf.quark.usb.USBInterface;
 
 public class MainApplication extends Application
 {
-    public static final Version QuarkVer = new Version(0, 3, 0);
-    public static final Version MinGoldleafVer = new Version(0, 8, 0);
+    public static final Version QuarkVersion = new Version(0, 4, 0);
+    public static final Version MinimumGoldleafVersion = new Version(0, 8, 0);
 
     private static final int WIDTH = 900;
     private static final int HEIGHT = 400;
@@ -139,7 +139,7 @@ public class MainApplication extends Application
         controller = loader.getController();
         primaryStage.getIcons().add(new Image(getClass().getClassLoader().getResource("Icon.png").toExternalForm()));
         stage = primaryStage;
-        stage.setTitle("Quark v" + QuarkVer.toString() + " - Goldleaf's USB client");
+        stage.setTitle("Quark v" + QuarkVersion.toString() + " - Goldleaf's USB client");
         stage.setScene(scene);
         stage.setMinHeight(HEIGHT);
         stage.setMaxHeight(HEIGHT);
@@ -159,7 +159,7 @@ public class MainApplication extends Application
                 }
                 usbInterface = intf.get();
                 if(usbInterface.productVersion == null) showDialog("Connection issues", "The connection found doesn't seem to be Goldleaf. Check the following:\n\n - Is the console connected properly to this system?\n - Are you sure Goldleaf is open? \n - Is a small USB icon shown above?", "Ok", true);
-                if(usbInterface.productVersion.olderThan(MinGoldleafVer)) showDialog("Outdated Goldleaf", "The Goldleaf Quark connected to is outdated.\nPlease update to v0.8 or higher.", "Ok", true);
+                if(usbInterface.productVersion.olderThan(MinimumGoldleafVersion)) showDialog("Outdated Goldleaf", "The Goldleaf Quark connected to is outdated.\nPlease update to v0.8 or higher.", "Ok", true);
                 if(usbInterface.isDevVersion) showDialog("Development version", "The connected Goldleaf (v" + usbInterface.productVersion.toString() + ") is a development build.\nThis build might be unstable. Use it at your own risk!", "Ok", false);
                 updateMessage("Connected to Goldleaf v" + usbInterface.productVersion.toString() + (usbInterface.isDevVersion ? " (dev build)" : "") + " - Processing USB input...");
                 Vector<String> drives = null;

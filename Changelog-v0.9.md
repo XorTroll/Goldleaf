@@ -30,7 +30,7 @@
 
 - Reboot-to-payload functionality (which can be used with .bin files) has been internally improved with Atmosphere's bpc:ams extensions
 
-- Random color schemes/pallets are used by default now, instead of default light/dark blue schemes
+- 🌈 Random color schemes/pallets are used by default now, instead of default light/dark blue schemes
 
 - Fixed a small bug where no personalized tickets would be detected if no common tickets were present in the console
 
@@ -44,4 +44,4 @@
 
 - Several improvements related to various small errors
 
-- From now on, two different releases will be made: one for Java 8 and one for Java 9 or higher (to avoid version issues)
+- From now on, two different builds will be compiled/released: one for Java 8 and one for Java 9 or higher, in order to avoid version issues
