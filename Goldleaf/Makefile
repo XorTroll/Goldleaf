@@ -42,7 +42,7 @@ BUILD		:=	build
 SOURCES		:=	Source/fatfs Source/acc Source/sm Source/amssu Source/bpcams Source/dump Source/err Source/es Source/fs Source/drive Source/hos Source/ncm Source/net Source/ns Source/nsp Source/cfg Source/nfp Source/ui Source/usb Source
 INCLUDES	:=	Include
 DATA		:=	data
-ROMFS	:=	RomFs
+ROMFS		:=	RomFs
 
 VER_MAJOR	:= 0
 VER_MINOR	:= 9
@@ -52,7 +52,7 @@ APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
 # "-dev" prefix is manually appended when a new version is under development.
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)#-dev
 
 #---------------------------------------------------------------------------------
 # options for code generation
