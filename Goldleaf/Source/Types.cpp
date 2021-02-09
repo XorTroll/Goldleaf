@@ -51,6 +51,8 @@ std::string LanguageToString(Language lang)
             return "it";
         case Language::Dutch:
             return "nl";
+        case Language::ChineseSimplified:
+            return "zh-hans";
         default:
             break;
     }
@@ -60,12 +62,13 @@ std::string LanguageToString(Language lang)
 Language StringToLanguage(std::string str)
 {
     auto lang = Language::English;
-    if(str == "en") lang = Language::English;
-    else if(str == "es") lang = Language::Spanish;
-    else if(str == "de") lang = Language::German;
-    else if(str == "fr") lang = Language::French;
-    else if(str == "it") lang = Language::Italian;
-    else if(str == "nl") lang = Language::Dutch;
+    if (str == "en") lang = Language::English;
+    else if (str == "es") lang = Language::Spanish;
+    else if (str == "de") lang = Language::German;
+    else if (str == "fr") lang = Language::French;
+    else if (str == "it") lang = Language::Italian;
+    else if (str == "nl") lang = Language::Dutch;
+    else if (str == "zh-hans") lang = Language::ChineseSimplified;
     return lang;
 }
 

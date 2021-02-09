@@ -110,6 +110,12 @@ namespace cfg
             case SetLanguage_ES419:
                 gset.custom_lang = Language::Spanish;
                 break;
+            case SetLanguage_ZHTW:
+            case SetLanguage_ZHHANT:
+            case SetLanguage_ZHCN:
+            case SetLanguage_ZHHANS:
+                gset.custom_lang = Language::ChineseSimplified;
+                break;
             case SetLanguage_NL:
                 gset.custom_lang = Language::Dutch;
                 break;
