@@ -83,6 +83,7 @@ enum class Language
     French,
     Italian,
     Dutch,
+    ChineseSimplified,
 };
 
 std::string LanguageToString(Language lang);
