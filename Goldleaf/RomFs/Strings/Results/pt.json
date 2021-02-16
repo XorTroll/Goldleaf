@@ -1,0 +1,15 @@
+[
+    "Erro desconhecido ou não documentado",
+    "Caminho inválido",
+    "NCA inválido (pode significar sigpatches ausentes ou firmware muito antigo)",
+    "PFS0 inválido (NSP)",
+    "Erro padrão C/C++",
+    "Não há espaço suficiente para completar a tarefa",
+    "O metadado NCA não pode ser encontrado no NSP",
+    "Metadado não pode ser encontrado no NCA",
+    "O título já está instalado neste console",
+    "Outro arquivo ou diretório com o mesmo nome já existe",
+    "Não foi possível encontrar conteúdos do título",
+    "Não foi possível construir o PFS0 (NSP)",
+    "Geração de chave incompátivel (firmware do console é muito antigo)"
+]
