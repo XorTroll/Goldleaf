@@ -56,6 +56,14 @@ namespace ui
     {
         WebCommonConfig web;
         webPageCreate(&web, page.c_str());
+        //mount user data to save logins and that stuff
+        rc =  accountInitialize(AccountServiceType_Application);
+        if (R_SUCCEEDED(rc)) {
+ 		    AccountUid uid;
+		    accountGetPreselectedUser(&uid);
+		    webConfigSetUid(&web,uid);
+		    accountExit();       
+        }
         webConfigSetWhitelist(&web, ".*");
         webConfigShow(&web, nullptr);
     }
