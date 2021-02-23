@@ -57,6 +57,7 @@ namespace ui
         WebCommonConfig web;
         webPageCreate(&web, page.c_str());
         webConfigSetWhitelist(&web, ".*");
+        if(acc::HasUser()) webConfigSetUid(&web, acc::GetSelectedUser());
         webConfigShow(&web, nullptr);
     }
 
