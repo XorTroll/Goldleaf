@@ -1,3 +1,7 @@
+.root {
+    -fx-font-family: Helvetica, sans-serif;
+}
+
 JFXButton {
     -fx-background-color: rgb(106, 204, 194);
 }
