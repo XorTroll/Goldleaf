@@ -42,14 +42,11 @@ namespace hos
 
     std::string GetCurrentTime()
     {
-        time_t timet = time(nullptr);
-        struct tm *times = localtime((const time_t*)&timet);
-        int h = times->tm_hour;
-        int min = times->tm_min;
-        int s = times->tm_sec;
-        char timestr[0x10] = {0};
-        sprintf(timestr, "%02d:%02d:%02d", h, min, s);
-        return timestr;
+        auto posix_time = time(nullptr);
+        auto local_time = localtime((const time_t*)&timet);
+        char time_str[0x10] = {0};
+        sprintf(time_str, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+        return time_str;
     }
 
     std::string FormatHex128(AccountUid Number)

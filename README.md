@@ -17,8 +17,9 @@
 3. [Quark and remote PC](#quark-and-remote-pc)
 4. [Settings](#settings)
 5. [Known bugs](#known-bugs)
-6. [Contributing](#contributing)
-7. [Credits and support](#credits-and-support)
+6. [Building](#building)
+7. [Contributing](#contributing)
+8. [Credits and support](#credits-and-support)
 
 > Having any issues? Check [our FAQ](docs/FAQ.md) for help!
 
@@ -220,6 +221,26 @@ So, via this configurations, UI's images, resources, element sizes and even tran
 - Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on those specific versions. Any non-7.x firmware doesn't have this issue.
 
 - Apparently, after browsing (more than 4 directories?) and then browsing (specific?) empty directories crashes Goldleaf. This issue is strangely common and needs to be looked into.
+
+## Building
+
+In order to build Goldleaf, you will need the following:
+
+- [devkitA64](https://devkitpro.org)
+
+- JDK 9 or higher (needed for Quark)
+
+- Maven (needed for Quark)
+
+You will also need to install the following packages with devkitPro's pacman:
+
+- `switch-sdl2, switch-freetype, switch-glad, switch-libdrm_nouveau, switch-sdl2_gfx, switch-sdl2_image, switch-sdl2_ttf, switch-sdl2_mixer`
+
+Remember to clone this repository recursively (`git clone --recurse-submodules`) since Goldleaf makes use of submodules.
+
+In order to build Goldleaf, just type `make` and wait for it to finish building.
+
+In order to build Quark, just execute the `build.sh` scripts depending on the version you'd like to build (Java 8 and Java 9 versions are separately built)
 
 ## Contributing
 
