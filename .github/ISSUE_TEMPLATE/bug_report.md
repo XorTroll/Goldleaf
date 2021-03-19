@@ -13,13 +13,13 @@ about: Create a report of any issues or bugs you find on Goldleaf
 
 ## Your setup
 
-- **Console firmware**: [ e.g. 5.1, 6.2, 7.0.1 ]
+- **Console firmware**: [ e.g. 5.1.0, 6.2.0, 7.0.1 ]
 
-- **CFW with version**: [ e.g. ReiNX 2.1 or Atmosphere 0.85 ]
+- **CFW with version**: [ e.g. Atmosphere 0.18.1 ]
 
-- **Goldleaf version**: [ e.g. 0.5 or the exact nightly build ]
+- **Goldleaf version**: [ e.g. 0.8, 0.9 (nightly) ]
 
-- **Goldtree version**: [ e.g. 0.5 ]
+- **Quark version**: [ e.g. 0.4 ]
 
 
 ## Bug reproduction

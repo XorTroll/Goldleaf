@@ -168,7 +168,7 @@ namespace ui
             {
                 global_app->LoadLayout(global_app->GetTitleDumperLayout());
                 global_app->GetTitleDumperLayout()->StartDump(cnt, hastik);
-                global_app->ReturnToMainMenu();
+                global_app->LoadLayout(global_app->GetContentInformationLayout());
             }
         }
         else if(sopt == 2)
