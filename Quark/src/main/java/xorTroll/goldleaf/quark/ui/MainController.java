@@ -48,24 +48,19 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class MainController
-{
-    public class UILogger extends OutputStream
-    {
+public class MainController {
+    public class UILogger extends OutputStream {
         private JFXTextArea area;
 
-        public UILogger(JFXTextArea area)
-        {
+        public UILogger(JFXTextArea area) {
             this.area = area;
         }
 
-        public void writeToArea(String data)
-        {
+        public void writeToArea(String data) {
             Platform.runLater(() -> area.appendText(data));
         }
 
-        public void write(int b) throws IOException
-        {
+        public void write(int b) throws IOException {
             writeToArea(String.valueOf((char)b));
         }
     }
@@ -97,17 +92,14 @@ public class MainController
     private PrintStream Logger;
     private MainApplication main;
 
-    public void prepare(MainApplication main, Task<Void> usbtask)
-    {
+    public void prepare(MainApplication main, Task<Void> usbtask) {
         this.main = main;
         refreshConfig();
         
-        NewPathButton.setOnAction(event ->
-        {
+        NewPathButton.setOnAction(event -> {
             DirectoryChooser ch = new DirectoryChooser();
             File dir = ch.showDialog(this.main.stage);
-            if(dir != null)
-            {
+            if(dir != null) {
                 JFXDialogLayout lyt = new JFXDialogLayout();
                 lyt.setHeading(new Text("Quark - Add special path"));
                 lyt.setBody(new Text("Set the special path's name.\n(leave the box empty to cancel)"));
@@ -121,8 +113,7 @@ public class MainController
 
                 JFXButton ok = new JFXButton("Ok");
                 ok.setAlignment(Pos.BOTTOM_RIGHT);
-                ok.setOnAction(event2 ->
-                {
+                ok.setOnAction(event2 -> {
                     al.close();
                 });
 
@@ -131,10 +122,8 @@ public class MainController
                 al.showAndWait();
 
                 String key = tf.getText();
-                if((key != null) && !(key.trim().isEmpty()))
-                {
-                    synchronized(main.cfglock)
-                    {
+                if((key != null) && !(key.trim().isEmpty())) {
+                    synchronized(main.cfglock) {
                         main.cfg.data.setProperty(key, dir.toString());
                         refreshConfig();
                         main.cfg.save();
@@ -142,21 +131,18 @@ public class MainController
                 }
             }
         });
-        PathRemoveButton.setOnAction(event ->
-        {
+        PathRemoveButton.setOnAction(event -> {
             ObservableList<String> itms = PathList.getSelectionModel().getSelectedItems();
-            if(!itms.isEmpty())
-            {
-                synchronized(main.cfglock)
-                {
-                    itms.forEach(itm ->
-                    {
+            if(!itms.isEmpty()) {
+                synchronized(main.cfglock) {
+                    itms.forEach(itm -> {
                         Enumeration<?> enums = main.cfg.data.propertyNames();
-                        while(enums.hasMoreElements())
-                        {
+                        while(enums.hasMoreElements()) {
                             String key = (String)enums.nextElement();
                             String value = main.cfg.data.getProperty(key);
-                            if(itm.equalsIgnoreCase(key + " (" + value + ")")) main.cfg.data.remove(key);
+                            if(itm.equalsIgnoreCase(key + " (" + value + ")")) {
+                                main.cfg.data.remove(key);
+                            }
                         }
                     });
                     
@@ -173,13 +159,10 @@ public class MainController
         ProgressBar.progressProperty().bind(usbtask.progressProperty());
     }
 
-    public void refreshConfig()
-    {
+    public void refreshConfig() {
         PathList.getItems().clear();
-        synchronized(main.cfglock)
-        {
-            main.cfg.data.forEach((key, path) ->
-            {
+        synchronized(main.cfglock) {
+            main.cfg.data.forEach((key, path) -> {
                 PathList.getItems().add(key + " (" + path + ")");
             });
         }

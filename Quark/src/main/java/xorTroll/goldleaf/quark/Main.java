@@ -21,12 +21,28 @@
 
 package xorTroll.goldleaf.quark;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
 import xorTroll.goldleaf.quark.ui.MainApplication;
 
-public class Main
-{
-    public static void main(String[] args)
-    {
+public class Main {
+    public static final String ConfigFileOption = "cfgfile";
+
+    public static void main(String[] args) {
+        Options options = new Options();
+        options.addOption(ConfigFileOption, true, "Config file");
+        
+        CommandLineParser parser = new DefaultParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            if(cmd.hasOption(ConfigFileOption)) {
+                Config.ConfigPath = cmd.getOptionValue(ConfigFileOption);
+            }
+        }
+        catch(Exception e) {}
+
         MainApplication.main(args);
     }
 }

@@ -27,30 +27,40 @@ import java.io.FileOutputStream;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-public class Config
-{
-    public static final String ConfigPath = "quark-config.cfg";
+public class Config {
+    public static String ConfigPathName = "quark-config.cfg";
+    public static String ConfigPath = "quark-config.cfg";
     public Properties data = new Properties();
     private File cfg;
 
-    public Config()
-    {
-        try
-        {
-            cfg = Paths.get(new File(Config.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath(), ConfigPath).toFile();
-            if(cfg.isFile())
-            {
+    static {
+        try {
+            ConfigPath = Paths.get(new File(Config.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath(), ConfigPathName).toString();
+        }
+        catch(Exception e) {
+            ConfigPath = ConfigPathName;
+        }
+    }
+
+    public Config() {
+        reloadConfigFile();
+    }
+
+    public void reloadConfigFile() {
+        try {
+            cfg = Paths.get(ConfigPath).toFile();
+            if(cfg.isFile()) {
                 data.load(new FileInputStream(cfg));
             }
-            else cfg.createNewFile();
+            else {
+                cfg.createNewFile();
+            }
         }
         catch(Exception e) {}
     }
 
-    public void save()
-    {
-        try
-        {
+    public void save() {
+        try {
             data.store(new FileOutputStream(cfg), null);
         }
         catch(Exception e) {}
