@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,49 +22,37 @@
 #include <nsp/nsp_Installer.hpp>
 #include <err/err_Result.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <sys/stat.h>
 #include <hos/hos_Common.hpp>
-#include <fstream>
-#include <malloc.h>
-#include <dirent.h>
-#include <chrono>
 
-extern cfg::Settings global_settings;
+extern cfg::Settings g_Settings;
 
-namespace nsp
-{
-    Installer::~Installer()
-    {
+namespace nsp {
+
+    Installer::~Installer() {
         FinalizeInstallation();
     }
 
-    Result Installer::PrepareInstallation()
-    {
+    Result Installer::PrepareInstallation() {
         ERR_RC_UNLESS(pfs0_file.IsOk(), err::result::ResultInvalidNSP);
         ERR_RC_TRY(ncmOpenContentStorage(&this->cnt_storage, this->storage_id));
         ERR_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
 
         String cnmt_nca_file_name;
-        u32 cnmt_nca_file_idx = PFS0::InvalidFileIndex;
+        auto cnmt_nca_file_idx = PFS0::InvalidFileIndex;
         u64 cnmt_nca_file_size = 0;
-        u32 tik_file_idx = PFS0::InvalidFileIndex;
+        auto tik_file_idx = PFS0::InvalidFileIndex;
         tik_file_size = 0;
         auto pfs0_files = pfs0_file.GetFiles();
-        for(u32 i = 0; i < pfs0_files.size(); i++)
-        {
+        for(u32 i = 0; i < pfs0_files.size(); i++) {
             auto file = pfs0_files[i];
-            if(fs::GetExtension(file) == "tik")
-            {
+            if(fs::GetExtension(file) == "tik") {
                 tik_file_name = file;
                 tik_file_idx = i;
                 tik_file_size = pfs0_file.GetFileSize(i);
             }
-            else
-            {
-                if(file.length() >= 8)
-                {
-                    if(file.substr(file.length() - 8) == "cnmt.nca")
-                    {
+            else {
+                if(file.length() >= 8) {
+                    if(file.substr(file.length() - 8) == "cnmt.nca") {
                         cnmt_nca_file_name = file;
                         cnmt_nca_file_idx = i;
                         cnmt_nca_file_size = pfs0_file.GetFileSize(i);
@@ -79,8 +67,7 @@ namespace nsp
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
         nand_sys_explorer->CreateDirectory("Contents/temp");
 
-        if(tik_file_size > 0)
-        {
+        if(tik_file_size > 0) {
             auto tik_path = nand_sys_explorer->FullPathFor("Contents/temp/" + tik_file_name);
             this->pfs0_file.SaveFile(tik_file_idx, nand_sys_explorer, tik_path);
             this->tik_file = hos::ReadTicket(tik_path);
@@ -94,76 +81,70 @@ namespace nsp
         sprintf(cnmt_nca_content_path, "@SystemContent://temp/%s", cnmt_nca_file_name.AsUTF8().c_str());
         FsRightsId tmp_rid;
         ERR_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, &keygen, &tmp_rid));
-        auto systemkgen = hos::ComputeSystemKeyGeneration();
-        ERR_RC_UNLESS(systemkgen >= keygen, err::result::ResultKeyGenMismatch);
+        const auto system_keygen = hos::ComputeSystemKeyGeneration();
+        ERR_RC_UNLESS(system_keygen >= keygen, err::result::ResultKeyGenMismatch);
 
         FsFileSystem cnmt_nca_fs;
         ERR_RC_TRY(fsOpenFileSystemWithId(&cnmt_nca_fs, 0, FsFileSystemType_ContentMeta, cnmt_nca_content_path));
+        
         {
             fs::FspExplorer cnmt_nca_fs_obj("NSP-ContentMeta", cnmt_nca_fs);
             String cnmt_file_name;
-            for(auto &cnt: cnmt_nca_fs_obj.GetContents())
-            {
-                if(fs::GetExtension(cnt) == "cnmt")
-                {
+            for(auto &cnt: cnmt_nca_fs_obj.GetContents()) {
+                if(fs::GetExtension(cnt) == "cnmt") {
                     cnmt_file_name = cnt;
                     break;
                 }
             }
             ERR_RC_UNLESS(!cnmt_file_name.empty(), err::result::ResultMetaNotFound);
-            auto cnmt_file_size = cnmt_nca_fs_obj.GetFileSize(cnmt_file_name);
+            const auto cnmt_file_size = cnmt_nca_fs_obj.GetFileSize(cnmt_file_name);
             auto cnmt_tmp_buf = fs::GetWorkBuffer();
-            cnmt_nca_fs_obj.StartFile(cnmt_file_name, fs::FileMode::Read);
-            cnmt_nca_fs_obj.ReadFileBlock(cnmt_file_name, 0, cnmt_file_size, cnmt_tmp_buf);
-            cnmt_nca_fs_obj.EndFile(fs::FileMode::Read);
+            cnmt_nca_fs_obj.ReadFile(cnmt_file_name, 0, cnmt_file_size, cnmt_tmp_buf);
             this->cnmt = ncm::ContentMeta(cnmt_tmp_buf, cnmt_file_size);
         }
 
-        ncm::ContentRecord record = {};
-        record.ContentId = hos::StringAsContentId(cnmt_nca_content_id);
-        *reinterpret_cast<u64*>(record.Size) = cnmt_nca_file_size;
-        record.Type = ncm::ContentType::Meta;
+        NcmContentInfo cnt_info = {
+            .content_id = hos::StringAsContentId(cnmt_nca_content_id),
+            .content_type = NcmContentType_Meta,
+        };
+        *reinterpret_cast<u64*>(cnt_info.size) = cnmt_nca_file_size;
+
         this->cnt_meta_key = cnmt.GetContentMetaKey();
-        ERR_RC_UNLESS(!hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
-        ERR_RC_UNLESS(!hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::NANDUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
         
         bool has_cnmt_installed = false;
-        ERR_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &record.ContentId));
-        if(!has_cnmt_installed) this->ncas.push_back(record);
-        this->cnmt.GetInstallContentMeta(this->cnmt_buf, record, global_settings.ignore_required_fw_ver);
-        this->base_app_id = hos::GetBaseApplicationId(this->cnt_meta_key.id, static_cast<ncm::ContentMetaType>(this->cnt_meta_key.type));
+        ERR_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &cnt_info.content_id));
+        if(!has_cnmt_installed) {
+            this->contents.push_back(cnt_info);
+        }
+        this->cnmt.GetInstallContentMeta(this->cnmt_buf, cnt_info, g_Settings.ignore_required_fw_ver);
+        this->base_app_id = hos::GetBaseApplicationId(this->cnt_meta_key.id, static_cast<NcmContentMetaType>(this->cnt_meta_key.type));
         this->nacp_data = {};
 
-        for(auto &rec: this->cnmt.GetContentRecords())
-        {
-            this->ncas.push_back(rec);
-            if(rec.Type == ncm::ContentType::Control)
-            {
-                auto control_nca_content_id = hos::ContentIdAsString(rec.ContentId);
+        for(const auto &cnt: this->cnmt.GetContents()) {
+            this->contents.push_back(cnt);
+            if(cnt.content_type == NcmContentType_Control) {
+                auto control_nca_content_id = hos::ContentIdAsString(cnt.content_id);
                 auto control_nca_file_name = control_nca_content_id + ".nca";
-                auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
-                if(PFS0::IsValidFileIndex(control_nca_file_idx))
-                {
-                    auto control_nca_temp_path = nand_sys_explorer->FullPathFor("Contents/temp/" + control_nca_file_name);
+                const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
+                if(PFS0::IsValidFileIndex(control_nca_file_idx)) {
+                    auto control_nca_temp_path = nand_sys_explorer->MakeFull("Contents/temp/" + control_nca_file_name);
                     this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_temp_path);
-                    char control_nca_content_path[FS_MAX_PATH] = {0};
+                    char control_nca_content_path[FS_MAX_PATH] = {};
                     sprintf(control_nca_content_path, "@SystemContent://temp/%s", control_nca_file_name.AsUTF8().c_str());
                     FsFileSystem control_nca_fs;
-                    if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path)))
-                    {
-                        fs::FspExplorer control_nca_fs_obj("NSP-Control", control_nca_fs);
-                        for(auto &cnt: control_nca_fs_obj.GetContents())
-                        {
-                            if(fs::GetExtension(cnt) == "dat")
-                            {
-                                this->icon = "sdmc:/" + consts::Root + "/meta/" + control_nca_content_id + ".jpg";
+                    if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path))) {
+                        fs::FspExplorer control_nca_fs_obj("ControlData", control_nca_fs);
+                        for(auto &cnt: control_nca_fs_obj.GetContents()) {
+                            if(fs::GetExtension(cnt) == "dat") {
+                                auto sd_exp = fs::GetSdCardExplorer();
+                                this->icon = sd_exp->MakeAbsolute(consts::Root + "/meta/" + control_nca_content_id + ".jpg");
                                 control_nca_fs_obj.CopyFile(cnt, this->icon);
                                 break;
                             }
                         }
-                        control_nca_fs_obj.StartFile("control.nacp", fs::FileMode::Read);
-                        control_nca_fs_obj.ReadFileBlock("control.nacp", 0, sizeof(nacp_data), &nacp_data);
-                        control_nca_fs_obj.EndFile(fs::FileMode::Read);
+                        control_nca_fs_obj.ReadFile("control.nacp", 0, sizeof(nacp_data), &nacp_data);
                     }
                 }
             }
@@ -171,175 +152,137 @@ namespace nsp
         return err::result::ResultSuccess;
     }
 
-    Result Installer::PreProcessContents()
-    {
+    Result Installer::PreProcessContents() {
         ERR_RC_TRY(ncmContentMetaDatabaseSet(&this->cnt_meta_db, &this->cnt_meta_key, this->cnmt_buf.GetData(), this->cnmt_buf.GetSize()));
         ERR_RC_TRY(ncmContentMetaDatabaseCommit(&this->cnt_meta_db));
 
         s32 content_meta_count = 0;
-        auto rc = nsCountApplicationContentMeta(this->base_app_id, &content_meta_count);
-        if(rc == 0x410) rc = err::result::ResultSuccess;
-
-        ERR_RC_TRY(rc);
-        std::vector<ns::ContentStorageRecord> content_storage_records;
-        if(content_meta_count > 0)
-        {
-            auto tmp_buf = reinterpret_cast<ns::ContentStorageRecord*>(fs::GetWorkBuffer());
-            u32 real_count = 0;
-            ERR_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, tmp_buf, content_meta_count * sizeof(ns::ContentStorageRecord), &real_count));
-            for(u32 i = 0; i < real_count; i++) content_storage_records.push_back(tmp_buf[i]);
+        const auto rc = nsCountApplicationContentMeta(this->base_app_id, &content_meta_count);
+        if(rc != 0x410) {
+            ERR_RC_TRY(rc);
         }
 
-        ns::ContentStorageRecord content_storage_record = {};
-        content_storage_record.Record = this->cnt_meta_key;
-        content_storage_record.StorageId = this->storage_id;
-        content_storage_records.push_back(content_storage_record);
-        ns::DeleteApplicationRecord(this->base_app_id);
-        ERR_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_records.data(), content_storage_records.size() * sizeof(ns::ContentStorageRecord)));
+        std::vector<ns::ContentStorageMetaKey> content_storage_meta_keys;
+        if(content_meta_count > 0) {
+            auto cnt_storage_meta_key_buf = reinterpret_cast<ns::ContentStorageMetaKey*>(fs::GetWorkBuffer());
+            u32 real_count = 0;
+            ERR_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, cnt_storage_meta_key_buf, content_meta_count * sizeof(ns::ContentStorageMetaKey), &real_count));
+            for(u32 i = 0; i < real_count; i++) {
+                content_storage_meta_keys.push_back(cnt_storage_meta_key_buf[i]);
+            }
+        }
 
-        if(this->tik_file_size > 0)
-        {
+        const ns::ContentStorageMetaKey cnt_storage_meta_key = {
+            .meta_key = this->cnt_meta_key,
+            .storage_id = this->storage_id,
+        };
+        content_storage_meta_keys.push_back(cnt_storage_meta_key);
+        ns::DeleteApplicationRecord(this->base_app_id);
+        ERR_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_meta_keys.data(), content_storage_meta_keys.size() * sizeof(ns::ContentStorageMetaKey)));
+
+        if(this->tik_file_size > 0) {
             auto tmp_buf = fs::GetWorkBuffer();
             auto tik_path = "Contents/temp/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-            nand_sys_explorer->StartFile(tik_path, fs::FileMode::Read);
-            nand_sys_explorer->ReadFileBlock(tik_path, 0, this->tik_file.GetFullSize(), tmp_buf);
-            nand_sys_explorer->EndFile(fs::FileMode::Read);
+            nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tmp_buf);
             ERR_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
         }
         return err::result::ResultSuccess;
     }
 
-    ncm::ContentMetaType Installer::GetContentMetaType()
-    {
-        return static_cast<ncm::ContentMetaType>(this->cnt_meta_key.type);
-    }
-
-    u64 Installer::GetApplicationId()
-    {
-        return this->cnt_meta_key.id;
-    }
-
-    std::string Installer::GetExportedIconPath()
-    {
+    std::string Installer::GetExportedIconPath() {
         return this->icon.AsUTF8();
     }
 
-    NacpStruct *Installer::GetNACP()
-    {
-        return &this->nacp_data;
-    }
-
-    bool Installer::HasTicket()
-    {
-        return this->tik_file_size > 0;
-    }
-
-    hos::TicketFile Installer::GetTicketFile()
-    {
-        return this->tik_file;
-    }
-
-    u8 Installer::GetKeyGeneration()
-    {
-        return this->keygen;
-    }
-
-    std::vector<ncm::ContentRecord> Installer::GetNCAs()
-    {
-        return this->ncas;
-    }
-
-    Result Installer::WriteContents(OnContentsWriteFunction OnContentWrite)
-    {
+    Result Installer::WriteContents(OnContentsWriteFunction on_content_write_cb) {
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        auto read_size = fs::WorkBufferSize;
         auto tmp_buf = fs::GetWorkBuffer();
         u64 total_size = 0;
         u64 total_written_size = 0;
         std::vector<u32> content_file_idxs;
-        for(auto &cnt: this->ncas)
-        {
-            auto cnt_id = cnt.ContentId;
-            auto content_file_name = hos::ContentIdAsString(cnt_id);
-            if(cnt.Type == ncm::ContentType::Meta) content_file_name += ".cnmt";
+        for(const auto &cnt: this->contents) {
+            auto content_file_name = hos::ContentIdAsString(cnt.content_id);
+            if(cnt.content_type == NcmContentType_Meta) {
+                content_file_name += ".cnmt";
+            }
             content_file_name += ".nca";
-            auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
+            const auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
             ERR_RC_UNLESS(PFS0::IsValidFileIndex(content_file_idx), err::result::ResultInvalidNSP);
             total_size += pfs0_file.GetFileSize(content_file_idx);
             content_file_idxs.push_back(content_file_idx);
         }
-        for(u32 i = 0; i < this->ncas.size(); i++)
-        {
-            auto cnt = this->ncas[i];
-            auto cnt_id = cnt.ContentId;
+
+        for(u32 i = 0; i < this->contents.size(); i++) {
+            const auto &cnt = this->contents[i];
             auto content_file_idx = content_file_idxs[i];
             auto content_file_name = this->pfs0_file.GetFile(content_file_idx);
             auto content_file_size = this->pfs0_file.GetFileSize(content_file_idx);
 
             NcmPlaceHolderId placehld_id = {};
-            memcpy(placehld_id.uuid.uuid, cnt_id.c, 0x10);
+            memcpy(placehld_id.uuid.uuid, cnt.content_id.c, 0x10);
             
             ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &placehld_id);
-            ERR_RC_TRY(ncmContentStorageCreatePlaceHolder(&this->cnt_storage, &cnt_id, &placehld_id, content_file_size));
+            ERR_RC_TRY(ncmContentStorageCreatePlaceHolder(&this->cnt_storage, &cnt.content_id, &placehld_id, content_file_size));
             u64 cur_written_size = 0;
-            u64 rem_size = content_file_size;
+            auto rem_size = content_file_size;
             auto content_path = "Contents/temp/" + content_file_name;
-            switch(cnt.Type)
-            {
-                case ncm::ContentType::Meta:
-                case ncm::ContentType::Control:
+            switch(cnt.content_type) {
+                case NcmContentType_Meta:
+                case NcmContentType_Control: {
                     nand_sys_explorer->StartFile(content_path, fs::FileMode::Read);
                     break;
-                default:
+                }
+                default: {
                     pfs0_file.GetExplorer()->StartFile(pfs0_file.GetPath(), fs::FileMode::Read);
                     break;
+                }
             }
-            while(rem_size)
-            {
+            while(rem_size) {
                 u64 tmp_read_size = 0;
-                auto proper_size = std::min(rem_size, read_size);
-                auto time_pre = std::chrono::steady_clock::now();
-                switch(cnt.Type)
-                {
-                    case ncm::ContentType::Meta:
-                    case ncm::ContentType::Control:
-                        tmp_read_size = nand_sys_explorer->ReadFileBlock(content_path, cur_written_size, proper_size, tmp_buf);
+                const auto read_size = std::min(rem_size, fs::WorkBufferSize);
+                const auto time_pre = std::chrono::steady_clock::now();
+                switch(cnt.content_type) {
+                    case NcmContentType_Meta:
+                    case NcmContentType_Control: {
+                        tmp_read_size = nand_sys_explorer->ReadFile(content_path, cur_written_size, read_size, tmp_buf);
                         break;
-                    default:
-                        tmp_read_size = pfs0_file.ReadFromFile(content_file_idx, cur_written_size, proper_size, tmp_buf);
+                    }
+                    default: {
+                        tmp_read_size = pfs0_file.ReadFromFile(content_file_idx, cur_written_size, read_size, tmp_buf);
                         break;
+                    }
                 }
                 ERR_RC_TRY(ncmContentStorageWritePlaceHolder(&this->cnt_storage, &placehld_id, cur_written_size, tmp_buf, tmp_read_size));
                 cur_written_size += tmp_read_size;
                 rem_size -= tmp_read_size;
-                auto time_post = std::chrono::steady_clock::now();
-                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(time_post - time_pre).count();
-                auto bytes_per_sec = (1000.0f / (double)(diff)) * (double)(tmp_read_size); // By elapsed time and written bytes, compute how much data has been written in 1 second
-                OnContentWrite(cnt, i, this->ncas.size(), (double)(cur_written_size + total_written_size), (double)total_size, (u64)bytes_per_sec);
+                const auto time_post = std::chrono::steady_clock::now();
+                const auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(time_post - time_pre).count();
+                const auto bytes_per_sec = (1000.0f / (double)(diff)) * (double)(tmp_read_size); // By elapsed time and written bytes, compute how much data has been written in 1 second
+                on_content_write_cb(cnt, i, this->contents.size(), (double)(cur_written_size + total_written_size), (double)total_size, (u64)bytes_per_sec);
             }
-            switch(cnt.Type)
-            {
-                case ncm::ContentType::Meta:
-                case ncm::ContentType::Control:
-                    nand_sys_explorer->EndFile(fs::FileMode::Read);
+            switch(cnt.content_type) {
+                case NcmContentType_Meta:
+                case NcmContentType_Control: {
+                    nand_sys_explorer->EndFile();
                     break;
-                default:
-                    pfs0_file.GetExplorer()->EndFile(fs::FileMode::Read);
+                }
+                default: {
+                    pfs0_file.GetExplorer()->EndFile();
                     break;
+                }
             }
             total_written_size += cur_written_size;
-            ERR_RC_TRY(ncmContentStorageRegister(&this->cnt_storage, &cnt_id, &placehld_id));
+            ERR_RC_TRY(ncmContentStorageRegister(&this->cnt_storage, &cnt.content_id, &placehld_id));
             ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &placehld_id);
         }
         return err::result::ResultSuccess;
     }
 
-    void Installer::FinalizeInstallation()
-    {
+    void Installer::FinalizeInstallation() {
         ncmContentStorageClose(&this->cnt_storage);
         ncmContentMetaDatabaseClose(&this->cnt_meta_db);
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
         nand_sys_explorer->DeleteDirectory("Contents/temp");
     }
+
 }

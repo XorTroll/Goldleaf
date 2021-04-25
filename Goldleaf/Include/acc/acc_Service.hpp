@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,19 +20,20 @@
 */
 
 #pragma once
-#include <switch.h>
+#include <Types.hpp>
 
-namespace acc
-{
-    Result DeleteUser(AccountUid uid);
+namespace acc {
 
-    Result GetProfileEditor(AccountUid uid, Service *out_srv);
-    Result ProfileEditor_Store(Service *srv, AccountProfileBase base, AccountUserData udata);
-    Result ProfileEditor_StoreWithImage(Service *srv, AccountProfileBase base, AccountUserData udata, u8 *jpg, size_t jpgsize);
+    Result DeleteUser(AccountUid user_id);
 
-    Result GetBaasAccountAdministrator(AccountUid uid, Service *out_srv);
-    Result BaasAdministrator_IsLinkedWithNintendoAccount(Service *srv, bool *out);
-    Result BaasAdministrator_DeleteRegistrationInfoLocally(Service *srv);
-    Result BaasAdministrator_GetAccountId(Service *srv, u64 *out_id);
-    Result BaasAdministrator_GetNintendoAccountId(Service *srv, u64 *out_id);
+    Result GetProfileEditor(AccountUid user_id, Service *out_editor_srv);
+    Result ProfileEditor_Store(Service *editor_srv, AccountProfileBase base, AccountUserData user_data);
+    Result ProfileEditor_StoreWithImage(Service *editor_srv, AccountProfileBase prof_base, AccountUserData user_data, u8 *jpg, size_t jpg_size);
+
+    Result GetBaasAccountAdministrator(AccountUid user_id, Service *out_admin_srv);
+    Result BaasAdministrator_IsLinkedWithNintendoAccount(Service *admin_srv, bool *out_linked);
+    Result BaasAdministrator_DeleteRegistrationInfoLocally(Service *admin_srv);
+    Result BaasAdministrator_GetAccountId(Service *admin_srv, u64 *out_id);
+    Result BaasAdministrator_GetNintendoAccountId(Service *admin_srv, u64 *out_id);
+
 }

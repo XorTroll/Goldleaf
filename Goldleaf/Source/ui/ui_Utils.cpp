@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,106 +22,111 @@
 #include <ui/ui_Utils.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    String clipboard;
+namespace ui {
 
-    void SetClipboard(String Path)
-    {
-        clipboard = Path;
+    String g_Clipboard;
+
+    namespace {
+
+        inline constexpr u8 VariateChannelImpl(u8 input, u8 v) {
+            const auto tmp = static_cast<u32>(input + v);
+            if(tmp > 0xFF) {
+                return 0xFF;
+            }
+            return static_cast<u8>(tmp);
+        }
+
+        inline pu::ui::Color GenerateColorVariation(pu::ui::Color clr, u8 min_v, u8 max_v) {
+            const auto v = (u8)RandomFromRange(min_v, max_v);
+            return { VariateChannelImpl(clr.R, v), VariateChannelImpl(clr.G, v), VariateChannelImpl(clr.B, v), clr.A };
+        }
+
+        constexpr pu::ui::Color TextLight = { 225, 225, 225, 0xFF };
+        constexpr pu::ui::Color TextDark = { 15, 15, 15, 0xFF };
+
+    }
+
+    void SetClipboard(String path) {
+        g_Clipboard = path;
     }
     
-    void ClearClipboard()
-    {
-        clipboard = "";
+    void ClearClipboard() {
+        g_Clipboard = "";
     }
 
-    bool ClipboardEmpty()
-    {
-        return clipboard.empty();
-    }
-    
-    bool ClipboardNotEmpty()
-    {
-        return !clipboard.empty();
+    bool ClipboardEmpty() {
+        return g_Clipboard.empty();
     }
 
-    void ShowPowerTasksDialog(String Title, String Message)
-    {
-        auto sopt = global_app->CreateShowDialog(Title, Message, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
-        switch(sopt)
-        {
-            case 0:
+    void ShowPowerTasksDialog(String title, String msg) {
+        const auto option = g_MainApplication->CreateShowDialog(title, msg, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
+        switch(option) {
+            case 0: {
                 hos::PowerOff();
-            case 1:
+                break;
+            }
+            case 1: {
                 hos::Reboot();
+                break;
+            }
         }
     }
 
-    String AskForText(String Guide, String Initial, int MaxSize)
-    {
-        String out = "";
-        char tmpout[FS_MAX_PATH] = { 0 };
+    String AskForText(String guide_text, String initial_text, int max_len) {
         SwkbdConfig kbd;
-        Result rc = swkbdCreate(&kbd, 0);
-        if(R_SUCCEEDED(rc))
-        {
+        auto rc = swkbdCreate(&kbd, 0);
+        if(R_SUCCEEDED(rc)) {
             swkbdConfigMakePresetDefault(&kbd);
-            if(MaxSize > 0) swkbdConfigSetStringLenMax(&kbd, (u32)MaxSize);
-            if(Guide != "") swkbdConfigSetGuideText(&kbd, Guide.AsUTF8().c_str());
-            if(Initial != "") swkbdConfigSetInitialText(&kbd, Initial.AsUTF8().c_str());
-            rc = swkbdShow(&kbd, tmpout, sizeof(tmpout));
-            if(R_SUCCEEDED(rc)) out = String(tmpout);
+            if(max_len > 0) {
+                swkbdConfigSetStringLenMax(&kbd, static_cast<u32>(max_len));
+            }
+            if(!guide_text.empty()) {
+                swkbdConfigSetGuideText(&kbd, guide_text.AsUTF8().c_str());
+            }
+            if(!initial_text.empty()) {
+                swkbdConfigSetInitialText(&kbd, initial_text.AsUTF8().c_str());
+            }
+
+            char out_text[FS_MAX_PATH] = {};
+            rc = swkbdShow(&kbd, out_text, sizeof(out_text));
+            if(R_SUCCEEDED(rc)) {
+                return out_text;
+            }
+            swkbdClose(&kbd);
         }
-        swkbdClose(&kbd);
-        return out;
+        return "";
     }
 
-    void HandleResult(Result rc, String info)
-    {
-        if(R_FAILED(rc))
-        {
-            auto serr = hos::FormatResult(rc);
-            auto sres = err::GetResultDescription(rc);
-            auto modname = err::GetModuleName(R_MODULE(rc));
-            auto infomod = modname + " (" + std::to_string(R_MODULE(rc)) + ")";
-            auto infodesc = sres + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
-            global_app->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + serr + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + infomod + "\n" + cfg::strings::Main.GetString(265) + ": " + infodesc + "", { cfg::strings::Main.GetString(234) }, false);
+    void HandleResult(Result rc, String info) {
+        if(R_FAILED(rc)) {
+            auto mod_info = err::GetModuleName(R_MODULE(rc)) + " (" + std::to_string(R_MODULE(rc)) + ")";
+            auto desc_info = err::GetResultDescription(rc) + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + mod_info + "\n" + cfg::strings::Main.GetString(265) + ": " + desc_info + "", { cfg::strings::Main.GetString(234) }, false);
         }
     }
 
-    inline u8 VariateImpl(u8 input, u8 v)
-    {
-        u32 tmp = (u32)input + v;
-        if(tmp > 255) return 255;
-        return (u8)tmp;
-    }
-
-    inline pu::ui::Color GenerateVariation(pu::ui::Color clr, u8 min_v, u8 max_v)
-    {
-        auto v = (u8)RandomFromRange(min_v, max_v);
-        return { VariateImpl(clr.R, v), VariateImpl(clr.G, v), VariateImpl(clr.B, v), clr.A };
-    }
-
-    constexpr pu::ui::Color TextLight = { 225, 225, 225, 0xff };
-    constexpr pu::ui::Color TextDark = { 15, 15, 15, 0xff };
-
-    ColorScheme GenerateRandomScheme()
-    {
+    ColorScheme GenerateRandomScheme() {
         ColorScheme scheme = {};
-        auto r = static_cast<u8>(RandomFromRange(0, 0xff));
-        auto g = static_cast<u8>(RandomFromRange(0, 0xff));
-        auto b = static_cast<u8>(RandomFromRange(0, 0xff));
-        pu::ui::Color clr = { r, g, b, 0xff };
+        const auto r = static_cast<u8>(RandomFromRange(0, 0xFF));
+        const auto g = static_cast<u8>(RandomFromRange(0, 0xFF));
+        const auto b = static_cast<u8>(RandomFromRange(0, 0xFF));
+
+        pu::ui::Color clr = { r, g, b, 0xFF };
         scheme.Base = clr;
-        scheme.Background = GenerateVariation(clr, 30, 50);
-        scheme.BaseFocus = GenerateVariation(clr, 20, 30);
-        auto av = (r + g + b) / 3;
-        if(av < 128) scheme.Text = TextLight;
-        else scheme.Text = TextDark;
+        scheme.Background = GenerateColorVariation(clr, 30, 50);
+        scheme.BaseFocus = GenerateColorVariation(clr, 20, 30);
+
+        const auto av = (r + g + b) / 3;
+        if((2 * av) < 0xFF) {
+            scheme.Text = TextLight;
+        }
+        else {
+            scheme.Text = TextDark;
+        }
         return scheme;
     }
+
 }

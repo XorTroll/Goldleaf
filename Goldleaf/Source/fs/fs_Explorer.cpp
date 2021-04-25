@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,321 +20,309 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <malloc.h>
-#include <fstream>
-#include <algorithm>
-#include <iomanip>
-#include <cctype>
 
-#include <ui/ui_MainApplication.hpp>
+namespace fs {
 
-extern ui::MainApplication::Ref global_app;
+    namespace {
 
-namespace fs
-{
-    static bool InternalCaseCompare(String a, String b)
-    {
-        std::transform(a.begin(), a.end(), a.begin(), ::tolower);
-        std::transform(b.begin(), b.end(), b.begin(), ::tolower);
-        return (a.AsUTF16() < b.AsUTF16());
+        bool InternalCaseCompare(String a, String b) {
+            std::transform(a.begin(), a.end(), a.begin(), ::tolower);
+            std::transform(b.begin(), b.end(), b.begin(), ::tolower);
+            return (a.AsUTF16() < b.AsUTF16());
+        }
+
     }
 
-    void Explorer::SetNames(String MountName, String DisplayName)
-    {
-        this->dspname = DisplayName;
-        this->mntname = MountName;
-        this->ecwd = MountName + ":/";
+    void Explorer::SetNames(String mount_name, String display_name) {
+        this->disp_name = display_name;
+        this->mnt_name = mount_name;
+        this->cwd = mount_name + ":/";
     }
 
-    bool Explorer::NavigateBack()
-    {
-        if(this->ecwd == (this->mntname + ":/")) return false;
-        String parent = this->ecwd.substr(0, this->ecwd.find_last_of("/\\"));
-        if(parent.substr(parent.length() - 1) == ":") parent += "/";
-        this->ecwd = parent;
+    bool Explorer::NavigateBack() {
+        if(this->cwd == (this->mnt_name + ":/")) {
+            return false;
+        }
+        auto parent = this->cwd.substr(0, this->cwd.find_last_of("/\\"));
+        if(parent.substr(parent.length() - 1) == ":") {
+            parent += "/";
+        }
+        this->cwd = parent;
         return true;
     }
 
-    bool Explorer::NavigateForward(String Path)
-    {
-        bool idir = this->IsDirectory(Path);
-        if(idir) this->ecwd = this->MakeFull(Path);
-        return idir;
+    bool Explorer::NavigateForward(String path) {
+        const auto is_dir = this->IsDirectory(path);
+        if(is_dir) {
+            this->cwd = this->MakeFull(path);
+        }
+        return is_dir;
     }
 
-    std::vector<String> Explorer::GetContents()
-    {
-        auto dirs = this->GetDirectories(this->ecwd);
-        auto files = this->GetFiles(this->ecwd);
+    std::vector<String> Explorer::GetContents() {
+        auto dirs = this->GetDirectories(this->cwd);
+        auto files = this->GetFiles(this->cwd);
 
-        if(!dirs.empty()) std::sort(dirs.begin(), dirs.end(), InternalCaseCompare);
-        if(!files.empty())
-        {
+        if(!dirs.empty()) {
+            std::sort(dirs.begin(), dirs.end(), InternalCaseCompare);
+        }
+        if(!files.empty()) {
             std::sort(files.begin(), files.end(), InternalCaseCompare);
             dirs.insert(dirs.end(), files.begin(), files.end());
         }
-
         return dirs;
     }
 
-    String Explorer::GetMountName()
-    {
-        return this->mntname;
+    String Explorer::GetMountName() {
+        return this->mnt_name;
     }
 
-    String Explorer::GetCwd()
-    {
-        return this->ecwd;
+    String Explorer::GetCwd() {
+        return this->cwd;
     }
 
-    String Explorer::GetPresentableCwd()
-    {
-        if(this->ecwd == (this->mntname + ":/")) return this->dspname + ":/";
-        u32 mntrootsize = this->mntname.length() + 2;
-        String cwdnoroot = this->ecwd.substr(mntrootsize);
-        return this->dspname + ":/" + cwdnoroot;
-    }
-
-    void Explorer::CopyFile(String Path, String NewPath)
-    {
-        String path = this->MakeFull(Path);
-        auto ex = GetExplorerForPath(NewPath);
-        String npath = ex->MakeFull(NewPath);
-        u64 fsize = this->GetFileSize(path);
-        u64 rsize = WorkBufferSize;
-        u8 *data = GetWorkBuffer();
-        u64 szrem = fsize;
-        u64 off = 0;
-        this->StartFile(path, fs::FileMode::Read);
-        ex->StartFile(npath, fs::FileMode::Write);
-        while(szrem)
-        {
-            u64 rbytes = this->ReadFileBlock(path, off, std::min(szrem, rsize), data);
-            szrem -= rbytes;
-            off += rbytes;
-            ex->WriteFileBlock(NewPath, data, rbytes);
+    String Explorer::GetPresentableCwd() {
+        if(this->cwd == (this->mnt_name + ":/")) {
+            return this->disp_name + ":/";
         }
-        this->EndFile(fs::FileMode::Read);
-        ex->EndFile(fs::FileMode::Write);
+        const u32 mnt_root_size = this->mnt_name.length() + 2;
+        return this->disp_name + ":/" + this->cwd.substr(mnt_root_size);
     }
 
-    void Explorer::CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
-    {
-        String path = this->MakeFull(Path);
-        auto ex = GetExplorerForPath(NewPath);
-        String npath = ex->MakeFull(NewPath);
-        u64 fsize = this->GetFileSize(path);
-        u64 rsize = WorkBufferSize;
-        u8 *data = GetWorkBuffer();
-        u64 szrem = fsize;
-        u64 off = 0;
-        this->StartFile(path, fs::FileMode::Read);
-        ex->StartFile(npath, fs::FileMode::Write);
-        while(szrem)
-        {
-            u64 rbytes = this->ReadFileBlock(path, off, std::min(szrem, rsize), data);
-            szrem -= rbytes;
-            off += rbytes;
-            ex->WriteFileBlock(npath, data, rbytes);
-            Callback((double)off, (double)fsize);
+    void Explorer::CopyFile(String path, String new_path) {
+        const auto full_path = this->MakeFull(path);
+        auto exp = GetExplorerForPath(new_path);
+        const auto full_new_path = exp->MakeFull(new_path);
+        auto data = GetWorkBuffer();
+        auto rem_size = this->GetFileSize(full_path);
+        u64 offset = 0;
+        this->StartFile(full_path, fs::FileMode::Read);
+        exp->StartFile(full_new_path, fs::FileMode::Write);
+        while(rem_size) {
+            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, WorkBufferSize), data);
+            rem_size -= read_size;
+            offset += read_size;
+            exp->WriteFile(new_path, data, read_size);
         }
-        this->EndFile(fs::FileMode::Read);
-        ex->EndFile(fs::FileMode::Write);
+        this->EndFile();
+        exp->EndFile();
     }
 
-    void Explorer::CopyDirectory(String Dir, String NewDir)
-    {
-        String dir = this->MakeFull(Dir);
-        auto ex = GetExplorerForPath(NewDir);
-        String ndir = ex->MakeFull(NewDir);
-        ex->CreateDirectory(ndir);
-        auto dirs = this->GetDirectories(dir);
-        for(auto &qdir: dirs)
-        {
-            String dfrom = dir + "/" + qdir;
-            String dto = ndir + "/" + qdir;
-            this->CopyDirectory(dfrom, dto);
+    void Explorer::CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn) {
+        const auto full_path = this->MakeFull(path);
+        auto exp = GetExplorerForPath(new_path);
+        const auto full_new_path = exp->MakeFull(new_path);
+        auto data = GetWorkBuffer();
+        auto file_size = this->GetFileSize(full_path);
+        auto rem_size = file_size;
+        u64 offset = 0;
+        this->StartFile(full_path, fs::FileMode::Read);
+        exp->StartFile(full_new_path, fs::FileMode::Write);
+        while(rem_size) {
+            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, WorkBufferSize), data);
+            rem_size -= read_size;
+            offset += read_size;
+            exp->WriteFile(full_new_path, data, read_size);
+            cb_fn((double)offset, (double)file_size);
         }
-        auto files = this->GetFiles(dir);
-        for(auto &qfile: files)
-        {
-            String dfrom = dir + "/" + qfile;
-            String dto = ndir + "/" + qfile;
-            this->CopyFile(dfrom, dto);
+        this->EndFile();
+        exp->EndFile();
+    }
+
+    void Explorer::CopyDirectory(String dir, String new_dir) {
+        const auto full_dir = this->MakeFull(dir);
+        auto exp = GetExplorerForPath(new_dir);
+        const auto full_new_dir = exp->MakeFull(new_dir);
+        exp->CreateDirectory(full_new_dir);
+        const auto dirs = this->GetDirectories(full_dir);
+        for(const auto &sub_dir: dirs) {
+            const auto from = full_dir + "/" + sub_dir;
+            const auto to = full_new_dir + "/" + sub_dir;
+            this->CopyDirectory(from, to);
+        }
+        const auto files = this->GetFiles(full_dir);
+        for(const auto &sub_file: files) {
+            const auto from = full_dir + "/" + sub_file;
+            const auto to = full_new_dir + "/" + sub_file;
+            this->CopyFile(from, to);
         }
     }
 
-    void Explorer::CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
-    {
-        String dir = this->MakeFull(Dir);
-        auto ex = GetExplorerForPath(NewDir);
-        String ndir = ex->MakeFull(NewDir);
-        ex->CreateDirectory(ndir);
-        auto files = this->GetFiles(dir);
-        for(auto &cfile: files) this->CopyFileProgress(dir + "/" + cfile, ndir + "/" + cfile, Callback);
-        auto dirs = this->GetDirectories(dir);
-        for(auto &cdir: dirs) this->CopyDirectoryProgress(dir + "/" + cdir, ndir + "/" + cdir, Callback);
+    void Explorer::CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn) {
+        String full_dir = this->MakeFull(dir);
+        auto exp = GetExplorerForPath(new_dir);
+        String full_new_dir = exp->MakeFull(new_dir);
+        exp->CreateDirectory(full_new_dir);
+        auto files = this->GetFiles(full_dir);
+        for(auto &cfile: files) this->CopyFileProgress(full_dir + "/" + cfile, full_new_dir + "/" + cfile, cb_fn);
+        auto dirs = this->GetDirectories(full_dir);
+        for(auto &cdir: dirs) this->CopyDirectoryProgress(full_dir + "/" + cdir, full_new_dir + "/" + cdir, cb_fn);
     }
 
-    bool Explorer::IsFileBinary(String Path)
-    {
-        String path = this->MakeFull(Path);
-        if(!this->IsFile(path)) return false;
-        bool bin = false;
-        u64 fsize = this->GetFileSize(path);
-        if(fsize == 0) return true;
-        u64 toread = std::min(fsize, (u64)0x200); // 0x200, like GodMode9
-        u8 *ptr = GetWorkBuffer();
-        u64 rsize = this->ReadFileBlock(path, 0, toread, ptr);
-        for(u32 i = 0; i < rsize; i++)
-        {
-            char ch = (char)ptr[i];
-            if(rsize == 0) return true;
-            if(!isascii(ch) || (iscntrl(ch) && !isspace(ch)))
-            {
-                bin = true;
-                break;
+    bool Explorer::IsFileBinary(String path) {
+        const auto full_path = this->MakeFull(path);
+        if(!this->IsFile(full_path)) {
+            return false;
+        }
+        const auto file_size = this->GetFileSize(full_path);
+        if(file_size == 0) {
+            return true;
+        }
+        const auto to_read_size = std::min(file_size, static_cast<u64>(0x200)); // Same size as GodMode9
+        auto data_buf = GetWorkBuffer();
+        const auto read_size = this->ReadFile(full_path, 0, to_read_size, data_buf);
+        if(read_size == 0) {
+            return true;
+        }
+        for(u32 i = 0; i < read_size; i++) {
+            const auto cur_ch = static_cast<char>(data_buf[i]);
+            if(!isascii(cur_ch) || (iscntrl(cur_ch) && !isspace(cur_ch))) {
+                return true;
             }
         }
-        return bin;
+        return false;
     }
 
-    std::vector<u8> Explorer::ReadFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        u64 fsize = this->GetFileSize(path);
+    std::vector<u8> Explorer::ReadFile(String path) {
+        const auto full_path = this->MakeFull(path);
+        const auto file_size = this->GetFileSize(full_path);
+
         std::vector<u8> data;
-        if(fsize == 0) return data;
-        data.reserve(fsize);
-        this->ReadFileBlock(path, 0, fsize, data.data());
+        if(file_size > 0) {
+            data.reserve(file_size);
+            this->ReadFile(full_path, 0, file_size, data.data());
+        }
         return data;
     }
 
-    std::vector<String> Explorer::ReadFileLines(String Path, u32 LineOffset, u32 LineCount)
-    {
+    std::vector<String> Explorer::ReadFileLines(String path, u32 line_offset, u32 line_count) {
         std::vector<String> data;
-        String path = this->MakeFull(Path);
-        u64 fsize = this->GetFileSize(path);
-        if(fsize == 0) return data;
-        String tmpline;
-        u32 tmpc = 0;
-        u32 tmpo = 0;
-        u64 szrem = fsize;
-        u64 off = 0;
-        u8 *tmpdata = GetWorkBuffer();
-        bool end = false;
-        while(szrem && !end)
-        {
-            u64 rsize = this->ReadFileBlock(path, off, std::min((u64)WorkBufferSize, szrem), tmpdata);
-            if(rsize == 0) return data;
-            szrem -= rsize;
-            off += rsize;
-            for(u32 i = 0; i < rsize; i++)
-            {
-                char ch = (char)tmpdata[i];
-                if(ch == '\n')
-                {
-                    if(tmpc >= LineCount)
-                    {
+        const auto full_path = this->MakeFull(path);
+        const auto file_size = this->GetFileSize(full_path);
+        if(file_size == 0) {
+            return data;
+        }
+        String tmp_line;
+        u32 tmp_line_offset = 0;
+        auto rem_size = file_size;
+        u64 offset = 0;
+        auto data_buf = GetWorkBuffer();
+        auto end = false;
+        while(rem_size && !end) {
+            const auto read_size = this->ReadFile(full_path, offset, std::min(WorkBufferSize, rem_size), data_buf);
+            if(read_size == 0) {
+                return data;
+            }
+            rem_size -= read_size;
+            offset += read_size;
+            for(u32 i = 0; i < read_size; i++) {
+                const auto ch = static_cast<char>(data_buf[i]);
+                if(ch == '\n') {
+                    if(data.size() >= line_count) {
                         end = true;
                         break;
                     }
-                    if((tmpo < LineOffset) && (LineOffset != 0))
-                    {
-                        tmpo++;
-                        tmpline = "";
+                    if(tmp_line_offset < line_offset) {
+                        tmp_line_offset++;
+                        tmp_line = "";
                         continue;
                     }
                     String tab = "\t";
-                    while(true)
-                    {
-                        size_t spos = tmpline.find(tab);
-                        if(spos == String::npos) break;
-                        tmpline.replace(spos, tab.length(), "    ");
+                    while(true) {
+                        const auto find_pos = tmp_line.find(tab);
+                        if(find_pos == String::npos) {
+                            break;
+                        }
+                        tmp_line.replace(find_pos, tab.length(), "    ");
                     }
-                    data.push_back(tmpline);
-                    tmpc++;
-                    tmpline = "";
+                    data.push_back(tmp_line);
+                    tmp_line = "";
                 }
-                else tmpline += (char)ch;
+                else {
+                    tmp_line += ch;
+                }
             }
         }
-        if(!tmpline.empty())
-        {
-            data.push_back(tmpline);
-            tmpline = "";
+        if(!tmp_line.empty()) {
+            data.push_back(tmp_line);
+            tmp_line = "";
         }
         return data;
     }
 
-    std::vector<String> Explorer::ReadFileFormatHex(String Path, u32 LineOffset, u32 LineCount)
-    {
-        std::vector<String> sdata;
-        String path = this->MakeFull(Path);
-        u64 sz = this->GetFileSize(path);
-        u64 off = 16 * LineOffset;
-        u64 rsz = 16 * LineCount;
-        if(off >= sz) return sdata;
-        u64 rrsz = std::min(sz, rsz);
-        if((off + rsz) > sz) rrsz = rsz - ((off + rsz) - sz);
-        std::vector<u8> bdata(rrsz);
-        this->ReadFileBlock(path, off, rrsz, bdata.data());
+    std::vector<String> Explorer::ReadFileFormatHex(String path, u32 line_offset, u32 line_count) {
+        std::vector<String> str_data;
+        const auto full_path = this->MakeFull(path);
+        const auto file_size = this->GetFileSize(full_path);
+        const auto offset = 16 * line_offset;
+        const u64 read_size = 16 * line_count;
+        if(offset >= file_size) {
+            return str_data;
+        }
+        auto data_read_size = std::min(file_size, read_size);
+        if((offset + read_size) > file_size) {
+            data_read_size = read_size - ((offset + read_size) - file_size);
+        }
+        auto data_buf = GetWorkBuffer();
+        this->ReadFile(full_path, offset, data_read_size, data_buf);
         u32 count = 0;
-        String tmpline;
-        String tmpchr;
-        u32 toff = 0;
-        for(u32 i = 0; i < (rrsz + 1); i++)
-        {
-            if(count == 16)
-            {
+        String tmp_line;
+        String tmp_chr;
+        u32 tmp_offset = 0;
+        for(u32 i = 0; i < (data_read_size + 1); i++) {
+            if(count == 16) {
                 std::stringstream ostrm;
-                ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
-                String def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
-                sdata.push_back(def);
-                toff += 16;
+                ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
+                auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
+                str_data.push_back(def);
+                tmp_offset += 16;
                 count = 0;
-                tmpline = "";
-                tmpchr = "";
+                tmp_line = "";
+                tmp_chr = "";
             }
-            else if(i == rrsz)
-            {
-                if((rrsz % 16) != 0)
-                {
-                    u32 miss = 16 - count;
-                    for(u32 i = 0; i < miss; i++)
-                    {
-                        tmpline += "   ";
-                        tmpchr += " ";
+            else if(i == data_read_size) {
+                if((data_read_size % 16) != 0) {
+                    const auto miss = 16 - count;
+                    for(u32 i = 0; i < miss; i++) {
+                        tmp_line += "   ";
+                        tmp_chr += " ";
                     }
                 }
                 std::stringstream ostrm;
-                ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (off + toff);
-                String def = " " + ostrm.str() + "   " + tmpline + "  " + tmpchr;
-                sdata.push_back(def);
+                ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
+                auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
+                str_data.push_back(def);
                 break;
             }
-            u8 byte = bdata[i];
+            const auto cur_byte = data_buf[i];
             std::stringstream strm;
-            strm << std::setw(2) << std::uppercase << std::setfill('0') << std::hex << (int)byte;
-            tmpline += strm.str() + " ";
-            if(isprint(byte)) tmpchr += (char)byte;
-            else tmpchr += ".";
+            strm << std::setw(2) << std::uppercase << std::setfill('0') << std::hex << static_cast<u32>(cur_byte);
+            tmp_line += strm.str() + " ";
+            if(isprint(cur_byte)) {
+                tmp_chr += static_cast<char>(cur_byte);
+            }
+            else {
+                tmp_chr += ".";
+            }
             count++;
         }
-        bdata.clear();
-        return sdata;
+        return str_data;
     }
 
-    u64 Explorer::GetDirectorySize(String Path)
-    {
-        u64 sz = 0;
-        String path = this->MakeFull(Path);
-        auto dirs = this->GetDirectories(path);
-        for(auto &dir: dirs) sz += this->GetDirectorySize(path + "/" + dir);
-        auto files = this->GetFiles(path);
-        for(auto &file: files) sz += this->GetFileSize(path + "/" + file);
-        return sz;
+    u64 Explorer::GetDirectorySize(String path) {
+        u64 size = 0;
+        const auto full_path = this->MakeFull(path);
+
+        const auto dirs = this->GetDirectories(full_path);
+        for(const auto &dir: dirs) {
+            size += this->GetDirectorySize(full_path + "/" + dir);
+        }
+        
+        const auto files = this->GetFiles(full_path);
+        for(const auto &file: files) {
+            size += this->GetFileSize(full_path + "/" + file);
+        }
+        return size;
     }
+
 }

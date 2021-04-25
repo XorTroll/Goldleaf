@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,27 +21,22 @@
 
 #include <ByteBuffer.hpp>
 
-ByteBuffer::ByteBuffer(size_t ReserveSize)
-{
-    buffer.resize(ReserveSize);
+ByteBuffer::ByteBuffer(size_t reserve_size) {
+    this->buffer.resize(reserve_size);
 }
 
-ByteBuffer::~ByteBuffer()
-{
-    buffer.clear();
+ByteBuffer::~ByteBuffer() {
+    this->buffer.clear();
 }
 
-size_t ByteBuffer::GetSize()
-{
-    return buffer.size();
+size_t ByteBuffer::GetSize() {
+    return this->buffer.size();
 }
 
-u8 *ByteBuffer::GetData()
-{
-    return buffer.data();
+u8 *ByteBuffer::GetData() {
+    return this->buffer.data();
 }
 
-void ByteBuffer::Resize(size_t Size)
-{
-    buffer.resize(Size, 0);
+void ByteBuffer::Resize(size_t size) {
+    this->buffer.resize(size, 0);
 }

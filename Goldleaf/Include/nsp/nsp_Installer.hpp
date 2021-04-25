@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,11 +20,6 @@
 */
 
 #pragma once
-#include <string>
-#include <vector>
-#include <functional>
-#include <memory>
-#include <Types.hpp>
 #include <nsp/nsp_PFS0.hpp>
 #include <ncm/ncm_ContentMeta.hpp>
 #include <es/es_Service.hpp>
@@ -33,12 +28,11 @@
 #include <hos/hos_Content.hpp>
 #include <hos/hos_Titles.hpp>
 
-namespace nsp
-{
-    using OnContentsWriteFunction = std::function<void(ncm::ContentRecord, u32, u32, double, double, u64)>;
+namespace nsp {
 
-    class Installer
-    {
+    using OnContentsWriteFunction = std::function<void(NcmContentInfo, u32, u32, double, double, u64)>;
+
+    class Installer {
         private:
             PFS0 pfs0_file;
             NacpStruct nacp_data;
@@ -53,25 +47,48 @@ namespace nsp
             u64 base_app_id;
             u64 tik_file_size;
             String tik_file_name;
-            std::vector<ncm::ContentRecord> ncas;
+            std::vector<NcmContentInfo> contents;
             String icon;
 
         public:
-            Installer(String Path, fs::Explorer *Exp, Storage Location) : pfs0_file(Exp, Path), storage_id(static_cast<NcmStorageId>(Location)) {}
+            Installer(String path, fs::Explorer *exp, Storage location) : pfs0_file(exp, path), storage_id(static_cast<NcmStorageId>(location)) {}
             ~Installer();
     
             Result PrepareInstallation();
             Result PreProcessContents();
-            ncm::ContentMetaType GetContentMetaType();
-            u64 GetApplicationId();
+            
+            inline constexpr NcmContentMetaType GetContentMetaType() {
+                return static_cast<NcmContentMetaType>(this->cnt_meta_key.type);
+            }
+            
+            inline constexpr u64 GetApplicationId() {
+                return this->cnt_meta_key.id;
+            }
+
             std::string GetExportedIconPath();
-            NacpStruct *GetNACP();
-            bool HasTicket();
-            hos::TicketFile GetTicketFile();
-            u8 GetKeyGeneration();
-            std::vector<ncm::ContentRecord> GetNCAs();
-            Result WriteContents(OnContentsWriteFunction OnContentWrite);
+            
+            inline const NacpStruct &GetNacp() {
+                return this->nacp_data;
+            }
+            
+            inline constexpr bool HasTicket() {
+                return this->tik_file_size > 0;
+            }
+
+            inline const hos::TicketFile &GetTicketFile() {
+                return this->tik_file;
+            }
+
+            inline constexpr u8 GetKeyGeneration() {
+                return this->keygen;
+            }
+
+            inline std::vector<NcmContentInfo> &GetContents() {
+                return this->contents;
+            }
+
+            Result WriteContents(OnContentsWriteFunction on_content_write_cb);
             void FinalizeInstallation();
-        
     };
+
 }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
 */
 
 #pragma once
-#include <switch.h>
 #include <ns/ns_Types.hpp>
 
-namespace ns
-{
-    Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize);
-    Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count);
-    Result DeleteApplicationRecord(u64 ApplicationId);
-    Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion);
+namespace ns {
+
+    Result PushApplicationRecord(u64 app_id, u8 last_modified_event, ContentStorageMetaKey *cnt_storage_record_buf, size_t cnt_storage_record_buf_size);
+    Result ListApplicationRecordContentMeta(u64 offset, u64 app_id, void *out_buf, size_t out_buf_size, u32 *out_count);
+    Result DeleteApplicationRecord(u64 app_id);
+    Result PushLaunchVersion(u64 app_id, u32 launch_version);
+
 }

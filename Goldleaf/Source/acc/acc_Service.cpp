@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,68 +21,59 @@
 
 #include <acc/acc_Service.hpp>
 
-namespace acc
-{
-    Result DeleteUser(AccountUid uid)
-    {
-        return serviceDispatchIn(accountGetServiceSession(), 203, uid);
+namespace acc {
+
+    Result DeleteUser(AccountUid user_id) {
+        return serviceDispatchIn(accountGetServiceSession(), 203, user_id);
     }
 
-    Result GetProfileEditor(AccountUid uid, Service *out_srv)
-    {
-        return serviceDispatchIn(accountGetServiceSession(), 205, uid,
+    Result GetProfileEditor(AccountUid user_id, Service *out_editor_srv) {
+        return serviceDispatchIn(accountGetServiceSession(), 205, user_id,
             .out_num_objects = 1,
-            .out_objects = out_srv,
+            .out_objects = out_editor_srv,
         );
     }
 
-    Result ProfileEditor_Store(Service *srv, AccountProfileBase base, AccountUserData udata)
-    {
-        return serviceDispatchIn(srv, 100, base,
+    Result ProfileEditor_Store(Service *editor_srv, AccountProfileBase prof_base, AccountUserData user_data) {
+        return serviceDispatchIn(editor_srv, 100, prof_base,
             .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_In | SfBufferAttr_HipcPointer },
-            .buffers = { { &udata, sizeof(udata) } },
+            .buffers = { { &user_data, sizeof(user_data) } },
         );
     }
 
-    Result ProfileEditor_StoreWithImage(Service *srv, AccountProfileBase base, AccountUserData udata, u8 *jpg, size_t jpgsize)
-    {
-        return serviceDispatchIn(srv, 101, base,
+    Result ProfileEditor_StoreWithImage(Service *editor_srv, AccountProfileBase prof_base, AccountUserData user_data, u8 *jpg, size_t jpg_size) {
+        return serviceDispatchIn(editor_srv, 101, prof_base,
             .buffer_attrs = {
                 SfBufferAttr_FixedSize | SfBufferAttr_In | SfBufferAttr_HipcPointer,
                 SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
             },
             .buffers = {
-                { &udata, sizeof(udata) },
-                { jpg, jpgsize },
+                { &user_data, sizeof(user_data) },
+                { jpg, jpg_size },
             },
         );
     }
 
-    Result GetBaasAccountAdministrator(AccountUid uid, Service *out_srv)
-    {
-        return serviceDispatchIn(accountGetServiceSession(), 250, uid,
+    Result GetBaasAccountAdministrator(AccountUid user_id, Service *out_admin_srv) {
+        return serviceDispatchIn(accountGetServiceSession(), 250, user_id,
             .out_num_objects = 1,
-            .out_objects = out_srv,
+            .out_objects = out_admin_srv,
         );
     }
 
-    Result BaasAdministrator_IsLinkedWithNintendoAccount(Service *srv, bool *out)
-    {
-        return serviceDispatchOut(srv, 250, *out);
+    Result BaasAdministrator_IsLinkedWithNintendoAccount(Service *admin_srv, bool *out_linked) {
+        return serviceDispatchOut(admin_srv, 250, *out_linked);
     }
 
-    Result BaasAdministrator_DeleteRegistrationInfoLocally(Service *srv)
-    {
-        return serviceDispatch(srv, 203);
+    Result BaasAdministrator_DeleteRegistrationInfoLocally(Service *admin_srv) {
+        return serviceDispatch(admin_srv, 203);
     }
 
-    Result BaasAdministrator_GetAccountId(Service *srv, u64 *out_id)
-    {
-        return serviceDispatchOut(srv, 1, *out_id);
+    Result BaasAdministrator_GetAccountId(Service *admin_srv, u64 *out_id) {
+        return serviceDispatchOut(admin_srv, 1, *out_id);
     }
 
-    Result BaasAdministrator_GetNintendoAccountId(Service *srv, u64 *out_id)
-    {
-        return serviceDispatchOut(srv, 120, *out_id);
+    Result BaasAdministrator_GetNintendoAccountId(Service *admin_srv, u64 *out_id) {
+        return serviceDispatchOut(admin_srv, 120, *out_id);
     }
 }

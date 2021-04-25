@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,12 +20,11 @@
 */
 
 #pragma once
-#include <switch.h>
+#include <Types.hpp>
 
-namespace es
-{
-    union RightsId
-    {
+namespace es {
+
+    union RightsId {
         struct {
             u64 app_id;
             u64 key_gen;
@@ -34,8 +33,7 @@ namespace es
     };
     static_assert(sizeof(RightsId) == 0x10);
 
-    constexpr u8 CommonCertificateData[] =
-    {
+    constexpr u8 CommonCertificateData[] = {
         0x00, 0x01, 0x00, 0x03, 0x70, 0x41, 0x38, 0xef, 0xbb, 0xbd, 0xa1, 0x6a, 0x98, 0x7d, 0xd9, 0x01,
         0x32, 0x6d, 0x1c, 0x94, 0x59, 0x48, 0x4c, 0x88, 0xa2, 0x86, 0x1b, 0x91, 0xa3, 0x12, 0x58, 0x7a,
         0xe7, 0x0e, 0xf6, 0x23, 0x7e, 0xc5, 0x0e, 0x10, 0x32, 0xdc, 0x39, 0xdd, 0xe8, 0x9a, 0x96, 0xa8,
@@ -151,4 +149,5 @@ namespace es
     };
 
     constexpr u64 CommonCertificateSize = sizeof(CommonCertificateData);
+
 }

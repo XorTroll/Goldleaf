@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,71 +21,69 @@
 
 #include <ncm/ncm_ContentMeta.hpp>
 
-namespace ncm
-{
-    ContentMeta::ContentMeta()
-    {
-        buf.Resize(sizeof(ContentMetaHeader));
+namespace ncm {
+
+    ContentMeta::ContentMeta() {
+        this->buf.Resize(sizeof(ContentMetaHeader));
     }
 
-    ContentMeta::ContentMeta(u8* Data, size_t Size) : buf(Size)
-    {
-        buf.Resize(Size);
-        memcpy(buf.GetData(), Data, Size);
+    ContentMeta::ContentMeta(const u8* data, size_t size) : buf(size) {
+        this->buf.Resize(size);
+        memcpy(this->buf.GetData(), data, size);
     }
 
-    ContentMeta::~ContentMeta()
-    {
+    ContentMetaHeader ContentMeta::GetContentMetaHeader() {
+        return this->buf.Read<ContentMetaHeader>(0);
     }
 
-    ContentMetaHeader ContentMeta::GetContentMetaHeader()
-    {
-        return buf.Read<ContentMetaHeader>(0);
+    NcmContentMetaKey ContentMeta::GetContentMetaKey() {
+        const auto cnt_meta_header = this->GetContentMetaHeader();
+
+        const NcmContentMetaKey meta_key = {
+            .id = cnt_meta_header.app_id,
+            .version = cnt_meta_header.title_version,
+            .type = cnt_meta_header.type,
+        };
+        return meta_key;
     }
 
-    NcmContentMetaKey ContentMeta::GetContentMetaKey()
-    {
-        NcmContentMetaKey metaRecord = {};
-        auto contentMetaHeader = this->GetContentMetaHeader();
-        metaRecord.id = contentMetaHeader.ApplicationId;
-        metaRecord.version = contentMetaHeader.TitleVersion;
-        metaRecord.type = static_cast<u8>(contentMetaHeader.Type);
-        return metaRecord;
-    }
-
-    std::vector<ContentRecord> ContentMeta::GetContentRecords()
-    {
-        auto contentMetaHeader = this->GetContentMetaHeader();
-        std::vector<ContentRecord> contentRecords;
-        auto hashedContentRecords = reinterpret_cast<HashedContentRecord*>(buf.GetData() + sizeof(ContentMetaHeader) + contentMetaHeader.ExtendedHeaderSize);
-        for(u32 i = 0; i < contentMetaHeader.ContentCount; i++)
-        {
-            auto hashedContentRecord = hashedContentRecords[i];
-            if(hashedContentRecord.Record.Type != ContentType::DeltaFragment) contentRecords.push_back(hashedContentRecord.Record); 
+    std::vector<NcmContentInfo> ContentMeta::GetContents() {
+        const auto cnt_meta_header = this->GetContentMetaHeader();
+        std::vector<NcmContentInfo> contents;
+        auto packaged_cnt_infos = reinterpret_cast<NcmPackagedContentInfo*>(buf.GetData() + sizeof(ContentMetaHeader) + cnt_meta_header.extended_header_size);
+        for(u32 i = 0; i < cnt_meta_header.content_count; i++) {
+            const auto cur_packaged_cnt_info = packaged_cnt_infos[i];
+            if(cur_packaged_cnt_info.info.content_type != NcmContentType_DeltaFragment) {
+                contents.push_back(cur_packaged_cnt_info.info); 
+            }
         }
-        return contentRecords;
+        return contents;
     }
 
-    void ContentMeta::GetInstallContentMeta(ByteBuffer &CNMTBuffer, ContentRecord &CNMTRecord, bool IgnoreVersion)
-    {
-        auto contentMetaHeader = this->GetContentMetaHeader();
-        std::vector<ContentRecord> contentRecords = this->GetContentRecords();
-        InstallContentMetaHeader installContentMetaHeader;
-        installContentMetaHeader.ExtendedHeaderSize = contentMetaHeader.ExtendedHeaderSize;
-        installContentMetaHeader.ContentCount = contentRecords.size() + 1;
-        installContentMetaHeader.ContentMetaCount = contentMetaHeader.ContentMetaCount;
-        CNMTBuffer.Append<InstallContentMetaHeader>(installContentMetaHeader);
-        CNMTBuffer.Resize(CNMTBuffer.GetSize() + contentMetaHeader.ExtendedHeaderSize);
-        auto ExtendedHeaderSourceBytes = buf.GetData() + sizeof(ContentMetaHeader);
-        u8 *installExtendedHeaderStart = CNMTBuffer.GetData() + sizeof(InstallContentMetaHeader);
-        memcpy(installExtendedHeaderStart, ExtendedHeaderSourceBytes, contentMetaHeader.ExtendedHeaderSize);
-        if(IgnoreVersion && ((contentMetaHeader.Type == ContentMetaType::Application) || (contentMetaHeader.Type == ContentMetaType::Patch))) CNMTBuffer.Write<u32>(0, sizeof(InstallContentMetaHeader) + 8);
-        CNMTBuffer.Append<ContentRecord>(CNMTRecord);
-        for(auto &contentRecord : contentRecords) CNMTBuffer.Append<ContentRecord>(contentRecord);
-        if(contentMetaHeader.Type == ContentMetaType::Patch)
-        {
-            PatchMetaExtendedHeader *patchMetaExtendedHeader = (PatchMetaExtendedHeader*)ExtendedHeaderSourceBytes;
-            CNMTBuffer.Resize(CNMTBuffer.GetSize() + patchMetaExtendedHeader->ExtendedDataSize);
+    void ContentMeta::GetInstallContentMeta(ByteBuffer &cnmt_buf, NcmContentInfo &cnt_info, bool ignore_ver) {
+        const auto cnt_meta_header = this->GetContentMetaHeader();
+        const auto contents = this->GetContents();
+        const NcmContentMetaHeader install_cnt_meta_header = {
+            .extended_header_size = cnt_meta_header.extended_header_size,
+            .content_count = static_cast<u16>(contents.size() + 1),
+            .content_meta_count = cnt_meta_header.content_meta_count,
+        };
+        cnmt_buf.Append(install_cnt_meta_header);
+        cnmt_buf.Resize(cnmt_buf.GetSize() + install_cnt_meta_header.extended_header_size);
+        auto extended_header_src_bytes = buf.GetData() + sizeof(ContentMetaHeader);
+        auto install_extended_header_start = cnmt_buf.GetData() + sizeof(NcmContentMetaHeader);
+        memcpy(install_extended_header_start, extended_header_src_bytes, install_cnt_meta_header.extended_header_size);
+        if(ignore_ver && ((static_cast<NcmContentMetaType>(cnt_meta_header.type) == NcmContentMetaType_Application) || (static_cast<NcmContentMetaType>(cnt_meta_header.type) == NcmContentMetaType_Patch))) {
+            cnmt_buf.Write(static_cast<u32>(0), sizeof(NcmContentMetaHeader) + 8);
+        }
+        cnmt_buf.Append(cnt_info);
+        for(const auto &cnt: contents) {
+            cnmt_buf.Append(cnt);
+        }
+        if(static_cast<NcmContentMetaType>(cnt_meta_header.type) == NcmContentMetaType_Patch) {
+            auto patch_meta_extended_header = reinterpret_cast<NcmPatchMetaExtendedHeader*>(extended_header_src_bytes);
+            cnmt_buf.Resize(cnmt_buf.GetSize() + patch_meta_extended_header->extended_data_size);
         }
     }
+
 }

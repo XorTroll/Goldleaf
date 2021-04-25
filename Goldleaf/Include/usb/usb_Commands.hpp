@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
 */
 
 #pragma once
-#include <Types.hpp>
 #include <usb/usb_Detail.hpp>
 
-namespace usb
-{
-    enum class CommandId
-    {
+// TODO: C++20 concepts?
+
+namespace usb {
+
+    enum class CommandId {
         GetDriveCount = 1,
         GetDriveInfo,
         StatPath,
@@ -46,31 +46,28 @@ namespace usb
         SelectFile
     };
 
-    static constexpr u32 InputMagic = 0x49434C47; // GLCI
-    static constexpr u32 OutputMagic = 0x4F434C47; // GLCO
+    constexpr u32 InputMagic = 0x49434C47; // GLCI
+    constexpr u32 OutputMagic = 0x4F434C47; // GLCO
 
-    static constexpr size_t BlockSize = 0x1000;
+    constexpr size_t BlockSize = 0x1000;
 
-    struct BlockBase
-    {
+    struct BlockBase {
         u64 position;
-        u8 *blockbuf;
+        u8 *block_buf;
     };
 
-    struct InCommandBlock
-    {
+    struct InCommandBlock {
         BlockBase base;
 
-        InCommandBlock(CommandId CmdId);
-        void Write32(u32 Value);
-        void Write64(u64 Value);
-        void WriteString(String Value);
-        void WriteBuffer(void *Buf, size_t Size);
+        InCommandBlock(CommandId cmd_id);
+        void Write32(u32 val);
+        void Write64(u64 val);
+        void WriteString(String val);
+        void WriteBuffer(const void *buf, size_t size);
         Result Send();
     };
 
-    struct OutCommandBlock
-    {
+    struct OutCommandBlock {
         BlockBase base;
         u32 magic;
         Result res;
@@ -81,11 +78,10 @@ namespace usb
         u32 Read32();
         u64 Read64();
         String ReadString();
-        void ReadBuffer(void *Buf, size_t Size);
+        void ReadBuffer(void *buf, size_t size);
     };
 
-    class CommandArgument
-    {
+    class CommandArgument {
         public:
             virtual void ProcessIn(InCommandBlock &block) = 0;
             virtual void ProcessAfterIn() = 0;
@@ -93,119 +89,114 @@ namespace usb
             virtual void ProcessAfterOut() = 0;
     };
 
-    class In32 : public CommandArgument
-    {
-        public:
-            In32(u32 Value);
-            void ProcessIn(InCommandBlock &block);
-            void ProcessAfterIn();
-            void ProcessOut(OutCommandBlock &block);
-            void ProcessAfterOut();
+    class In32 : public CommandArgument {
         private:
             u32 val;
-    };
-
-    class Out32 : public CommandArgument
-    {
         public:
-            Out32(u32 &Value);
+            In32(u32 val);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
+    };
+
+    class Out32 : public CommandArgument {
         private:
             u32 &val;
-    };
-
-    class In64 : public CommandArgument
-    {
         public:
-            In64(u64 Value);
+            Out32(u32 &val);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
+    };
+
+    class In64 : public CommandArgument {
         private:
             u64 val;
-    };
-
-    class Out64 : public CommandArgument
-    {
         public:
-            Out64(u64 &Value);
+            In64(u64 val);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
+    };
+
+    class Out64 : public CommandArgument {
         private:
             u64 &val;
-    };
-
-    class InString : public CommandArgument
-    {
         public:
-            InString(String Value);
+            Out64(u64 &val);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
+    };
+
+    class InString : public CommandArgument {
         private:
             String val;
-    };
-
-    class OutString : public CommandArgument
-    {
         public:
-            OutString(String &Value);
+            InString(String val);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
+    };
+
+    class OutString : public CommandArgument {
         private:
             String &val;
-    };
-
-    class InBuffer : public CommandArgument
-    {
         public:
-            InBuffer(void *Buf, size_t Sz);
+            OutString(String &val);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
-        private:
-            void *buf;
-            size_t sz;
     };
 
-    class OutBuffer : public CommandArgument
-    {
+    class InBuffer : public CommandArgument {
+        private:
+            const void *buf;
+            size_t size;
         public:
-            OutBuffer(void *Buf, size_t Sz);
+            InBuffer(const void *buf, size_t size);
             void ProcessIn(InCommandBlock &block);
             void ProcessAfterIn();
             void ProcessOut(OutCommandBlock &block);
             void ProcessAfterOut();
+    };
+
+    class OutBuffer : public CommandArgument {
         private:
             void *buf;
-            size_t sz;
+            size_t size;
+        public:
+            OutBuffer(void *buf, size_t size);
+            void ProcessIn(InCommandBlock &block);
+            void ProcessAfterIn();
+            void ProcessOut(OutCommandBlock &block);
+            void ProcessAfterOut();
     };
 
     template<CommandId id, typename ...Args>
-    Result ProcessCommand(Args &&...args)
-    {
+    Result ProcessCommand(Args &&...args) {
         InCommandBlock block(id);
         (args.ProcessIn(block), ...);
-        auto rc = block.Send();
-        if(R_SUCCEEDED(rc))
-        {
+        const auto rc = block.Send();
+        if(R_SUCCEEDED(rc)) {
             (args.ProcessAfterIn(), ...);
-            OutCommandBlock outblock;
-            if(outblock.IsValid()) (args.ProcessOut(outblock), ...);
-            outblock.Cleanup();
-            if(outblock.IsValid()) (args.ProcessAfterOut(), ...);
-            rc = outblock.res;
+            OutCommandBlock out_block = {};
+            if(out_block.IsValid()) {
+                (args.ProcessOut(out_block), ...);
+            }
+            out_block.Cleanup();
+            if(out_block.IsValid()) {
+                (args.ProcessAfterOut(), ...);
+            }
+            return out_block.res;
         }
         return rc;
     }
+
 }

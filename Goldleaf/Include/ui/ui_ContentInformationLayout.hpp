@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,22 +21,21 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class ContentInformationLayout : public pu::ui::Layout
-    {
+namespace ui {
+
+    class ContentInformationLayout : public pu::ui::Layout {
+        private:
+            std::vector<hos::Title> cnt_subcontents;
+            hos::TitleContents contents;
+            pu::ui::elm::Menu::Ref options_menu;
         public:
             ContentInformationLayout();
             PU_SMART_CTOR(ContentInformationLayout)
 
             void UpdateElements();
             void options_Click();
-            void LoadContent(hos::Title &Content);
-        private:
-            std::vector<hos::Title> tcontents;
-            hos::TitleContents contents;
-            pu::ui::elm::Menu::Ref optionsMenu;
+            void LoadContent(const hos::Title &content);
     };
+
 }

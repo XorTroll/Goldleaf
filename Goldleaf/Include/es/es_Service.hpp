@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,19 +20,19 @@
 */
 
 #pragma once
-#include <switch.h>
 #include <es/es_Types.hpp>
 
-namespace es
-{
+namespace es {
+
     Result Initialize();
     void Exit();
     bool HasInitialized();
 
-    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CommonCertificateSize);
-    Result DeleteTicket(const RightsId *RId, size_t RIdSize);
-    Result CountCommonTicket(u32 *out_Count);
-    Result CountPersonalizedTicket(u32 *out_Count);
-    Result ListCommonTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize);
-    Result ListPersonalizedTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize);
+    Result ImportTicket(const void *tik, size_t tik_size, const void *cert, size_t cert_size);
+    Result DeleteTicket(const RightsId &rights_id);
+    Result CountCommonTicket(u32 *out_count);
+    Result CountPersonalizedTicket(u32 *out_count);
+    Result ListCommonTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size);
+    Result ListPersonalizedTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size);
+
 }

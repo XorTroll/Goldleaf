@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,36 +22,34 @@
 #pragma once
 #include <Types.hpp>
 
-namespace cfg
-{
-    struct WebBookmark
-    {
+namespace cfg {
+
+    struct WebBookmark {
         std::string name;
         std::string url;
     };
 
-    #define SET_OPTIONAL_VALUE(type, name) \
+    #define CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(type, name) \
     type name; \
     bool has_##name;
 
-    struct Settings
-    {
-        SET_OPTIONAL_VALUE(Language, custom_lang)
-        SET_OPTIONAL_VALUE(std::string, external_romfs)
-        SET_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
-        SET_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
-        SET_OPTIONAL_VALUE(ColorScheme, custom_scheme)
-        SET_OPTIONAL_VALUE(u32, menu_item_size)
-
+    struct Settings {
+        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(Language, custom_lang)
+        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(std::string, external_romfs)
+        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
+        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
+        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
+        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(u32, menu_item_size)
         bool ignore_required_fw_ver;
         std::vector<WebBookmark> bookmarks;
 
         void Save();
-        std::string PathForResource(std::string Path);
-        void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &Menu);
-        void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &PBar);
+        std::string PathForResource(const std::string &path);
+        void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu);
+        void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &p_bar);
     };
 
     Settings ProcessSettings();
     bool Exists();
+
 }

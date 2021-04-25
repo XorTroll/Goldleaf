@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,40 +21,39 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class ClickableImage : public pu::ui::elm::Element
-    {
-        public:
-            ClickableImage(s32 X, s32 Y, String Image);
-            PU_SMART_CTOR(ClickableImage)
-            ~ClickableImage();
+namespace ui {
 
-            s32 GetX();
-            void SetX(s32 X);
-            s32 GetY();
-            void SetY(s32 Y);
-            s32 GetWidth();
-            void SetWidth(s32 Width);
-            s32 GetHeight();
-            void SetHeight(s32 Height);
-            pu::String GetImage();
-            void SetImage(pu::String Image);
-            bool IsImageValid();
-            void SetOnClick(std::function<void()> Callback);
-            void OnRender(pu::ui::render::Renderer::Ref &Drawer, s32 X, s32 Y);
-            void OnInput(u64 down, u64 up, u64 held, pu::ui::Touch Pos);
+    class ClickableImage : public pu::ui::elm::Element {
         protected:
-            String img;
-            pu::sdl2::Texture ntex;
             s32 x;
             s32 y;
             s32 w;
             s32 h;
+            std::string img;
+            pu::sdl2::Texture native_tex;
             std::function<void()> cb;
-            std::chrono::steady_clock::time_point touchtp;
+            std::chrono::steady_clock::time_point touch_time_point;
             bool touched;
+        public:
+            ClickableImage(s32 x, s32 y, const std::string &img);
+            PU_SMART_CTOR(ClickableImage)
+            ~ClickableImage();
+
+            s32 GetX();
+            void SetX(s32 x);
+            s32 GetY();
+            void SetY(s32 y);
+            s32 GetWidth();
+            void SetWidth(s32 w);
+            s32 GetHeight();
+            void SetHeight(s32 h);
+            std::string GetImage();
+            void SetImage(const std::string &img);
+            bool IsImageValid();
+            void SetOnClick(std::function<void()> cb_fn);
+            void OnRender(pu::ui::render::Renderer::Ref &drawer, s32 x, s32 y);
+            void OnInput(u64 down, u64 up, u64 held, pu::ui::Touch pos);
     };
+
 }

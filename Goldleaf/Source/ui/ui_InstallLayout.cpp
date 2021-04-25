@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,249 +21,270 @@
 
 #include <ui/ui_InstallLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
-#include <iomanip>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    InstallLayout::InstallLayout() : pu::ui::Layout()
-    {
-        this->installText = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
-        this->installText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->installText->SetColor(global_settings.custom_scheme.Text);
-        this->installBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        global_settings.ApplyProgressBarColor(this->installBar);
-        this->Add(this->installText);
-        this->Add(this->installBar);
+namespace ui {
+
+    InstallLayout::InstallLayout() : pu::ui::Layout() {
+        this->install_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
+        this->install_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->install_text->SetColor(g_Settings.custom_scheme.Text);
+        this->install_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
+        g_Settings.ApplyProgressBarColor(this->install_p_bar);
+        this->Add(this->install_text);
+        this->Add(this->install_p_bar);
     }
 
-    void InstallLayout::StartInstall(String Path, fs::Explorer *Exp, Storage Location, bool OmitConfirmation)
-    {
-        nsp::Installer inst(Path, Exp, Location);
+    void InstallLayout::StartInstall(String path, fs::Explorer *exp, Storage location, bool omit_confirmation) {
+        nsp::Installer nsp_installer(path, exp, location);
 
-        auto rc = inst.PrepareInstallation();
-        if(R_FAILED(rc))
-        {
-            if(rc == err::result::ResultTitleAlreadyInstalled)
-            {
-                auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(77), cfg::strings::Main.GetString(272) + "\n" + cfg::strings::Main.GetString(273) + "\n" + cfg::strings::Main.GetString(274), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-                if(sopt == 0)
-                {
-                    auto title = hos::Locate(inst.GetApplicationId());
-                    if(title.ApplicationId == inst.GetApplicationId())
-                    {
+        auto rc = nsp_installer.PrepareInstallation();
+        if(R_FAILED(rc)) {
+            if(rc == err::result::ResultTitleAlreadyInstalled) {
+                const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(77), cfg::strings::Main.GetString(272) + "\n" + cfg::strings::Main.GetString(273) + "\n" + cfg::strings::Main.GetString(274), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+                if(option == 0) {
+                    const auto title = hos::Locate(nsp_installer.GetApplicationId());
+                    if(title.app_id == nsp_installer.GetApplicationId()) {
                         hos::RemoveTitle(title);
-                        inst.FinalizeInstallation();
-                        auto rc = inst.PrepareInstallation();
-                        if(R_FAILED(rc))
-                        {
+                        nsp_installer.FinalizeInstallation();
+                        auto rc = nsp_installer.PrepareInstallation();
+                        if(R_FAILED(rc)) {
                             HandleResult(rc, cfg::strings::Main.GetString(251));
                             return;
                         }
                     }
                 }
-                else
-                {
+                else {
                     return;
                 }
             }
-            else
-            {
+            else  {
                 HandleResult(rc, cfg::strings::Main.GetString(251));
                 return;
             }
         }
 
-        bool doinstall = false;
-
-        if(OmitConfirmation) doinstall = true;
-        else
-        {
-            String info = cfg::strings::Main.GetString(82) + "\n\n";
-            switch(inst.GetContentMetaType())
-            {
-                case ncm::ContentMetaType::Application:
+        auto do_install = false;
+        if(omit_confirmation) {
+            do_install = true;
+        }
+        else {
+            auto info = cfg::strings::Main.GetString(82) + "\n\n";
+            switch(nsp_installer.GetContentMetaType()) {
+                case NcmContentMetaType_Application: {
                     info += cfg::strings::Main.GetString(83);
                     break;
-                case ncm::ContentMetaType::Patch:
+                }
+                case NcmContentMetaType_Patch: {
                     info += cfg::strings::Main.GetString(84);
                     break;
-                case ncm::ContentMetaType::AddOnContent:
+                }
+                case NcmContentMetaType_AddOnContent: {
                     info += cfg::strings::Main.GetString(85);
                     break;
-                default:
+                }
+                default: {
                     info += cfg::strings::Main.GetString(86);
                     break;
+                }
             }
             info += "\n";
-            auto idmask = hos::IsValidApplicationId(inst.GetApplicationId());
-            switch(idmask)
-            {
-                case hos::ApplicationIdMask::Official:
+            const auto app_id_mask = hos::GetApplicationIdMask(nsp_installer.GetApplicationId());
+            switch(app_id_mask) {
+                case hos::ApplicationIdMask::Official: {
                     info += cfg::strings::Main.GetString(87);
                     break;
-                case hos::ApplicationIdMask::Homebrew:
+                }
+                case hos::ApplicationIdMask::Homebrew: {
                     info += cfg::strings::Main.GetString(88);
                     break;
-                case hos::ApplicationIdMask::Invalid:
+                }
+                case hos::ApplicationIdMask::Invalid: {
                     info += cfg::strings::Main.GetString(89);
                     break;
+                }
             }
-            info += "\n" + cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(inst.GetApplicationId());
+            info += "\n" + cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(nsp_installer.GetApplicationId());
             info += "\n\n";
-            auto nacp = inst.GetNACP();
-            if(strlen(nacp->display_version) > 0)
-            {
+            const auto &nacp = nsp_installer.GetNacp();
+            if(!hos::IsNacpEmpty(nacp)) {
                 info += cfg::strings::Main.GetString(91) + " ";
-                info += hos::GetNACPName(nacp);
+                info += hos::FindNacpName(nacp);
                 info += "\n" + cfg::strings::Main.GetString(92) + " ";
-                info += hos::GetNACPAuthor(nacp);
+                info += hos::FindNacpAuthor(nacp);
                 info += "\n" + cfg::strings::Main.GetString(109) + " ";
-                info += hos::GetNACPVersion(nacp);
+                info += nacp.display_version;
                 info += "\n\n";
             }
-            auto ncas = inst.GetNCAs();
+            const auto cnts = nsp_installer.GetContents();
             info += cfg::strings::Main.GetString(93) + " ";
-            for(auto &nca: ncas)
-            {
-                switch(nca.Type)
-                {
-                    case ncm::ContentType::Control:
-                        info += cfg::strings::Main.GetString(166);
-                        break;
-                    case ncm::ContentType::Data:
-                        info += cfg::strings::Main.GetString(165);
-                        break;
-                    case ncm::ContentType::LegalInformation:
-                        info += cfg::strings::Main.GetString(168);
-                        break;
-                    case ncm::ContentType::Meta:
+            for(const auto &cnt: cnts) {
+                switch(static_cast<NcmContentType>(cnt.content_type)) {
+                    case NcmContentType_Meta: {
                         info += cfg::strings::Main.GetString(163);
                         break;
-                    case ncm::ContentType::OfflineHtml:
-                        info += cfg::strings::Main.GetString(167);
-                        break;
-                    case ncm::ContentType::Program:
+                    }
+                    case NcmContentType_Program: {
                         info += cfg::strings::Main.GetString(164);
                         break;
-                    default:
+                    }
+                    case NcmContentType_Data: {
+                        info += cfg::strings::Main.GetString(165);
                         break;
+                    }
+                    case NcmContentType_Control: {
+                        info += cfg::strings::Main.GetString(166);
+                        break;
+                    }
+                    case NcmContentType_HtmlDocument: {
+                        info += cfg::strings::Main.GetString(167);
+                        break;
+                    }
+                    case NcmContentType_LegalInformation: {
+                        info += cfg::strings::Main.GetString(168);
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
                 }
                 info += ", ";
             }
             info = info.substr(0, info.length() - 2);
 
-            u8 kgen = inst.GetKeyGeneration();
-            u8 masterkey = kgen - 1;
-            info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(kgen) + " ";
-            switch(masterkey)
-            {
-                case 0:
+            const auto keygen = nsp_installer.GetKeyGeneration();
+            const auto m_key = keygen - 1;
+            info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(keygen) + " ";
+            switch(m_key) {
+                case 0: {
                     info += "(1.0.0 - 2.3.0)";
                     break;
-                case 1:
+                }
+                case 1: {
                     info += "(3.0.0)";
                     break;
-                case 2:
+                }
+                case 2: {
                     info += "(3.0.1 - 3.0.2)";
                     break;
-                case 3:
+                }
+                case 3: {
                     info += "(4.0.0 - 4.1.0)";
                     break;
-                case 4:
+                }
+                case 4: {
                     info += "(5.0.0 - 5.1.0)";
                     break;
-                case 5:
+                }
+                case 5: {
                     info += "(6.0.0 - 6.1.0)";
                     break;
-                case 6:
+                }
+                case 6: {
                     info += "(6.2.0)";
                     break;
-                case 7:
+                }
+                case 7: {
                     info += "(7.0.0 - 8.0.1)";
                     break;
-                case 8:
+                }
+                case 8: {
                     info += "(8.1.0 - 8.1.1)";
                     break;
-                case 9:
+                }
+                case 9: {
                     info += "(9.0.0 - 9.2.0)";
                     break;
-                case 10:
+                }
+                case 10: {
                     info += "(10.0.0 -)";
                     break;
-                default:
+                }
+                // TODO: more keys?
+                default: {
                     info += cfg::strings::Main.GetString(96);
                     break;
+                }
             }
 
-            if(inst.HasTicket())
-            {
-                auto ticket = inst.GetTicketFile();
+            if(nsp_installer.HasTicket()) {
+                const auto ticket = nsp_installer.GetTicketFile();
                 info += "\n\n" + cfg::strings::Main.GetString(94) + "\n\n";
                 info += cfg::strings::Main.GetString(235) + " " + ticket.GetTitleKey();
                 info += "\n" + cfg::strings::Main.GetString(236) + " ";
-                switch(ticket.signature)
-                {
-                    case hos::TicketSignature::RSA_4096_SHA1:
+                switch(ticket.signature) {
+                    case hos::TicketSignature::RSA_4096_SHA1: {
                         info += "RSA 4096 (SHA1)";
                         break;
-                    case hos::TicketSignature::RSA_2048_SHA1:
+                    }
+                    case hos::TicketSignature::RSA_2048_SHA1: {
                         info += "RSA 2048 (SHA1)";
                         break;
-                    case hos::TicketSignature::ECDSA_SHA1:
+                    }
+                    case hos::TicketSignature::ECDSA_SHA1: {
                         info += "ECDSA (SHA256)";
                         break;
-                    case hos::TicketSignature::RSA_4096_SHA256:
+                    }
+                    case hos::TicketSignature::RSA_4096_SHA256: {
                         info += "RSA 4096 (SHA256)";
                         break;
-                    case hos::TicketSignature::RSA_2048_SHA256:
+                    }
+                    case hos::TicketSignature::RSA_2048_SHA256: {
                         info += "RSA 2048 (SHA256)";
                         break;
-                    case hos::TicketSignature::ECDSA_SHA256:
+                    }
+                    case hos::TicketSignature::ECDSA_SHA256: {
                         info += "ECDSA (SHA256)";
                         break;
-                    default:
+                    }
+                        
+                    default: {
                         break;
+                    }
                 }
             }
             else info += "\n\n" + cfg::strings::Main.GetString(97);
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(77), info, { cfg::strings::Main.GetString(65), cfg::strings::Main.GetString(18) }, true, inst.GetExportedIconPath());
 
-            doinstall = (sopt == 0);
+            const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(77), info, { cfg::strings::Main.GetString(65), cfg::strings::Main.GetString(18) }, true, nsp_installer.GetExportedIconPath());
+            do_install = option == 0;
         }
         
-        if(doinstall)
-        {
-            rc = inst.PreProcessContents();
-            if(R_FAILED(rc))
-            {
+        if(do_install) {
+            rc = nsp_installer.PreProcessContents();
+            if(R_FAILED(rc)) {
                 HandleResult(rc, cfg::strings::Main.GetString(251));
                 return;
             }
-            this->installText->SetText(cfg::strings::Main.GetString(146));
-            global_app->CallForRender();
-            this->installBar->SetVisible(true);
+            this->install_text->SetText(cfg::strings::Main.GetString(146));
+            g_MainApplication->CallForRender();
+            this->install_p_bar->SetVisible(true);
             hos::LockAutoSleep();
-            rc = inst.WriteContents([&](ncm::ContentRecord Record, u32 Content, u32 ContentCount, double Done, double Total, u64 BytesSec)
-            {
-                this->installBar->SetMaxValue(Total);
-                String name = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(Record.ContentId);
-                if(Record.Type == ncm::ContentType::Meta) name += ".cnmt";
-                u64 speed = (u64)BytesSec;
-                u64 size = (u64)(Total - Done);
-                u64 secstime = size / speed;
-                name += ".nca\'... (" + fs::FormatSize(BytesSec) + "/s  -  " + hos::FormatTime(secstime) + ")";
-                this->installText->SetText(name);
-                this->installBar->SetProgress(Done);
-                global_app->CallForRender();
+            rc = nsp_installer.WriteContents([&](NcmContentInfo cnt_info, u32 cnt, u32 cnt_count, double done, double total, u64 bytes_per_sec) {
+                this->install_p_bar->SetMaxValue(total);
+                auto name = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(cnt_info.content_id);
+                if(cnt_info.content_type == NcmContentType_Meta) {
+                    name += ".cnmt";
+                }
+                u64 size = (u64)(total - done);
+                const auto secs = size / bytes_per_sec;
+                name += ".nca\'... (" + fs::FormatSize(bytes_per_sec) + "/s  →  " + hos::FormatTime(secs) + ")";
+                this->install_text->SetText(name);
+                this->install_p_bar->SetProgress(done);
+                g_MainApplication->CallForRender();
             });
             hos::UnlockAutoSleep();
         }
-        this->installBar->SetVisible(false);
-        global_app->CallForRender();
-        if(R_FAILED(rc)) HandleResult(rc, cfg::strings::Main.GetString(251));
-        else if(doinstall) global_app->ShowNotification(cfg::strings::Main.GetString(150));
+        this->install_p_bar->SetVisible(false);
+        g_MainApplication->CallForRender();
+
+        if(R_FAILED(rc)) {
+            HandleResult(rc, cfg::strings::Main.GetString(251));
+        }
+        else if(do_install) {
+            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(150));
+        }
     }
+
 }

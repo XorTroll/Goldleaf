@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,38 +21,37 @@
 
 #pragma once
 #include <fs/fs_Explorer.hpp>
-#include <functional>
 
-namespace fs
-{
+namespace fs {
 
-    class StdExplorer : public Explorer
-    {
-        public:
-            StdExplorer();
-            void SetCommitFunction(std::function<void()> fn);
-            virtual std::vector<String> GetDirectories(String Path) override;
-            virtual std::vector<String> GetFiles(String Path) override;
-            virtual bool Exists(String Path) override;
-            virtual bool IsFile(String Path) override;
-            virtual bool IsDirectory(String Path) override;
-            virtual void CreateFile(String Path) override;
-            virtual void CreateDirectory(String Path) override;
-            virtual void RenameFile(String Path, String NewName) override;
-            virtual void RenameDirectory(String Path, String NewName) override;
-            virtual void DeleteFile(String Path) override;
-            virtual void DeleteDirectory(String Path) override;
-            virtual void StartFile(String path, FileMode mode) override;
-            virtual u64 ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out) override;
-            virtual u64 WriteFileBlock(String Path, void *Data, u64 Size) override;
-            virtual void EndFile(FileMode mode) override;
-            virtual u64 GetFileSize(String Path) override;
-            virtual u64 GetTotalSpace() override;
-            virtual u64 GetFreeSpace() override;
-            virtual void SetArchiveBit(String Path) override;
+    class StdExplorer : public Explorer {
         private:
             std::function<void()> commit_fn;
             FILE *r_file_obj;
             FILE *w_file_obj;
+        
+        public:
+            StdExplorer();
+            void SetCommitFunction(std::function<void()> fn);
+            virtual std::vector<String> GetDirectories(String path) override;
+            virtual std::vector<String> GetFiles(String path) override;
+            virtual bool Exists(String path) override;
+            virtual bool IsFile(String path) override;
+            virtual bool IsDirectory(String path) override;
+            virtual void CreateFile(String path) override;
+            virtual void CreateDirectory(String path) override;
+            virtual void RenameFile(String path, String new_name) override;
+            virtual void RenameDirectory(String path, String new_name) override;
+            virtual void DeleteFile(String path) override;
+            virtual void DeleteDirectory(String path) override;
+            virtual void StartFileImpl(String path, FileMode mode) override;
+            virtual void EndFileImpl(FileMode mode) override;
+            virtual u64 ReadFile(String path, u64 offset, u64 size, void *read_buf) override;
+            virtual u64 WriteFile(String path, const void *write_buf, u64 size) override;
+            virtual u64 GetFileSize(String path) override;
+            virtual u64 GetTotalSpace() override;
+            virtual u64 GetFreeSpace() override;
+            virtual void SetArchiveBit(String path) override;
     };
+
 }

@@ -43,29 +43,29 @@
 
     - *Console memory (SAVE, SYSTEM, USER and PRODINFOF partitions)*
 
-    - *Remote systems (via remote tools connected to Goldleaf like Quark)*
+    - *Remote systems (via remote tools like Quark)*
+
+    - *USB drives (thanks to libusbhsfs)*
 
     - *Game savedata (check below how to mount it)*
 
     > Note: game savedata will be automatically unmounted when Goldleaf is exited
 
-    - **[Experimental, not fully stable]** *USB drives (via fsp-usb WIP Atmosphere extension)*
-
   - Features:
 
-    - Basic file operations: create, delete, copy, rename, view as hex/text, get size
+    - Basic file operations: create, delete, copy, rename, view as hex/text, get size, etc.
 
-    - Basic directory operations: create, delete, copy, rename, (un)set archive bit, get full size
+    - Basic directory operations: create, delete, copy, rename, (un)set archive bit, get full size, etc.
 
-    - Install NSP packages as applications/games, updates, etc. (**note: THIS INVOLVES BAN RISK!**)
+    - Install NSP packages as applications/games, updates, etc. (**Note: use this carefully and make sure you know what you're doing**)
 
     - Launch other NRO homebrews
 
     - Execute .bin files as RCM payloads
 
-    - Set JPG/JPEG files as user icons (**note: THIS INVOLVES BAN RISK!**)
+    - Set JPG/JPEG files as user icons (**Note: use this carefully and make sure you know what you're doing**)
 
-    - // TODO
+    - // TODO: more
 
 - **Content manager**: an easy-to-use but fully featured content manager:
 
@@ -79,19 +79,19 @@
 
     - Mount savedata to navigate it (check the **Content explorer** above)
 
-    - Remove ticket if present (**note: ONLY PLAY WITH THIS IF YOU KNOW WHAT YOU'RE DOING!**)
+    - Remove ticket if present (**Note: use this carefully and make sure you know what you're doing**)
 
     - Reset launch version (useful to be able to play a base game after an update has been removed)
 
     > Note: some of this operations are not available with system titles or gamecart titles.
 
-  - Check unused tickets, and remove them (**note: ONLY PLAY WITH THIS IF YOU KNOW WHAT YOU'RE DOING!**)
+  - Check unused tickets, and remove them (**Note: use this carefully and make sure you know what you're doing**)
 
 - **Web browser**: makes use of the console's web applet:
 
   - Browse user-submitted URLs
 
-  - Create and save bookmarks (used to quickly browse pages)
+  - Create and save bookmarks
 
 - **Account manager**: select a user (or uses the selected one) and manage it:
 
@@ -102,14 +102,6 @@
   > Note: to change the user's icon, check the **Content explorer** above
 
 - **Amiibo dump**: create a virtual amiibo (for emuiibo) from a real amiibo figure.
-
-- **emuiibo manager**: serves as a manager for emuiibo:
-
-  - Toggle emulation (on/off)
-
-  - Select virtual amiibo as active amiibo
-
-  - Connect/disconnect currently selected virtual amiibo
 
 - **Settings**: check both system and Goldleaf settings:
 
@@ -129,7 +121,7 @@
 
 - **About**: check Goldleaf's version and how it was launched (as an applet or an application)
 
-> Goldleaf is also translated into 6 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
+> Goldleaf currently supports 6 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
 
 ### Controls
 
@@ -165,7 +157,7 @@ Goldleaf will display whether a ticket is present or not, and if so, it's titlek
 
 ## Quark and remote browsing
 
-Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It should work on Windows, Linux or Mac.
+Quark is a PC tool, with a fancy UI and made in Java, in order to help Goldleaf with the remote PC option. It supports Windows, Linux and Mac.
 
 For details about how to properly setup Quark and USB, check [this small guide](Quark.md).
 

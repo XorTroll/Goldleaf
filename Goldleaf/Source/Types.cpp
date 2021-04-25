@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,192 +22,162 @@
 #include <fs/fs_FileSystem.hpp>
 #include <usb/usb_Detail.hpp>
 #include <es/es_Service.hpp>
+#include <amssu/amssu_Service.hpp>
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref g_MainApplication;
 
 extern char **__system_argv;
-extern bool global_app_updated;
+extern bool g_UpdatedNeedsRename;
 
-String LowerCaseString(String str)
-{
+String LowerCaseString(String str) {
     String ret;
-    auto u8str = str.AsUTF8();
-    std::transform(u8str.begin(), u8str.end(), u8str.begin(), tolower);
-    return u8str;
+    auto u8_str = str.AsUTF8();
+    std::transform(u8_str.begin(), u8_str.end(), u8_str.begin(), tolower);
+    return u8_str;
 }
 
-std::string LanguageToString(Language lang)
-{
-    std::string langstr = "en"; // Default
-    switch(lang)
-    {
-        case Language::English:
-            return "en";
-        case Language::Spanish:
+std::string LanguageToString(Language lang) {
+    switch(lang) {
+        case Language::Spanish: {
             return "es";
-        case Language::German:
+        }
+        case Language::German: {
             return "de";
-        case Language::French:
+        }
+        case Language::French: {
             return "fr";
-        case Language::Italian:
+        }
+        case Language::Italian: {
             return "it";
-        case Language::Dutch:
+        }
+        case Language::Dutch: {
             return "nl";
-        default:
-            break;
+        }
+        case Language::English:
+        default: {
+            return "en";
+        }
     }
-    return langstr;
 }
 
-Language StringToLanguage(std::string str)
-{
-    auto lang = Language::English;
-    if(str == "en") lang = Language::English;
-    else if(str == "es") lang = Language::Spanish;
-    else if(str == "de") lang = Language::German;
-    else if(str == "fr") lang = Language::French;
-    else if(str == "it") lang = Language::Italian;
-    else if(str == "nl") lang = Language::Dutch;
-    return lang;
+Language StringToLanguage(std::string str) {
+    if(str == "es") {
+        return Language::Spanish;
+    }
+    else if(str == "de") {
+        return Language::German;
+    }
+    else if(str == "fr") {
+        return Language::French;
+    }
+    else if(str == "it") {
+        return Language::Italian;
+    }
+    else if(str == "nl") {
+        return Language::Dutch;
+    }
+    else {
+        return Language::English;
+    }
 }
 
-String Version::AsString()
-{
-    String txt = std::to_string(this->Major) + "." + std::to_string(this->Minor);
-    if(this->Micro > 0) txt += "." + std::to_string(this->Micro);
-    return txt;
+String Version::AsString() {
+    auto as_str = std::to_string(this->major) + "." + std::to_string(this->minor);
+    if(this->micro > 0) {
+        as_str += "." + std::to_string(this->micro);
+    }
+    return as_str;
 }
 
-Version Version::FromString(String StrVersion)
-{
-    auto strv = StrVersion;
+Version Version::FromString(String ver_str) {
+    auto ver_str_cpy = ver_str;
     Version v = {};
     size_t pos = 0;
     String token;
     u32 c = 0;
     String delimiter = ".";
-    while((pos = strv.find(delimiter)) != String::npos)
-    {
-        token = strv.substr(0, pos);
-        if(c == 0) v.Major = std::stoi(token);
-        else if(c == 1) v.Minor = std::stoi(token);
-        else if(c == 2) v.Micro = std::stoi(token);
-        strv.erase(0, pos + delimiter.length());
+    while((pos = ver_str_cpy.find(delimiter)) != String::npos) {
+        token = ver_str_cpy.substr(0, pos);
+        if(c == 0) {
+            v.major = std::stoi(token);
+        }
+        else if(c == 1) {
+            v.minor = std::stoi(token);
+        }
+        else if(c == 2) {
+            v.micro = std::stoi(token);
+        }
+        ver_str_cpy.erase(0, pos + delimiter.length());
         c++;
     }
-    if(c == 0) v.Major = std::stoi(strv);
-    else if(c == 1) v.Minor = std::stoi(strv);
-    else if(c == 2) v.Micro = std::stoi(strv);
+
+    if(c == 0) {
+        v.major = std::stoi(ver_str_cpy);
+    }
+    else if(c == 1) {
+        v.minor = std::stoi(ver_str_cpy);
+    }
+    else if(c == 2) {
+        v.micro = std::stoi(ver_str_cpy);
+    }
     return v;
 }
 
-bool Version::IsLower(Version Other)
-{
-    if(this->Major > Other.Major) return true;
-    else if(this->Major == Other.Major)
-    {
-        if(this->Minor > Other.Minor) return true;
-        else if(this->Minor == Other.Minor)
-        {
-            if(this->Micro > Other.Micro) return true;
-        }
-    }
-    return false;
-}
-
-bool Version::IsHigher(Version Other)
-{
-    return !this->IsLower(Other) && !this->IsEqual(Other);
-}
-
-bool Version::IsEqual(Version Other)
-{
-    return ((this->Major == Other.Major) && (this->Minor == Other.Minor) && (this->Micro == Other.Micro));
-}
-
-ExecutableMode GetExecutableMode()
-{
-    return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;
-}
-
-LaunchMode GetLaunchMode()
-{
-    LaunchMode mode = LaunchMode::Unknown;
-    AppletType type = appletGetAppletType();
-    switch(type)
-    {
-        case AppletType_SystemApplication:
-        case AppletType_Application:
-            mode = LaunchMode::Application;
-            break;
-        // Shall I add other applet types? Don't think this will run over qlaunch or overlay...
-        case AppletType_LibraryApplet:
-            mode = LaunchMode::Applet;
-        default:
-            break;
-    }
-    return mode;
-}
-
-u64 GetCurrentApplicationId()
-{
-    u64 appid = 0;
-    svcGetInfo(&appid, InfoType_ProgramId, CUR_PROCESS_HANDLE, 0);
-    return appid;
-}
-
-u32 RandomFromRange(u32 Min, u32 Max)
-{
-    u32 diff = Max - Min;
-    u32 random_val;
+u32 RandomFromRange(u32 min, u32 max) {
+    const auto diff = max - min;
+    u32 random_val = 0;
     randomGet(&random_val, sizeof(random_val));
     random_val %= (diff + 1);
-    return random_val + Min;
+    return random_val + min;
 }
 
-void EnsureDirectories()
-{
-    auto nsys = fs::GetNANDSystemExplorer();
-    auto sd = fs::GetSdCardExplorer();
-    nsys->DeleteDirectory("Contents/temp");
-    nsys->CreateDirectory("Contents/temp");
-    sd->CreateDirectory(consts::Root);
-    sd->CreateDirectory(consts::Root + "/meta");
-    sd->CreateDirectory(consts::Root + "/title");
-    sd->CreateDirectory(consts::Root + "/dump");
-    sd->CreateDirectory(consts::Root + "/reports");
-    sd->CreateDirectory(consts::Root + "/amiibocache");
-    sd->CreateDirectory(consts::Root + "/userdata");
-    sd->CreateDirectory(consts::Root + "/dump/temp");
-    sd->CreateDirectory(consts::Root + "/dump/update");
-    sd->CreateDirectory(consts::Root + "/dump/title");
+void EnsureDirectories() {
+    // TODO: make these constant, in a list...?
+    auto nand_sys_exp = fs::GetNANDSystemExplorer();
+    auto sd_exp = fs::GetSdCardExplorer();
+    nand_sys_exp->DeleteDirectory("Contents/temp");
+    nand_sys_exp->CreateDirectory("Contents/temp");
+    sd_exp->CreateDirectory(consts::Root);
+    sd_exp->CreateDirectory(consts::Root + "/meta");
+    sd_exp->CreateDirectory(consts::Root + "/title");
+    sd_exp->CreateDirectory(consts::Root + "/dump");
+    sd_exp->CreateDirectory(consts::Root + "/reports");
+    sd_exp->CreateDirectory(consts::Root + "/amiibocache");
+    sd_exp->CreateDirectory(consts::Root + "/userdata");
+    sd_exp->CreateDirectory(consts::Root + "/dump/temp");
+    sd_exp->CreateDirectory(consts::Root + "/dump/update");
+    sd_exp->CreateDirectory(consts::Root + "/dump/title");
 }
 
-extern "C"
-{
+extern "C" {
+
     void __appExit();
-    void NORETURN __nx_exit(Result rc, LoaderReturnFn retaddr);
+    void NORETURN __nx_exit(Result rc, LoaderReturnFn ret_addr);
 
-    void NORETURN __libnx_exit(Result rc)
-    {
-        // Call destructors.
+    void NORETURN __libnx_exit(Result rc) {
         void __libc_fini_array(void);
         __libc_fini_array();
 
-        // Clean up services.
         __appExit();
 
         __nx_exit(rc, envGetExitFuncPtr());
     }
+
 }
 
-void Close(Result rc)
-{
-    if(GetLaunchMode() == LaunchMode::Application) libappletRequestHomeMenu();
-    else __libnx_exit(rc);
+void Close(Result rc) {
+    if(GetLaunchMode() == LaunchMode::Application) {
+        libappletRequestHomeMenu();
+    }
+    else {
+        __libnx_exit(rc);
+    }
 }
 
-Result Initialize()
-{
+Result Initialize() {
     srand(time(nullptr));
+    fs::Initialize();
     EnsureDirectories();
 
     R_TRY(accountInitialize(AccountServiceType_Administrator));
@@ -220,48 +190,42 @@ Result Initialize()
     R_TRY(usb::detail::Initialize());
     R_TRY(nifmInitialize(NifmServiceType_Admin));
     R_TRY(pdmqryInitialize());
+    R_TRY(amssu::Initialize());
     R_TRY(drive::Initialize());
-
     return 0;
 }
 
-#include <ui/ui_MainApplication.hpp>
-
-extern ui::MainApplication::Ref global_app;
-
-void Exit(Result rc)
-{
-    if(global_app)
-    {
-        global_app->Close();
+void Exit(Result rc) {
+    // TODO: stuck crashes
+    if(g_MainApplication) {
+        g_MainApplication->Close();
     }
 
-    auto nsys = fs::GetNANDSystemExplorer();
-    auto nsfe = fs::GetNANDSafeExplorer();
-    auto nusr = fs::GetNANDUserExplorer();
-    auto prif = fs::GetPRODINFOFExplorer();
-    auto sdcd = fs::GetSdCardExplorer();
+    auto nand_sys_exp = fs::GetNANDSystemExplorer();
+    auto nand_safer_exp = fs::GetNANDSafeExplorer();
+    auto nand_user_exp = fs::GetNANDUserExplorer();
+    auto nand_prodinfof_exp = fs::GetPRODINFOFExplorer();
+    auto sd_exp = fs::GetSdCardExplorer();
 
-    // If we updated ourselves in this session...
-    if(global_app_updated)
-    {
+    if(g_UpdatedNeedsRename) {
         romfsExit();
 
         const auto cur_nro_file = __system_argv[0];
-        sdcd->DeleteFile(cur_nro_file);
-        sdcd->RenameFile(consts::TempUpdatedNro, cur_nro_file);
+        sd_exp->DeleteFile(cur_nro_file);
+        sd_exp->RenameFile(consts::TempUpdatedNro, cur_nro_file);
     }
 
     auto work_buf = fs::GetWorkBuffer();
     operator delete[](work_buf, std::align_val_t(0x1000));
     
-    delete nsys;
-    delete nsfe;
-    delete nusr;
-    delete prif;
-    delete sdcd;
+    delete nand_sys_exp;
+    delete nand_safer_exp;
+    delete nand_user_exp;
+    delete nand_prodinfof_exp;
+    delete sd_exp;
 
     drive::Exit();
+    amssu::Exit();
     usb::detail::Exit();
     setsysExit();
     setExit();

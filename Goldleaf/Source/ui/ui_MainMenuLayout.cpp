@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,129 +22,120 @@
 #include <ui/ui_MainMenuLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    MainMenuLayout::MainMenuLayout() : pu::ui::Layout()
-    {
-        this->optionMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
-        this->optionMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
-        global_settings.ApplyScrollBarColor(this->optionMenu);
-        this->exploreMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(277));
-        this->exploreMenuItem->SetIcon(global_settings.PathForResource("/Common/SdCard.png"));
-        this->exploreMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->exploreMenuItem->AddOnClick(std::bind(&MainMenuLayout::exploreMenuItem_Click, this));
-        this->titleMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(3));
-        this->titleMenuItem->SetIcon(global_settings.PathForResource("/Common/Storage.png"));
-        this->titleMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->titleMenuItem->AddOnClick(std::bind(&MainMenuLayout::titleMenuItem_Click, this));
-        this->webMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(5));
-        this->webMenuItem->SetIcon(global_settings.PathForResource("/Common/Browser.png"));
-        this->webMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->webMenuItem->AddOnClick(std::bind(&MainMenuLayout::webMenuItem_Click, this));
-        this->accountMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(6));
-        this->accountMenuItem->SetIcon(global_settings.PathForResource("/Common/Accounts.png"));
-        this->accountMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->accountMenuItem->AddOnClick(std::bind(&MainMenuLayout::accountMenuItem_Click, this));
-        this->amiiboMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(283));
-        this->amiiboMenuItem->SetIcon(global_settings.PathForResource("/Common/Amiibo.png"));
-        this->amiiboMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->amiiboMenuItem->AddOnClick(std::bind(&MainMenuLayout::amiiboMenuItem_Click, this));
-        this->settingsMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(375));
-        this->settingsMenuItem->SetIcon(global_settings.PathForResource("/Common/Settings.png"));
-        this->settingsMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->settingsMenuItem->AddOnClick(std::bind(&MainMenuLayout::settingsMenuItem_Click, this));
-        this->updateMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(284));
-        this->updateMenuItem->SetIcon(global_settings.PathForResource("/Common/Update.png"));
-        this->updateMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->updateMenuItem->AddOnClick(std::bind(&MainMenuLayout::updateMenuItem_Click, this));
-        this->aboutMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(8));
-        this->aboutMenuItem->SetIcon(global_settings.PathForResource("/Common/Info.png"));
-        this->aboutMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->aboutMenuItem->AddOnClick(std::bind(&MainMenuLayout::aboutMenuItem_Click, this));
-        this->optionMenu->AddItem(this->exploreMenuItem);
-        this->optionMenu->AddItem(this->titleMenuItem);
-        this->optionMenu->AddItem(this->webMenuItem);
-        this->optionMenu->AddItem(this->accountMenuItem);
-        this->optionMenu->AddItem(this->amiiboMenuItem);
-        this->optionMenu->AddItem(this->settingsMenuItem);
-        this->optionMenu->AddItem(this->updateMenuItem);
-        this->optionMenu->AddItem(this->aboutMenuItem);
-        this->Add(this->optionMenu);
+namespace ui {
+
+    MainMenuLayout::MainMenuLayout() : pu::ui::Layout() {
+        this->options_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, 560 / g_Settings.menu_item_size);
+        this->options_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        g_Settings.ApplyScrollBarColor(this->options_menu);
+        this->explore_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(277));
+        this->explore_menu_item->SetIcon(g_Settings.PathForResource("/Common/SdCard.png"));
+        this->explore_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->explore_menu_item->AddOnClick(std::bind(&MainMenuLayout::ExploreMenu_OnClick, this));
+        this->cnt_manager_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(3));
+        this->cnt_manager_menu_item->SetIcon(g_Settings.PathForResource("/Common/Storage.png"));
+        this->cnt_manager_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->cnt_manager_menu_item->AddOnClick(std::bind(&MainMenuLayout::ContentManager_OnClick, this));
+        this->web_browser_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(5));
+        this->web_browser_menu_item->SetIcon(g_Settings.PathForResource("/Common/Browser.png"));
+        this->web_browser_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->web_browser_menu_item->AddOnClick(std::bind(&MainMenuLayout::WebBrowser_OnClick, this));
+        this->account_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(6));
+        this->account_menu_item->SetIcon(g_Settings.PathForResource("/Common/Accounts.png"));
+        this->account_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->account_menu_item->AddOnClick(std::bind(&MainMenuLayout::Account_OnClick, this));
+        this->amiibo_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(283));
+        this->amiibo_menu_item->SetIcon(g_Settings.PathForResource("/Common/Amiibo.png"));
+        this->amiibo_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->amiibo_menu_item->AddOnClick(std::bind(&MainMenuLayout::Amiibo_OnClick, this));
+        this->settings_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(375));
+        this->settings_menu_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
+        this->settings_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->settings_menu_item->AddOnClick(std::bind(&MainMenuLayout::Settings_OnClick, this));
+        this->update_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(284));
+        this->update_menu_item->SetIcon(g_Settings.PathForResource("/Common/Update.png"));
+        this->update_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->update_menu_item->AddOnClick(std::bind(&MainMenuLayout::Update_OnClick, this));
+        this->about_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(8));
+        this->about_menu_item->SetIcon(g_Settings.PathForResource("/Common/Info.png"));
+        this->about_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->about_menu_item->AddOnClick(std::bind(&MainMenuLayout::About_OnClick, this));
+        this->options_menu->AddItem(this->explore_menu_item);
+        this->options_menu->AddItem(this->cnt_manager_menu_item);
+        this->options_menu->AddItem(this->web_browser_menu_item);
+        this->options_menu->AddItem(this->account_menu_item);
+        this->options_menu->AddItem(this->amiibo_menu_item);
+        this->options_menu->AddItem(this->settings_menu_item);
+        this->options_menu->AddItem(this->update_menu_item);
+        this->options_menu->AddItem(this->about_menu_item);
+        this->Add(this->options_menu);
     }
 
-    void MainMenuLayout::exploreMenuItem_Click()
-    {
-        global_app->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
-        global_app->GetExploreMenuLayout()->UpdateMenu();
-        global_app->LoadLayout(global_app->GetExploreMenuLayout());
+    void MainMenuLayout::ExploreMenu_OnClick() {
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
+        g_MainApplication->GetExploreMenuLayout()->UpdateMenu();
+        g_MainApplication->LoadLayout(g_MainApplication->GetExploreMenuLayout());
     }
 
-    void MainMenuLayout::titleMenuItem_Click()
-    {
-        global_app->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
+    void MainMenuLayout::ContentManager_OnClick() {
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
         EnsureDirectories();
-        global_app->LoadLayout(global_app->GetContentManagerLayout());
+        g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
     }
 
-    void MainMenuLayout::webMenuItem_Click()
-    {
-        global_app->LoadMenuData(cfg::strings::Main.GetString(36), "Browser", cfg::strings::Main.GetString(14));
-        global_app->GetWebBrowserLayout()->Refresh();
-        global_app->LoadLayout(global_app->GetWebBrowserLayout());
+    void MainMenuLayout::WebBrowser_OnClick() {
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(36), "Browser", cfg::strings::Main.GetString(14));
+        g_MainApplication->GetWebBrowserLayout()->Refresh();
+        g_MainApplication->LoadLayout(g_MainApplication->GetWebBrowserLayout());
     }
 
-    void MainMenuLayout::accountMenuItem_Click()
-    {
-        if(!acc::HasUser())
-        {
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(348), cfg::strings::Main.GetString(349), {cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18)}, true);
-            if(sopt != 0) return;
-            if(acc::SelectUser()) global_app->ShowNotification(cfg::strings::Main.GetString(324));
-            else
-            {
-                global_app->ShowNotification(cfg::strings::Main.GetString(350));
+    void MainMenuLayout::Account_OnClick() {
+        if(!acc::HasSelectedUser()) {
+            const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(348), cfg::strings::Main.GetString(349), {cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18)}, true);
+            if(option == 0) {
+                if(acc::SelectUser()) {
+                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(324));
+                }
+                else {
+                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(350));
+                    return;
+                }
+            }
+            else {
                 return;
             }
         }
-        global_app->LoadMenuData(cfg::strings::Main.GetString(41), "Accounts", cfg::strings::Main.GetString(42));
-        global_app->GetAccountLayout()->Load();
-        global_app->LoadLayout(global_app->GetAccountLayout());
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(41), "Accounts", cfg::strings::Main.GetString(42));
+        g_MainApplication->GetAccountLayout()->Load();
+        g_MainApplication->LoadLayout(g_MainApplication->GetAccountLayout());
     }
 
-    void MainMenuLayout::amiiboMenuItem_Click()
-    {
-        global_app->LoadMenuData(cfg::strings::Main.GetString(283), "Amiibo", cfg::strings::Main.GetString(301));
-        global_app->LoadLayout(global_app->GetAmiiboDumpLayout());
-        global_app->GetAmiiboDumpLayout()->StartDump();
-        global_app->ReturnToMainMenu();
+    void MainMenuLayout::Amiibo_OnClick() {
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(283), "Amiibo", cfg::strings::Main.GetString(301));
+        g_MainApplication->LoadLayout(g_MainApplication->GetAmiiboDumpLayout());
+        g_MainApplication->GetAmiiboDumpLayout()->StartDump();
+        g_MainApplication->ReturnToMainMenu();
     }
 
-    void MainMenuLayout::settingsMenuItem_Click()
-    {
-        global_app->LoadMenuData(cfg::strings::Main.GetString(375), "Settings", cfg::strings::Main.GetString(376));
-        global_app->LoadLayout(global_app->GetSettingsLayout());
+    void MainMenuLayout::Settings_OnClick() {
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(375), "Settings", cfg::strings::Main.GetString(376));
+        g_MainApplication->LoadLayout(g_MainApplication->GetSettingsLayout());
     }
 
-    void MainMenuLayout::updateMenuItem_Click()
-    {
-        global_app->LoadMenuData(cfg::strings::Main.GetString(284), "Update", cfg::strings::Main.GetString(302));
-        global_app->LoadLayout(global_app->GetUpdateLayout());
-        global_app->GetUpdateLayout()->StartUpdateSearch();
+    void MainMenuLayout::Update_OnClick() {
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(284), "Update", cfg::strings::Main.GetString(302));
+        g_MainApplication->LoadLayout(g_MainApplication->GetUpdateLayout());
+        g_MainApplication->GetUpdateLayout()->StartUpdateSearch();
     }
 
-    void MainMenuLayout::aboutMenuItem_Click()
-    {
-        String exmode = cfg::strings::Main.GetString(288);
-        if(GetExecutableMode() == ExecutableMode::NSO) exmode = cfg::strings::Main.GetString(289);
-
-        String lmode;
-        if(GetLaunchMode() == LaunchMode::Applet) lmode = cfg::strings::Main.GetString(290);
-        if(GetLaunchMode() == LaunchMode::Application) lmode = cfg::strings::Main.GetString(291);
-
-        global_app->LoadMenuData("Goldleaf v" GOLDLEAF_VERSION, "Info", exmode.AsUTF8() + ", " + lmode.AsUTF8());
-        global_app->LoadLayout(global_app->GetAboutLayout());
+    void MainMenuLayout::About_OnClick() {
+        auto exec_mode_str = cfg::strings::Main.GetString((GetExecutableMode() == ExecutableMode::NRO) ? 288 : 289);
+        auto launch_mode_str = cfg::strings::Main.GetString((GetLaunchMode() == LaunchMode::Applet) ? 290 : 291);
+        g_MainApplication->LoadMenuData("Goldleaf v" GOLDLEAF_VERSION, "Info", exec_mode_str + ", " + launch_mode_str);
+        g_MainApplication->LoadLayout(g_MainApplication->GetAboutLayout());
     }
+
 }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,189 +21,152 @@
 
 #include <fs/fs_RemotePCExplorer.hpp>
 #include <usb/usb_Commands.hpp>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <malloc.h>
-#include <fstream>
-#include <algorithm>
-#include <iomanip>
-#include <cctype>
 
-namespace fs
-{
-    RemotePCExplorer::RemotePCExplorer(String MountName)
-    {
-        this->SetNames(MountName, MountName);
+namespace fs {
+
+    RemotePCExplorer::RemotePCExplorer(String mount_name) {
+        this->SetNames(mount_name, mount_name);
     }
 
-    std::vector<String> RemotePCExplorer::GetDirectories(String Path)
-    {
+    std::vector<String> RemotePCExplorer::GetDirectories(String path) {
         std::vector<String> dirs;
-        String path = this->MakeFull(Path);
-        u32 dircount = 0;
-        auto rc = usb::ProcessCommand<usb::CommandId::GetDirectoryCount>(usb::InString(path), usb::Out32(dircount));
-        if(R_SUCCEEDED(rc))
-        {
-            for(u32 i = 0; i < dircount; i++)
-            {
+        const auto full_path = this->MakeFull(path);
+
+        u32 dir_count = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetDirectoryCount>(usb::InString(full_path), usb::Out32(dir_count)))) {
+            dirs.reserve(dir_count);
+            for(u32 i = 0; i < dir_count; i++) {
                 String dir;
-                rc = usb::ProcessCommand<usb::CommandId::GetDirectory>(usb::InString(path), usb::In32(i), usb::OutString(dir));
-                if(R_SUCCEEDED(rc)) dirs.push_back(dir);
+                if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetDirectory>(usb::InString(full_path), usb::In32(i), usb::OutString(dir)))) {
+                    dirs.push_back(dir);
+                }
             }
         }
         return dirs;
     }
 
-    std::vector<String> RemotePCExplorer::GetFiles(String Path)
-    {
+    std::vector<String> RemotePCExplorer::GetFiles(String path) {
         std::vector<String> files;
-        String path = this->MakeFull(Path);
-        u32 filecount = 0;
-        auto rc = usb::ProcessCommand<usb::CommandId::GetFileCount>(usb::InString(path), usb::Out32(filecount));
-        if(R_SUCCEEDED(rc))
-        {
-            for(u32 i = 0; i < filecount; i++)
-            {
+        const auto full_path = this->MakeFull(path);
+
+        u32 file_count = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetFileCount>(usb::InString(full_path), usb::Out32(file_count)))) {
+            files.reserve(file_count);
+            for(u32 i = 0; i < file_count; i++) {
                 String file;
-                rc = usb::ProcessCommand<usb::CommandId::GetFile>(usb::InString(path), usb::In32(i), usb::OutString(file));
-                if(R_SUCCEEDED(rc)) files.push_back(file);
+                if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetFile>(usb::InString(full_path), usb::In32(i), usb::OutString(file)))) {
+                    files.push_back(file);
+                }
             }
         }
         return files;
     }
 
-    bool RemotePCExplorer::Exists(String Path)
-    {
-        bool ex = false;
-        String path = this->MakeFull(Path);
+    bool RemotePCExplorer::Exists(String path) {
+        const auto full_path = this->MakeFull(path);
         u32 type = 0;
-        u64 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
-        ex = ((type == 1) || (type == 2));
-        return ex;
-    }
-
-    bool RemotePCExplorer::IsFile(String Path)
-    {
-        bool ex = false;
-        String path = this->MakeFull(Path);
-        u32 type = 0;
-        u64 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
-        ex = (type == 1);
-        return ex;
-    }
-
-    bool RemotePCExplorer::IsDirectory(String Path)
-    {
-        bool ex = false;
-        String path = this->MakeFull(Path);
-        u32 type = 0;
-        u64 tmpfsz = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(type), usb::Out64(tmpfsz));
-        ex = (type == 2);
-        return ex;
-    }
-
-    void RemotePCExplorer::CreateFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(1), usb::InString(path));
-    }
-
-    void RemotePCExplorer::CreateDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(2), usb::InString(path));
-    }
-
-    void RemotePCExplorer::RenameFile(String Path, String NewName)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(1), usb::InString(path), usb::InString(NewName));
-    }
-
-    void RemotePCExplorer::RenameDirectory(String Path, String NewName)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(2), usb::InString(path), usb::InString(NewName));
-    }
-
-    void RemotePCExplorer::DeleteFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(1), usb::InString(path));
-    }
-
-    void RemotePCExplorer::DeleteDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(2), usb::InString(path));
-    }
-
-    void RemotePCExplorer::StartFile(String path, FileMode mode)
-    {
-        String npath = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::StartFile>(usb::InString(npath), usb::In32((u32)mode));
-    }
-
-    u64 RemotePCExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out)
-    {
-        u64 rsize = 0;
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(path), usb::In64(Offset), usb::In64(Size), usb::Out64(rsize), usb::OutBuffer(Out, Size));
-        return rsize;
-    }
-
-    u64 RemotePCExplorer::WriteFileBlock(String Path, void *Data, u64 Size)
-    {
-        String path = this->MakeFull(Path);
-        usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(path), usb::In64(Size), usb::InBuffer(Data, Size));
-        return Size;
-    }
-
-    void RemotePCExplorer::EndFile(FileMode mode)
-    {
-        usb::ProcessCommand<usb::CommandId::EndFile>(usb::In32((u32)mode));
-    }
-
-    u64 RemotePCExplorer::GetFileSize(String Path)
-    {
-        u64 sz = 0;
-        String path = this->MakeFull(Path);
-        u32 tmptype = 0;
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(path), usb::Out32(tmptype), usb::Out64(sz));
-        return sz;
-    }
-
-    u64 RemotePCExplorer::GetTotalSpace()
-    {
-        u64 sz = 0;
-        /*
-        if(usb::WriteCommandInput(usb::CommandId::GetDriveTotalSpace))
-        {
-            usb::WriteString(this->mntname);
-            if(!usb::Read64(sz)){}
+        u64 tmp_file_size = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(type), usb::Out64(tmp_file_size)))) {
+            return (type == 1) || (type == 2);
         }
-        */
-        return sz;
+        return false;
     }
 
-    u64 RemotePCExplorer::GetFreeSpace()
-    {
-        u64 sz = 0;
-        /*
-        if(usb::WriteCommandInput(usb::CommandId::GetDriveFreeSpace))
-        {
-            usb::WriteString(this->mntname);
-            if(!usb::Read64(sz)){}
+    bool RemotePCExplorer::IsFile(String path) {
+        const auto full_path = this->MakeFull(path);
+        u32 type = 0;
+        u64 tmp_file_size = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(type), usb::Out64(tmp_file_size)))) {
+            return type == 1;
         }
-        */
-        return sz;
+        return false;
     }
 
-    void RemotePCExplorer::SetArchiveBit(String Path)
-    {
-        // Non-HOS operating systems don't handle archive bit for what we want, so :P
+    bool RemotePCExplorer::IsDirectory(String path) {
+        const auto full_path = this->MakeFull(path);
+        u32 type = 0;
+        u64 tmp_file_size = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(type), usb::Out64(tmp_file_size)))) {
+            return type == 2;
+        }
+        return false;
+    }
+
+    void RemotePCExplorer::CreateFile(String path) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(1), usb::InString(full_path));
+    }
+
+    void RemotePCExplorer::CreateDirectory(String path) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(2), usb::InString(full_path));
+    }
+
+    void RemotePCExplorer::RenameFile(String path, String new_name) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(1), usb::InString(full_path), usb::InString(new_name));
+    }
+
+    void RemotePCExplorer::RenameDirectory(String path, String new_name) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(2), usb::InString(full_path), usb::InString(new_name));
+    }
+
+    void RemotePCExplorer::DeleteFile(String path) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(1), usb::InString(full_path));
+    }
+
+    void RemotePCExplorer::DeleteDirectory(String path) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(2), usb::InString(full_path));
+    }
+
+    void RemotePCExplorer::StartFileImpl(String path, FileMode mode) {
+        const auto full_path = this->MakeFull(path);
+        usb::ProcessCommand<usb::CommandId::StartFile>(usb::InString(full_path), usb::In32((u32)mode));
+    }
+
+    void RemotePCExplorer::EndFileImpl(FileMode mode) {
+        usb::ProcessCommand<usb::CommandId::EndFile>(usb::In32(static_cast<u32>(mode)));
+    }
+
+    u64 RemotePCExplorer::ReadFile(String path, u64 offset, u64 size, void *read_buf) {
+        u64 read_size = 0;
+        const auto full_path = this->MakeFull(path);
+
+        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(full_path), usb::In64(offset), usb::In64(size), usb::Out64(read_size), usb::OutBuffer(read_buf, size));
+        return read_size;
+    }
+
+    u64 RemotePCExplorer::WriteFile(String path, const void *write_buf, u64 size) {
+        const auto full_path = this->MakeFull(path);
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(full_path), usb::In64(size), usb::InBuffer(write_buf, size)))) {
+            return size;
+        }
+        return 0;
+    }
+
+    u64 RemotePCExplorer::GetFileSize(String path) {
+        u32 tmp_type = 0;
+        u64 file_size = 0;
+        const auto full_path = this->MakeFull(path);
+
+        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(tmp_type), usb::Out64(file_size));
+        return file_size;
+    }
+
+    u64 RemotePCExplorer::GetTotalSpace() {
+        // TODO
+        return 0;
+    }
+
+    u64 RemotePCExplorer::GetFreeSpace() {
+        // TODO
+        return 0;
+    }
+
+    void RemotePCExplorer::SetArchiveBit(String path) {
+        // Non-HOS operating systems don't handle archive bit for what we want, so this is stubbed.
     }
 }

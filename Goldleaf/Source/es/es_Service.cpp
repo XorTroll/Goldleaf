@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,71 +21,71 @@
 
 #include <es/es_Service.hpp>
 
-namespace es
-{
-    static Service es_srv;
+namespace es {
 
-    Result Initialize()
-    {
-        if(serviceIsActive(&es_srv)) return 0;
-        return smGetService(&es_srv, "es");
+    namespace {
+
+        Service g_EsService;
+
     }
 
-    void Exit()
-    {
-        if(serviceIsActive(&es_srv)) serviceClose(&es_srv);
+    Result Initialize() {
+        if(serviceIsActive(&g_EsService)) {
+            return 0;
+        }
+        return smGetService(&g_EsService, "es");
     }
 
-    bool HasInitialized()
-    {
-        return serviceIsActive(&es_srv);
+    void Exit() {
+        if(serviceIsActive(&g_EsService)) {
+            serviceClose(&g_EsService);
+        }
     }
 
-    Result ImportTicket(const void *Ticket, size_t TicketSize, const void *Cert, size_t CommonCertificateSize)
-    {
-        return serviceDispatch(&es_srv, 1,
+    bool HasInitialized() {
+        return serviceIsActive(&g_EsService);
+    }
+
+    Result ImportTicket(const void *tik, size_t tik_size, const void *cert, size_t cert_size) {
+        return serviceDispatch(&g_EsService, 1,
             .buffer_attrs = {
                 SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
                 SfBufferAttr_HipcMapAlias | SfBufferAttr_In,
             },
             .buffers = {
-                { Ticket, TicketSize },
-                { Cert, CommonCertificateSize },
+                { tik, tik_size },
+                { cert, cert_size },
             },
         );
     }
 
-    Result DeleteTicket(const RightsId *RId, size_t RIdSize)
-    {
-        return serviceDispatch(&es_srv, 3,
+    Result DeleteTicket(const RightsId &rights_id) {
+        return serviceDispatch(&g_EsService, 3,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
-            .buffers = { { RId, RIdSize }, },
+            .buffers = { { std::addressof(rights_id), sizeof(RightsId) }, },
         );
     }
 
-    Result CountCommonTicket(u32 *out_Count)
-    {
-        return serviceDispatchOut(&es_srv, 9, *out_Count);
+    Result CountCommonTicket(u32 *out_count) {
+        return serviceDispatchOut(&g_EsService, 9, *out_count);
     }
 
-    Result CountPersonalizedTicket(u32 *out_Count)
-    {
-        return serviceDispatchOut(&es_srv, 10, *out_Count);
+    Result CountPersonalizedTicket(u32 *out_count) {
+        return serviceDispatchOut(&g_EsService, 10, *out_count);
     }
 
-    Result ListCommonTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize)
-    {
-        return serviceDispatchOut(&es_srv, 11, *out_Written,
+    Result ListCommonTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size) {
+        return serviceDispatchOut(&g_EsService, 11, *out_written,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_Ids, out_IdsSize } },
+            .buffers = { { out_rights_id_buf, out_rights_id_buf_size } },
         );
     }
 
-    Result ListPersonalizedTicket(u32 *out_Written, RightsId *out_Ids, size_t out_IdsSize)
-    {
-        return serviceDispatchOut(&es_srv, 12, *out_Written,
+    Result ListPersonalizedTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size) {
+        return serviceDispatchOut(&g_EsService, 12, *out_written,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_Ids, out_IdsSize } },
+            .buffers = { { out_rights_id_buf, out_rights_id_buf_size } },
         );
     }
+
 }

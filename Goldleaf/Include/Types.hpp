@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,59 +24,70 @@
 #include <switch.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <ByteBuffer.hpp>
-#include <json.hpp>
 #include <codecvt>
-#include <pu/Plutonium>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+#include <sys/stat.h>
+#include <malloc.h>
+#include <cctype>
+#include <cstring>
+#include <cerrno>
+
+#include <json.hpp>
 #include <usbhsfs.h>
+#include <curl/curl.h>
+#include <pu/Plutonium>
 
 using JSON = nlohmann::json;
-
 using String = pu::String;
 
 String LowerCaseString(String str);
 
-// Thanks SciresM
-#define R_TRY(res_expr) \
-({ \
+#define R_TRY(res_expr) ({ \
     const Result _tmp_r_try_rc = res_expr; \
     if (R_FAILED(_tmp_r_try_rc)) { \
         return _tmp_r_try_rc; \
     } \
 })
 
-namespace consts
-{
+#define R_ASSERT(res_expr) ({ \
+    const Result _tmp_r_try_rc = res_expr; \
+    if (R_FAILED(_tmp_r_try_rc)) { \
+        diagAbortWithResult(_tmp_r_try_rc); \
+    } \
+})
+
+namespace consts {
+
     static const std::string Root = "switch/Goldleaf";
     static const std::string Log = Root + "/goldleaf.log";
     static const std::string Settings = Root + "/settings.json";
     static const std::string TempUpdatedNro = Root + "/update_tmp.nro";
     static const std::string AmiiboCache = Root + "/amiibocache";
+
 }
 
-enum class ExecutableMode
-{
+enum class ExecutableMode {
     NSO,
     NRO
 };
 
-enum class LaunchMode
-{
+enum class LaunchMode {
     Unknown,
     Applet,
     Application
 };
 
-enum class Storage
-{
+enum class Storage {
     GameCart = 2,
     NANDSystem,
     NANDUser,
     SdCard,
 };
 
-enum class Language
-{
+enum class Language {
     English,
     Spanish,
     German,
@@ -88,70 +99,82 @@ enum class Language
 std::string LanguageToString(Language lang);
 Language StringToLanguage(std::string str);
 
-struct ColorScheme
-{
+struct ColorScheme {
     pu::ui::Color Background;
     pu::ui::Color Base;
     pu::ui::Color BaseFocus;
     pu::ui::Color Text;
 };
 
-struct Version
-{
-    u32 Major;
-    u32 Minor;
-    s32 Micro;
+struct Version {
+    u32 major;
+    u32 minor;
+    s32 micro;
 
     String AsString();
 
-    static inline constexpr Version MakeVersion(u32 major, u32 minor, u32 micro)
-    {
+    static inline constexpr Version MakeVersion(u32 major, u32 minor, u32 micro) {
         return { major, minor, static_cast<s32>(micro) };
     }
 
-    static Version FromString(String StrVersion);
-    bool IsLower(Version Other);
-    bool IsHigher(Version Other);
-    bool IsEqual(Version Other);
-};
-
-class OnScopeExit
-{
-    private:
-        std::function<void()> call;
-
-    public:
-        OnScopeExit(std::function<void()> call) : call(call) {}
-
-        ~OnScopeExit()
-        {
-            this->call();
+    static Version FromString(String ver_str);
+    
+    inline constexpr bool IsLower(const Version &other) const {
+        if(this->major > other.major) {
+            return true;
         }
+        else if(this->major == other.major) {
+            if(this->minor > other.minor) {
+                return true;
+            }
+            else if(this->minor == other.minor) {
+                if(this->micro > other.micro) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    inline constexpr bool IsHigher(const Version &other) const {
+        return !this->IsLower(other) && !this->IsEqual(other);
+    }
+
+    inline constexpr bool IsEqual(const Version &other) const {
+        return ((this->major == other.major) && (this->minor == other.minor) && (this->micro == other.micro));
+    }
 };
 
-namespace logging
-{
-    template<typename ...Args>
-    inline void LogFmt(std::string fmt, Args &&...args)
-    {
-        auto f = fopen(("sdmc:/" + consts::Log).c_str(), "a+");
-        if(f)
-        {
-            fprintf(f, (fmt + "\n").c_str(), args...);
-            fclose(f);
+Result Initialize();
+void Close(Result rc);
+void Exit(Result rc);
+
+inline ExecutableMode GetExecutableMode() {
+    return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;
+}
+
+inline LaunchMode GetLaunchMode() {
+    switch(appletGetAppletType()) {
+        case AppletType_SystemApplication:
+        case AppletType_Application: {
+            return LaunchMode::Application;
+        }
+        case AppletType_LibraryApplet: {
+            return LaunchMode::Applet;
+        }
+        default: {
+            return LaunchMode::Unknown;
         }
     }
 }
 
-ExecutableMode GetExecutableMode();
-LaunchMode GetLaunchMode();
-u64 GetApplicationId();
+inline u64 GetCurrentApplicationId() {
+    u64 app_id = 0;
+    svcGetInfo(&app_id, InfoType_ProgramId, CUR_PROCESS_HANDLE, 0);
+    return app_id;
+}
+
 bool HasKeyFile();
 u64 GetCurrentApplicationId();
-u32 RandomFromRange(u32 Min, u32 Max);
+u32 RandomFromRange(u32 min, u32 max);
 void EnsureDirectories();
-Result Initialize();
-void Close(Result rc);
-
-// Exit calls Close!
-void Exit(Result rc);

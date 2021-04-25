@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,77 +22,74 @@
 #include <hos/hos_Content.hpp>
 #include <fs/fs_FileSystem.hpp>
 
-namespace hos
-{
-    String ContentIdAsString(const NcmContentId &NCAId)
-    {
-        char idstr[FS_MAX_PATH] = {0};
-        u64 lower = __bswap64(*(u64*)NCAId.c);
-        u64 upper = __bswap64(*(u64*)(NCAId.c + 0x8));
-        snprintf(idstr, FS_MAX_PATH, "%016lx%016lx", lower, upper);
-        return String(idstr);
+namespace hos {
+
+    String ContentIdAsString(const NcmContentId &cnt_id) {
+        char cnt_id_str[FS_MAX_PATH] = {0};
+        const auto lower = __bswap64(*(u64*)cnt_id.c);
+        const auto upper = __bswap64(*(u64*)(cnt_id.c + 0x8));
+        snprintf(cnt_id_str, FS_MAX_PATH, "%016lx%016lx", lower, upper);
+        return cnt_id_str;
     }
 
-    NcmContentId StringAsContentId(String NCAId)
-    {
-        NcmContentId nid = {0};
+    NcmContentId StringAsContentId(String cnt_id_str) {
+        NcmContentId cnt_id = {};
         char lower[0x20] = {0};
         char upper[0x20] = {0};
-        memcpy(lower, NCAId.AsUTF8().c_str(), 16);
-        memcpy(upper, NCAId.AsUTF8().c_str() + 16, 16);
-        *(u64*)nid.c = __bswap64(strtoul(lower, nullptr, 16));
-        *(u64*)(nid.c + 0x8) = __bswap64(strtoul(upper, nullptr, 16));
-        return nid;
+        memcpy(lower, cnt_id_str.AsUTF8().c_str(), 0x10);
+        memcpy(upper, cnt_id_str.AsUTF8().c_str() + 0x10, 0x10);
+        *(u64*)cnt_id.c = __bswap64(strtoul(lower, nullptr, 0x10));
+        *(u64*)(cnt_id.c + 0x8) = __bswap64(strtoul(upper, nullptr, 0x10));
+        return cnt_id;
     }
 
-    bool GetPendingUpdateInfo(PendingUpdateVersion *out)
-    {
+    bool GetPendingUpdateInfo(PendingUpdateVersion *out) {
         auto sys = fs::GetNANDSystemExplorer();
         auto ncas = sys->GetFiles("Contents/placehld");
         bool found = false;
-        for(auto &nca: ncas)
-        {
-            std::string path = "@SystemContent://placehld/" + nca.AsUTF8();
+        for(auto &nca: ncas) {
+            auto path = "@SystemContent://placehld/" + nca.AsUTF8();
             path.reserve(FS_MAX_PATH);
             FsFileSystem ncafs;
-            auto rc = fsOpenFileSystemWithId(&ncafs, 0, FsFileSystemType_ContentMeta, path.c_str());
-            if(R_SUCCEEDED(rc))
-            {
+            // Just read the first CNMT NCA we succeed mounting
+            if(R_SUCCEEDED(fsOpenFileSystemWithId(&ncafs, 0, FsFileSystemType_ContentMeta, path.c_str()))) {
                 fs::FspExplorer fwfs("...", ncafs);
-                auto fs = fwfs.GetContents();
-                for(auto &f: fs)
-                {
-                    u32 rawver = 0;
-                    fwfs.ReadFileBlock(f, 8, sizeof(rawver), &rawver);
-                    out->Major = (u8)((rawver >> 26) & 0x3f);
-                    out->Minor = (u8)((rawver >> 20) & 0x3f);
-                    out->Micro = (u8)((rawver >> 16) & 0x3f);
+                const auto fs = fwfs.GetContents();
+                for(const auto &f: fs) {
+                    u32 raw_ver = 0;
+                    fwfs.ReadFile(f, 0x8, sizeof(raw_ver), &raw_ver);
+                    out->major = (u8)((raw_ver >> 26) & 0x3f);
+                    out->minor = (u8)((raw_ver >> 20) & 0x3f);
+                    out->micro = (u8)((raw_ver >> 16) & 0x3f);
                     found = true;
-                    break; // We just want to read the first CNMT NCA we succeed mounting :P
+                    break; 
                 }
-                if(found) break;
+                if(found) {
+                    break;
+                }
             }
         }
         return found;
     }
 
-    SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver)
-    {
+    SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver) {
         SetSysFirmwareVersion fwver = {};
-        fwver.major = ver.Major;
-        fwver.minor = ver.Minor;
-        fwver.micro = ver.Micro;
-        sprintf(fwver.display_version, "%d.%d.%d", ver.Major, ver.Minor, ver.Micro);
+        fwver.major = ver.major;
+        fwver.minor = ver.minor;
+        fwver.micro = ver.micro;
+        sprintf(fwver.display_version, "%d.%d.%d", ver.major, ver.minor, ver.micro);
         return fwver;
     }
 
-    void CleanPendingUpdate()
-    {
+    void CleanPendingUpdate() {
         auto sys = fs::GetNANDSystemExplorer();
         sys->DeleteDirectory("Contents/placehld");
         sys->CreateDirectory("Contents/placehld");
-        nssuInitialize();
-        nssuDestroySystemUpdateTask();
-        nssuExit();
+
+        if(R_SUCCEEDED(nssuInitialize())) {
+            nssuDestroySystemUpdateTask();
+            nssuExit();
+        }
     }
+ 
 }

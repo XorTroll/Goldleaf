@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,20 +20,13 @@
 */
 
 #pragma once
-#include <switch.h>
+#include <Types.hpp>
 
-namespace ns
-{
-    struct ApplicationRecord
-    {
-        u64 ApplicationId;
-        u64 Unknown;
-        u64 Size;
+namespace ns {
+
+    struct ContentStorageMetaKey {
+        NcmContentMetaKey meta_key;
+        u64 storage_id;
     } PACKED;
 
-    struct ContentStorageRecord
-    {
-        NcmContentMetaKey Record;
-        u64 StorageId;
-    } PACKED;
 }

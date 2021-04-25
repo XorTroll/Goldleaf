@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,85 +22,82 @@
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    PCExploreLayout::PCExploreLayout() : pu::ui::Layout()
-    {
-        this->pathsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
-        this->pathsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
-        global_settings.ApplyScrollBarColor(this->pathsMenu);
-        this->Add(this->pathsMenu);
+namespace ui {
+
+    PCExploreLayout::PCExploreLayout() : pu::ui::Layout() {
+        this->paths_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->paths_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        g_Settings.ApplyScrollBarColor(this->paths_menu);
+        this->Add(this->paths_menu);
     }
 
-    void PCExploreLayout::UpdatePaths()
-    {
+    void PCExploreLayout::UpdatePaths() {
         this->names.clear();
         this->paths.clear();
-        this->pathsMenu->ClearItems();
-        u32 drivecount = 0;
-        u32 pathcount = 0;
-        Result rc = usb::ProcessCommand<usb::CommandId::GetDriveCount>(usb::Out32(drivecount));
-        if(R_SUCCEEDED(rc))
-        {
-            for(u32 i = 0; i < drivecount; i++)
-            {
+        this->paths_menu->ClearItems();
+        u32 drive_count = 0;
+        auto rc = usb::ProcessCommand<usb::CommandId::GetDriveCount>(usb::Out32(drive_count));
+        if(R_SUCCEEDED(rc)) {
+            for(u32 i = 0; i < drive_count; i++) {
                 String label;
                 String path;
-                u32 sztmp = 0;
-                rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(sztmp), usb::Out32(sztmp));
-                if(R_SUCCEEDED(rc))
-                {
+                u32 tmp_size = 0;
+                // TODO: make use of drive size?
+                rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(tmp_size), usb::Out32(tmp_size));
+                if(R_SUCCEEDED(rc)) {
                     this->names.push_back(label + " (" + path + ":\\)");
                     this->paths.push_back(path);
                 }
             }
         }
-        rc = usb::ProcessCommand<usb::CommandId::GetSpecialPathCount>(usb::Out32(pathcount));
-        if(R_SUCCEEDED(rc))
-        {
-            for(u32 i = 0; i < pathcount; i++)
-            {
+        u32 path_count = 0;
+        rc = usb::ProcessCommand<usb::CommandId::GetSpecialPathCount>(usb::Out32(path_count));
+        if(R_SUCCEEDED(rc)) {
+            for(u32 i = 0; i < path_count; i++) {
                 String name;
                 String path;
                 rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::In32(i), usb::OutString(name), usb::OutString(path));
-                if(R_SUCCEEDED(rc))
-                {
+                if(R_SUCCEEDED(rc)) {
                     this->names.push_back(name);
                     this->paths.push_back(path);    
                 }
             }
         }
-        for(u32 i = 0; i < this->names.size(); i++)
-        {
+        for(u32 i = 0; i < this->names.size(); i++) {
             auto itm = pu::ui::elm::MenuItem::New(this->names[i]);
-            itm->SetColor(global_settings.custom_scheme.Text);
-            if(i < drivecount) itm->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
-            else itm->SetIcon(global_settings.PathForResource("/FileSystem/Directory.png"));
+            itm->SetColor(g_Settings.custom_scheme.Text);
+            if(i < drive_count) {
+                itm->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
+            }
+            else {
+                itm->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
+            }
             itm->AddOnClick(std::bind(&PCExploreLayout::path_Click, this));
-            this->pathsMenu->AddItem(itm);
+            this->paths_menu->AddItem(itm);
         }
-        auto fselitm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
-        fselitm->SetColor(global_settings.custom_scheme.Text);
-        fselitm->SetIcon(global_settings.PathForResource("/FileSystem/File.png"));
-        fselitm->AddOnClick(std::bind(&PCExploreLayout::fileSelect_Click, this));
-        this->pathsMenu->AddItem(fselitm);
-        this->pathsMenu->SetSelectedIndex(0);
+        auto file_select_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
+        file_select_itm->SetColor(g_Settings.custom_scheme.Text);
+        file_select_itm->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
+        file_select_itm->AddOnClick(std::bind(&PCExploreLayout::fileSelect_Click, this));
+        this->paths_menu->AddItem(file_select_itm);
+        this->paths_menu->SetSelectedIndex(0);
     }
 
-    void PCExploreLayout::path_Click()
-    {
-        u32 idx = this->pathsMenu->GetSelectedIndex();
-        global_app->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void PCExploreLayout::path_Click() {
+        const auto idx = this->paths_menu->GetSelectedIndex();
+        g_MainApplication->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void PCExploreLayout::fileSelect_Click()
-    {
-        String selfile;
-        auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selfile));
-        if(R_SUCCEEDED(rc)) global_app->GetBrowserLayout()->HandleFileDirectly(selfile);
+    void PCExploreLayout::fileSelect_Click() {
+        String selected_file;
+        const auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selected_file));
+        if(R_SUCCEEDED(rc)) {
+            g_MainApplication->GetBrowserLayout()->HandleFileDirectly(selected_file);
+        }
     }
+
 }

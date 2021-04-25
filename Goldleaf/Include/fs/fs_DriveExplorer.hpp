@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,18 +23,18 @@
 #include <fs/fs_StdExplorer.hpp>
 #include <drive/drive_Drives.hpp>
 
-namespace fs
-{
-    class DriveExplorer final : public StdExplorer
-    {
+namespace fs {
+
+    class DriveExplorer final : public StdExplorer {
+        private:
+            UsbHsFsDevice drv;
+        
         public:
             DriveExplorer(UsbHsFsDevice &drive);
 
-            inline UsbHsFsDevice &GetDrive()
-            {
+            inline UsbHsFsDevice &GetDrive() {
                 return this->drv;
             }
-        private:
-            UsbHsFsDevice drv;
     };
+
 }

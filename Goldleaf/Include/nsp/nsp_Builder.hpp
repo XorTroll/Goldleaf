@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,11 +20,10 @@
 */
 
 #pragma once
-#include <string>
-#include <functional>
 #include <nsp/nsp_Types.hpp>
 
-namespace nsp
-{
-    bool GenerateFrom(String Input, String Out, std::function<void(u64, u64)> Callback);
+namespace nsp {
+
+    bool GenerateFrom(String input_path, String output_nsp, std::function<void(u64, u64)> cb_fn);
+
 }

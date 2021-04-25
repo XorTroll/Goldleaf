@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,42 +23,41 @@
 #include <fs/fs_FileSystem.hpp>
 #include <nsp/nsp_Types.hpp>
 
-namespace nsp
-{
-    class PFS0
-    {
-        public:
-            static constexpr u32 InvalidFileIndex = UINT32_MAX;
+namespace nsp {
 
-            NX_CONSTEXPR bool IsValidFileIndex(u32 idx)
-            {
-                return idx != InvalidFileIndex;
-            }
-            
-            NX_CONSTEXPR bool IsInvalidFileIndex(u32 idx)
-            {
-                return !IsValidFileIndex;
-            }
-
-            PFS0(fs::Explorer *Exp, String Path);
-            ~PFS0();
-            u32 GetCount();
-            String GetFile(u32 Index);
-            String GetPath();
-            u64 ReadFromFile(u32 Index, u64 Offset, u64 Size, u8 *Out);
-            std::vector<String> GetFiles();
-            bool IsOk();
-            fs::Explorer *GetExplorer();
-            u64 GetFileSize(u32 Index);
-            void SaveFile(u32 Index, fs::Explorer *Exp, String Path);
-            u32 GetFileIndexByName(String File);
+    class PFS0 {
         private:
             String path;
-            fs::Explorer *gexp;
-            u8 *stringtable;
-            u32 headersize;
+            fs::Explorer *exp;
+            u8 *string_table;
+            u32 header_size;
             PFS0Header header;
             std::vector<PFS0File> files;
             bool ok;
+
+        public:
+            static constexpr u32 InvalidFileIndex = UINT32_MAX;
+
+            NX_CONSTEXPR bool IsValidFileIndex(u32 idx) {
+                return idx != InvalidFileIndex;
+            }
+            
+            NX_CONSTEXPR bool IsInvalidFileIndex(u32 idx) {
+                return idx == InvalidFileIndex;
+            }
+
+            PFS0(fs::Explorer *explorer, String path);
+            ~PFS0();
+            u32 GetCount();
+            String GetFile(u32 idx);
+            String GetPath();
+            u64 ReadFromFile(u32 idx, u64 offset, u64 size, void *read_buf);
+            std::vector<String> GetFiles();
+            bool IsOk();
+            fs::Explorer *GetExplorer();
+            u64 GetFileSize(u32 idx);
+            void SaveFile(u32 idx, fs::Explorer *path_exp, String path);
+            u32 GetFileIndexByName(String file);
     };
+
 }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,39 +22,41 @@
 #include <cfg/cfg_Strings.hpp>
 #include <fs/fs_FileSystem.hpp>
 
-extern cfg::Settings global_settings;
+extern cfg::Settings g_Settings;
 
-namespace cfg
-{
-    String Strings::GetString(u32 idx)
-    {
-        if(idx >= this->json.size()) return "???";
-        return this->json[idx].get<std::string>();
-    }
+namespace cfg {
 
-    namespace strings
-    {
+    namespace strings {
+
         Strings Main;
         Strings Results;
         Strings Modules;
+        
     }
 
-    #define CFG_STRINGS_PROCESS(strs, json_name) { \
-        strings::strs.language = global_settings.custom_lang; \
-        std::ifstream ifs(global_settings.PathForResource(std::string("/Strings/") + #strs + "/" + json_name)); \
-        if(ifs.good()) \
-        { \
+    String Strings::GetString(u32 idx) {
+        if(idx >= this->json.size()) {
+            return "???";
+        }
+        return this->json[idx].get<std::string>();
+    }
+
+    // TODO: load with sdexp?
+
+    #define _CFG_PROCESS_STRINGS(strs, json_name) { \
+        strings::strs.language = g_Settings.custom_lang; \
+        std::ifstream ifs(g_Settings.PathForResource(std::string("/Strings/") + #strs + "/" + json_name)); \
+        if(ifs.good()) { \
             try { strings::strs.json = JSON::parse(ifs); } catch(std::exception&) {} \
             ifs.close(); \
         } \
     }
 
-    void LoadStrings()
-    {
-        auto strjson = LanguageToString(global_settings.custom_lang) + ".json";
+    void LoadStrings() {
+        const auto &str_json = LanguageToString(g_Settings.custom_lang) + ".json";
 
-        CFG_STRINGS_PROCESS(Main, strjson)
-        CFG_STRINGS_PROCESS(Results, strjson)
-        CFG_STRINGS_PROCESS(Modules, strjson)
+        _CFG_PROCESS_STRINGS(Main, str_json)
+        _CFG_PROCESS_STRINGS(Results, str_json)
+        _CFG_PROCESS_STRINGS(Modules, str_json)
     }
 }

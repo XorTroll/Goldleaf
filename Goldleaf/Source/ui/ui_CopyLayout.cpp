@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,53 +22,60 @@
 #include <ui/ui_CopyLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    CopyLayout::CopyLayout()
-    {
-        this->infoText = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
-        this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->infoText->SetColor(global_settings.custom_scheme.Text);
-        this->copyBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        global_settings.ApplyProgressBarColor(this->copyBar);
-        this->Add(this->infoText);
-        this->Add(this->copyBar);
+namespace ui {
+
+    CopyLayout::CopyLayout() {
+        this->info_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
+        this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->info_text->SetColor(g_Settings.custom_scheme.Text);
+        this->copy_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
+        g_Settings.ApplyProgressBarColor(this->copy_p_bar);
+        this->Add(this->info_text);
+        this->Add(this->copy_p_bar);
     }
 
-    void CopyLayout::StartCopy(String Path, String NewPath, bool Directory, fs::Explorer *Exp)
-    {
-        if(Directory)
-        {
-            hos::LockAutoSleep();
-            fs::CopyDirectoryProgress(Path, NewPath, [&](double done, double total)
-            {
-                this->copyBar->SetMaxValue(total);
-                this->copyBar->SetProgress(done);
-                global_app->CallForRender();
-            });
-            hos::UnlockAutoSleep();
-            global_app->ShowNotification(cfg::strings::Main.GetString(141));
-        }
-        else
-        {
-            if(Exp->IsFile(NewPath))
-            {
-                int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(153), cfg::strings::Main.GetString(143), { cfg::strings::Main.GetString(239), cfg::strings::Main.GetString(18) }, true);
-                if(sopt < 0) return;
+    void CopyLayout::StartCopy(String path, String new_path) {
+        auto exp = fs::GetExplorerForPath(path);
+        auto new_exp = fs::GetExplorerForPath(new_path);
+        if(exp->IsDirectory(path)) {
+            if(new_exp->IsDirectory(new_path)) {
+                const auto option = g_MainApplication->CreateShowDialog("Directory already exists", "...", { "Delete dir and continue", "Continue no delete", "Cancel" }, true);
+                if(option == 0) {
+                    new_exp->DeleteDirectory(new_path);
+                }
+                else if(option != 1) {
+                    return;
+                }
             }
-            Exp->DeleteFile(NewPath);
             hos::LockAutoSleep();
-            fs::CopyFileProgress(Path, NewPath, [&](double done, double total)
-            {
-                this->copyBar->SetMaxValue(total);
-                this->copyBar->SetProgress(done);
-                global_app->CallForRender();
+            exp->CopyDirectoryProgress(path, new_path, [&](double done, double total) {
+                this->copy_p_bar->SetMaxValue(total);
+                this->copy_p_bar->SetProgress(done);
+                g_MainApplication->CallForRender();
             });
             hos::UnlockAutoSleep();
-            global_app->ShowNotification(cfg::strings::Main.GetString(240));
+            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(141));
+        }
+        else {
+            if(new_exp->IsFile(new_path)) {
+                const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(153), cfg::strings::Main.GetString(143), { cfg::strings::Main.GetString(239), cfg::strings::Main.GetString(18) }, true);
+                if(option != 0) {
+                    return;
+                }
+            }
+            new_exp->DeleteFile(new_path);
+            hos::LockAutoSleep();
+            exp->CopyFileProgress(path, new_path, [&](double done, double total) {
+                this->copy_p_bar->SetMaxValue(total);
+                this->copy_p_bar->SetProgress(done);
+                g_MainApplication->CallForRender();
+            });
+            hos::UnlockAutoSleep();
+            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(240));
         }
     }
+
 }

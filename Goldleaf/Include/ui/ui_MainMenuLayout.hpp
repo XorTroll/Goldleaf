@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,33 +21,32 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class MainMenuLayout : public pu::ui::Layout
-    {
+namespace ui {
+
+    class MainMenuLayout : public pu::ui::Layout {
+        private:
+            pu::ui::elm::Menu::Ref options_menu;
+            pu::ui::elm::MenuItem::Ref explore_menu_item;
+            pu::ui::elm::MenuItem::Ref cnt_manager_menu_item;
+            pu::ui::elm::MenuItem::Ref web_browser_menu_item;
+            pu::ui::elm::MenuItem::Ref account_menu_item;
+            pu::ui::elm::MenuItem::Ref amiibo_menu_item;
+            pu::ui::elm::MenuItem::Ref settings_menu_item;
+            pu::ui::elm::MenuItem::Ref update_menu_item;
+            pu::ui::elm::MenuItem::Ref about_menu_item;
         public:
             MainMenuLayout();
             PU_SMART_CTOR(MainMenuLayout)
 
-            void exploreMenuItem_Click();
-            void titleMenuItem_Click();
-            void webMenuItem_Click();
-            void accountMenuItem_Click();
-            void amiiboMenuItem_Click();
-            void settingsMenuItem_Click();
-            void updateMenuItem_Click();
-            void aboutMenuItem_Click();
-        private:
-            pu::ui::elm::Menu::Ref optionMenu;
-            pu::ui::elm::MenuItem::Ref exploreMenuItem;
-            pu::ui::elm::MenuItem::Ref titleMenuItem;
-            pu::ui::elm::MenuItem::Ref webMenuItem;
-            pu::ui::elm::MenuItem::Ref accountMenuItem;
-            pu::ui::elm::MenuItem::Ref amiiboMenuItem;
-            pu::ui::elm::MenuItem::Ref settingsMenuItem;
-            pu::ui::elm::MenuItem::Ref updateMenuItem;
-            pu::ui::elm::MenuItem::Ref aboutMenuItem;
+            void ExploreMenu_OnClick();
+            void ContentManager_OnClick();
+            void WebBrowser_OnClick();
+            void Account_OnClick();
+            void Amiibo_OnClick();
+            void Settings_OnClick();
+            void Update_OnClick();
+            void About_OnClick();
     };
+
 }

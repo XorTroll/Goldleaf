@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,77 +22,71 @@
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout()
-    {
-        this->ticketsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
-        this->ticketsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
-        global_settings.ApplyScrollBarColor(this->ticketsMenu);
-        this->notTicketsText = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(199));
-        this->notTicketsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->notTicketsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->notTicketsText->SetColor(global_settings.custom_scheme.Text);
-        this->Add(this->notTicketsText);
-        this->Add(this->ticketsMenu);
+namespace ui {
+
+    UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout() {
+        this->tiks_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->tiks_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        g_Settings.ApplyScrollBarColor(this->tiks_menu);
+        this->no_unused_tiks_text = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(199));
+        this->no_unused_tiks_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->no_unused_tiks_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
+        this->no_unused_tiks_text->SetColor(g_Settings.custom_scheme.Text);
+        this->Add(this->no_unused_tiks_text);
+        this->Add(this->tiks_menu);
     }
 
-    void UnusedTicketsLayout::UpdateElements(bool Cooldown)
-    {
-        if(!this->tickets.empty()) this->tickets.clear();
-        auto alltiks = hos::GetAllTickets();
-        for(auto &ticket: alltiks)
-        {
-            u64 tappid = ticket.GetApplicationId();
-            bool used = hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::SdCard, tappid) || hos::ExistsTitle(ncm::ContentMetaType::Any, Storage::NANDUser, tappid);
-            if(!used) this->tickets.push_back(ticket);
-        }
-        global_app->LoadMenuHead(cfg::strings::Main.GetString(248));
-        this->ticketsMenu->ClearItems();
-        if(Cooldown) this->ticketsMenu->SetCooldownEnabled(true);
-        if(this->tickets.empty())
-        {
-            this->notTicketsText->SetVisible(true);
-            this->ticketsMenu->SetVisible(false);
-        }
-        else
-        {
-            this->notTicketsText->SetVisible(false);
-            for(auto &ticket: this->tickets)
-            {
-                u64 tappid = ticket.GetApplicationId();
-                String tname = hos::FormatApplicationId(tappid);
-                auto itm = pu::ui::elm::MenuItem::New(tname);
-                itm->SetColor(global_settings.custom_scheme.Text);
-                itm->SetIcon(global_settings.PathForResource("/Common/Ticket.png"));
-                itm->AddOnClick(std::bind(&UnusedTicketsLayout::tickets_Click, this, ticket));
-                this->ticketsMenu->AddItem(itm);
+    void UnusedTicketsLayout::UpdateElements(bool cooldown) {
+        this->tiks_menu->ClearItems();
+        this->no_unused_tiks_text->SetVisible(true);
+        this->tiks_menu->SetVisible(false);
+        this->tiks_menu->SetCooldownEnabled(cooldown);
+
+        auto tiks = hos::GetAllTickets();
+        auto menu_ready = false;
+        for(const auto &tik: tiks) {
+            const auto tik_app_id = tik.GetApplicationId();
+            const auto is_tik_used = hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::SdCard, tik_app_id) || hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::NANDUser, tik_app_id);
+            if(!is_tik_used) {
+                auto tik_name = hos::FormatApplicationId(tik_app_id);
+                auto itm = pu::ui::elm::MenuItem::New(tik_name);
+                itm->SetColor(g_Settings.custom_scheme.Text);
+                itm->SetIcon(g_Settings.PathForResource("/Common/Ticket.png"));
+                itm->AddOnClick(std::bind(&UnusedTicketsLayout::tickets_Click, this, tik));
+                this->tiks_menu->AddItem(itm);
+
+                if(!menu_ready) {
+                    this->no_unused_tiks_text->SetVisible(false);
+                    this->tiks_menu->SetVisible(true);
+                    this->tiks_menu->SetSelectedIndex(0);
+                    menu_ready = true;
+                }
             }
-            this->ticketsMenu->SetSelectedIndex(0);
         }
     }
 
-    void UnusedTicketsLayout::tickets_Click(hos::Ticket ticket)
-    {
-        String info = cfg::strings::Main.GetString(201) + "\n\n\n";
-        u64 tappid = ticket.GetApplicationId();
-        info += cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(tappid);
-        info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(ticket.GetKeyGeneration() + 1);
+    void UnusedTicketsLayout::tickets_Click(const hos::Ticket &tik) {
+        auto info = cfg::strings::Main.GetString(201) + "\n\n\n";
+        const auto tik_app_id = tik.GetApplicationId();
+        info += cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(tik_app_id);
+        info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(tik.GetKeyGeneration() + 1);
         info += "\n\n";
         info += cfg::strings::Main.GetString(203);
-        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), info, { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
+        int sopt = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), info, { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
         if(sopt < 0) return;
-        sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        sopt = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(sopt < 0) return;
-        auto rc = hos::RemoveTicket(ticket);
-        if(R_SUCCEEDED(rc))
-        {
-            global_app->ShowNotification(cfg::strings::Main.GetString(206));
+        const auto rc = hos::RemoveTicket(tik);
+        if(R_SUCCEEDED(rc)) {
+            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(206));
             this->UpdateElements(false);
         }
-        else HandleResult(rc, cfg::strings::Main.GetString(207));
+        else {
+            HandleResult(rc, cfg::strings::Main.GetString(207));
+        }
     }
+
 }

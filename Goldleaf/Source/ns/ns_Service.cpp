@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,84 +21,82 @@
 
 #include <ns/ns_Service.hpp>
 
-namespace ns
-{
-    static inline Service *GetApplicationManagerInterfaceService(Service *ptr)
-    {
-        if(hosversionAtLeast(3,0,0))
-        {
-            nsGetApplicationManagerInterface(ptr);
-            return ptr;
+namespace ns {
+
+    namespace {
+
+        inline Service *GetApplicationManagerInterfaceService(Service *srv_ref) {
+            if(hosversionAtLeast(3,0,0)) {
+                nsGetApplicationManagerInterface(srv_ref);
+                return srv_ref;
+            }
+            return nsGetServiceSession_ApplicationManagerInterface();
         }
-        return nsGetServiceSession_ApplicationManagerInterface();
+
+        inline void DisposeApplicationManagerInterfaceService(Service *srv_ref) {
+            if(hosversionAtLeast(3,0,0)) {
+                serviceClose(srv_ref);
+            }
+        }
+
     }
 
-    static inline void DisposeApplicationManagerInterfaceService(Service *ptr)
-    {
-        if(hosversionAtLeast(3,0,0))
-        {
-            serviceClose(ptr);
-        }
-    }
-
-    Result PushApplicationRecord(u64 ApplicationId, u8 LastModifiedEvent, ContentStorageRecord *Records, size_t RecordsSize)
-    {
+    Result PushApplicationRecord(u64 app_id, u8 last_modified_event, ContentStorageMetaKey *cnt_storage_record_buf, size_t cnt_storage_record_buf_size) {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
-        const struct
-        {
+
+        const struct {
             u8 last_modified_event;
-            u8 padding[7];
+            u8 pad[7];
             u64 app_id;
-        } in = { LastModifiedEvent, {0}, ApplicationId };
+        } in = { last_modified_event, {}, app_id };
         
         auto rc = serviceDispatchIn(use_srv, 16, in,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
-            .buffers = { { Records, RecordsSize } },
+            .buffers = { { cnt_storage_record_buf, cnt_storage_record_buf_size } },
         );
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }
 
-    Result ListApplicationRecordContentMeta(u64 Offset, u64 ApplicationId, void *Out, size_t OutBufferSize, u32 *out_Count)
-    {
+    Result ListApplicationRecordContentMeta(u64 offset, u64 app_id, void *out_buf, size_t out_buf_size, u32 *out_count) {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
-        const struct
-        {
+
+        const struct {
             u64 offset;
             u64 app_id;
-        } in = { Offset, ApplicationId };
+        } in = { offset, app_id };
 
-        auto rc = serviceDispatchInOut(use_srv, 17, in, *out_Count,
+        auto rc = serviceDispatchInOut(use_srv, 17, in, *out_count,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { Out, OutBufferSize } },
+            .buffers = { { out_buf, out_buf_size } },
         );
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }
 
-    Result DeleteApplicationRecord(u64 ApplicationId)
-    {
+    Result DeleteApplicationRecord(u64 app_id) {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
-        auto rc = serviceDispatchIn(use_srv, 27, ApplicationId);
+
+        auto rc = serviceDispatchIn(use_srv, 27, app_id);
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }
 
-    Result PushLaunchVersion(u64 ApplicationId, u32 LaunchVersion)
-    {
+    Result PushLaunchVersion(u64 app_id, u32 launch_version) {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
-        const struct
-        {
+
+        const struct {
             u32 version;
             u64 app_id;
             u8 pad[4];
-        } in = { LaunchVersion, ApplicationId, {0} };
+        } in = { launch_version, app_id, {} };
         auto rc = serviceDispatchIn(use_srv, 36, in);
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }
+
 }

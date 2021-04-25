@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,25 +20,37 @@
 */
 
 #pragma once
-#include <switch.h>
-#include <vector>
+#include <Types.hpp>
 
-class ByteBuffer
-{
+class ByteBuffer {
+    private:
+        std::vector<u8> buffer;
     public:
-        ByteBuffer(size_t ReserveSize = 0);
+        ByteBuffer(size_t reserve_size = 0);
         ~ByteBuffer();
         size_t GetSize();
         u8 *GetData();
-        void Resize(size_t Size);
-        template<typename Type>
-        Type Read(u64 Offset);
-        template<typename Type>
-        void Write(Type Data, u64 Offset);
-        template<typename Type>
-        void Append(Type Data);
-    private:
-        std::vector<u8> buffer;
-};
+        void Resize(size_t size);
 
-#include <ByteBuffer.ipp>
+        template<typename Type>
+        Type Read(u64 offset) {
+            if(offset + sizeof(Type) <= this->buffer.size()) {
+                return *((Type*)&this->buffer.data()[offset]);
+            }
+            return {};
+        }
+
+        template<typename Type>
+        void Write(Type data, u64 offset) {
+            const auto required_size = offset + sizeof(Type);
+            if(required_size > this->buffer.size()) {
+                this->buffer.resize(required_size, 0);
+            }
+            memcpy(this->buffer.data() + offset, std::addressof(data), sizeof(Type));
+        }
+
+        template<typename Type>
+        void Append(Type data) {
+            this->Write(data, this->GetSize());
+        }
+};

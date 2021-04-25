@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,16 +28,14 @@
 #include <ns/ns_Service.hpp>
 #include <es/es_Service.hpp>
 
-namespace hos
-{
-    enum class TicketType
-    {
+namespace hos {
+
+    enum class TicketType {
         Common,
         Personalized,
     };
 
-    enum class TicketSignature : u32
-    {
+    enum class TicketSignature : u32 {
         Invalid,
         RSA_4096_SHA1 = 0x10000,
         RSA_2048_SHA1 = 0x10001,
@@ -47,82 +45,73 @@ namespace hos
         ECDSA_SHA256 = 0x10005,
     };
 
-    inline constexpr bool IsValidTicketSignature(u32 RawValue)
-    {
-        return (RawValue >= static_cast<u32>(TicketSignature::RSA_4096_SHA1)) && (RawValue <= static_cast<u32>(TicketSignature::ECDSA_SHA256));
+    inline constexpr bool IsValidTicketSignature(u32 raw_val) {
+        return (raw_val >= static_cast<u32>(TicketSignature::RSA_4096_SHA1)) && (raw_val <= static_cast<u32>(TicketSignature::ECDSA_SHA256));
     }
 
-    enum class ApplicationIdMask
-    {
+    enum class ApplicationIdMask {
         Official,
         Homebrew,
         Invalid,
     };
 
-    struct ContentId
-    {
-        ncm::ContentType Type;
-        NcmContentId NCAId;
-        Storage Location;
-        bool Empty;
-        u64 Size;
+    struct ContentId {
+        NcmContentType type;
+        NcmContentId id;
+        Storage location;
+        bool is_empty;
+        u64 size;
 
         String GetFileName();
         String GetFullPath();
     };
 
-    struct TitleContents
-    {
-        ContentId Meta;
-        ContentId Program;
-        ContentId Data;
-        ContentId Control;
-        ContentId HtmlDocument;
-        ContentId LegalInfo;
+    struct TitleContents {
+        ContentId meta;
+        ContentId program;
+        ContentId data;
+        ContentId control;
+        ContentId html_document;
+        ContentId legal_info;
 
         u64 GetTotalSize();
-        String GetFormattedTotalSize();
     };
 
-    struct TitlePlayStats
-    {
-        u64 TotalPlaySeconds;
-        u64 SecondsFromLastLaunched;
-        u64 SecondsFromFirstLaunched;
+    struct TitlePlayStats {
+        u64 total_play_secs;
+        u64 secs_from_last_launched;
+        u64 secs_from_first_launched;
     };
 
-    struct Title
-    {
-        u64 ApplicationId;
-        ncm::ContentMetaType Type;
-        u32 Version;
-        NcmContentMetaKey Record;
-        Storage Location;
+    struct Title {
+        u64 app_id;
+        NcmContentMetaType type;
+        u32 version;
+        NcmContentMetaKey meta_key;
+        Storage location;
         
-        NacpStruct *TryGetNACP();
-        u8 *TryGetIcon();
-        bool DumpControlData();
-        TitleContents GetContents();
-        bool IsBaseTitle();
-        bool IsUpdate();
-        bool IsDLC();
-        bool CheckBase(Title &Other);
-        TitlePlayStats GetGlobalPlayStats();
-        TitlePlayStats GetUserPlayStats(AccountUid UserId);
+        NacpStruct TryGetNACP() const;
+        u8 *TryGetIcon() const;
+        bool DumpControlData() const;
+        TitleContents GetContents() const;
+        bool IsBaseTitle() const;
+        bool IsUpdate() const;
+        bool IsAddOnContent() const;
+        bool IsBaseOf(const Title &other) const;
+        TitlePlayStats GetGlobalPlayStats() const;
+        TitlePlayStats GetUserPlayStats(AccountUid user_id) const;
     };
 
-    struct Ticket
-    {
-        es::RightsId RId;
-        TicketType Type;
+    struct Ticket {
+        es::RightsId rights_id;
+        TicketType type;
 
-        u64 GetApplicationId();
-        u64 GetKeyGeneration();
+        u64 GetApplicationId() const;
+        u64 GetKeyGeneration() const;
         String ToString();
     };
 
-    struct TicketData
-    {
+    struct TicketData {
         u8 issuer[0x40];
         u8 title_key_block[0x100];
         u8 unk[0x6];
@@ -139,74 +128,75 @@ namespace hos
 
     constexpr u64 TicketSize = 0x2C0;
 
-    inline constexpr u64 GetTicketSignatureSize(TicketSignature sig)
-    {
-        switch(sig)
-        {
+    inline constexpr u64 GetTicketSignatureSize(TicketSignature sig) {
+        switch(sig) {
             case TicketSignature::RSA_4096_SHA1:
-            case TicketSignature::RSA_4096_SHA256:
+            case TicketSignature::RSA_4096_SHA256: {
                 return sizeof(sig) + 0x200 + 0x3C;
+            }
             case TicketSignature::RSA_2048_SHA1:
-            case TicketSignature::RSA_2048_SHA256:
+            case TicketSignature::RSA_2048_SHA256: {
                 return sizeof(sig) + 0x100 + 0x3C;
+            }
             case TicketSignature::ECDSA_SHA1:
-            case TicketSignature::ECDSA_SHA256:
+            case TicketSignature::ECDSA_SHA256: {
                 return sizeof(sig) + 0x3C + 0x40;
+            }
+            default: {
+                return 0;
+            }
         }
-        return 0;
     }
 
-    struct TicketFile
-    {
+    struct TicketFile {
         TicketSignature signature;
         TicketData data;
 
-        String GetTitleKey();
+        String GetTitleKey() const;
 
-        inline constexpr u64 GetFullSize()
-        {
+        inline constexpr u64 GetFullSize() {
             return GetTicketSignatureSize(this->signature) + sizeof(this->data);
         }
     };
 
     constexpr u32 MaxTitleCount = 64000;
 
-    std::string FormatApplicationId(u64 ApplicationId);
-    std::vector<Title> SearchTitles(ncm::ContentMetaType Type, Storage Location);
-    Title Locate(u64 ApplicationId);
-    bool ExistsTitle(ncm::ContentMetaType Type, Storage Location, u64 ApplicationId);
+    std::string FormatApplicationId(u64 app_id);
+    std::vector<Title> SearchTitles(NcmContentMetaType type, Storage location);
+    Title Locate(u64 app_id);
+    bool ExistsTitle(NcmContentMetaType type, Storage Location, u64 app_id);
     std::vector<Ticket> GetAllTickets();
-    Result RemoveTitle(Title &ToRemove);
-    Result RemoveTicket(Ticket &ToRemove);
-    std::string GetExportedIconPath(u64 ApplicationId);
-    String GetExportedNACPPath(u64 ApplicationId);
+    Result RemoveTitle(const Title &title);
+    Result RemoveTicket(const Ticket &tik);
+    std::string GetExportedIconPath(u64 app_id);
+    String GetExportedNACPPath(u64 app_id);
     
-    inline constexpr u64 GetBaseApplicationId(u64 ApplicationId, ncm::ContentMetaType Type)
-    {
-        auto appid = ApplicationId;
-        switch(Type)
-        {
-            case ncm::ContentMetaType::Patch:
-                appid = (ApplicationId ^ 0x800);
-                break;
-            case ncm::ContentMetaType::AddOnContent:
-                appid = ((ApplicationId ^ 0x1000) & ~0xfff);
-                break;
-            default:
-                appid = ApplicationId;
-                break;
+    inline constexpr u64 GetBaseApplicationId(u64 app_id, NcmContentMetaType type) {
+        switch(type) {
+            case NcmContentMetaType_Patch: {
+                return app_id ^ 0x800;
+            }
+            case NcmContentMetaType_AddOnContent: {
+                return (app_id ^ 0x1000) & ~0xFFF;
+            }
+            default: {
+                return app_id;
+            }
         }
-        return appid;
     }
 
-    inline constexpr u32 GetIdFromDLCApplicationId(u64 ApplicationId)
-    {
-        return (ApplicationId & 0xfff);
+    inline constexpr u32 GetIdFromAddOnContentApplicationId(u64 app_id) {
+        return app_id & 0xFFF;
     }
 
-    ApplicationIdMask IsValidApplicationId(u64 ApplicationId);
-    TicketFile ReadTicket(String Path);
-    String GetNACPName(NacpStruct *NACP);
-    String GetNACPAuthor(NacpStruct *NACP);
-    String GetNACPVersion(NacpStruct *NACP);
+    inline constexpr bool IsNacpEmpty(const NacpStruct &nacp) {
+        return strlen(nacp.display_version) == 0;
+    }
+
+    String FindNacpName(const NacpStruct &nacp);
+    String FindNacpAuthor(const NacpStruct &nacp);
+
+    ApplicationIdMask GetApplicationIdMask(u64 app_id);
+    TicketFile ReadTicket(String path);
+
 }

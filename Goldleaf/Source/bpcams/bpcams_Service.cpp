@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,34 +21,43 @@
 
 #include <bpcams/bpcams_Service.hpp>
 
-namespace bpcams
-{
-    static Service bpcams_srv;
+namespace bpcams {
 
-    Result Initialize()
-    {
-        if(serviceIsActive(&bpcams_srv)) return 0;
-        Handle tmp;
-        auto rc = svcConnectToNamedPort(&tmp, "bpc:ams");
-        if(R_SUCCEEDED(rc)) serviceCreate(&bpcams_srv, tmp);
+    namespace {
+
+        Service g_BpcAmsService;
+
+    }
+
+    Result Initialize() {
+        if(serviceIsActive(&g_BpcAmsService)) {
+            return 0;
+        }
+
+        Handle tmp_port_h;
+        auto rc = svcConnectToNamedPort(&tmp_port_h, "bpc:ams");
+        if(R_SUCCEEDED(rc)) {
+            serviceCreate(&g_BpcAmsService, tmp_port_h);
+        }
         return rc;
     }
 
-    void Exit()
-    {
-        if(serviceIsActive(&bpcams_srv)) serviceClose(&bpcams_srv);
+    void Exit() {
+        if(serviceIsActive(&g_BpcAmsService)) {
+            serviceClose(&g_BpcAmsService);
+        }
     }
 
     bool HasInitialized()
     {
-        return serviceIsActive(&bpcams_srv);
+        return serviceIsActive(&g_BpcAmsService);
     }
 
-    Result SetRebootPayload(void *payload_buffer, size_t payload_size)
-    {
-        return serviceDispatch(&bpcams_srv, 65001,
+    Result SetRebootPayload(void *payload_buffer, size_t payload_size) {
+        return serviceDispatch(&g_BpcAmsService, 65001,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
             .buffers = { { payload_buffer, payload_size } },
         );
     }
+
 }

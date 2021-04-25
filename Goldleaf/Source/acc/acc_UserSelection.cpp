@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,90 +24,85 @@
 #include <fs/fs_FileSystem.hpp>
 #include <hos/hos_Common.hpp>
 
-namespace acc
-{
-    static AccountUid selected_user = {};
+namespace acc {
 
-    AccountUid GetSelectedUser()
-    {
-        return selected_user;
+    namespace {
+
+        AccountUid g_SelectedUser = {};
+
+        inline Result ShowUserSelector(AccountUid *out_user_id) {
+            const PselUserSelectionSettings selection_cfg = {};
+            return pselShowUserSelector(out_user_id, &selection_cfg);
+        }
+    
     }
 
-    bool HasUser()
-    {
-        return accountUidIsValid(&selected_user);
+    u32 GetUserCount() {
+        s32 count = 0;
+        accountGetUserCount(&count);
+        return static_cast<u32>(count);
     }
 
-    void SetSelectedUser(AccountUid uid)
-    {
-        memcpy(&selected_user, &uid, sizeof(uid));
+    AccountUid GetSelectedUser() {
+        return g_SelectedUser;
     }
 
-    void ResetSelectedUser()
-    {
-        selected_user = {};
+    bool HasSelectedUser() {
+        return accountUidIsValid(&g_SelectedUser);
     }
 
-    bool SelectFromPreselectedUser()
-    {
-        AccountUid tmpuser = {};
-        auto rc = accountGetPreselectedUser(&tmpuser);
-        if(R_SUCCEEDED(rc) && accountUidIsValid(&tmpuser))
-        {
-            SetSelectedUser(tmpuser);
+    void SetSelectedUser(AccountUid user_id) {
+        g_SelectedUser = user_id;
+    }
+
+    void ResetSelectedUser() {
+        g_SelectedUser = {};
+    }
+
+    bool SelectFromPreselectedUser() {
+        AccountUid pre_user_id = {};
+        const auto rc = accountGetPreselectedUser(&pre_user_id);
+        if(R_SUCCEEDED(rc) && accountUidIsValid(&pre_user_id)) {
+            SetSelectedUser(pre_user_id);
             return true;
         }
         return false;
     }
 
-    bool SelectUser()
-    {
-        AccountUid user = LaunchPlayerSelect();
-        if(accountUidIsValid(&user))
-        {
-            SetSelectedUser(user);
-            return true;
+    bool SelectUser() {
+        AccountUid user_id = {};
+        if(R_SUCCEEDED(ShowUserSelector(&user_id))) {
+            if(accountUidIsValid(&user_id)) {
+                SetSelectedUser(user_id);
+                return true;
+            }
         }
         return false;
     }
 
-    AccountUid LaunchPlayerSelect()
-    {
-        AccountUid out_id = {};
-        LibAppletArgs args;
-        libappletArgsCreate(&args, 0x10000);
-        u8 st_in[0xA0] = {0};
-        u8 st_out[0x18] = {0};
-        size_t repsz;
-
-        auto res = libappletLaunch(AppletId_LibraryAppletPlayerSelect, &args, st_in, 0xA0, st_out, 0x18, &repsz);
-        if(R_SUCCEEDED(res))
-        {
-            u64 lres = *(u64*)st_out;
-            AccountUid *uid_ptr = (AccountUid*)&st_out[8];
-            if(lres == 0) memcpy(&out_id, uid_ptr, sizeof(out_id));
-        }
-        
-        return out_id;
-    }
-
-    Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb)
-    {
+    Result ReadSelectedUser(AccountProfileBase *out_prof_base, AccountUserData *out_user_data) {
         AccountProfile prof;
-        auto rc = accountGetProfile(&prof, selected_user);
-        if(R_SUCCEEDED(rc))
-        {
-            AccountProfileBase pbase = {};
-            AccountUserData udata = {};
-            rc = accountProfileGet(&prof, &udata, &pbase);
-            if(R_SUCCEEDED(rc))
-            {
+        auto rc = accountGetProfile(&prof, g_SelectedUser);
+        if(R_SUCCEEDED(rc)) {
+            rc = accountProfileGet(&prof, out_user_data, out_prof_base);
+            accountProfileClose(&prof);
+        }
+        return rc;
+    }
+
+    Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb) {
+        AccountProfile prof;
+        auto rc = accountGetProfile(&prof, g_SelectedUser);
+        if(R_SUCCEEDED(rc)) {
+            AccountProfileBase prof_base = {};
+            AccountUserData user_data = {};
+            rc = accountProfileGet(&prof, &user_data, &prof_base);
+            if(R_SUCCEEDED(rc)) {
                 Service editor;
-                rc = GetProfileEditor(selected_user, &editor);
-                if(R_SUCCEEDED(rc))
-                {
-                    cb(&pbase, &udata);
-                    rc = ProfileEditor_Store(&editor, pbase, udata);
+                rc = GetProfileEditor(g_SelectedUser, &editor);
+                if(R_SUCCEEDED(rc)) {
+                    cb(&prof_base, &user_data);
+                    rc = ProfileEditor_Store(&editor, prof_base, user_data);
                     serviceClose(&editor);
                 }
             }
@@ -116,22 +111,18 @@ namespace acc
         return rc;
     }
 
-    Result EditUserIcon(u8 *jpg, size_t size)
-    {
+    Result EditUserIcon(u8 *jpg, size_t size) {
         AccountProfile prof;
-        auto rc = accountGetProfile(&prof, selected_user);
-        if(R_SUCCEEDED(rc))
-        {
-            AccountProfileBase pbase = {};
-            AccountUserData udata = {};
-            rc = accountProfileGet(&prof, &udata, &pbase);
-            if(R_SUCCEEDED(rc))
-            {
+        auto rc = accountGetProfile(&prof, g_SelectedUser);
+        if(R_SUCCEEDED(rc)) {
+            AccountProfileBase prof_base = {};
+            AccountUserData user_data = {};
+            rc = accountProfileGet(&prof, &user_data, &prof_base);
+            if(R_SUCCEEDED(rc)) {
                 Service editor;
-                rc = GetProfileEditor(selected_user, &editor);
-                if(R_SUCCEEDED(rc))
-                {
-                    rc = ProfileEditor_StoreWithImage(&editor, pbase, udata, jpg, size);
+                rc = GetProfileEditor(g_SelectedUser, &editor);
+                if(R_SUCCEEDED(rc)) {
+                    rc = ProfileEditor_StoreWithImage(&editor, prof_base, user_data, jpg, size);
                     serviceClose(&editor);
                 }
             }
@@ -140,30 +131,19 @@ namespace acc
         return rc;
     }
 
-    void CacheSelectedUserIcon()
-    {
+    void CacheSelectedUserIcon() {
         AccountProfile prof;
-        auto res = accountGetProfile(&prof, selected_user);
-        if(res == 0)
-        {
-            u32 iconsize = 0;
-            accountProfileGetImageSize(&prof, &iconsize);
-            if(iconsize > 0)
-            {
-                u8 *icon = new u8[iconsize]();
-                u32 tmpsz;
-                res = accountProfileLoadImage(&prof, icon, iconsize, &tmpsz);
-                if(res == 0)
-                {
-                    auto iconpth = GetCachedUserIcon();
+        if(R_SUCCEEDED(accountGetProfile(&prof, g_SelectedUser))) {
+            u32 icon_size = 0;
+            accountProfileGetImageSize(&prof, &icon_size);
+            if(icon_size > 0) {
+                auto icon = new u8[icon_size]();
+                u32 tmp_size = 0;
+                if(R_SUCCEEDED(accountProfileLoadImage(&prof, icon, icon_size, &tmp_size))) {
+                    const auto icon_path = GetCachedUserIcon();
                     auto sd_exp = fs::GetSdCardExplorer();
-                    sd_exp->DeleteFile(iconpth);
-                    FILE *f = fopen(iconpth.c_str(), "wb");
-                    if(f)
-                    {
-                        fwrite(icon, 1, iconsize, f);
-                        fclose(f);
-                    }
+                    sd_exp->DeleteFile(icon_path);
+                    sd_exp->WriteFile(icon_path, icon, icon_size);
                 }
                 delete[] icon;
             }
@@ -171,47 +151,43 @@ namespace acc
         }
     }
 
-    std::string GetCachedUserIcon()
-    {
-        return "sdmc:/" + consts::Root + "/userdata/" + hos::FormatHex128(selected_user) + ".jpg";
+    std::string GetCachedUserIcon() {
+        auto sd_exp = fs::GetSdCardExplorer();
+        return sd_exp->MakeAbsolute(consts::Root + "/userdata/" + hos::FormatHex128(g_SelectedUser) + ".jpg").AsUTF8();
     }
 
-    bool IsLinked()
-    {
+    bool IsLinked() {
         bool linked = false;
         Service baas;
-        auto rc = GetBaasAccountAdministrator(selected_user, &baas);
-        if(R_SUCCEEDED(rc))
-        {
+        const auto rc = GetBaasAccountAdministrator(g_SelectedUser, &baas);
+        if(R_SUCCEEDED(rc)) {
             BaasAdministrator_IsLinkedWithNintendoAccount(&baas, &linked);
             serviceClose(&baas);
         }
         return linked;
     }
 
-    Result UnlinkLocally()
-    {
+    Result UnlinkLocally() {
         Service baas;
-        auto rc = GetBaasAccountAdministrator(selected_user, &baas);
-        if(R_SUCCEEDED(rc))
-        {
+        auto rc = GetBaasAccountAdministrator(g_SelectedUser, &baas);
+        if(R_SUCCEEDED(rc)) {
             bool linked = false;
             rc = BaasAdministrator_IsLinkedWithNintendoAccount(&baas, &linked);
-            if(R_SUCCEEDED(rc) && linked) rc = BaasAdministrator_DeleteRegistrationInfoLocally(&baas);
+            if(R_SUCCEEDED(rc) && linked) {
+                rc = BaasAdministrator_DeleteRegistrationInfoLocally(&baas);
+            }
             serviceClose(&baas);
         }
         return rc;
     }
 
-    LinkedAccountInfo GetUserLinkedInfo()
-    {
+    LinkedAccountInfo GetUserLinkedInfo() {
         LinkedAccountInfo info = {};
         Service baas;
-        auto rc = GetBaasAccountAdministrator(selected_user, &baas);
-        if(R_SUCCEEDED(rc))
-        {
-            BaasAdministrator_GetAccountId(&baas, &info.AccountId);
-            BaasAdministrator_GetNintendoAccountId(&baas, &info.NintendoAccountId);
+        const auto rc = GetBaasAccountAdministrator(g_SelectedUser, &baas);
+        if(R_SUCCEEDED(rc)) {
+            BaasAdministrator_GetAccountId(&baas, &info.account_id);
+            BaasAdministrator_GetNintendoAccountId(&baas, &info.nintendo_account_id);
             serviceClose(&baas);
         }
         return info;

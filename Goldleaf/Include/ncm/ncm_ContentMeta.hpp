@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,24 +20,23 @@
 */
 
 #pragma once
-#include <cstring>
-#include <Types.hpp>
-#include <ByteBuffer.hpp>
 #include <ncm/ncm_Types.hpp>
+#include <ByteBuffer.hpp>
 
-namespace ncm
-{
-    class ContentMeta
-    {
-        public:
-            ContentMeta();
-            ContentMeta(u8 *Data, size_t Size);
-            ~ContentMeta();
-            ContentMetaHeader GetContentMetaHeader();
-            NcmContentMetaKey GetContentMetaKey();
-            std::vector<ContentRecord> GetContentRecords();
-            void GetInstallContentMeta(ByteBuffer &CNMTBuffer, ContentRecord &CNMTRecord, bool IgnoreVersion);
+namespace ncm {
+
+    class ContentMeta {
         private:
             ByteBuffer buf;
+
+        public:
+            ContentMeta();
+            ContentMeta(const u8 *data, size_t size);
+            ~ContentMeta() {}
+            ContentMetaHeader GetContentMetaHeader();
+            NcmContentMetaKey GetContentMetaKey();
+            std::vector<NcmContentInfo> GetContents();
+            void GetInstallContentMeta(ByteBuffer &cnmt_buf, NcmContentInfo &cnt_info, bool ignore_ver);
     };
+
 }

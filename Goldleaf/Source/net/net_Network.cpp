@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,71 +21,69 @@
 
 #include <net/net_Network.hpp>
 
-namespace net
-{
-    std::size_t CurlStrWrite(const char* in, std::size_t size, std::size_t num, std::string* out)
-    {
-        const size_t totalBytes(size * num);
-        out->append(in, totalBytes);
-        return totalBytes;
-    }
+namespace net {
 
-    std::size_t CurlFileWrite(const char* in, std::size_t size, std::size_t num, FILE* out)
-    {
-        fwrite(in, size, num, out);
-        return (size * num);
-    }
+    namespace {
 
-    std::function<void(double, double)> tmpcb = [](double, double){};
-
-    int CurlProgress(void* ptr, double TotalToDownload, double NowDownloaded, double TotalToUpload, double NowUploaded)
-    {
-        tmpcb(NowDownloaded, TotalToDownload);
-        return 0;
-    }
-
-    std::string RetrieveContent(std::string URL, std::string MIMEType)
-    {
-        socketInitializeDefault();
-        std::string cnt;
-        CURL *curl = curl_easy_init();
-        if(!MIMEType.empty())
-        {
-            curl_slist *headerdata = nullptr;
-            headerdata = curl_slist_append(headerdata, ("Content-Type: " + MIMEType).c_str());
-            headerdata = curl_slist_append(headerdata, ("Accept: " + MIMEType).c_str());
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerdata);
+        std::size_t StringWriteImpl(const char* in, std::size_t size, std::size_t num, std::string *out) {
+            const auto total_size = size * num;
+            out->append(in, total_size);
+            return total_size;
         }
-        curl_easy_setopt(curl, CURLOPT_URL, URL.c_str());
+
+        std::size_t FileWriteImpl(const char* in, std::size_t size, std::size_t num, FILE *out) {
+            fwrite(in, size, num, out);
+            return size * num;
+        }
+
+        std::function<void(double, double)> g_CurrentCallback = [](double, double){};
+
+        int ProgressImpl(void* ptr, double TotalToDownload, double NowDownloaded, double TotalToUpload, double NowUploaded) {
+            g_CurrentCallback(NowDownloaded, TotalToDownload);
+            return 0;
+        }
+
+    }
+
+    std::string RetrieveContent(const std::string &url, const std::string &mime_type) {
+        socketInitializeDefault();
+        std::string content;
+        auto curl = curl_easy_init();
+        if(!mime_type.empty()) {
+            curl_slist *header_data = nullptr;
+            header_data = curl_slist_append(header_data, ("Content-Type: " + mime_type).c_str());
+            header_data = curl_slist_append(header_data, ("Accept: " + mime_type).c_str());
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_data);
+        }
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "Goldleaf");
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlStrWrite);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &cnt);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, StringWriteImpl);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
         curl_easy_perform(curl);
         curl_easy_cleanup(curl);
         socketExit();
-        return cnt;
+        return content;
     }
 
-    void RetrieveToFile(std::string URL, std::string Path, std::function<void(double Done, double Total)> Callback)
+    void RetrieveToFile(const std::string &url, const std::string &path, std::function<void(double Done, double Total)> cb_fn)
     {
         socketInitializeDefault();
-        FILE *f = fopen(Path.c_str(), "wb");
-        if(f)
-        {
-            tmpcb = Callback;
-            CURL *curl = curl_easy_init();
-            curl_easy_setopt(curl, CURLOPT_URL, URL.c_str());
+        auto f = fopen(path.c_str(), "wb");
+        if(f) {
+            g_CurrentCallback = cb_fn;
+            auto curl = curl_easy_init();
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             curl_easy_setopt(curl, CURLOPT_USERAGENT, "Goldleaf");
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlFileWrite);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, FileWriteImpl);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, CurlProgress);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ProgressImpl);
             curl_easy_perform(curl);
             curl_easy_cleanup(curl);
         }
@@ -93,9 +91,8 @@ namespace net
         socketExit();
     }
     
-    bool HasConnection()
-    {
-        u32 id = gethostid();
-        return (id == INADDR_LOOPBACK);
+    bool HasConnection() {
+        return gethostid() == INADDR_LOOPBACK;
     }
+
 }

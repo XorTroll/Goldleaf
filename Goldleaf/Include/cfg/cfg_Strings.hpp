@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,22 +22,23 @@
 #pragma once
 #include <cfg/cfg_Settings.hpp>
 
-namespace cfg
-{
-    struct Strings
-    {
+namespace cfg {
+
+    struct Strings {
         Language language;
         JSON json;
 
         String GetString(u32 idx);
     };
 
-    namespace strings
-    {
+    namespace strings {
+
         extern Strings Main;
         extern Strings Results;
         extern Strings Modules;
+
     }
     
     void LoadStrings();
+
 }

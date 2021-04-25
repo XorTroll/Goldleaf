@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,234 +20,213 @@
 */
 
 #include <fs/fs_StdExplorer.hpp>
-#include <sys/stat.h>
 #include <dirent.h>
-#include <malloc.h>
-#include <fstream>
-#include <algorithm>
-#include <iomanip>
-#include <cctype>
 
-namespace fs
-{
-    StdExplorer::StdExplorer() : r_file_obj(nullptr), w_file_obj(nullptr)
-    {
+namespace fs {
+
+    StdExplorer::StdExplorer() : r_file_obj(nullptr), w_file_obj(nullptr) {
         this->commit_fn = [](){};
     }
 
-    void StdExplorer::SetCommitFunction(std::function<void()> fn)
-    {
+    void StdExplorer::SetCommitFunction(std::function<void()> fn) {
         this->commit_fn = fn;
     }
 
-    std::vector<String> StdExplorer::GetDirectories(String Path)
-    {
+    std::vector<String> StdExplorer::GetDirectories(String path) {
         std::vector<String> dirs;
-        auto path = this->MakeFull(Path);
-        auto dp = opendir(path.AsUTF8().c_str());
-        if(dp)
-        {
-            while(true)
-            {
+        auto full_path = this->MakeFull(path);
+        auto dp = opendir(full_path.AsUTF8().c_str());
+        if(dp) {
+            while(true) {
                 auto dt = readdir(dp);
-                if(dt == nullptr) break;
-                std::string ent = dt->d_name;
-                if(dt->d_type & DT_DIR) dirs.push_back(ent);
+                if(dt == nullptr) {
+                    break;
+                }
+                if(dt->d_type & DT_DIR) {
+                    dirs.push_back(dt->d_name);
+                }
             }
             closedir(dp);
         }
         return dirs;
     }
 
-    std::vector<String> StdExplorer::GetFiles(String Path)
+    std::vector<String> StdExplorer::GetFiles(String path)
     {
         std::vector<String> files;
-        auto path = this->MakeFull(Path);
-        auto dp = opendir(path.AsUTF8().c_str());
-        if(dp)
-        {
-            while(true)
-            {
+        auto full_path = this->MakeFull(path);
+        auto dp = opendir(full_path.AsUTF8().c_str());
+        if(dp) {
+            while(true) {
                 auto dt = readdir(dp);
-                if(dt == nullptr) break;
-                std::string ent = dt->d_name;
-                if(dt->d_type & DT_REG) files.push_back(ent);
+                if(dt == nullptr) {
+                    break;
+                }
+                if(dt->d_type & DT_REG) {
+                    files.push_back(dt->d_name);
+                }
             }
             closedir(dp);
         }
         return files;
     }
 
-    bool StdExplorer::Exists(String Path)
-    {
-        String path = this->MakeFull(Path);
+    bool StdExplorer::Exists(String path) {
+        auto full_path = this->MakeFull(path);
         struct stat st;
-        return (stat(path.AsUTF8().c_str(), &st) == 0);
+        return stat(full_path.AsUTF8().c_str(), &st) == 0;
     }
 
-    bool StdExplorer::IsFile(String Path)
-    {
-        String path = this->MakeFull(Path);
+    bool StdExplorer::IsFile(String path) {
+        auto full_path = this->MakeFull(path);
         struct stat st;
-        return ((stat(path.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFREG));
+        return (stat(full_path.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFREG);
     }
 
-    bool StdExplorer::IsDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
+    bool StdExplorer::IsDirectory(String path) {
+        auto full_path = this->MakeFull(path);
         struct stat st;
-        return ((stat(path.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFDIR));
+        return (stat(full_path.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFDIR);
     }
     
-    void StdExplorer::CreateFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        fsdevCreateFile(path.AsUTF8().c_str(), 0, 0);
+    void StdExplorer::CreateFile(String path) {
+        auto full_path = this->MakeFull(path);
+        fsdevCreateFile(full_path.AsUTF8().c_str(), 0, 0);
         this->commit_fn();
     }
 
-    void StdExplorer::CreateDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        mkdir(path.AsUTF8().c_str(), 777);
+    void StdExplorer::CreateDirectory(String path) {
+        auto full_path = this->MakeFull(path);
+        mkdir(full_path.AsUTF8().c_str(), 777);
         this->commit_fn();
     }
 
-    void StdExplorer::RenameFile(String Path, String NewName)
-    {
-        String path = this->MakeFull(Path);
-        String npath = this->MakeFull(NewName);
-        rename(path.AsUTF8().c_str(), npath.AsUTF8().c_str());
+    void StdExplorer::RenameFile(String path, String NewName) {
+        auto full_path = this->MakeFull(path);
+        auto full_new_path = this->MakeFull(NewName);
+        rename(full_path.AsUTF8().c_str(), full_new_path.AsUTF8().c_str());
         this->commit_fn();
     }
 
-    void StdExplorer::RenameDirectory(String Path, String NewName)
-    {
-        return this->RenameFile(Path, NewName);
+    void StdExplorer::RenameDirectory(String path, String NewName) {
+        return this->RenameFile(path, NewName);
     }
 
-    void StdExplorer::DeleteFile(String Path)
-    {
-        String path = this->MakeFull(Path);
-        remove(path.AsUTF8().c_str());
+    void StdExplorer::DeleteFile(String path) {
+        auto full_path = this->MakeFull(path);
+        remove(full_path.AsUTF8().c_str());
         this->commit_fn();
     }
 
-    void StdExplorer::DeleteDirectory(String Path)
-    {
-        String path = this->MakeFull(Path);
-        fsdevDeleteDirectoryRecursively(path.AsUTF8().c_str());
+    void StdExplorer::DeleteDirectory(String path) {
+        auto full_path = this->MakeFull(path);
+        fsdevDeleteDirectoryRecursively(full_path.AsUTF8().c_str());
         this->commit_fn();
     }
 
-    void StdExplorer::StartFile(String path, FileMode mode)
-    {
-        auto fmode = "rw";
-        switch(mode)
-        {
-            case FileMode::Read:
-                fmode = "rb";
+    void StdExplorer::StartFileImpl(String path, FileMode mode) {
+        auto file_mode = "rw";
+        switch(mode) {
+            case FileMode::Read: {
+                file_mode = "rb";
                 break;
-            case FileMode::Write:
-                fmode = "wb";
+            }
+            case FileMode::Write: {
+                file_mode = "wb";
                 break;
-            case FileMode::Append:
-                fmode = "ab+";
+            }
+            case FileMode::Append: {
+                file_mode = "ab+";
                 break;
-        }
-        this->EndFile(mode);
-        String npath = this->MakeFull(path);
-        if(mode == FileMode::Read) this->r_file_obj = fopen(npath.AsUTF8().c_str(), fmode);
-        else this->w_file_obj = fopen(npath.AsUTF8().c_str(), fmode);
-    }
-
-    u64 StdExplorer::ReadFileBlock(String Path, u64 Offset, u64 Size, void *Out)
-    {
-        u64 rsz = 0;
-
-        if(this->r_file_obj != nullptr)
-        {
-            fseek(this->r_file_obj, Offset, SEEK_SET);
-            rsz = fread(Out, 1, Size, this->r_file_obj);
-            return rsz;
-        }
-
-        String path = this->MakeFull(Path);
-        FILE *f = fopen(path.AsUTF8().c_str(), "rb");
-        if(f)
-        {
-            fseek(f, Offset, SEEK_SET);
-            rsz = fread(Out, 1, Size, f);
-            fclose(f);
-        }
-        return rsz;
-    }
-
-    u64 StdExplorer::WriteFileBlock(String Path, void *Data, u64 Size)
-    {
-        u64 wsz = 0;
-
-        if(this->w_file_obj != nullptr)
-        {
-            wsz = fwrite(Data, 1, Size, this->w_file_obj);
-            return wsz;
-        }
-
-        String path = this->MakeFull(Path);
-
-        FILE *f = fopen(path.AsUTF8().c_str(), "ab+");
-        if(f)
-        {
-            wsz = fwrite(Data, 1, Size, f);
-            fclose(f);
-        }
-        return wsz;
-    }
-
-    void StdExplorer::EndFile(FileMode mode)
-    {
-        if(mode == FileMode::Read)
-        {
-            if(this->r_file_obj != nullptr)
-            {
-                fclose(this->r_file_obj);
-                this->r_file_obj = nullptr;
             }
         }
-        else
-        {
-            if(this->w_file_obj != nullptr)
-            {
-                fclose(this->w_file_obj);
-                this->commit_fn();
-                this->w_file_obj = nullptr;
+
+        auto full_path = this->MakeFull(path);
+        if(mode == FileMode::Read) {
+            this->r_file_obj = fopen(full_path.AsUTF8().c_str(), file_mode);
+        }
+        else {
+            this->w_file_obj = fopen(full_path.AsUTF8().c_str(), file_mode);
+        }
+    }
+
+    void StdExplorer::EndFileImpl(FileMode mode) {
+        switch(mode) {
+            case FileMode::Read: {
+                if(this->r_file_obj != nullptr) {
+                    fclose(this->r_file_obj);
+                    this->r_file_obj = nullptr;
+                }
+                break;
+            }
+            default: {
+                if(this->w_file_obj != nullptr) {
+                    fclose(this->w_file_obj);
+                    this->w_file_obj = nullptr;
+                    this->commit_fn();
+                }
+                break;
             }
         }
     }
 
-    u64 StdExplorer::GetFileSize(String Path)
-    {
-        u64 sz = 0;
-        String path = this->MakeFull(Path);
+    u64 StdExplorer::ReadFile(String path, u64 offset, u64 size, void *read_buf) {
+        if(this->r_file_obj != nullptr) {
+            fseek(this->r_file_obj, offset, SEEK_SET);
+            return fread(read_buf, 1, size, this->r_file_obj);
+        }
+
+        u64 read_size = 0;
+        auto full_path = this->MakeFull(path);
+        auto f = fopen(full_path.AsUTF8().c_str(), "rb");
+        if(f) {
+            fseek(f, offset, SEEK_SET);
+            read_size = fread(read_buf, 1, size, f);
+            fclose(f);
+        }
+        return read_size;
+    }
+
+    u64 StdExplorer::WriteFile(String path, const void *write_buf, u64 size) {
+        if(this->w_file_obj != nullptr) {
+            return fwrite(write_buf, 1, size, this->w_file_obj);
+        }
+
+        u64 write_size = 0;
+        auto full_path = this->MakeFull(path);
+        auto f = fopen(full_path.AsUTF8().c_str(), "ab+");
+        if(f) {
+            write_size = fwrite(write_buf, 1, size, f);
+            fclose(f);
+        }
+        return write_size;
+    }
+
+    u64 StdExplorer::GetFileSize(String path) {
+        u64 file_size = 0;
+        auto full_path = this->MakeFull(path);
+
         struct stat st;
-        if(stat(path.AsUTF8().c_str(), &st) == 0) sz = st.st_size;
-        return sz;
+        if(stat(full_path.AsUTF8().c_str(), &st) == 0) {
+            file_size = st.st_size;
+        }
+        return file_size;
     }
 
-    u64 StdExplorer::GetTotalSpace()
-    {
+    u64 StdExplorer::GetTotalSpace() {
+        // TODO?
         return 0;
     }
 
-    u64 StdExplorer::GetFreeSpace()
-    {
+    u64 StdExplorer::GetFreeSpace() {
+        // TODO?
         return 0;
     }
 
-    void StdExplorer::SetArchiveBit(String Path)
-    {
-        String path = this->MakeFull(Path);
-        fsdevSetConcatenationFileAttribute(path.AsUTF8().c_str());
+    void StdExplorer::SetArchiveBit(String path) {
+        auto full_path = this->MakeFull(path);
+        fsdevSetConcatenationFileAttribute(full_path.AsUTF8().c_str());
         this->commit_fn();
     }
+
 }

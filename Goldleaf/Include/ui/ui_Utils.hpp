@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,15 +22,20 @@
 #pragma once
 #include <Types.hpp>
 
-namespace ui
-{
-    void SetClipboard(String Path);
+namespace ui {
+
+    void SetClipboard(String path);
     void ClearClipboard();
     bool ClipboardEmpty();
-    bool ClipboardNotEmpty();
-    void ShowPowerTasksDialog(String Title, String Message);
-    String AskForText(String Guide = "", String Initial = "", int MaxSize = -1);
+
+    inline bool ClipboardNotEmpty() {
+        return !ClipboardEmpty();
+    }
+
+    void ShowPowerTasksDialog(String title, String msg);
+    String AskForText(String guide_text = "", String initial_text = "", int max_len = -1);
     void HandleResult(Result rc, String context);
 
     ColorScheme GenerateRandomScheme();
+
 }

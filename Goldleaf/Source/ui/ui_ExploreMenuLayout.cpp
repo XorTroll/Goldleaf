@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,200 +22,180 @@
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    ExploreMenuLayout::ExploreMenuLayout() : pu::ui::Layout()
-    {
-        this->mountsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
-        this->mountsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
-        global_settings.ApplyScrollBarColor(this->mountsMenu);
+namespace ui {
+
+    ExploreMenuLayout::ExploreMenuLayout() : pu::ui::Layout() {
+        this->mounts_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->mounts_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        g_Settings.ApplyScrollBarColor(this->mounts_menu);
         this->UpdateMenu();
-        this->Add(this->mountsMenu);
+        this->Add(this->mounts_menu);
     }
 
-    ExploreMenuLayout::~ExploreMenuLayout()
-    {
-        for(auto &exp: this->mountedExplorers)
-        {
-            delete exp;
+    ExploreMenuLayout::~ExploreMenuLayout() {
+        for(auto &mounted_exp: this->mounted_explorers) {
+            delete mounted_exp;
         }
     }
 
-    void ExploreMenuLayout::UpdateMenu()
-    {
-        this->mountsMenu->ClearItems();
-        this->sdCardMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(19));
-        this->sdCardMenuItem->SetIcon(global_settings.PathForResource("/Common/SdCard.png"));
-        this->sdCardMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->sdCardMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::sdCard_Click, this));
-        this->pcDriveMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(279));
-        this->pcDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
-        this->pcDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->pcDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::pcDrive_Click, this));
-        this->usbDriveMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(398));
-        this->usbDriveMenuItem->SetIcon(global_settings.PathForResource("/Common/Drive.png"));
-        this->usbDriveMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->usbDriveMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::usbDrive_Click, this));
-        this->nandProfInfoFMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (PRODINFOF)");
-        this->nandProfInfoFMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
-        this->nandProfInfoFMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->nandProfInfoFMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandProdInfoF_Click, this));
-        this->nandSafeMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (SAFE)");
-        this->nandSafeMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
-        this->nandSafeMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->nandSafeMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandSafe_Click, this));
-        this->nandUserMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (USER)");
-        this->nandUserMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
-        this->nandUserMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->nandUserMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandUser_Click, this));
-        this->nandSystemMenuItem = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (SYSTEM)");
-        this->nandSystemMenuItem->SetIcon(global_settings.PathForResource("/Common/NAND.png"));
-        this->nandSystemMenuItem->SetColor(global_settings.custom_scheme.Text);
-        this->nandSystemMenuItem->AddOnClick(std::bind(&ExploreMenuLayout::nandSystem_Click, this));
-        this->mountsMenu->AddItem(this->sdCardMenuItem);
-        this->mountsMenu->AddItem(this->pcDriveMenuItem);
-        this->mountsMenu->AddItem(this->usbDriveMenuItem);
-        this->mountsMenu->AddItem(this->nandProfInfoFMenuItem);
-        this->mountsMenu->AddItem(this->nandSafeMenuItem);
-        this->mountsMenu->AddItem(this->nandUserMenuItem);
-        this->mountsMenu->AddItem(this->nandSystemMenuItem);
-        for(auto &mount: this->mounts)
-        {
-            this->mountsMenu->AddItem(mount);
+    void ExploreMenuLayout::UpdateMenu() {
+        this->mounts_menu->ClearItems();
+        this->sd_card_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(19));
+        this->sd_card_menu_item->SetIcon(g_Settings.PathForResource("/Common/SdCard.png"));
+        this->sd_card_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->sd_card_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::sdCard_Click, this));
+        this->remote_pc_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(279));
+        this->remote_pc_menu_item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
+        this->remote_pc_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->remote_pc_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::pcDrive_Click, this));
+        this->usb_drive_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(398));
+        this->usb_drive_menu_item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
+        this->usb_drive_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->usb_drive_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::usbDrive_Click, this));
+        this->nand_prodinfof_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (PRODINFOF)");
+        this->nand_prodinfof_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
+        this->nand_prodinfof_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->nand_prodinfof_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::nandProdInfoF_Click, this));
+        this->nand_safe_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (SAFE)");
+        this->nand_safe_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
+        this->nand_safe_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->nand_safe_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::nandSafe_Click, this));
+        this->nand_user_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (USER)");
+        this->nand_user_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
+        this->nand_user_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->nand_user_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::nandUser_Click, this));
+        this->nand_system_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (SYSTEM)");
+        this->nand_system_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
+        this->nand_system_menu_item->SetColor(g_Settings.custom_scheme.Text);
+        this->nand_system_menu_item->AddOnClick(std::bind(&ExploreMenuLayout::nandSystem_Click, this));
+        this->mounts_menu->AddItem(this->sd_card_menu_item);
+        this->mounts_menu->AddItem(this->remote_pc_menu_item);
+        this->mounts_menu->AddItem(this->usb_drive_menu_item);
+        this->mounts_menu->AddItem(this->nand_prodinfof_menu_item);
+        this->mounts_menu->AddItem(this->nand_safe_menu_item);
+        this->mounts_menu->AddItem(this->nand_user_menu_item);
+        this->mounts_menu->AddItem(this->nand_system_menu_item);
+        for(auto &mount: this->mounted_explorer_items) {
+            this->mounts_menu->AddItem(mount);
         }
-        this->mountsMenu->SetSelectedIndex(0);
+        this->mounts_menu->SetSelectedIndex(0);
     }
 
-    void ExploreMenuLayout::sdCard_Click()
-    {
-        global_app->GetBrowserLayout()->ChangePartitionSdCard();
-        global_app->LoadMenuData(cfg::strings::Main.GetString(19), "SdCard", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void ExploreMenuLayout::sdCard_Click() {
+        g_MainApplication->GetBrowserLayout()->ChangePartitionSdCard();
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(19), "SdCard", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::pcDrive_Click()
-    {
-        if(!usb::detail::IsStateOk())
-        {
-            global_app->CreateShowDialog(cfg::strings::Main.GetString(299), cfg::strings::Main.GetString(300), { cfg::strings::Main.GetString(234) }, true);
-            return;
+    void ExploreMenuLayout::pcDrive_Click() {
+        if(usb::detail::IsStateOk()) {
+            g_MainApplication->GetPCExploreLayout()->UpdatePaths();
+            g_MainApplication->LoadLayout(g_MainApplication->GetPCExploreLayout());
         }
-        global_app->GetPCExploreLayout()->UpdatePaths();
-        global_app->LoadLayout(global_app->GetPCExploreLayout());
+        else {
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(299), cfg::strings::Main.GetString(300), { cfg::strings::Main.GetString(234) }, true);
+        }
     }
 
-    void ExploreMenuLayout::usbDrive_Click()
-    {
+    void ExploreMenuLayout::usbDrive_Click() {
         auto drives = drive::ListDrives();
-        std::vector<String> opts;
-        for(auto &drive: drives) opts.push_back(drive.name);
-        opts.push_back(cfg::strings::Main.GetString(18));
-        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(402) + " " + std::to_string(drives.size()), opts, true);
-        if(!drives.empty())
-        {
-            if(sopt < drives.size())
-            {
-                auto &drv = drives[sopt];
-                sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(434), { cfg::strings::Main.GetString(136), cfg::strings::Main.GetString(435), cfg::strings::Main.GetString(18) }, true);
-                if(sopt == 0)
-                {
-                    global_app->GetBrowserLayout()->ChangePartitionDrive(drv);
-                    global_app->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-                    global_app->LoadLayout(global_app->GetBrowserLayout());
+        std::vector<String> options;
+        for(const auto &drive: drives) {
+            options.push_back(drive.name);
+        }
+        options.push_back(cfg::strings::Main.GetString(18));
+        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(402) + " " + std::to_string(drives.size()), options, true);
+        if(!drives.empty()) {
+            if(option_1 < drives.size()) {
+                auto &drive = drives[option_1];
+                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(434), { cfg::strings::Main.GetString(136), cfg::strings::Main.GetString(435), cfg::strings::Main.GetString(18) }, true);
+                if(option_2 == 0) {
+                    g_MainApplication->GetBrowserLayout()->ChangePartitionDrive(drive);
+                    g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+                    g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
                 }
-                else if(sopt == 1)
-                {
-                    if(drive::UnmountDrive(drv))
-                    {
-                        global_app->ShowNotification(cfg::strings::Main.GetString(436));
+                else if(option_2 == 1) {
+                    if(drive::UnmountDrive(drive)) {
+                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(436));
                     }
-                    else
-                    {
-                        global_app->ShowNotification(cfg::strings::Main.GetString(437));
+                    else {
+                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(437));
                     }
                 }
             }
         }
     }
 
-    void ExploreMenuLayout::nandProdInfoF_Click()
-    {
-        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::PRODINFOF);
-        global_app->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void ExploreMenuLayout::nandProdInfoF_Click() {
+        g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::PRODINFOF);
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::nandSafe_Click()
-    {
-        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSafe);
-        global_app->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void ExploreMenuLayout::nandSafe_Click() {
+        g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSafe);
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::nandUser_Click()
-    {
-        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDUser);
-        global_app->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void ExploreMenuLayout::nandUser_Click() {
+        g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDUser);
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::nandSystem_Click()
-    {
-        global_app->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSystem);
-        global_app->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void ExploreMenuLayout::nandSystem_Click() {
+        g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSystem);
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::explorer_Click(fs::Explorer *exp, String name, std::string icon)
-    {
-        global_app->GetBrowserLayout()->ChangePartitionExplorer(exp);
-        global_app->LoadMenuData(name, icon, global_app->GetBrowserLayout()->GetExplorer()->GetPresentableCwd(), false);
-        global_app->LoadLayout(global_app->GetBrowserLayout());
+    void ExploreMenuLayout::explorer_Click(fs::Explorer *exp, String name, const std::string &icon) {
+        g_MainApplication->GetBrowserLayout()->ChangePartitionExplorer(exp);
+        g_MainApplication->LoadMenuData(name, icon, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd(), false);
+        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::explorer_Click_X(fs::Explorer *exp)
-    {
-        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(404), cfg::strings::Main.GetString(405), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-        if(sopt == 0)
-        {
-            u32 idx = 0;
-            bool found = false;
-            for(auto &mounted: this->mountedExplorers)
-            {
-                if(exp == mounted)
-                {
+    void ExploreMenuLayout::explorer_Click_X(fs::Explorer *exp) {
+        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(404), cfg::strings::Main.GetString(405), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        if(option == 0) {
+            u32 mounted_exp_idx = 0;
+            auto found = false;
+            for(auto &mounted: this->mounted_explorers) {
+                if(exp == mounted) {
                     found = true;
                     break;
                 }
-                idx++;
+                mounted_exp_idx++;
             }
-            if(found)
-            {
+            if(found) {
                 delete exp;
-                this->mountedExplorers.erase(this->mountedExplorers.begin() + idx);
-                this->mounts.erase(this->mounts.begin() + idx);
+                this->mounted_explorers.erase(this->mounted_explorers.begin() + mounted_exp_idx);
+                this->mounted_explorer_items.erase(this->mounted_explorer_items.begin() + mounted_exp_idx);
                 this->UpdateMenu();
-                global_app->ShowNotification(cfg::strings::Main.GetString(406));
+                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(406));
+            }
+            else {
+                // TODO
             }
         }
     }
 
-    void ExploreMenuLayout::AddMountedExplorer(fs::Explorer *exp, String name, std::string icon)
-    {
-        auto itm = pu::ui::elm::MenuItem::New(name);
-        itm->SetIcon(icon);
-        itm->SetColor(global_settings.custom_scheme.Text);
-        itm->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click, this, exp, name, icon));
-        itm->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click_X, this, exp), KEY_X);
-        this->mounts.push_back(itm);
-        this->mountedExplorers.push_back(exp);
+    void ExploreMenuLayout::AddMountedExplorer(fs::Explorer *exp, String name, const std::string &icon) {
+        auto mounted_exp_item = pu::ui::elm::MenuItem::New(name);
+        mounted_exp_item->SetIcon(icon);
+        mounted_exp_item->SetColor(g_Settings.custom_scheme.Text);
+        mounted_exp_item->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click, this, exp, name, icon));
+        mounted_exp_item->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click_X, this, exp), KEY_X);
+        this->mounted_explorer_items.push_back(mounted_exp_item);
+        this->mounted_explorers.push_back(exp);
     }
 
-    std::vector<fs::Explorer*> &ExploreMenuLayout::GetMountedExplorers()
-    {
-        return this->mountedExplorers;
+    std::vector<fs::Explorer*> &ExploreMenuLayout::GetMountedExplorers() {
+        return this->mounted_explorers;
     }
+
 }

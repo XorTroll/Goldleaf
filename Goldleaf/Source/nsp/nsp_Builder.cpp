@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,69 +21,58 @@
 
 #include <nsp/nsp_Builder.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <sys/stat.h>
-#include <dirent.h>
 
-namespace nsp
-{
-    bool GenerateFrom(String Input, String Out, std::function<void(u64, u64)> Callback)
-    {
-        auto exp = fs::GetExplorerForPath(Input);
-        auto files = exp->GetFiles(Input);
-        PFS0Header header = {};
-        header.FileCount = (u32)files.size();
-        header.Magic = Magic;
-        u8 *strtable = fs::GetWorkBuffer();
-        size_t strtablesize = 0;
-        std::vector<PFS0File> fentries;
+namespace nsp {
+
+    bool GenerateFrom(String input_path, String output_nsp, std::function<void(u64, u64)> cb_fn) {
+        auto exp = fs::GetExplorerForPath(input_path);
+        auto files = exp->GetFiles(input_path);
+        PFS0Header header = {
+            .magic = Magic,
+            .file_count = static_cast<u32>(files.size()),
+        };
+        auto string_table = reinterpret_cast<char*>(fs::GetWorkBuffer());
+        size_t string_table_size = 0;
+        std::vector<PFS0File> file_entries;
         size_t base_offset = 0;
-        for(auto &file: files)
-        {
+        for(auto &file: files) {
             PFS0File entry = {};
-            entry.Entry.Offset = base_offset;
-            entry.Entry.StringTableOffset = strtablesize;
-            auto fsize = exp->GetFileSize(Input + "/" + file);
-            entry.Entry.Size = fsize;
-            entry.Name = file;
-            base_offset += fsize;
-            strcpy((char*)&strtable[strtablesize], file.AsUTF8().c_str());
-            strtablesize += file.length() + 1; // NUL terminated!
-            fentries.push_back(entry);
+            entry.entry.offset = base_offset;
+            entry.entry.string_table_offset = string_table_size;
+            const auto file_size = exp->GetFileSize(input_path + "/" + file);
+            entry.entry.size = file_size;
+            entry.name = file;
+            base_offset += file_size;
+            strcpy(&string_table[string_table_size], file.AsUTF8().c_str());
+            string_table_size += file.length() + 1; // NUL terminated!
+            file_entries.push_back(entry);
         }
-        strtablesize = (strtablesize + 0x1f) &~ 0x1f;
-        header.StringTableSize = strtablesize;
-        auto outexp = fs::GetExplorerForPath(Out);
-        outexp->StartFile(Out, fs::FileMode::Write);
-        outexp->WriteFileBlock(Out, &header, sizeof(header));
-        for(auto &entry: fentries)
-        {
-            outexp->WriteFileBlock(Out, &entry.Entry, sizeof(entry.Entry));
+        string_table_size = (string_table_size + 0x1F) &~ 0x1F;
+        header.string_table_size = string_table_size;
+        auto out_exp = fs::GetExplorerForPath(output_nsp);
+        out_exp->StartFile(output_nsp, fs::FileMode::Write);
+        out_exp->WriteFile(output_nsp, &header, sizeof(header));
+        for(const auto &entry: file_entries) {
+            out_exp->WriteFile(output_nsp, &entry.entry, sizeof(entry.entry));
         }
-        outexp->WriteFileBlock(Out, strtable, strtablesize);
-        size_t done = 0;
-        for(auto &entry: fentries)
-        {
-            size_t toread = entry.Entry.Size;
-            u8 *buf = fs::GetWorkBuffer();
-            size_t readsz = fs::WorkBufferSize;
-            size_t fdone = 0;
-            auto fentry = Input + "/" + entry.Name;
-            exp->StartFile(fentry, fs::FileMode::Read);
-            while(toread)
-            {
-                auto read = exp->ReadFileBlock(fentry, fdone, std::min(toread, readsz), buf);
-                outexp->WriteFileBlock(Out, buf, read);
-                fdone += read;
-                done += read;
-                toread -= read;
-                Callback(done, base_offset);
+        out_exp->WriteFile(output_nsp, string_table, string_table_size);
+        for(const auto &entry: file_entries) {
+            auto to_read = entry.entry.size;
+            auto buf = fs::GetWorkBuffer();
+            size_t off = 0;
+            const auto entry_path = input_path + "/" + entry.name;
+            exp->StartFile(entry_path, fs::FileMode::Read);
+            while(to_read) {
+                auto read = exp->ReadFile(entry_path, off, std::min(to_read, fs::WorkBufferSize), buf);
+                out_exp->WriteFile(output_nsp, buf, read);
+                off += read;
+                to_read -= read;
+                cb_fn(off, base_offset);
             }
-            exp->EndFile(fs::FileMode::Read);
+            exp->EndFile();
         }
-        outexp->EndFile(fs::FileMode::Write);
+        out_exp->EndFile();
         return true;
     }
+
 }

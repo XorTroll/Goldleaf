@@ -12,7 +12,7 @@
 
 #include <switch.h>
 
-extern FsStorage g_ff_bis_storage;
+extern FsStorage g_FatFsDumpBisStorage;
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -51,8 +51,9 @@ DRESULT disk_read (
     UINT count		/* Number of sectors to read */
 )
 {
-    if (R_SUCCEEDED(fsStorageRead(&g_ff_bis_storage, FF_MAX_SS * sector, buff, FF_MAX_SS * count)))
+    if(R_SUCCEEDED(fsStorageRead(&g_FatFsDumpBisStorage, FF_MAX_SS * sector, buff, FF_MAX_SS * count))) {
         return RES_OK;
+    }
     return RES_ERROR;
 }
 

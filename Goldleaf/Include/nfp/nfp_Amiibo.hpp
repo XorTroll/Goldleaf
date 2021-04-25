@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,19 +21,16 @@
 
 #pragma once
 #include <Types.hpp>
-#include <fs/fs_FileSystem.hpp>
 
-namespace nfp
-{
-    struct CharacterId
-    {
+namespace nfp {
+
+    struct CharacterId {
         u16 game_character_id;
         u8 character_variant;
     } PACKED;
     static_assert(sizeof(CharacterId) == 3);
 
-    struct AmiiboId
-    {
+    struct AmiiboId {
         CharacterId character_id;
         u8 series;
         u16 model_number;
@@ -48,7 +45,8 @@ namespace nfp
     NfpRegisterInfo GetRegisterInfo();
     NfpCommonInfo GetCommonInfo();
     NfpModelInfo GetModelInfo();
-    Result DumpToEmuiibo(NfpTagInfo &tag, NfpRegisterInfo &reg, NfpCommonInfo &common, NfpModelInfo &model);
+    void DumpToEmuiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model);
     void Close();
     void Exit();
+
 }

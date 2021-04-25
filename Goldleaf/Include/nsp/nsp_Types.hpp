@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,29 +22,29 @@
 #pragma once
 #include <Types.hpp>
 
-namespace nsp
-{
-    struct PFS0Header
-    {
-        u32 Magic;
-        u32 FileCount;
-        u32 StringTableSize;
-        u32 Reserved;
-    } PACKED;
+namespace nsp {
 
-    struct PFS0FileEntry
-    {
-        u64 Offset;
-        u64 Size;
-        u32 StringTableOffset;
-        u32 Pad;
-    } PACKED;
+    struct PFS0Header {
+        u32 magic;
+        u32 file_count;
+        u32 string_table_size;
+        u32 reserved;
+    };
+    static_assert(sizeof(PFS0Header) == 0x10);
 
-    struct PFS0File
-    {
-        PFS0FileEntry Entry;
-        String Name;
+    struct PFS0FileEntry {
+        u64 offset;
+        u64 size;
+        u32 string_table_offset;
+        u32 pad;
+    };
+    static_assert(sizeof(PFS0FileEntry) == 0x18);
+
+    struct PFS0File {
+        PFS0FileEntry entry;
+        String name;
     };
 
-    static constexpr u32 Magic = 0x30534650;
+    constexpr u32 Magic = 0x30534650;
+
 }

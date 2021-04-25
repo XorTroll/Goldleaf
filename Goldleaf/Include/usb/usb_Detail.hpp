@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,16 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+    (Based on libnx's usb_comms.h)
+
 */
 
-// Based on libnx's usb_comms.h
-
 #pragma once
-#include <switch.h>
+#include <Types.hpp>
 
-namespace usb::detail
-{
-    static constexpr size_t TotalInterfaces = 4;
+namespace usb::detail {
+
+    constexpr size_t TotalInterfaces = 4;
 
     Result Initialize(void);
     void Exit(void);
@@ -34,5 +34,6 @@ namespace usb::detail
     bool IsStateOk();
 
     Result Read(void *buf, size_t size);
-    Result Write(void *buf, size_t size);
+    Result Write(const void *buf, size_t size);
+
 }

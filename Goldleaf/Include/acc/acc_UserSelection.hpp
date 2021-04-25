@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,30 +20,27 @@
 */
 
 #pragma once
-#include <switch.h>
-#include <functional>
 #include <Types.hpp>
 
-namespace acc
-{
-    struct LinkedAccountInfo
-    {
-        u64 AccountId;
-        u64 NintendoAccountId;  
+namespace acc {
+
+    struct LinkedAccountInfo {
+        u64 account_id;
+        u64 nintendo_account_id;  
     };
 
-    NX_CONSTEXPR bool UidCompare(AccountUid *a, AccountUid *b)
-    {
-        return memcmp(a->uid, b->uid, sizeof(AccountUid)) == 0;
+    NX_CONSTEXPR bool UidCompare(AccountUid *user_id_a, AccountUid *user_id_b) {
+        return memcmp(user_id_a->uid, user_id_b->uid, sizeof(AccountUid)) == 0;
     }
 
+    u32 GetUserCount();
     AccountUid GetSelectedUser();
-    bool HasUser();
-    void SetSelectedUser(AccountUid uid);
+    bool HasSelectedUser();
+    void SetSelectedUser(AccountUid user_id);
     void ResetSelectedUser();
     bool SelectFromPreselectedUser();
     bool SelectUser();
-    AccountUid LaunchPlayerSelect();
+    Result ReadSelectedUser(AccountProfileBase *out_prof_base, AccountUserData *out_user_data);
     Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb);
     Result EditUserIcon(u8 *jpg, size_t size);
     void CacheSelectedUserIcon();
@@ -51,4 +48,5 @@ namespace acc
     bool IsLinked();
     Result UnlinkLocally();
     LinkedAccountInfo GetUserLinkedInfo();
+
 }

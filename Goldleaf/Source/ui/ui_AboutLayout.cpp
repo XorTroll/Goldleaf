@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@
 #include <ui/ui_AboutLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    AboutLayout::AboutLayout()
-    {
-        this->logoImage = pu::ui::elm::Image::New(85, 150, global_settings.PathForResource("/Logo.png"));
-        this->Add(this->logoImage);
+namespace ui {
+
+    AboutLayout::AboutLayout() {
+        this->logo_img = pu::ui::elm::Image::New(85, 150, g_Settings.PathForResource("/Logo.png"));
+        this->Add(this->logo_img);
     }
+
 }

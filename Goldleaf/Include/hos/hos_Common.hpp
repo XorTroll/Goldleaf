@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,33 +20,26 @@
 */
 
 #pragma once
-#include <switch.h>
-#include <string>
-#include <ctime>
-#include <functional>
-#include <cstdio>
-#include <sstream>
 #include <Types.hpp>
 
-namespace hos
-{
+namespace hos {
+
     u32 GetBatteryLevel();
     bool IsCharging();
 
     std::string GetCurrentTime();
     
     template<typename N>
-    inline std::string FormatHex(N Number)
-    {
+    inline std::string FormatHex(N num) {
         std::stringstream strm;
-        strm << "0x" << std::hex << std::uppercase << Number;
+        strm << "0x" << std::hex << std::uppercase << num;
         return strm.str();
     }
 
-    std::string FormatHex128(AccountUid Number);
-    std::string DoubleToString(double Number);
+    std::string FormatHex128(AccountUid user_id);
+    std::string DoubleToString(double dbl);
     std::string FormatResult(Result rc);
-    std::string FormatTime(u64 Seconds);
+    std::string FormatTime(u64 secs);
 
     void LockAutoSleep();
     void UnlockAutoSleep();
@@ -55,13 +48,12 @@ namespace hos
 
     Result PerformShutdown(bool do_reboot);
 
-    inline Result PowerOff()
-    {
+    inline Result PowerOff() {
         return PerformShutdown(false);
     }
     
-    inline Result Reboot()
-    {
+    inline Result Reboot() {
         return PerformShutdown(true);
     }
+
 }

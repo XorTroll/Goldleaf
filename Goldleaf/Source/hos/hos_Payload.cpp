@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,33 +24,29 @@
 #include <fs/fs_FileSystem.hpp>
 #include <bpcams/bpcams_Service.hpp>
 
-namespace hos
-{
-    bool RebootWithPayload(String path)
-    {
-        auto exp = fs::GetExplorerForPath(path);
-        if(exp != nullptr)
-        {
-            auto payload_size = exp->GetFileSize(path);
-            if(payload_size > 0)
-            {
-                auto payload_buf = new u8[payload_size]();
-                exp->ReadFileBlock(path, 0, payload_size, payload_buf);
+namespace hos {
 
-                auto rc = bpcams::Initialize();
-                if(R_SUCCEEDED(rc))
-                {
-                    rc = bpcams::SetRebootPayload(payload_buf, payload_size);
+    bool RebootWithPayload(String path) {
+        auto exp = fs::GetExplorerForPath(path);
+        if(exp != nullptr) {
+            const auto payload_size = exp->GetFileSize(path);
+            if(payload_size > 0) {
+                auto payload_buf = new u8[payload_size]();
+                exp->ReadFile(path, 0, payload_size, payload_buf);
+
+                if(R_SUCCEEDED(bpcams::Initialize())) {
+                    const auto rc = bpcams::SetRebootPayload(payload_buf, payload_size);
                     bpcams::Exit();
                     delete[] payload_buf;
-                    if(R_SUCCEEDED(rc))
-                    {
-                        rc = Reboot();
-                        if(R_SUCCEEDED(rc)) return true;
+                    if(R_SUCCEEDED(rc)) {
+                        if(R_SUCCEEDED(Reboot())) {
+                            return true;
+                        }
                     }
                 }
             }
         }
         return false;
     }
+
 }

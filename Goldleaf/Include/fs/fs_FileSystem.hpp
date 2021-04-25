@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,15 +27,26 @@
 #include <fs/fs_DriveExplorer.hpp>
 #include <fs/fs_RemotePCExplorer.hpp>
 
-namespace fs
-{
+namespace fs {
+
     SdCardExplorer *GetSdCardExplorer();
+    RomFsExplorer *GetRomFsExplorer(); 
     NANDExplorer *GetPRODINFOFExplorer();
     NANDExplorer *GetNANDSafeExplorer();
     NANDExplorer *GetNANDUserExplorer();
     NANDExplorer *GetNANDSystemExplorer();
-    RemotePCExplorer *GetRemotePCExplorer(String MountName);
+    RemotePCExplorer *GetRemotePCExplorer(String mount_name);
     DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive);
-    Explorer *GetExplorerForMountName(String MountName);
-    Explorer *GetExplorerForPath(String Path);
+    Explorer *GetExplorerForMountName(String mount_name);
+    Explorer *GetExplorerForPath(String path);
+
+    inline void Initialize() {
+        GetSdCardExplorer();
+        GetRomFsExplorer(); 
+        GetPRODINFOFExplorer();
+        GetNANDSafeExplorer();
+        GetNANDUserExplorer();
+        GetNANDSystemExplorer();
+    }
+
 }

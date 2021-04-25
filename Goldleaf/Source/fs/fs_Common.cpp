@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,101 +20,113 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
-#include <sstream>
 
-namespace fs
-{
-    static u8 *work_buf = nullptr;
+namespace fs {
 
-    void CreateConcatenationFile(String Path)
-    {
-        fsdevCreateFile(Path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
+    namespace {
+
+        const char *g_SizeSuffixes[] = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
+        u8 *g_WorkBuffer = nullptr;
+
     }
 
-    void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback)
-    {
-        auto gexp = GetExplorerForPath(Path);
-        auto ogexp = GetExplorerForPath(NewPath);
-        auto fsize = gexp->GetFileSize(Path);
-        if((fsize >= Size4GB) && (ogexp == GetSdCardExplorer())) CreateConcatenationFile(NewPath);
-        gexp->CopyFileProgress(Path, NewPath, Callback);
+    void CreateConcatenationFile(String path) {
+        fsdevCreateFile(path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
     }
 
-    void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback)
-    {
-        auto gexp = GetExplorerForPath(Dir);
-        gexp->CopyDirectoryProgress(Dir, NewDir, Callback);
-    }
-
-    u64 GetTotalSpaceForPartition(Partition Partition)
-    {
-        u64 space = 0;
-        fs::Explorer *fexp = nullptr;
-        switch(Partition)
-        {
-            case Partition::PRODINFOF:
-                fexp = fs::GetPRODINFOFExplorer();
-                break;
-            case Partition::NANDSafe:
-                fexp = fs::GetNANDSafeExplorer();
-                break;
-            case Partition::NANDSystem:
-                fexp = fs::GetNANDSystemExplorer();
-                break;
-            case Partition::NANDUser:
-                fexp = fs::GetNANDUserExplorer();
-                break;
-            case Partition::SdCard:
-                fexp = fs::GetSdCardExplorer();
-                break;
+    void CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn) {
+        auto exp = GetExplorerForPath(path);
+        auto new_exp = GetExplorerForPath(new_path);
+        const auto file_size = exp->GetFileSize(path);
+        if((file_size >= Size4GB) && (new_exp == GetSdCardExplorer())) {
+            CreateConcatenationFile(new_path);
         }
-        if(fexp != nullptr) space = fexp->GetTotalSpace();
-        return space;
+        exp->CopyFileProgress(path, new_path, cb_fn);
     }
 
-    u64 GetFreeSpaceForPartition(Partition Partition)
-    {
-        u64 space = 0;
-        fs::Explorer *fexp = nullptr;
-        switch(Partition)
-        {
-            case Partition::PRODINFOF:
-                fexp = fs::GetPRODINFOFExplorer();
+    void CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn) {
+        auto exp = GetExplorerForPath(dir);
+        exp->CopyDirectoryProgress(dir, new_dir, cb_fn);
+    }
+
+    u64 GetTotalSpaceForPartition(Partition partition) {
+        fs::Explorer *exp = nullptr;
+        switch(partition) {
+            case Partition::PRODINFOF: {
+                exp = fs::GetPRODINFOFExplorer();
                 break;
-            case Partition::NANDSafe:
-                fexp = fs::GetNANDSafeExplorer();
+            }
+            case Partition::NANDSafe: {
+                exp = fs::GetNANDSafeExplorer();
                 break;
-            case Partition::NANDSystem:
-                fexp = fs::GetNANDSystemExplorer();
+            }
+            case Partition::NANDSystem: {
+                exp = fs::GetNANDSystemExplorer();
                 break;
-            case Partition::NANDUser:
-                fexp = fs::GetNANDUserExplorer();
+            }
+            case Partition::NANDUser: {
+                exp = fs::GetNANDUserExplorer();
                 break;
-            case Partition::SdCard:
-                fexp = fs::GetSdCardExplorer();
+            }
+            case Partition::SdCard: {
+                exp = fs::GetSdCardExplorer();
                 break;
+            }
         }
-        if(fexp != nullptr) space = fexp->GetFreeSpace();
-        return space;
+        if(exp != nullptr) {
+            return exp->GetTotalSpace();
+        }
+        return 0;
     }
 
-    static const char *SizeSuffixes[] = { " bytes", " KB", " MB", " GB", " TB", " PB", " EB" };
+    u64 GetFreeSpaceForPartition(Partition partition) {
+        fs::Explorer *exp = nullptr;
+        switch(partition) {
+            case Partition::PRODINFOF: {
+                exp = fs::GetPRODINFOFExplorer();
+                break;
+            }
+            case Partition::NANDSafe: {
+                exp = fs::GetNANDSafeExplorer();
+                break;
+            }
+            case Partition::NANDSystem: {
+                exp = fs::GetNANDSystemExplorer();
+                break;
+            }
+            case Partition::NANDUser: {
+                exp = fs::GetNANDUserExplorer();
+                break;
+            }
+            case Partition::SdCard: {
+                exp = fs::GetSdCardExplorer();
+                break;
+            }
+        }
+        if(exp != nullptr) {
+            return exp->GetFreeSpace();
+        }
+        return 0;
+    }
 
-    String FormatSize(u64 Bytes)
-    {
-        if(Bytes == 0) return String("0") + SizeSuffixes[0];
-        u32 plc = floor((log(Bytes) / log(1024)));
-        double btnum = (double)(Bytes / pow(1024, plc));
-        double rbt = ((int)(btnum * 100.0) / 100.0);
+    String FormatSize(u64 bytes) {
+        if(bytes == 0) {
+            return String("0") + " " + g_SizeSuffixes[0];
+        }
+        const auto plc = static_cast<u32>(floor(log(bytes) / log(1024)));
+        const auto byte_num = (double)(bytes / pow(1024, plc));
+        const double rbt = ((int)(byte_num * 100.0) / 100.0);
         std::stringstream strm;
         strm << rbt;
-        return (strm.str() + SizeSuffixes[plc]);
+        return strm.str() + " " + g_SizeSuffixes[plc];
     }
 
-    u8 *GetWorkBuffer()
-    {
-        if(work_buf == nullptr) work_buf = new (std::align_val_t(0x1000)) u8[WorkBufferSize]();
-        memset(work_buf, 0, WorkBufferSize);
-        return work_buf;
+    u8 *GetWorkBuffer() {
+        if(g_WorkBuffer == nullptr) {
+            g_WorkBuffer = new (std::align_val_t(0x1000)) u8[WorkBufferSize]();
+        }
+        memset(g_WorkBuffer, 0, WorkBufferSize);
+        return g_WorkBuffer;
     }
+
 }

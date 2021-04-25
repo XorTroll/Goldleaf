@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,62 +22,70 @@
 #include <ui/ui_FileContentLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    FileContentLayout::FileContentLayout()
-    {
-        this->cntText = pu::ui::elm::TextBlock::New(40, 180, "");
-        this->cntText->SetColor(global_settings.custom_scheme.Text);
-        this->cntText->SetFont("FileContentFont");
-        this->Add(this->cntText);
-        this->loffset = 0;
+namespace ui {
+
+    namespace {
+
+        constexpr u32 ReadLineCount = 19;
+
     }
 
-    void FileContentLayout::LoadFile(String PPath, String Path, fs::Explorer *Exp, bool Hex)
-    {
-        this->pth = Path;
-        this->mode = Hex;
-        this->gexp = Exp;
-        this->loffset = 0;
-        this->Update();
+    FileContentLayout::FileContentLayout() {
+        this->cnt_text = pu::ui::elm::TextBlock::New(40, 180, "");
+        this->cnt_text->SetColor(g_Settings.custom_scheme.Text);
+        this->cnt_text->SetFont("FileContentFont");
+        this->Add(this->cnt_text);
+        this->line_offset = 0;
     }
 
-    void FileContentLayout::Update()
-    {
-        std::vector<String> lines;
-        if(this->mode) lines = this->gexp->ReadFileFormatHex(this->pth, this->loffset, 19);
-        else lines = this->gexp->ReadFileLines(this->pth, this->loffset, 19);
-        if(lines.empty())
-        {
-            this->loffset--;
-            return;
+    void FileContentLayout::LoadFile(String path, fs::Explorer *exp, bool read_hex) {
+        this->path = path;
+        this->read_hex = read_hex;
+        this->file_exp = exp;
+        this->line_offset = 0;
+        this->read_lines.clear();
+        this->Update(false);
+    }
+
+    void FileContentLayout::Update(bool insert_new_top) {
+        // TODO: fix this
+        std::vector<String> new_lines;
+        const auto read_line_count = ReadLineCount - this->read_lines.size();
+        if(this->read_hex) {
+            new_lines = this->file_exp->ReadFileFormatHex(this->path, this->line_offset + this->read_lines.size(), read_line_count);
         }
-        this->rlines = lines.size();
-        String alines;
-        for(u32 i = 0; i < this->rlines; i++)
-        {
-            if(i > 0) alines += "\n";
-            alines += lines[i];
+        else {
+            new_lines = this->file_exp->ReadFileLines(this->path, this->line_offset + this->read_lines.size(), read_line_count);
         }
-        this->cntText->SetText(alines);
-        lines.clear();
+        if(insert_new_top) {
+            this->read_lines.insert(this->read_lines.begin(), new_lines.begin(), new_lines.end());
+        }
+        else {
+            this->read_lines.insert(this->read_lines.end(), new_lines.begin(), new_lines.end());
+        }
+
+        String new_cnt;
+        for(auto &line: this->read_lines) {
+            new_cnt += line + "\n";
+        }
+        this->cnt_text->SetText(new_cnt);
     }
 
-    void FileContentLayout::ScrollUp()
-    {
-        if(this->loffset > 0)
-        {
-            this->loffset--;
-            this->Update();
+    void FileContentLayout::ScrollUp() {
+        if(this->line_offset > 0) {
+            this->line_offset--;
+            this->read_lines.pop_back();
+            this->Update(true);
         }
     }
 
-    void FileContentLayout::ScrollDown()
-    {
-        this->loffset++;
-        this->Update();
+    void FileContentLayout::ScrollDown() {
+        this->line_offset++;
+        this->read_lines.erase(this->read_lines.begin());
+        this->Update(false);
     }
+
 }

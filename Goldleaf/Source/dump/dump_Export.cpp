@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,139 +23,124 @@
 #include <hos/hos_Titles.hpp>
 #include <fatfs/fatfs.hpp>
 #include <es/es_Service.hpp>
-#include <sstream>
-#include <iomanip>
 
-FsStorage g_ff_bis_storage;
+FsStorage g_FatFsDumpBisStorage;
 
-namespace dump
-{
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *ncst, NcmContentId NCAId, String Path, std::function<void(double Done, double Total)> Callback)
-    {
-        s64 ncasize = 0;
-        ncmContentStorageGetSizeFromContentId(ncst, &ncasize, &NCAId);
-        u64 szrem = ncasize;
-        FILE *f = fopen(Path.AsUTF8().c_str(), "wb");
-        if(f)
-        {
-            s64 off = 0;
-            u64 rmax = fs::WorkBufferSize;
-            u8 *data = fs::GetWorkBuffer();
-            while(szrem)
-            {
-                u64 rsize = std::min(rmax, szrem);
-                if(ncmContentStorageReadContentIdFile(ncst, data, rsize, &NCAId, off) != 0) break;
-                fwrite(data, 1, rsize, f);
-                szrem -= rsize;
-                off += rsize;
-                Callback((double)off, (double)ncasize);
+namespace dump {
+
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, NcmContentId cnt_id, String path, std::function<void(double Done, double Total)> cb_fn) {
+        s64 cnt_size = 0;
+        ncmContentStorageGetSizeFromContentId(cnt_storage, &cnt_size, &cnt_id);
+        auto rem_size = static_cast<u64>(cnt_size);
+        auto exp = fs::GetExplorerForPath(path);
+
+        auto data_buf = fs::GetWorkBuffer();
+        s64 off = 0;
+        exp->StartFile(path, fs::FileMode::Write);
+        while(rem_size) {
+            const auto read_size = std::min(fs::WorkBufferSize, rem_size);
+            if(R_FAILED(ncmContentStorageReadContentIdFile(cnt_storage, data_buf, read_size, &cnt_id, off))) {
+                break;
             }
-            fclose(f);
+            exp->WriteFile(path, data_buf, read_size);
+            rem_size -= read_size;
+            off += read_size;
+            cb_fn((double)off, (double)cnt_size);
         }
+        exp->EndFile();
     }
 
-    bool GetMetaRecord(NcmContentMetaDatabase *metadb, u64 ApplicationId, NcmContentMetaKey *out)
-    {
-        NcmContentMetaKey *metas = new NcmContentMetaKey[hos::MaxTitleCount]();
+    bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, u64 app_id, NcmContentMetaKey *out) {
+        auto meta_key_array = new NcmContentMetaKey[hos::MaxTitleCount]();
         s32 total = 0;
         s32 written = 0;
-        bool got = false;
-        Result rc = ncmContentMetaDatabaseList(metadb, &total, &written, metas, hos::MaxTitleCount, NcmContentMetaType_Unknown, ApplicationId, 0, UINT64_MAX, NcmContentInstallType_Full);
-        if(R_SUCCEEDED(rc) && (written > 0)) 
-        {
-            for(s32 i = 0; i < written; i++)
-            {
-                if(metas[i].id == ApplicationId)
-                {
-                    *out = metas[i];
+        auto got = false;
+        auto rc = ncmContentMetaDatabaseList(cnt_meta_db, &total, &written, meta_key_array, hos::MaxTitleCount, NcmContentMetaType_Unknown, app_id, 0, UINT64_MAX, NcmContentInstallType_Full);
+        if(R_SUCCEEDED(rc) && (written > 0)) {
+            for(s32 i = 0; i < written; i++) {
+                if(meta_key_array[i].id == app_id) {
+                    *out = meta_key_array[i];
                     got = true;
                     break;
                 }
             }
         }
-        delete[] metas;
+        delete[] meta_key_array;
         return got;
     }
 
-    NcmStorageId GetApplicationLocation(u64 ApplicationId)
-    {
-        NcmStorageId stid = NcmStorageId_None;
-        NcmContentMetaDatabase cmdb;
-        ncmOpenContentMetaDatabase(&cmdb, NcmStorageId_SdCard);
-        NcmContentMetaKey rec;
-        bool ok = GetMetaRecord(&cmdb, ApplicationId, &rec);
-        if(ok) stid = NcmStorageId_SdCard;
-        else
-        {
-            serviceClose(&cmdb.s);
-            ncmOpenContentMetaDatabase(&cmdb, NcmStorageId_BuiltInUser);
-            NcmContentMetaKey rec;
-            bool ok = GetMetaRecord(&cmdb, ApplicationId, &rec);
-            if(ok) stid = NcmStorageId_BuiltInUser;
+    NcmStorageId GetApplicationLocation(u64 app_id) {
+        NcmContentMetaDatabase cnt_meta_db;
+        if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, NcmStorageId_SdCard))) {
+            NcmContentMetaKey temp_meta_key;
+            if(GetMetaRecord(&cnt_meta_db, app_id, &temp_meta_key)) {
+                return NcmStorageId_SdCard;
+            }
+            else {
+                ncmContentMetaDatabaseClose(&cnt_meta_db);
+                if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, NcmStorageId_BuiltInUser))) {
+                    if(GetMetaRecord(&cnt_meta_db, app_id, &temp_meta_key)) {
+                        return NcmStorageId_BuiltInUser;
+                    }
+                }
+            }
+            ncmContentMetaDatabaseClose(&cnt_meta_db);
         }
-        serviceClose(&cmdb.s);
-        return stid;
+        return NcmStorageId_None;
     }
 
-    void GenerateTicketCert(u64 ApplicationId)
-    {
-        auto rc = fsOpenBisStorage(&g_ff_bis_storage, FsBisPartitionId_System);
-        if(R_SUCCEEDED(rc))
-        {
+    void GenerateTicketCert(u64 app_id) {
+        if(R_SUCCEEDED(fsOpenBisStorage(&g_FatFsDumpBisStorage, FsBisPartitionId_System))) {
             auto exp = fs::GetSdCardExplorer();
             FATFS fs;
-            FIL save;
             f_mount(&fs, "0", 1);
-            f_open(&save, "0:save/80000000000000e1", (FA_READ | FA_OPEN_EXISTING));
-            String tkey;
-            String orid;
-            String fappid = hos::FormatApplicationId(ApplicationId);
-            String outdir = consts::Root + "/dump/title/" + fappid;
-            u32 tmpsz = 0;
-            while(true)
-            {
-                if(!tkey.empty()) break;
-                u8 *tkdata = fs::GetWorkBuffer();
-                FRESULT fr = f_read(&save, tkdata, 0x40000, &tmpsz);
-                if(fr) break;
-                if(tmpsz == 0) break;
-                for(u32 i = 0; i < tmpsz; i += 0x4000)
-                {
-                    if(!tkey.empty()) break;
-                    for(u32 j = 0; j < (i + 0x4000); j += 0x400)
-                    {
-                        if(!tkey.empty()) break;
-                        if(hos::IsValidTicketSignature(*reinterpret_cast<u32*>(&tkdata[j])))
-                        {
-                            std::stringstream stid;
-                            std::stringstream srid;
-                            for(u32 k = 0; k < 0x10; k++)
-                            {
-                                u32 off = j + 0x2a0 + k;
-                                srid << std::setw(2) << std::setfill('0') << std::hex << (int)tkdata[off];
+            FIL save;
+            f_open(&save, "0:save/80000000000000e1", FA_READ | FA_OPEN_EXISTING);
+            std::string title_key;
+            String out_rights_id;
+            const auto &format_app_id = hos::FormatApplicationId(app_id);
+            const auto &outdir = consts::Root + "/dump/title/" + format_app_id;
+            u32 tmp_size = 0;
+            while(true) {
+                if(!title_key.empty()) {
+                    break;
+                }
+                u8 *data_buf = fs::GetWorkBuffer();
+                const auto fr = f_read(&save, data_buf, 0x40000, &tmp_size);
+                if(fr) {
+                    break;
+                }
+                if(tmp_size == 0) {
+                    break;
+                }
+                for(u32 i = 0; i < tmp_size; i += 0x4000) {
+                    if(!title_key.empty()) break;
+                    for(u32 j = 0; j < (i + 0x4000); j += 0x400) {
+                        if(!title_key.empty()) break;
+                        if(hos::IsValidTicketSignature(*reinterpret_cast<u32*>(&data_buf[j]))) {
+                            std::stringstream rights_id_strm;
+                            for(u32 k = 0; k < 0x10; k++) {
+                                const u32 off = j + 0x2a0 + k;
+                                rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << (int)data_buf[off];
                             }
-                            for(u32 k = 0; k < 0x8; k++)
-                            {
+                            std::stringstream storage_id_strm;
+                            for(u32 k = 0; k < 0x8; k++) {
                                 u32 off = j + 0x2a0 + k;
-                                stid << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
+                                storage_id_strm << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)data_buf[off];
                             }
-                            std::stringstream stkey;
-                            for(u32 k = 0; k < 0x10; k++)
-                            {
+                            std::stringstream title_key_strm;
+                            for(u32 k = 0; k < 0x10; k++) {
                                 u32 off = j + 0x180 + k;
-                                stkey << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)tkdata[off];
+                                title_key_strm << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)data_buf[off];
                             }
-                            String tid = stid.str();
-                            String rid = srid.str();
-                            String etkey = stkey.str();
-                            if(fappid == tid)
-                            {
-                                orid = rid;
-                                auto tik_file = outdir + "/" + rid + ".tik";
-                                exp->StartFile(tik_file, fs::FileMode::Write);
-                                exp->WriteFileBlock(tik_file, &tkdata[j], 0x400);
-                                exp->EndFile(fs::FileMode::Write);
-                                tkey = etkey;
+                            const auto &read_app_id = storage_id_strm.str();
+                            const auto &rights_id = rights_id_strm.str();
+                            const auto &read_title_key = title_key_strm.str();
+                            if(format_app_id == read_app_id) {
+                                out_rights_id = rights_id;
+                                const auto &tik_file = outdir + "/" + rights_id + ".tik";
+                                exp->WriteFile(tik_file, &data_buf[j], 0x400);
+                                title_key = read_title_key;
                                 break;
                             }
                         }
@@ -164,51 +149,24 @@ namespace dump
             }
             f_close(&save);
             f_mount(nullptr, "0", 1);
-            fsStorageClose(&g_ff_bis_storage);
-            if(!tkey.empty())
-            {
-                auto fcert = outdir + "/" + orid + ".cert";
-                exp->StartFile(fcert, fs::FileMode::Write);
-                exp->WriteFileBlock(fcert, const_cast<u8*>(es::CommonCertificateData), es::CommonCertificateSize);
-                exp->EndFile(fs::FileMode::Write);
+            fsStorageClose(&g_FatFsDumpBisStorage);
+            if(!title_key.empty()) {
+                const auto &cert_file = outdir + "/" + out_rights_id + ".cert";
+                exp->WriteFile(cert_file, const_cast<u8*>(es::CommonCertificateData), es::CommonCertificateSize);
             }
         }
     }
 
-    String GetNCAIdPath(NcmContentStorage *st, NcmContentId *Id)
-    {
-        char out[FS_MAX_PATH] = { 0 };
-        Result rc = ncmContentStorageGetPath(st, out, FS_MAX_PATH, Id);
-        String sst = "";
-        if(R_SUCCEEDED(rc)) sst = String(out);
-        return sst;
+    String GetContentIdPath(NcmContentStorage *cnt_storage, NcmContentId *cnt_id) {
+        char out[FS_MAX_PATH] = {};
+        if(R_SUCCEEDED(ncmContentStorageGetPath(cnt_storage, out, FS_MAX_PATH, cnt_id))) {
+            return out;
+        }
+        return "";
     }
 
-    bool GetNCAId(NcmContentMetaDatabase *cmdb, NcmContentMetaKey *rec, u64 ApplicationId, NCAType Type, NcmContentId *out)
-    {
-        NcmContentType ctype = NcmContentType_Program;
-        switch(Type)
-        {
-            case NCAType::Program:
-                ctype = NcmContentType_Program;
-                break;
-            case NCAType::Control:
-                ctype = NcmContentType_Control;
-                break;
-            case NCAType::Meta:
-                ctype = NcmContentType_Meta;
-                break;
-            case NCAType::LegalInfo:
-                ctype = NcmContentType_LegalInformation;
-                break;
-            case NCAType::OfflineHtml:
-                ctype = NcmContentType_HtmlDocument;
-                break;
-            case NCAType::Data:
-                ctype = NcmContentType_Data;
-                break;
-        }
-        Result rc = ncmContentMetaDatabaseGetContentIdByType(cmdb, out, rec, ctype);
-        return R_SUCCEEDED(rc);
+    bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, u64 app_id, NcmContentType cnt_type, NcmContentId *out) {
+        return R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(cnt_meta_db, out, cnt_meta_key, cnt_type));
     }
+
 }

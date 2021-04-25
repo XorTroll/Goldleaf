@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,69 +22,77 @@
 #include <ui/ui_UpdateLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
-extern bool global_app_updated;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
+extern bool g_UpdatedNeedsRename;
 
-namespace ui
-{
-    UpdateLayout::UpdateLayout()
-    {
-        this->infoText = pu::ui::elm::TextBlock::New(150, 320, "(...)");
-        this->infoText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->infoText->SetColor(global_settings.custom_scheme.Text);
-        this->downloadBar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        global_settings.ApplyProgressBarColor(this->downloadBar);
-        this->Add(this->infoText);
-        this->Add(this->downloadBar);
+namespace ui {
+
+    UpdateLayout::UpdateLayout() {
+        this->info_text = pu::ui::elm::TextBlock::New(150, 320, "(...)");
+        this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->info_text->SetColor(g_Settings.custom_scheme.Text);
+        this->download_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
+        g_Settings.ApplyProgressBarColor(this->download_p_bar);
+        this->Add(this->info_text);
+        this->Add(this->download_p_bar);
     }
 
-    void UpdateLayout::StartUpdateSearch()
-    {
-        if(global_app_updated) return;
-        this->downloadBar->SetVisible(false);
-        this->infoText->SetText(cfg::strings::Main.GetString(305));
-        global_app->CallForRender();
-        std::string js = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
-        JSON j = JSON::parse(js);
-        std::string latestid = j[0]["tag_name"].get<std::string>();
-        this->infoText->SetText(cfg::strings::Main.GetString(306));
-        global_app->CallForRender();
-        Version latestv = Version::FromString(latestid);
-        Version currentv = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO); // Defined in Makefile
-        if(latestv.IsEqual(currentv)) global_app->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(307), { cfg::strings::Main.GetString(234) }, true);
-        else if(latestv.IsLower(currentv))
-        {
-            int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(308), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-            if(sopt == 0)
-            {
-                auto sd_ex = fs::GetSdCardExplorer();
+    void UpdateLayout::StartUpdateSearch() {
+        if(g_UpdatedNeedsRename) {
+            // We've already updated
+            return;
+        }
+
+        this->download_p_bar->SetVisible(false);
+        this->info_text->SetText(cfg::strings::Main.GetString(305));
+        g_MainApplication->CallForRender();
+
+        auto json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
+        auto json = JSON::parse(json_data);
+        auto last_id = json[0]["tag_name"].get<std::string>();
+        this->info_text->SetText(cfg::strings::Main.GetString(306));
+        g_MainApplication->CallForRender();
+
+        const auto last_ver = Version::FromString(last_id);
+        const auto cur_ver = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO); // Defined in Makefile
+        if(last_ver.IsEqual(cur_ver)) {
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(307), { cfg::strings::Main.GetString(234) }, true);
+        }
+        else if(last_ver.IsLower(cur_ver)) {
+            const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(308), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+            if(option == 0) {
                 EnsureDirectories();
+                auto sd_exp = fs::GetSdCardExplorer();
+                sd_exp->DeleteFile(consts::TempUpdatedNro);
 
-                std::string newnro = "https://github.com/XorTroll/Goldleaf/releases/download/" + latestid + "/Goldleaf.nro";
-                sd_ex->DeleteFile(consts::TempUpdatedNro);
-
-                this->infoText->SetText(cfg::strings::Main.GetString(309));
-                global_app->CallForRender();
+                this->info_text->SetText(cfg::strings::Main.GetString(309));
+                g_MainApplication->CallForRender();
                 
-                this->downloadBar->SetVisible(true);
                 hos::LockAutoSleep();
-                net::RetrieveToFile(newnro, "sdmc:/" + consts::TempUpdatedNro, [&](double Done, double Total)
+                this->download_p_bar->SetVisible(true);
+                auto download_url = "https://github.com/XorTroll/Goldleaf/releases/download/" + last_id + "/Goldleaf.nro";
+                net::RetrieveToFile(download_url, "sdmc:/" + consts::TempUpdatedNro, [&](double done, double total)
                 {
-                    this->downloadBar->SetMaxValue(Total);
-                    this->downloadBar->SetProgress(Done);
-                    global_app->CallForRender();
+                    this->download_p_bar->SetMaxValue(total);
+                    this->download_p_bar->SetProgress(done);
+                    g_MainApplication->CallForRender();
                 });
+                this->download_p_bar->SetVisible(false);
                 hos::UnlockAutoSleep();
-                if(sd_ex->IsFile(consts::TempUpdatedNro)) global_app_updated = true;
 
-                this->downloadBar->SetVisible(false);
-                global_app->CallForRender();
-
-                global_app->ShowNotification(cfg::strings::Main.GetString(314) + " " + cfg::strings::Main.GetString(315));
+                if(sd_exp->IsFile(consts::TempUpdatedNro)) {
+                    g_UpdatedNeedsRename = true;
+                }
+                
+                g_MainApplication->CallForRender();
+                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(314) + " " + cfg::strings::Main.GetString(315));
             }
         }
-        else if(latestv.IsHigher(currentv)) global_app->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
-        global_app->ReturnToMainMenu();
+        else if(last_ver.IsHigher(cur_ver)) {
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+        }
+        g_MainApplication->ReturnToMainMenu();
     }
+
 }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,145 +22,123 @@
 #include <ui/ui_AccountLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    AccountLayout::AccountLayout() : pu::ui::Layout()
-    {
-        this->optsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
-        this->optsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
-        global_settings.ApplyScrollBarColor(this->optsMenu);
+namespace ui {
+
+    AccountLayout::AccountLayout() : pu::ui::Layout() {
+        this->options_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->options_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        g_Settings.ApplyScrollBarColor(this->options_menu);
         this->ReloadItems();
-        this->Add(this->optsMenu);
+        this->Add(this->options_menu);
     }
 
-    void AccountLayout::ReloadItems()
-    {
-        this->optsMenu->ClearItems();
-        auto itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(208));
-        itm->SetColor(global_settings.custom_scheme.Text);
-        itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
-        this->optsMenu->AddItem(itm);
-        auto itm2 = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(209));
-        itm2->SetColor(global_settings.custom_scheme.Text);
-        itm2->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
-        this->optsMenu->AddItem(itm2);
-        auto itm3 = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(210));
-        itm3->SetColor(global_settings.custom_scheme.Text);
-        itm3->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
-        this->optsMenu->AddItem(itm3);
-        if(acc::IsLinked())
-        {
-            auto itm4 = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(336));
-            itm4->SetColor(global_settings.custom_scheme.Text);
-            itm4->AddOnClick(std::bind(&AccountLayout::optsServicesInfo_Click, this));
-            this->optsMenu->AddItem(itm4);
+    void AccountLayout::ReloadItems() {
+        this->options_menu->ClearItems();
+        auto rename_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(208));
+        rename_itm->SetColor(g_Settings.custom_scheme.Text);
+        rename_itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
+        this->options_menu->AddItem(rename_itm);
+
+        auto icon_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(209));
+        icon_itm->SetColor(g_Settings.custom_scheme.Text);
+        icon_itm->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
+        this->options_menu->AddItem(icon_itm);
+
+        auto delete_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(210));
+        delete_itm->SetColor(g_Settings.custom_scheme.Text);
+        delete_itm->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
+        this->options_menu->AddItem(delete_itm);
+
+        if(acc::IsLinked()) {
+            auto services_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(336));
+            services_itm->SetColor(g_Settings.custom_scheme.Text);
+            services_itm->AddOnClick(std::bind(&AccountLayout::optsServicesInfo_Click, this));
+            this->options_menu->AddItem(services_itm);
         }
     }
 
-    void AccountLayout::Load()
-    {
-        this->uid = acc::GetSelectedUser();
-
-        AccountProfile prof;
-        auto rc = accountGetProfile(&prof, this->uid);
-        if(R_FAILED(rc))
-        {
+    void AccountLayout::Load() {
+        AccountProfileBase prof_base = {};
+        const auto rc = acc::ReadSelectedUser(&prof_base, nullptr);
+        if(R_FAILED(rc)) {
             HandleResult(rc, cfg::strings::Main.GetString(211));
-            global_app->ReturnToMainMenu();
+            g_MainApplication->ReturnToMainMenu();
             return;
         }
-
-        AccountProfileBase pbase;
-        AccountUserData udata;
-
-        rc = accountProfileGet(&prof, &udata, &pbase);
-        if(R_FAILED(rc))
-        {
-            HandleResult(rc, cfg::strings::Main.GetString(211));
-            global_app->ReturnToMainMenu();
-            return;
-        }
-
-        accountProfileClose(&prof);
 
         acc::CacheSelectedUserIcon();
-        bool deficon = false;
-        auto usericon = acc::GetCachedUserIcon();
         auto sd_exp = fs::GetSdCardExplorer();
-        if(sd_exp->Exists(usericon))
-        {
-            deficon = true;
-            usericon = "Accounts";
+        auto user_icon = acc::GetCachedUserIcon();
+        const auto default_icon = sd_exp->Exists(user_icon);
+        if(default_icon) {
+            user_icon = "Accounts";
         }
         
-        global_app->LoadMenuData(cfg::strings::Main.GetString(41), usericon, cfg::strings::Main.GetString(212) + " " + String(pbase.nickname), deficon);
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(41), user_icon, cfg::strings::Main.GetString(212) + " " + prof_base.nickname, default_icon);
         this->ReloadItems();
     }
 
-    void AccountLayout::optsRename_Click()
-    {
-        String name = AskForText(cfg::strings::Main.GetString(213), "", 10);
-        if(!name.empty())
-        {
-            auto rc = acc::EditUser([&](AccountProfileBase *pbase, AccountUserData *udata)
-            {
-                strcpy(pbase->nickname, name.AsUTF8().c_str());
+    void AccountLayout::optsRename_Click() {
+        auto name = AskForText(cfg::strings::Main.GetString(213), "", 10);
+        if(!name.empty()) {
+            const auto rc = acc::EditUser([&](AccountProfileBase *prof_base, AccountUserData *_user_data) {
+                strcpy(prof_base->nickname, name.AsUTF8().c_str());
             });
-            if(R_SUCCEEDED(rc))
-            {
-                global_app->LoadMenuHead(cfg::strings::Main.GetString(212) + " " + name);
-                global_app->ShowNotification(cfg::strings::Main.GetString(214) + " \'" + name + "\'.");
+            if(R_SUCCEEDED(rc)) {
+                g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(212) + " " + name);
+                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(214) + " \'" + name + "\'.");
             }
-            else HandleResult(rc, cfg::strings::Main.GetString(215));
+            else {
+                HandleResult(rc, cfg::strings::Main.GetString(215));
+            }
         }
     }
 
-    void AccountLayout::optsIcon_Click()
-    {
-        std::string iconpth = "/" + consts::Root + "/userdata/" + hos::FormatHex128(this->uid) + ".jpg";
-        global_app->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(217) + "\n\'SdCard:" + iconpth + "\'", { cfg::strings::Main.GetString(234) }, false, "sdmc:" + iconpth);
+    void AccountLayout::optsIcon_Click() {
+        const auto &base_icon_path = consts::Root + "/userdata/" + hos::FormatHex128(acc::GetSelectedUser()) + ".jpg";
+        auto sd_exp = fs::GetSdCardExplorer();
+        auto icon_path = sd_exp->MakeAbsolute(base_icon_path);
+        const auto p_icon_path = sd_exp->MakeAbsolutePresentable(base_icon_path);
+        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(217) + "\n\'" + p_icon_path + "\'", { cfg::strings::Main.GetString(234) }, false, icon_path.AsUTF8());
     }
 
-    void AccountLayout::optsDelete_Click()
-    {
-        int sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(218), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-        if(sopt == 0)
-        {
-            s32 ucount = 0;
-            accountGetUserCount(&ucount);
-            if(ucount < 2)
-            {
-                global_app->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(276), { cfg::strings::Main.GetString(234) }, true);
+    void AccountLayout::optsDelete_Click() {
+        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(218), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        if(option == 0) {
+            if(acc::GetUserCount() < 2) {
+                g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(276), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
-            auto rc = acc::DeleteUser(this->uid);
-            if(R_SUCCEEDED(rc))
-            {
-                global_app->ShowNotification(cfg::strings::Main.GetString(219));
-                global_app->ReturnToMainMenu();
-
+            const auto rc = acc::DeleteUser(acc::GetSelectedUser());
+            if(R_SUCCEEDED(rc)) {
                 acc::ResetSelectedUser();
+                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(219));
+                g_MainApplication->ReturnToMainMenu();
             }
-            else HandleResult(rc, cfg::strings::Main.GetString(220));
+            else {
+                HandleResult(rc, cfg::strings::Main.GetString(220));
+            }
         }
     }
 
-    void AccountLayout::optsServicesInfo_Click()
-    {
-        auto linkedinfo = acc::GetUserLinkedInfo();
-        String str = cfg::strings::Main.GetString(328) + " " + hos::FormatHex(linkedinfo.AccountId);
-        str += "\n" + cfg::strings::Main.GetString(329) + " " + hos::FormatHex(linkedinfo.NintendoAccountId);
-        auto sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(330), str, { cfg::strings::Main.GetString(331), cfg::strings::Main.GetString(18) }, true);
-        if(sopt != 0) return;
-        sopt = global_app->CreateShowDialog(cfg::strings::Main.GetString(332), cfg::strings::Main.GetString(333), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-        if(sopt == 0)
-        {
-            auto res = acc::UnlinkLocally();
-            if(res == 0) global_app->ShowNotification(cfg::strings::Main.GetString(334));
-            else HandleResult(res, cfg::strings::Main.GetString(335));
+    void AccountLayout::optsServicesInfo_Click() {
+        const auto linked_info = acc::GetUserLinkedInfo();
+        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(330), cfg::strings::Main.GetString(328) + " " + hos::FormatHex(linked_info.account_id) + "\n" + cfg::strings::Main.GetString(329) + " " + hos::FormatHex(linked_info.nintendo_account_id), { cfg::strings::Main.GetString(331), cfg::strings::Main.GetString(18) }, true);
+        if(option_1 == 0) {
+            const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(332), cfg::strings::Main.GetString(333), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+            if(option_2 == 0) {
+                const auto rc = acc::UnlinkLocally();
+                if(R_SUCCEEDED(rc)) {
+                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(334));
+                }
+                else {
+                    HandleResult(rc, cfg::strings::Main.GetString(335));
+                }
+            }
         }
     }
+
 }

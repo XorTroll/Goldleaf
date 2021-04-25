@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,16 +20,11 @@
 */
 
 #pragma once
-#include <string>
-#include <vector>
-#include <functional>
-#include <switch.h>
 #include <Types.hpp>
 
-namespace fs
-{
-    enum class Partition
-    {
+namespace fs {
+
+    enum class Partition {
         PRODINFOF,
         NANDSafe,
         NANDUser = 4,
@@ -43,39 +38,35 @@ namespace fs
     constexpr u64 Size4GB = 0x100000000;
     constexpr u64 WorkBufferSize = 0x800000; // 8MB
 
-    void CreateConcatenationFile(String Path);
+    void CreateConcatenationFile(String path);
     
-    void CopyFileProgress(String Path, String NewPath, std::function<void(double Done, double Total)> Callback);
-    void CopyDirectoryProgress(String Dir, String NewDir, std::function<void(double Done, double Total)> Callback);
+    void CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn);
+    void CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn);
     
-    inline String GetFileName(String Path)
-    {
-        return Path.substr(Path.find_last_of("/") + 1);
+    inline String GetFileName(String path) {
+        return path.substr(path.find_last_of("/") + 1);
     }
 
-    inline String GetBaseDirectory(String Path)
-    {
-        return Path.substr(0, Path.find_last_of("/"));
+    inline String GetBaseDirectory(String path) {
+        return path.substr(0, path.find_last_of("/"));
     }
 
-    inline String GetExtension(String Path)
-    {
-        return Path.substr(Path.find_last_of(".") + 1);
+    inline String GetExtension(String path) {
+        return path.substr(path.find_last_of(".") + 1);
     }
 
-    inline String GetPathRoot(String Path)
-    {
-        return Path.substr(0, Path.find_first_of(":"));
+    inline String GetPathRoot(String path) {
+        return path.substr(0, path.find_first_of(":"));
     }
 
-    inline String GetPathWithoutRoot(String Path)
-    {
-        return Path.substr(Path.find_first_of(":") + 1);
+    inline String GetPathWithoutRoot(String path) {
+        return path.substr(path.find_first_of(":") + 1);
     }
 
-    u64 GetTotalSpaceForPartition(Partition Partition);
-    u64 GetFreeSpaceForPartition(Partition Partition);
-    String FormatSize(u64 Bytes);
+    u64 GetTotalSpaceForPartition(Partition partition);
+    u64 GetFreeSpaceForPartition(Partition partition);
+    String FormatSize(u64 bytes);
 
     u8 *GetWorkBuffer();
+
 }

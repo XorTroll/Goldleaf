@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,21 +21,19 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class UnusedTicketsLayout : public pu::ui::Layout
-    {
+namespace ui {
+
+    class UnusedTicketsLayout : public pu::ui::Layout {
+        private:
+            pu::ui::elm::TextBlock::Ref no_unused_tiks_text;
+            pu::ui::elm::Menu::Ref tiks_menu;
         public:
             UnusedTicketsLayout();
             PU_SMART_CTOR(UnusedTicketsLayout)
             
-            void UpdateElements(bool Cooldown);
-            void tickets_Click(hos::Ticket ticket);
-        private:
-            std::vector<hos::Ticket> tickets;
-            pu::ui::elm::TextBlock::Ref notTicketsText;
-            pu::ui::elm::Menu::Ref ticketsMenu;
+            void UpdateElements(bool cooldown);
+            void tickets_Click(const hos::Ticket &tik);
     };
+
 }

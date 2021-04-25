@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,30 +21,28 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class MemoryLayout : public pu::ui::Layout
-    {
+namespace ui {
+
+    class MemoryLayout : public pu::ui::Layout {
+        private:
+            pu::ui::elm::TextBlock::Ref sd_text;
+            pu::ui::elm::ProgressBar::Ref sd_space_bar;
+            pu::ui::elm::TextBlock::Ref sd_free_space_text;
+            pu::ui::elm::TextBlock::Ref nand_text;
+            pu::ui::elm::ProgressBar::Ref nand_space_bar;
+            pu::ui::elm::TextBlock::Ref nand_free_text;
+            pu::ui::elm::TextBlock::Ref nand_safe_text;
+            pu::ui::elm::ProgressBar::Ref nand_safe_space_bar;
+            pu::ui::elm::TextBlock::Ref nand_system_text;
+            pu::ui::elm::ProgressBar::Ref nand_system_space_bar;
+            pu::ui::elm::TextBlock::Ref nand_user_text;
+            pu::ui::elm::ProgressBar::Ref nand_user_space_bar;
         public:
             MemoryLayout();
             PU_SMART_CTOR(MemoryLayout)
 
             void UpdateElements();
-        private:
-            pu::ui::elm::TextBlock::Ref fwText;
-            pu::ui::elm::TextBlock::Ref sdText;
-            pu::ui::elm::ProgressBar::Ref sdBar;
-            pu::ui::elm::TextBlock::Ref sdFreeText;
-            pu::ui::elm::TextBlock::Ref nandText;
-            pu::ui::elm::ProgressBar::Ref nandBar;
-            pu::ui::elm::TextBlock::Ref nandFreeText;
-            pu::ui::elm::TextBlock::Ref safeText;
-            pu::ui::elm::ProgressBar::Ref safeBar;
-            pu::ui::elm::TextBlock::Ref systemText;
-            pu::ui::elm::ProgressBar::Ref systemBar;
-            pu::ui::elm::TextBlock::Ref userText;
-            pu::ui::elm::ProgressBar::Ref userBar;
     };
+
 }

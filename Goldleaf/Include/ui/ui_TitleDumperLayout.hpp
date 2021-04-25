@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,19 +21,18 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class TitleDumperLayout : public pu::ui::Layout
-    {
+namespace ui {
+
+    class TitleDumperLayout : public pu::ui::Layout {
+        private:
+            pu::ui::elm::TextBlock::Ref dump_text;
+            pu::ui::elm::ProgressBar::Ref cnt_p_bar;
         public:
             TitleDumperLayout();
             PU_SMART_CTOR(TitleDumperLayout)
 
-            void StartDump(hos::Title &Target, bool HasTicket);
-        private:
-            pu::ui::elm::TextBlock::Ref dumpText;
-            pu::ui::elm::ProgressBar::Ref ncaBar;
+            void StartDump(const hos::Title &cnt, bool has_tik);
     };
+
 }

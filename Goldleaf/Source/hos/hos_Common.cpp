@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,145 +22,96 @@
 #include <hos/hos_Common.hpp>
 #include <hos/hos_Titles.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <sstream>
 
-namespace hos
-{
-    u32 GetBatteryLevel()
-    {
+namespace hos {
+
+    u32 GetBatteryLevel() {
         u32 bat = 0;
         psmGetBatteryChargePercentage(&bat);
         return bat;
     }
 
-    bool IsCharging()
-    {
+    bool IsCharging() {
         auto charger = ChargerType_None;
         psmGetChargerType(&charger);
         return charger > ChargerType_None;
     }
 
-    std::string GetCurrentTime()
-    {
-        auto posix_time = time(nullptr);
-        auto local_time = localtime((const time_t*)&posix_time);
+    std::string GetCurrentTime() {
+        const auto posix_time = time(nullptr);
+        const auto local_time = localtime((const time_t*)&posix_time);
         char time_str[0x10] = {0};
         sprintf(time_str, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
         return time_str;
     }
 
-    std::string FormatHex128(AccountUid Number)
-    {
-        auto ptr = reinterpret_cast<u8*>(Number.uid);
+    std::string FormatHex128(AccountUid user_id) {
+        auto ptr = reinterpret_cast<u8*>(user_id.uid);
         std::stringstream strm;
         strm << std::hex << std::uppercase;
-        for(u32 i = 0; i < 16; i++) strm << (u32)ptr[i];
-        return strm.str();
-    }
-
-    std::string DoubleToString(double Number)
-    {
-        std::stringstream strm;
-        strm << Number;
-        return strm.str();
-    }
-
-    std::string FormatResult(Result rc)
-    {
-        char serr[0x10] = {0};
-        sprintf(serr, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
-        return serr;
-    }
-
-    std::string FormatTime(u64 Seconds)
-    {
-        u64 secs = Seconds;
-        std::string base = std::to_string(secs) + "s";
-        if(Seconds > 60)
-        {
-            auto divt = div(Seconds, 60);
-            u64 mins = divt.quot;
-            secs = divt.rem;
-            base = std::to_string(mins) + "min";
-            if(secs > 0) base += (" " + std::to_string(secs) + "s");
-            if(mins >= 60)
-            {
-                auto divt2 = div(mins, 60);
-                u64 hrs = divt2.quot;
-                mins = divt2.rem;
-                base = std::to_string(hrs) + "h";
-                if(mins > 0) base += (" " + std::to_string(mins) + "min");
-                if(secs > 0) base += (" " + std::to_string(secs) + "s");
-                if(hrs >= 24)
-                {
-                    auto divt3 = div(hrs, 24);
-                    u64 days = divt3.quot;
-                    hrs = divt3.rem;
-                    base = std::to_string(days) + "d";
-                    if(hrs > 0) base += (" " + std::to_string(hrs) + "h");
-                    if(mins > 0) base += (" " + std::to_string(mins) + "min");
-                    if(secs > 0) base += (" " + std::to_string(secs) + "s");
-                    if(days >= 7)
-                    {
-                        auto divt4 = div(days, 7);
-                        u64 weeks = divt4.quot;
-                        days = divt4.rem;
-                        base = std::to_string(weeks) + "w";
-                        if(days > 0) base += (" " + std::to_string(days) + "d");
-                        if(hrs > 0) base += (" " + std::to_string(hrs) + "h");
-                        if(mins > 0) base += (" " + std::to_string(mins) + "min");
-                        if(secs > 0) base += (" " + std::to_string(secs) + "s");
-                        if(weeks >= 52)
-                        {
-                            auto divt5 = div(weeks, 52);
-                            u64 years = divt5.quot;
-                            weeks = divt5.rem;
-                            base = std::to_string(years) + "y";
-                            if(days > 0) base += (" " + std::to_string(weeks) + "w");
-                            if(days > 0) base += (" " + std::to_string(days) + "d");
-                            if(hrs > 0) base += (" " + std::to_string(hrs) + "h");
-                            if(mins > 0) base += (" " + std::to_string(mins) + "min");
-                            if(secs > 0) base += (" " + std::to_string(secs) + "s");
-                        }
-                    }
-                }
-            }
+        for(u32 i = 0; i < sizeof(AccountUid); i++) {
+            strm << (u32)ptr[i];
         }
-        return base;
+        return strm.str();
     }
 
-    void LockAutoSleep()
-    {
-        if(GetLaunchMode() == LaunchMode::Application) appletBeginBlockingHomeButton(0);
+    std::string DoubleToString(double dbl) {
+        std::stringstream strm;
+        strm << dbl;
+        return strm.str();
+    }
+
+    std::string FormatResult(Result rc) {
+        char res_err[0x10] = {};
+        sprintf(res_err, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
+        return res_err;
+    }
+
+    std::string FormatTime(u64 secs) {
+        if(secs > 60) {
+            const auto mins = secs / 60;
+            const auto secs_rem = secs % 60;
+            if(mins > 60) {
+                const auto hours = mins / 60;
+                const auto mins_rem = mins % 60;
+                return std::to_string(hours) + " h" + ((mins_rem > 0) ? (" " + std::to_string(mins_rem) + " min") : "") + ((secs_rem > 0) ? (" " + std::to_string(secs_rem) + " s") : "");
+            }
+            return std::to_string(mins) + " min" + ((secs_rem > 0) ? (" " + std::to_string(secs_rem) + " s") : "");
+        }
+        return std::to_string(secs) + " s";
+    }
+
+    void LockAutoSleep() {
+        if(GetLaunchMode() == LaunchMode::Application) {
+            appletBeginBlockingHomeButton(0);
+        }
         appletSetMediaPlaybackState(true);
     }
 
-    void UnlockAutoSleep()
-    {
+    void UnlockAutoSleep() {
         appletSetMediaPlaybackState(false);
-        if(GetLaunchMode() == LaunchMode::Application) appletEndBlockingHomeButton();
+        if(GetLaunchMode() == LaunchMode::Application) {
+            appletEndBlockingHomeButton();
+        }
     }
 
-    u8 ComputeSystemKeyGeneration()
-    {
+    u8 ComputeSystemKeyGeneration() {
         FsStorage boot0;
-        auto rc = fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root);
-        if(R_SUCCEEDED(rc))
-        {
+        if(R_SUCCEEDED(fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root))) {
             u32 keygen_ver = 0;
             fsStorageRead(&boot0, 0x2330, &keygen_ver, sizeof(u32));
             fsStorageClose(&boot0);
-            return (u8)keygen_ver;
+            return static_cast<u8>(keygen_ver);
         }
         return 0;
     }
 
-    Result PerformShutdown(bool do_reboot)
-    {
+    Result PerformShutdown(bool do_reboot) {
         R_TRY(spsmInitialize());
         R_TRY(spsmShutdown(do_reboot));
         spsmExit();
 
         return 0;
     }
+
 }

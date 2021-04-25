@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,26 +20,22 @@
 */
 
 #pragma once
-#include <string>
-#include <cstdio>
-#include <cstring>
-#include <switch.h>
 #include <Types.hpp>
 #include <ncm/ncm_Types.hpp>
 
-namespace hos
-{
-    struct PendingUpdateVersion
-    {
-        u32 Major;
-        u32 Minor;
-        u32 Micro;
+namespace hos {
+
+    struct PendingUpdateVersion {
+        u32 major;
+        u32 minor;
+        u32 micro;
     };
 
-    String ContentIdAsString(const NcmContentId &ContentId);
-    NcmContentId StringAsContentId(String ContentId);
+    String ContentIdAsString(const NcmContentId &cnt_id);
+    NcmContentId StringAsContentId(String cnt_id_str);
 
     bool GetPendingUpdateInfo(PendingUpdateVersion *out);
     SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver);
     void CleanPendingUpdate();
+
 }

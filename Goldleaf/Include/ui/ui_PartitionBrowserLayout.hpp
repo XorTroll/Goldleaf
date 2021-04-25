@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,32 +21,33 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
-    class PartitionBrowserLayout : public pu::ui::Layout
-    {
+namespace ui {
+
+    class PartitionBrowserLayout : public pu::ui::Layout {
+        private:
+            fs::Explorer *cur_exp;
+            pu::ui::elm::Menu::Ref browse_menu;
+            pu::ui::elm::TextBlock::Ref empty_dir_text;
         public:
             PartitionBrowserLayout();
             PU_SMART_CTOR(PartitionBrowserLayout)
 
-            void ChangePartitionExplorer(fs::Explorer *exp, bool Update = true);
-            void ChangePartitionSdCard(bool Update = true);
-            void ChangePartitionNAND(fs::Partition Partition, bool Update = true);
-            void ChangePartitionPCDrive(String Mount, bool Update = true);
-            void ChangePartitionDrive(UsbHsFsDevice &drv, bool Update = true);
-            void UpdateElements(int Idx = 0);
-            void HandleFileDirectly(String Path);
+            void ChangePartitionExplorer(fs::Explorer *exp, bool update_contents = true);
+            void ChangePartitionSdCard(bool update_contents = true);
+            void ChangePartitionNAND(fs::Partition partition, bool update_contents = true);
+            void ChangePartitionPCDrive(String mount_name, bool update_contents = true);
+            void ChangePartitionDrive(UsbHsFsDevice &drv, bool update_contents = true);
+            void UpdateElements(int idx = 0);
+            void HandleFileDirectly(String path);
             bool GoBack();
             bool WarnWriteAccess();
             void fsItems_Click(String item);
             void fsItems_Click_Y(String item);
-            fs::Explorer *GetExplorer();
-        private:
-            fs::Explorer *gexp;
-            std::vector<String> elems;
-            pu::ui::elm::Menu::Ref browseMenu;
-            pu::ui::elm::TextBlock::Ref dirEmptyText;
+            
+            inline fs::Explorer *GetExplorer() {
+                return this->cur_exp;
+            }
     };
+
 }

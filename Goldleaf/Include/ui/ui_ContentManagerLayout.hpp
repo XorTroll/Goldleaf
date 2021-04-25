@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,12 +21,18 @@
 
 #pragma once
 #include <ui/ui_Includes.hpp>
-#include <pu/Plutonium>
 
-namespace ui
-{
+namespace ui {
+
     class ContentManagerLayout : public pu::ui::Layout
     {
+        private:
+            pu::ui::elm::MenuItem::Ref sd_card_menu_item;
+            pu::ui::elm::MenuItem::Ref nand_user_menu_item;
+            pu::ui::elm::MenuItem::Ref nand_system_menu_item;
+            pu::ui::elm::MenuItem::Ref gamecart_menu_item;
+            pu::ui::elm::MenuItem::Ref unused_tickets_menu_item;
+            pu::ui::elm::Menu::Ref types_menu;
         public:
             ContentManagerLayout();
             PU_SMART_CTOR(ContentManagerLayout)
@@ -36,12 +42,6 @@ namespace ui
             void nandSystemMenuItem_Click();
             void gameCartMenuItem_Click();
             void unusedTicketsMenuItem_Click();
-        private:
-            pu::ui::elm::MenuItem::Ref sdCardMenuItem;
-            pu::ui::elm::MenuItem::Ref nandUserMenuItem;
-            pu::ui::elm::MenuItem::Ref nandSystemMenuItem;
-            pu::ui::elm::MenuItem::Ref gameCartMenuItem;
-            pu::ui::elm::MenuItem::Ref unusedTicketsMenuItem;
-            pu::ui::elm::Menu::Ref typesMenu;
     };
+
 }

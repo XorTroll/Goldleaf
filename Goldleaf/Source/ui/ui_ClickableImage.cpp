@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,128 +20,101 @@
 */
 
 #include <ui/ui_ClickableImage.hpp>
-#include <sys/stat.h>
 
-namespace ui
-{
-    ClickableImage::ClickableImage(s32 X, s32 Y, String Image) : pu::ui::elm::Element::Element()
-    {
-        this->x = X;
-        this->y = Y;
-        this->w = 0;
-        this->h = 0;
-        this->ntex = NULL;
-        this->touched = false;
-        this->cb = [&](){};
-        this->SetImage(Image);
+namespace ui {
+
+    ClickableImage::ClickableImage(s32 x, s32 y, const std::string &img) : pu::ui::elm::Element::Element(), x(x), y(y), w(0), h(0), native_tex(nullptr), cb([&](){}), touched(false) {
+        this->SetImage(img);
     }
 
-    ClickableImage::~ClickableImage()
-    {
-        if(this->ntex != NULL)
-        {
-            pu::ui::render::DeleteTexture(this->ntex);
-            this->ntex = NULL;
+    ClickableImage::~ClickableImage() {
+        if(this->native_tex != nullptr) {
+            pu::ui::render::DeleteTexture(this->native_tex);
+            this->native_tex = nullptr;
         }
     }
 
-    s32 ClickableImage::GetX()
-    {
+    s32 ClickableImage::GetX() {
         return this->x;
     }
 
-    void ClickableImage::SetX(s32 X)
-    {
-        this->x = X;
+    void ClickableImage::SetX(s32 x) {
+        this->x = x;
     }
 
-    s32 ClickableImage::GetY()
-    {
+    s32 ClickableImage::GetY() {
         return this->y;
     }
 
-    void ClickableImage::SetY(s32 Y)
-    {
-        this->y = Y;
+    void ClickableImage::SetY(s32 y) {
+        this->y = y;
     }
 
-    s32 ClickableImage::GetWidth()
-    {
+    s32 ClickableImage::GetWidth() {
         return this->w;
     }
 
-    void ClickableImage::SetWidth(s32 Width)
-    {
-        this->w = Width;
+    void ClickableImage::SetWidth(s32 w) {
+        this->w = w;
     }
 
-    s32 ClickableImage::GetHeight()
-    {
+    s32 ClickableImage::GetHeight() {
         return this->h;
     }
 
-    void ClickableImage::SetHeight(s32 Height)
-    {
-        this->h = Height;
+    void ClickableImage::SetHeight(s32 h) {
+        this->h = h;
     }
 
-    String ClickableImage::GetImage()
-    {
+    std::string ClickableImage::GetImage() {
         return this->img;
     }
 
-    void ClickableImage::SetImage(String Image)
-    {
-        if(this->ntex != NULL) pu::ui::render::DeleteTexture(this->ntex);
-        this->ntex = NULL;
-        struct stat st;
-        if((stat(Image.AsUTF8().c_str(), &st) == 0) && (st.st_mode & S_IFREG))
-        {
-            this->img = Image;
-            this->ntex = pu::ui::render::LoadImage(Image.AsUTF8());
-            this->w = pu::ui::render::GetTextureWidth(this->ntex);
-            this->h = pu::ui::render::GetTextureHeight(this->ntex);
+    void ClickableImage::SetImage(const std::string &img) {
+        if(this->native_tex != nullptr) {
+            pu::ui::render::DeleteTexture(this->native_tex);
+        }
+        this->native_tex = nullptr;
+        auto exp = fs::GetExplorerForPath(img);
+        if(exp->IsFile(img)) {
+            this->img = img;
+            this->native_tex = pu::ui::render::LoadImage(img);
+            this->w = pu::ui::render::GetTextureWidth(this->native_tex);
+            this->h = pu::ui::render::GetTextureHeight(this->native_tex);
         }
     }
 
-    bool ClickableImage::IsImageValid()
-    {
-        return ((ntex != NULL) && this->img.HasAny());
+    bool ClickableImage::IsImageValid() {
+        return (this->native_tex != nullptr) && !this->img.empty();
     }
 
-    void ClickableImage::SetOnClick(std::function<void()> Callback)
-    {
-        cb = Callback;
+    void ClickableImage::SetOnClick(std::function<void()> cb_fn) {
+        this->cb = cb_fn;
     }
 
-    void ClickableImage::OnRender(pu::ui::render::Renderer::Ref &Drawer, s32 X, s32 Y)
-    {
-        Drawer->RenderTexture(this->ntex, X, Y, { -1, w, h, -1 });
+    void ClickableImage::OnRender(pu::ui::render::Renderer::Ref &drawer, s32 x, s32 y) {
+        drawer->RenderTexture(this->native_tex, x, y, { -1, w, h, -1 });
     }
 
-    void ClickableImage::OnInput(u64 down, u64 up, u64 held, pu::ui::Touch Pos)
-    {
-        if(touched)
-        {
-            auto tpnow = std::chrono::steady_clock::now();
-            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(tpnow - touchtp).count();
-            if(diff >= 200)
-            {
-                touched = false;
+    void ClickableImage::OnInput(u64 down, u64 up, u64 held, pu::ui::Touch pos) {
+        if(this->touched) {
+            const auto time_now = std::chrono::steady_clock::now();
+            const auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - this->touch_time_point).count();
+            if(diff >= 200) {
+                this->touched = false;
                 (this->cb)();
-                SDL_SetTextureColorMod(ntex, 255, 255, 255);
+                SDL_SetTextureColorMod(this->native_tex, 0xFF, 0xFF, 0xFF);
             }
         }
-        else if(!Pos.IsEmpty())
-        {
-            touchPosition tch;
+        else if(!pos.IsEmpty()) {
+            touchPosition tch = {};
             hidTouchRead(&tch, 0);
-            if((Pos.X >= this->GetProcessedX()) && (Pos.X < (this->GetProcessedX() + w)) && (Pos.Y >= this->GetProcessedY()) && (Pos.Y < (this->GetProcessedY() + h)))
-            {
-                touchtp = std::chrono::steady_clock::now();
-                touched = true;
-                SDL_SetTextureColorMod(ntex, 200, 200, 255);
+            if((pos.X >= this->GetProcessedX()) && (pos.X < (this->GetProcessedX() + w)) && (pos.Y >= this->GetProcessedY()) && (pos.Y < (this->GetProcessedY() + h))) {
+                this->touch_time_point = std::chrono::steady_clock::now();
+                this->touched = true;
+                SDL_SetTextureColorMod(this->native_tex, 200, 200, 0xFF);
             }
         }
     }
+
 }

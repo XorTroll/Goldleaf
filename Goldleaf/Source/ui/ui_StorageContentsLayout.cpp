@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2020  XorTroll
+    Copyright (C) 2018-2021 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,87 +22,76 @@
 #include <ui/ui_StorageContentsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
 
-extern ui::MainApplication::Ref global_app;
-extern cfg::Settings global_settings;
+extern ui::MainApplication::Ref g_MainApplication;
+extern cfg::Settings g_Settings;
 
-namespace ui
-{
-    StorageContentsLayout::StorageContentsLayout()
-    {
-        this->contentsMenu = pu::ui::elm::Menu::New(0, 160, 1280, global_settings.custom_scheme.Base, global_settings.menu_item_size, (560 / global_settings.menu_item_size));
-        this->contentsMenu->SetOnFocusColor(global_settings.custom_scheme.BaseFocus);
-        global_settings.ApplyScrollBarColor(this->contentsMenu);
-        this->noContentsText = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(188));
-        this->noContentsText->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->noContentsText->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->noContentsText->SetColor(global_settings.custom_scheme.Text);
-        this->noContentsText->SetVisible(false);
-        this->Add(this->noContentsText);
-        this->Add(this->contentsMenu);
+namespace ui {
+
+    StorageContentsLayout::StorageContentsLayout() {
+        this->contents_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->contents_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        g_Settings.ApplyScrollBarColor(this->contents_menu);
+        this->no_contents_text = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(188));
+        this->no_contents_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->no_contents_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
+        this->no_contents_text->SetColor(g_Settings.custom_scheme.Text);
+        this->no_contents_text->SetVisible(false);
+        this->Add(this->no_contents_text);
+        this->Add(this->contents_menu);
     }
 
-    void StorageContentsLayout::contents_Click()
-    {
-        auto &selcnt = this->contents[this->contentsMenu->GetSelectedIndex()];
-        global_app->GetContentInformationLayout()->LoadContent(selcnt);
-        global_app->LoadLayout(global_app->GetContentInformationLayout());
+    void StorageContentsLayout::contents_Click() {
+        const auto &selected_cnt = this->contents[this->contents_menu->GetSelectedIndex()];
+        g_MainApplication->GetContentInformationLayout()->LoadContent(selected_cnt);
+        g_MainApplication->LoadLayout(g_MainApplication->GetContentInformationLayout());
     }
 
-    void StorageContentsLayout::LoadFromStorage(Storage Location)
-    {
-        if(!this->contents.empty())
-        {
-            this->contentsMenu->ClearItems();
+    void StorageContentsLayout::LoadFromStorage(Storage location) {
+        if(!this->contents.empty()) {
+            this->contents_menu->ClearItems();
             this->contents.clear();
         }
-        auto cnts = hos::SearchTitles(ncm::ContentMetaType::Any, Location);
-        for(auto &cnt: cnts)
-        {
+        // TODO: alphabetical order?
+        // TODO: cache system?
+        auto cnts = hos::SearchTitles(NcmContentMetaType_Unknown, location);
+        for(const auto &cnt: cnts) {
             bool ok = true;
-            for(auto content: this->contents)
-            {
-                auto curbaseid = hos::GetBaseApplicationId(cnt.ApplicationId, cnt.Type);
-                auto cntbaseid = hos::GetBaseApplicationId(content.ApplicationId, content.Type);
+            for(const auto &cur_cnt: this->contents) {
+                const auto cnt_base_app_id = hos::GetBaseApplicationId(cnt.app_id, cnt.type);
+                const auto cur_cnt_base_app_id = hos::GetBaseApplicationId(cur_cnt.app_id, cur_cnt.type);
 
-                if(curbaseid == cntbaseid)
-                {
+                if(cnt_base_app_id == cur_cnt_base_app_id) {
                     ok = false;
                     break;
                 }
             }
-            if(ok) this->contents.push_back(cnt);
+            if(ok) {
+                this->contents.push_back(cnt);
+            }
         }
 
-        const auto empty = this->contents.empty();
-        this->noContentsText->SetVisible(empty);
-        this->contentsMenu->SetVisible(!empty);
-        if(!empty)
-        {
-            this->contentsMenu->SetCooldownEnabled(true);
-            this->noContentsText->SetVisible(false);
-            this->contentsMenu->SetVisible(true);
-            for(auto &content: this->contents)
-            {
-                auto nacp = content.TryGetNACP();
-                String name = hos::FormatApplicationId(content.ApplicationId);
-                if(nacp != nullptr)
-                {
-                    name = hos::GetNACPName(nacp);
-                    delete nacp;
+        const auto is_empty = this->contents.empty();
+        this->no_contents_text->SetVisible(is_empty);
+        this->contents_menu->SetVisible(!is_empty);
+        if(!is_empty) {
+            this->contents_menu->SetCooldownEnabled(true);
+            for(const auto &cur_cnt: this->contents) {
+                const auto nacp = cur_cnt.TryGetNACP();
+                String name = hos::FormatApplicationId(cur_cnt.app_id);
+                if(!hos::IsNacpEmpty(nacp)) {
+                    name = hos::FindNacpName(nacp);
                 }
                 auto itm = pu::ui::elm::MenuItem::New(name);
-                itm->SetColor(global_settings.custom_scheme.Text);
-                if(content.DumpControlData()) itm->SetIcon(hos::GetExportedIconPath(content.ApplicationId));
+                itm->SetColor(g_Settings.custom_scheme.Text);
+                if(cur_cnt.DumpControlData()) {
+                    itm->SetIcon(hos::GetExportedIconPath(cur_cnt.app_id));
+                }
                 itm->AddOnClick(std::bind(&StorageContentsLayout::contents_Click, this));
-                this->contentsMenu->AddItem(itm);
+                this->contents_menu->AddItem(itm);
             }
-            this->contentsMenu->SetSelectedIndex(0);
+            this->contents_menu->SetSelectedIndex(0);
         }
-        global_app->LoadMenuHead(cfg::strings::Main.GetString(189));
+        g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(189));
     }
 
-    std::vector<hos::Title> StorageContentsLayout::GetContents()
-    {
-        return this->contents;
-    }
 }
