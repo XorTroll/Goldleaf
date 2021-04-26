@@ -48,9 +48,24 @@ namespace ui {
         this->info_text->SetText(cfg::strings::Main.GetString(305));
         g_MainApplication->CallForRender();
 
-        auto json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
-        auto json = JSON::parse(json_data);
-        auto last_id = json[0]["tag_name"].get<std::string>();
+        const auto &json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
+        if(json_data.empty()) {
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->ReturnToMainMenu();
+            return;
+        }
+        const auto &json = JSON::parse(json_data);
+        if(json.size() <= 0) {
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->ReturnToMainMenu();
+            return;
+        }
+        const auto &last_id = json[0].value("tag_name", "");
+        if(last_id.empty()) {
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->ReturnToMainMenu();
+            return;
+        }
         this->info_text->SetText(cfg::strings::Main.GetString(306));
         g_MainApplication->CallForRender();
 

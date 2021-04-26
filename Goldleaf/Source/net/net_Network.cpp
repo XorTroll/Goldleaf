@@ -25,33 +25,36 @@ namespace net {
 
     namespace {
 
-        std::size_t StringWriteImpl(const char* in, std::size_t size, std::size_t num, std::string *out) {
-            const auto total_size = size * num;
+        std::size_t StringWriteImpl(const char* in, std::size_t size, std::size_t count, std::string *out) {
+            const auto total_size = size * count;
             out->append(in, total_size);
             return total_size;
         }
 
-        std::size_t FileWriteImpl(const char* in, std::size_t size, std::size_t num, FILE *out) {
-            fwrite(in, size, num, out);
-            return size * num;
+        std::size_t FileWriteImpl(const char* in, std::size_t size, std::size_t count, FILE *out) {
+            fwrite(in, size, count, out);
+            return size * count;
         }
 
         std::function<void(double, double)> g_CurrentCallback = [](double, double){};
 
-        int ProgressImpl(void* ptr, double TotalToDownload, double NowDownloaded, double TotalToUpload, double NowUploaded) {
-            g_CurrentCallback(NowDownloaded, TotalToDownload);
+        int ProgressImpl(void *_ptr, double total_to_download, double now_downloaded, double _total_to_upload, double _now_uploaded) {
+            g_CurrentCallback(now_downloaded, total_to_download);
             return 0;
         }
 
     }
 
     std::string RetrieveContent(const std::string &url, const std::string &mime_type) {
-        socketInitializeDefault();
+        const auto rc = socketInitializeDefault();
+        if(R_FAILED(rc)) {
+            return "";
+        }
+
         std::string content;
         auto curl = curl_easy_init();
         if(!mime_type.empty()) {
-            curl_slist *header_data = nullptr;
-            header_data = curl_slist_append(header_data, ("Content-Type: " + mime_type).c_str());
+            curl_slist *header_data = curl_slist_append(header_data, ("Content-Type: " + mime_type).c_str());
             header_data = curl_slist_append(header_data, ("Accept: " + mime_type).c_str());
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_data);
         }
@@ -68,9 +71,12 @@ namespace net {
         return content;
     }
 
-    void RetrieveToFile(const std::string &url, const std::string &path, std::function<void(double Done, double Total)> cb_fn)
-    {
-        socketInitializeDefault();
+    void RetrieveToFile(const std::string &url, const std::string &path, std::function<void(double Done, double Total)> cb_fn) {
+        const auto rc = socketInitializeDefault();
+        if(R_FAILED(rc)) {
+            return;
+        }
+
         auto f = fopen(path.c_str(), "wb");
         if(f) {
             g_CurrentCallback = cb_fn;
