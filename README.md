@@ -14,7 +14,7 @@
 
 1. [Features](#features)
 2. [Disclaimer](#disclaimer)
-3. [Quark and remote PC](#quark-and-remote-pc)
+3. [Quark and remote PC](#quark-and-remote-browsing)
 4. [Settings](#settings)
 5. [Known bugs](#known-bugs)
 6. [Building](#building)
