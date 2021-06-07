@@ -32,7 +32,7 @@ namespace ui {
             InstallLayout();
             PU_SMART_CTOR(InstallLayout)
 
-            void StartInstall(String path, fs::Explorer *exp, Storage location, bool omit_confirmation = false);
+            void StartInstall(String path, fs::Explorer *exp, NcmStorageId storage_id, bool omit_confirmation = false);
     };
 
 }

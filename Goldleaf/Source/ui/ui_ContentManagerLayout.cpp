@@ -60,22 +60,22 @@ namespace ui {
     }
 
     void ContentManagerLayout::sdCardMenuItem_Click() {
-        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(Storage::SdCard);
+        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(NcmStorageId_SdCard);
         g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::nandUserMenuItem_Click() {
-        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(Storage::NANDUser);
+        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(NcmStorageId_BuiltInUser);
         g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::nandSystemMenuItem_Click() {
-        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(Storage::NANDSystem);
+        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(NcmStorageId_BuiltInSystem);
         g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
     }
 
     void ContentManagerLayout::gameCartMenuItem_Click() {
-        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(Storage::GameCart);
+        g_MainApplication->GetStorageContentsLayout()->LoadFromStorage(NcmStorageId_GameCard);
         g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
     }
 

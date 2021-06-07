@@ -96,7 +96,7 @@ namespace ui {
             msg += " [" + cfg::strings::Main.GetString(179) + " no. " + std::to_string(sub_cnt.version >> 16) + "]";
         }
 
-        if(sub_cnt.IsBaseTitle() && (sub_cnt.location != Storage::NANDSystem)) {
+        if(sub_cnt.IsBaseTitle() && (sub_cnt.storage_id != NcmStorageId_BuiltInSystem)) {
             msg += "\n";
             // TODO: show both global and user stats?
             auto stats = sub_cnt.GetGlobalPlayStats();
@@ -127,7 +127,7 @@ namespace ui {
             tik = *it;
         }
 
-        if(sub_cnt.location == Storage::GameCart) {
+        if(sub_cnt.storage_id == NcmStorageId_GameCard) {
             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), msg, { cfg::strings::Main.GetString(234) }, true, icon);
             return;
         }
@@ -135,14 +135,14 @@ namespace ui {
         if(has_tik) {
             options.push_back(cfg::strings::Main.GetString(293));
         }
-        if(sub_cnt.location != Storage::NANDSystem) {
+        if(sub_cnt.storage_id != NcmStorageId_BuiltInSystem) {
             options.push_back(cfg::strings::Main.GetString(319));
         }
         options.push_back(cfg::strings::Main.GetString(18));
 
         const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), msg, options, true, icon);
         if(option_1 == 0) {
-            if(sub_cnt.location == Storage::NANDSystem) {
+            if(sub_cnt.storage_id == NcmStorageId_BuiltInSystem) {
                 g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(185), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
@@ -179,7 +179,7 @@ namespace ui {
                 g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(409), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
-            if(sub_cnt.location == Storage::NANDSystem) {
+            if(sub_cnt.storage_id == NcmStorageId_BuiltInSystem) {
                 g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(410), { cfg::strings::Main.GetString(234) }, true);
                 return;
             }
@@ -221,7 +221,7 @@ namespace ui {
             }
         }
         else if(((option_1 == 3) && !has_tik) || ((option_1 == 4) && has_tik)) {
-            const auto rc = ns::PushLaunchVersion(sub_cnt.app_id, 0);
+            const auto rc = hos::UpdateTitleVersion(sub_cnt); // ns::PushLaunchVersion(sub_cnt.app_id, 0);
             if(R_SUCCEEDED(rc)) {
                 g_MainApplication->ShowNotification(cfg::strings::Main.GetString(322));
                 this->UpdateElements();
@@ -235,7 +235,7 @@ namespace ui {
     void ContentInformationLayout::LoadContent(const hos::Title &content) {
         this->cnt_subcontents.clear();
         this->cnt_subcontents.push_back(content);
-        const auto &all_contents = hos::SearchTitles(NcmContentMetaType_Unknown, content.location);
+        const auto &all_contents = hos::SearchTitles(NcmContentMetaType_Unknown, content.storage_id);
         for(const auto &cnt: all_contents) {
             if(content.IsBaseOf(cnt)) {
                 this->cnt_subcontents.push_back(cnt);

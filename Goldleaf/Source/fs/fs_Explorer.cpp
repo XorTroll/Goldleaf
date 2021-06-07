@@ -195,6 +195,23 @@ namespace fs {
         return data;
     }
 
+    JSON Explorer::ReadJSON(String path) {
+        const auto full_path = this->MakeFull(path);
+        const auto file_size = this->GetFileSize(full_path);
+
+        auto data_buf = GetWorkBuffer();
+        if(file_size > 0) {
+            this->ReadFile(full_path, 0, file_size, data_buf);
+        }
+        
+        try {
+            return JSON::parse(std::string(reinterpret_cast<const char*>(data_buf), file_size));
+        }
+        catch(std::exception&) {
+            return JSON::object();
+        }
+    }
+
     std::vector<String> Explorer::ReadFileLines(String path, u32 line_offset, u32 line_count) {
         std::vector<String> data;
         const auto full_path = this->MakeFull(path);

@@ -71,23 +71,37 @@ namespace cfg {
             json["web"]["bookmarks"][i]["name"] = bmk.name;
             json["web"]["bookmarks"][i]["url"] = bmk.url;
         }
+        
         auto sd_exp = fs::GetSdCardExplorer();
         sd_exp->DeleteFile(consts::Settings);
-
-        const auto settings_data = json.dump(4);
-        sd_exp->WriteFile(consts::Settings, settings_data.c_str(), settings_data.length());
+        sd_exp->WriteJSON(json, consts::Settings);
     }
 
-    std::string Settings::PathForResource(const std::string &Path) {
-        auto outres = "romfs:" + Path;
+    std::string Settings::PathForResource(const std::string &res_path) {
+        auto sd_exp = fs::GetSdCardExplorer();
+        auto romfs_exp = fs::GetRomFsExplorer();
+        
         if(this->has_external_romfs) {
-            const auto &tmpres = this->external_romfs + "/" + Path;
+            const auto &ext_path = this->external_romfs + "/" + res_path;
             auto sd_exp = fs::GetSdCardExplorer();
-            if(sd_exp->IsFile(tmpres)) {
-                outres = tmpres;
+            if(sd_exp->IsFile(ext_path)) {
+                return ext_path;
             }
         }
-        return outres;
+        return romfs_exp->MakeAbsolute(res_path).AsUTF8();
+    }
+
+    JSON Settings::ReadJSONResource(const std::string &res_path) {
+        auto sd_exp = fs::GetSdCardExplorer();
+        auto romfs_exp = fs::GetRomFsExplorer();
+
+        if(this->has_external_romfs) {
+            const auto &ext_path = this->external_romfs + "/" + res_path;
+            if(sd_exp->IsFile(ext_path)) {
+                return sd_exp->ReadJSON(ext_path);
+            }
+        }
+        return romfs_exp->ReadJSON(romfs_exp->MakeAbsolute(res_path));
     }
 
     void Settings::ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu) {
@@ -138,6 +152,15 @@ namespace cfg {
                 settings.custom_lang = Language::Dutch;
                 break;
             }
+            case SetLanguage_JA: {
+                settings.custom_lang = Language::Japanese;
+                break;
+            }
+            case SetLanguage_PT:
+            case SetLanguage_PTBR: {
+                settings.custom_lang = Language::Portuguese;
+                break;
+            }
             default: {
                 settings.custom_lang = Language::English;
                 break;
@@ -156,87 +179,83 @@ namespace cfg {
 
         settings.custom_scheme = ui::GenerateRandomScheme();
 
-        // TODO: read with sdexp?
-        std::ifstream ifs("sdmc:/" + consts::Settings);
-        if(ifs.good()) {
-            const auto &settings_json = JSON::parse(ifs);
-            if(settings_json.count("general")) {
-                const auto &lang = settings_json["general"].value("customLanguage", "");
-                if(!lang.empty()) {
-                    auto clang = StringToLanguage(lang);
-                    settings.has_custom_lang = true;
-                    settings.custom_lang = clang;
-                }
-
-                const auto &extrom = settings_json["general"].value("externalRomFs", "");
-                if(!extrom.empty()) {
-                    settings.has_external_romfs = true;
-                    if(extrom.substr(0, 6) == "sdmc:/") {
-                        settings.external_romfs = extrom;
-                    }
-                    else {
-                        settings.external_romfs = "sdmc:";
-                        if(extrom[0] != '/') {
-                            settings.external_romfs += "/";
-                        }
-                        settings.external_romfs += extrom;
-                    }
-                }
+        auto sd_exp = fs::GetSdCardExplorer();
+        const auto &settings_json = sd_exp->ReadJSON(consts::Settings);
+        if(settings_json.count("general")) {
+            const auto &lang = settings_json["general"].value("customLanguage", "");
+            if(!lang.empty()) {
+                auto clang = StringToLanguage(lang);
+                settings.has_custom_lang = true;
+                settings.custom_lang = clang;
             }
 
-            if(settings_json.count("ui")) {
-                const auto itemsize = settings_json["ui"].value("menuItemSize", 0);
-                if(itemsize > 0) {
-                    settings.has_menu_item_size = true;
-                    settings.menu_item_size = itemsize;
+            const auto &extrom = settings_json["general"].value("externalRomFs", "");
+            if(!extrom.empty()) {
+                settings.has_external_romfs = true;
+                if(extrom.substr(0, 6) == "sdmc:/") {
+                    settings.external_romfs = extrom;
                 }
-                const auto &background_clr = settings_json["ui"].value("background", "");
-                if(!background_clr.empty()) {
-                    settings.has_custom_scheme = true;
-                    settings.custom_scheme.Background = pu::ui::Color::FromHex(background_clr);
-                }
-                const auto &base_clr = settings_json["ui"].value("base", "");
-                if(!base_clr.empty()) {
-                    settings.has_custom_scheme = true;
-                    settings.custom_scheme.Base = pu::ui::Color::FromHex(base_clr);
-                }
-                const auto &base_focus_clr = settings_json["ui"].value("baseFocus", "");
-                if(!base_focus_clr.empty()) {
-                    settings.has_custom_scheme = true;
-                    settings.custom_scheme.BaseFocus = pu::ui::Color::FromHex(base_focus_clr);
-                }
-                const auto &text_clr = settings_json["ui"].value("text", "");
-                if(!text_clr.empty()) {
-                    settings.has_custom_scheme = true;
-                    settings.custom_scheme.Text = pu::ui::Color::FromHex(text_clr);
-                }
-                const auto &scrollbar_clr = settings_json["ui"].value("scrollBar", "");
-                if(!scrollbar_clr.empty()) {
-                    settings.has_scrollbar_color = true;
-                    settings.scrollbar_color = pu::ui::Color::FromHex(scrollbar_clr);
-                }
-                const auto &pbar_clr = settings_json["ui"].value("progressBar", "");
-                if(!pbar_clr.empty()) {
-                    settings.has_progressbar_color = true;
-                    settings.progressbar_color = pu::ui::Color::FromHex(pbar_clr);
+                else {
+                    settings.external_romfs = "sdmc:";
+                    if(extrom[0] != '/') {
+                        settings.external_romfs += "/";
+                    }
+                    settings.external_romfs += extrom;
                 }
             }
-            if(settings_json.count("installs")) {
-                settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", true);
+        }
+
+        if(settings_json.count("ui")) {
+            const auto itemsize = settings_json["ui"].value("menuItemSize", 0);
+            if(itemsize > 0) {
+                settings.has_menu_item_size = true;
+                settings.menu_item_size = itemsize;
             }
-            if(settings_json.count("web")) {
-                if(settings_json["web"].count("bookmarks")) {
-                    for(u32 i = 0; i < settings_json["web"]["bookmarks"].size(); i++) {
-                        WebBookmark bmk = {};
-                        bmk.name = settings_json["web"]["bookmarks"][i].value("name", "");
-                        bmk.url = settings_json["web"]["bookmarks"][i].value("url", "");
-                        if(!bmk.url.empty() && !bmk.name.empty()) {
-                            settings.bookmarks.push_back(bmk);
-                        }
+            const auto &background_clr = settings_json["ui"].value("background", "");
+            if(!background_clr.empty()) {
+                settings.has_custom_scheme = true;
+                settings.custom_scheme.Background = pu::ui::Color::FromHex(background_clr);
+            }
+            const auto &base_clr = settings_json["ui"].value("base", "");
+            if(!base_clr.empty()) {
+                settings.has_custom_scheme = true;
+                settings.custom_scheme.Base = pu::ui::Color::FromHex(base_clr);
+            }
+            const auto &base_focus_clr = settings_json["ui"].value("baseFocus", "");
+            if(!base_focus_clr.empty()) {
+                settings.has_custom_scheme = true;
+                settings.custom_scheme.BaseFocus = pu::ui::Color::FromHex(base_focus_clr);
+            }
+            const auto &text_clr = settings_json["ui"].value("text", "");
+            if(!text_clr.empty()) {
+                settings.has_custom_scheme = true;
+                settings.custom_scheme.Text = pu::ui::Color::FromHex(text_clr);
+            }
+            const auto &scrollbar_clr = settings_json["ui"].value("scrollBar", "");
+            if(!scrollbar_clr.empty()) {
+                settings.has_scrollbar_color = true;
+                settings.scrollbar_color = pu::ui::Color::FromHex(scrollbar_clr);
+            }
+            const auto &pbar_clr = settings_json["ui"].value("progressBar", "");
+            if(!pbar_clr.empty()) {
+                settings.has_progressbar_color = true;
+                settings.progressbar_color = pu::ui::Color::FromHex(pbar_clr);
+            }
+        }
+        if(settings_json.count("installs")) {
+            settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", true);
+        }
+        if(settings_json.count("web")) {
+            if(settings_json["web"].count("bookmarks")) {
+                for(u32 i = 0; i < settings_json["web"]["bookmarks"].size(); i++) {
+                    WebBookmark bmk = {};
+                    bmk.name = settings_json["web"]["bookmarks"][i].value("name", "");
+                    bmk.url = settings_json["web"]["bookmarks"][i].value("url", "");
+                    if(!bmk.url.empty() && !bmk.name.empty()) {
+                        settings.bookmarks.push_back(bmk);
                     }
                 }
             }
-            ifs.close();
         }
         return settings;
     }

@@ -58,7 +58,7 @@ namespace hos {
     struct ContentId {
         NcmContentType type;
         NcmContentId id;
-        Storage location;
+        NcmStorageId storage_id;
         bool is_empty;
         u64 size;
 
@@ -88,7 +88,7 @@ namespace hos {
         NcmContentMetaType type;
         u32 version;
         NcmContentMetaKey meta_key;
-        Storage location;
+        NcmStorageId storage_id;
         
         NacpStruct TryGetNACP() const;
         u8 *TryGetIcon() const;
@@ -162,12 +162,13 @@ namespace hos {
     constexpr u32 MaxTitleCount = 64000;
 
     std::string FormatApplicationId(u64 app_id);
-    std::vector<Title> SearchTitles(NcmContentMetaType type, Storage location);
+    std::vector<Title> SearchTitles(NcmContentMetaType type, NcmStorageId storage_id);
     Title Locate(u64 app_id);
-    bool ExistsTitle(NcmContentMetaType type, Storage Location, u64 app_id);
+    bool ExistsTitle(NcmContentMetaType type, NcmStorageId storage_id, u64 app_id);
     std::vector<Ticket> GetAllTickets();
     Result RemoveTitle(const Title &title);
     Result RemoveTicket(const Ticket &tik);
+    Result UpdateTitleVersion(const Title &title);
     std::string GetExportedIconPath(u64 app_id);
     String GetExportedNACPPath(u64 app_id);
     

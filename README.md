@@ -121,7 +121,7 @@
 
 - **About**: check Goldleaf's version and how it was launched (as an applet or an application)
 
-> Goldleaf currently supports 6 different languages: **English**, **Spanish**, **German**, **French**, **Italian** and **Dutch**.
+> Goldleaf currently supports 8 different languages: **English**, **Spanish**, **German**, **French**, **Italian**, **Dutch**, **Japanese** and **Portuguese**.
 
 ### Controls
 

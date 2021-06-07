@@ -37,8 +37,8 @@ namespace ui {
         this->Add(this->install_p_bar);
     }
 
-    void InstallLayout::StartInstall(String path, fs::Explorer *exp, Storage location, bool omit_confirmation) {
-        nsp::Installer nsp_installer(path, exp, location);
+    void InstallLayout::StartInstall(String path, fs::Explorer *exp, NcmStorageId storage_id, bool omit_confirmation) {
+        nsp::Installer nsp_installer(path, exp, storage_id);
 
         auto rc = nsp_installer.PrepareInstallation();
         if(R_FAILED(rc)) {

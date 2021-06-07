@@ -27,6 +27,36 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
+    namespace {
+
+        bool SortContentsImpl(const hos::Title &cnt_a, const hos::Title &cnt_b) {
+            const auto cnt_a_nacp = cnt_a.TryGetNACP();
+            String cnt_a_name = "";
+            if(!hos::IsNacpEmpty(cnt_a_nacp)) {
+                cnt_a_name = hos::FindNacpName(cnt_a_nacp);
+            }
+
+            const auto cnt_b_nacp = cnt_b.TryGetNACP();
+            String cnt_b_name = "";
+            if(!hos::IsNacpEmpty(cnt_b_nacp)) {
+                cnt_b_name = hos::FindNacpName(cnt_b_nacp);
+            }
+
+            if(cnt_a_name.empty() && !cnt_b_name.empty()) {
+                return true;
+            }
+            if(!cnt_a_name.empty() && cnt_b_name.empty()) {
+                return false;
+            }
+            if(cnt_a_name.empty() && cnt_b_name.empty()) {
+                return cnt_a.app_id < cnt_b.app_id;
+            }
+
+            return cnt_a_name.AsUTF16()[0] < cnt_b_name.AsUTF16()[0];
+        }
+
+    }
+
     StorageContentsLayout::StorageContentsLayout() {
         this->contents_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
         this->contents_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
@@ -46,14 +76,13 @@ namespace ui {
         g_MainApplication->LoadLayout(g_MainApplication->GetContentInformationLayout());
     }
 
-    void StorageContentsLayout::LoadFromStorage(Storage location) {
+    void StorageContentsLayout::LoadFromStorage(NcmStorageId storage_id) {
         if(!this->contents.empty()) {
             this->contents_menu->ClearItems();
             this->contents.clear();
         }
-        // TODO: alphabetical order?
         // TODO: cache system?
-        auto cnts = hos::SearchTitles(NcmContentMetaType_Unknown, location);
+        auto cnts = hos::SearchTitles(NcmContentMetaType_Unknown, storage_id);
         for(const auto &cnt: cnts) {
             bool ok = true;
             for(const auto &cur_cnt: this->contents) {
@@ -75,6 +104,7 @@ namespace ui {
         this->contents_menu->SetVisible(!is_empty);
         if(!is_empty) {
             this->contents_menu->SetCooldownEnabled(true);
+            std::sort(this->contents.begin(), this->contents.end(), SortContentsImpl);
             for(const auto &cur_cnt: this->contents) {
                 const auto nacp = cur_cnt.TryGetNACP();
                 String name = hos::FormatApplicationId(cur_cnt.app_id);

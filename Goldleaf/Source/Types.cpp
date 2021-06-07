@@ -54,6 +54,12 @@ std::string LanguageToString(Language lang) {
         case Language::Dutch: {
             return "nl";
         }
+        case Language::Japanese: {
+            return "ja";
+        }
+        case Language::Portuguese: {
+            return "pt";
+        }
         case Language::English:
         default: {
             return "en";
@@ -76,6 +82,9 @@ Language StringToLanguage(std::string str) {
     }
     else if(str == "nl") {
         return Language::Dutch;
+    }
+    else if(str == "ja") {
+        return Language::Japanese;
     }
     else {
         return Language::English;
@@ -182,6 +191,7 @@ Result Initialize() {
 
     R_TRY(accountInitialize(AccountServiceType_Administrator));
     R_TRY(ncmInitialize());
+    R_TRY(avmInitialize());
     R_TRY(nsInitialize());
     R_TRY(es::Initialize());
     R_TRY(psmInitialize());
@@ -233,6 +243,7 @@ void Exit(Result rc) {
     es::Exit();
     nsExit();
     accountExit();
+    avmExit();
     ncmExit();
     nifmExit();
     pdmqryExit();

@@ -41,15 +41,9 @@ namespace cfg {
         return this->json[idx].get<std::string>();
     }
 
-    // TODO: load with sdexp?
-
     #define _CFG_PROCESS_STRINGS(strs, json_name) { \
         strings::strs.language = g_Settings.custom_lang; \
-        std::ifstream ifs(g_Settings.PathForResource(std::string("/Strings/") + #strs + "/" + json_name)); \
-        if(ifs.good()) { \
-            try { strings::strs.json = JSON::parse(ifs); } catch(std::exception&) {} \
-            ifs.close(); \
-        } \
+        strings::strs.json = g_Settings.ReadJSONResource(std::string("/Strings/") + #strs + "/" + json_name); \
     }
 
     void LoadStrings() {

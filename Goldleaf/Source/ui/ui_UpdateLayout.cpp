@@ -41,6 +41,7 @@ namespace ui {
     void UpdateLayout::StartUpdateSearch() {
         if(g_UpdatedNeedsRename) {
             // We've already updated
+            // TODO: is this really a required restriction?
             return;
         }
 

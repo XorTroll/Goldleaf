@@ -49,7 +49,7 @@ namespace ui {
         auto menu_ready = false;
         for(const auto &tik: tiks) {
             const auto tik_app_id = tik.GetApplicationId();
-            const auto is_tik_used = hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::SdCard, tik_app_id) || hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::NANDUser, tik_app_id);
+            const auto is_tik_used = hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, tik_app_id) || hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, tik_app_id);
             if(!is_tik_used) {
                 auto tik_name = hos::FormatApplicationId(tik_app_id);
                 auto itm = pu::ui::elm::MenuItem::New(tik_name);

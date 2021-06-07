@@ -42,7 +42,6 @@ namespace ui {
         EnsureDirectories();
         g_MainApplication->CallForRender();
 
-        const auto storage_id = static_cast<NcmStorageId>(cnt.location);
         auto format_app_id = hos::FormatApplicationId(cnt.app_id);
         
         auto sd_exp = fs::GetSdCardExplorer();
@@ -57,14 +56,14 @@ namespace ui {
         g_MainApplication->CallForRender();
     
         NcmContentStorage cnt_storage;
-        auto rc = ncmOpenContentStorage(&cnt_storage, storage_id);
+        auto rc = ncmOpenContentStorage(&cnt_storage, cnt.storage_id);
         if(R_FAILED(rc)) {
             HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
         NcmContentMetaDatabase cnt_meta_db;
-        rc = ncmOpenContentMetaDatabase(&cnt_meta_db, storage_id);
+        rc = ncmOpenContentMetaDatabase(&cnt_meta_db, cnt.storage_id);
         if(R_FAILED(rc)) {
             ncmContentStorageClose(&cnt_storage);
             HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
@@ -119,7 +118,7 @@ namespace ui {
         }
 
         hos::LockAutoSleep();
-        if(storage_id == NcmStorageId_SdCard) {
+        if(cnt.storage_id == NcmStorageId_SdCard) {
             this->dump_text->SetText(cfg::strings::Main.GetString(194));
             auto out_meta_cnt_path = out_dir + "/" + hos::ContentIdAsString(meta_cnt_id) + ".cnmt.nca";
             fs::CreateConcatenationFile(out_meta_cnt_path);
@@ -188,10 +187,10 @@ namespace ui {
         }
         else {
             fs::Explorer *nand_exp = nullptr;
-            if(storage_id == NcmStorageId_BuiltInSystem) {
+            if(cnt.storage_id == NcmStorageId_BuiltInSystem) {
                 nand_exp = fs::GetNANDSystemExplorer();
             }
-            else if(storage_id == NcmStorageId_BuiltInUser) {
+            else if(cnt.storage_id == NcmStorageId_BuiltInUser) {
                 nand_exp = fs::GetNANDUserExplorer();
             }
             else {

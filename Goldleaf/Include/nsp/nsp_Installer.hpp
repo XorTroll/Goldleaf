@@ -51,7 +51,7 @@ namespace nsp {
             String icon;
 
         public:
-            Installer(String path, fs::Explorer *exp, Storage location) : pfs0_file(exp, path), storage_id(static_cast<NcmStorageId>(location)) {}
+            Installer(String path, fs::Explorer *exp, NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id) {}
             ~Installer();
     
             Result PrepareInstallation();

@@ -179,7 +179,7 @@ namespace ui {
                 g_MainApplication->ShowNotification(cfg::strings::Main.GetString(406));
             }
             else {
-                // TODO
+                // TODO: "not found" message
             }
         }
     }

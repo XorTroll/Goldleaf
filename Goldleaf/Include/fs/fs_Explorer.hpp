@@ -118,6 +118,13 @@ namespace fs {
             void CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn);
             bool IsFileBinary(String path);
             std::vector<u8> ReadFile(String path);
+            JSON ReadJSON(String path);
+
+            inline void WriteJSON(const JSON &json, String path) {
+                const auto json_str = json.dump(4);
+                this->WriteFile(path, json_str.c_str(), json_str.length());
+            }
+
             std::vector<String> ReadFileLines(String path, u32 line_offset, u32 line_count);
             std::vector<String> ReadFileFormatHex(String path, u32 line_offset, u32 line_count);
             u64 GetDirectorySize(String path);

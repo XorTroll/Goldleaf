@@ -44,7 +44,8 @@ namespace cfg {
         std::vector<WebBookmark> bookmarks;
 
         void Save();
-        std::string PathForResource(const std::string &path);
+        std::string PathForResource(const std::string &res_path);
+        JSON ReadJSONResource(const std::string &res_path);
         void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu);
         void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &p_bar);
     };

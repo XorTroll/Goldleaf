@@ -274,7 +274,7 @@ namespace ui {
                         if(option_2 < 0) {
                             return;
                         }
-                        const auto dst = (option_2 == 0) ? Storage::SdCard : Storage::NANDUser;
+                        const auto dst = (option_2 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
                         const auto file_size = this->cur_exp->GetFileSize(full_item);
                         const auto free_space = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
                         if(free_space < file_size) {
@@ -676,7 +676,7 @@ namespace ui {
                             if(option_3 < 0) {
                                 return;
                             }
-                            const auto dst = (option_2 == 0) ? Storage::SdCard : Storage::NANDUser;
+                            const auto dst = (option_2 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
                             for(auto &nsp_name: nsps) {
                                 auto nsp_path = full_item + "/" + nsp_name;
                                 auto pres_nsp_path = pres_full_item + "/" + nsp_name;

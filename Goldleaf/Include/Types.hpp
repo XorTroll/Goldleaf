@@ -80,13 +80,6 @@ enum class LaunchMode {
     Application
 };
 
-enum class Storage {
-    GameCart = 2,
-    NANDSystem,
-    NANDUser,
-    SdCard,
-};
-
 enum class Language {
     English,
     Spanish,
@@ -94,6 +87,8 @@ enum class Language {
     French,
     Italian,
     Dutch,
+    Japanese,
+    Portuguese
 };
 
 std::string LanguageToString(Language lang);

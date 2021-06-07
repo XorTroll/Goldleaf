@@ -243,8 +243,7 @@ namespace usb::detail {
                         rc = usbDsParseReportData(&reportdata, urbid, nullptr, &gotsize);
                     }
                     if(gotsize != size) {
-                        // TODO...
-                        rc = 0xDEAD;
+                        return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
                     }
                 }
             }

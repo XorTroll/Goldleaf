@@ -110,8 +110,8 @@ namespace nsp {
         *reinterpret_cast<u64*>(cnt_info.size) = cnmt_nca_file_size;
 
         this->cnt_meta_key = cnmt.GetContentMetaKey();
-        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
-        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, Storage::NANDUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
         
         bool has_cnmt_installed = false;
         ERR_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &cnt_info.content_id));
