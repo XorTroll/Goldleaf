@@ -157,12 +157,12 @@ namespace fs {
     }
 
     u64 RemotePCExplorer::GetTotalSpace() {
-        // TODO
+        // TODO?
         return 0;
     }
 
     u64 RemotePCExplorer::GetFreeSpace() {
-        // TODO
+        // TODO?
         return 0;
     }
 

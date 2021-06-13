@@ -381,12 +381,12 @@ namespace hos {
 
     std::string GetExportedIconPath(u64 app_id) {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->MakeAbsolute(consts::Root + "/title/" + FormatApplicationId(app_id) + ".jpg").AsUTF8();
+        return sd_exp->MakeAbsolute(consts::Title + "/" + FormatApplicationId(app_id) + ".jpg").AsUTF8();
     }
 
     String GetExportedNACPPath(u64 app_id) {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->MakeAbsolute(consts::Root + "/title/" + FormatApplicationId(app_id) + ".nacp").AsUTF8();
+        return sd_exp->MakeAbsolute(consts::Title + "/" + FormatApplicationId(app_id) + ".nacp").AsUTF8();
     }
 
     ApplicationIdMask GetApplicationIdMask(u64 app_id) {

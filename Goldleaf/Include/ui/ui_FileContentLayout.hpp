@@ -37,9 +37,25 @@ namespace ui {
             PU_SMART_CTOR(FileContentLayout)
 
             void LoadFile(String path, fs::Explorer *exp, bool read_hex);
-            void Update(bool insert_new_top);
             void ScrollUp();
             void ScrollDown();
+
+            inline std::vector<String> ReadLines(u32 line_offset, u32 count) {
+                if(this->read_hex) {
+                    return this->file_exp->ReadFileFormatHex(this->path, line_offset, count);
+                }
+                else {
+                    return this->file_exp->ReadFileLines(this->path, line_offset, count);
+                }
+            }
+
+            inline void UpdateLines() {
+                String new_cnt;
+                for(auto &line: this->read_lines) {
+                    new_cnt += line + "\n";
+                }
+                this->cnt_text->SetText(new_cnt);
+            }
     };
 
 }

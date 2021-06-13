@@ -21,7 +21,7 @@
 
 #include <usb/usb_Detail.hpp>
 
-// TODO: deeper rewrite?
+// TODO (low priority): deeper rewrite?
 
 namespace usb::detail {
 

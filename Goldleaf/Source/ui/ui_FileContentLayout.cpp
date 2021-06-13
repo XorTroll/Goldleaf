@@ -29,7 +29,7 @@ namespace ui {
 
     namespace {
 
-        constexpr u32 ReadLineCount = 19;
+        constexpr u32 MaxLineCount = 19;
 
     }
 
@@ -46,46 +46,37 @@ namespace ui {
         this->read_hex = read_hex;
         this->file_exp = exp;
         this->line_offset = 0;
-        this->read_lines.clear();
-        this->Update(false);
-    }
 
-    void FileContentLayout::Update(bool insert_new_top) {
-        // TODO: fix this
-        std::vector<String> new_lines;
-        const auto read_line_count = ReadLineCount - this->read_lines.size();
-        if(this->read_hex) {
-            new_lines = this->file_exp->ReadFileFormatHex(this->path, this->line_offset + this->read_lines.size(), read_line_count);
-        }
-        else {
-            new_lines = this->file_exp->ReadFileLines(this->path, this->line_offset + this->read_lines.size(), read_line_count);
-        }
-        if(insert_new_top) {
-            this->read_lines.insert(this->read_lines.begin(), new_lines.begin(), new_lines.end());
-        }
-        else {
-            this->read_lines.insert(this->read_lines.end(), new_lines.begin(), new_lines.end());
-        }
-
-        String new_cnt;
-        for(auto &line: this->read_lines) {
-            new_cnt += line + "\n";
-        }
-        this->cnt_text->SetText(new_cnt);
+        this->read_lines = this->ReadLines(this->line_offset, MaxLineCount);
+        this->UpdateLines();
     }
 
     void FileContentLayout::ScrollUp() {
         if(this->line_offset > 0) {
+            if(this->read_lines.size() >= MaxLineCount) {
+                this->read_lines.pop_back();
+            }
             this->line_offset--;
-            this->read_lines.pop_back();
-            this->Update(true);
+
+            auto new_line_l = this->ReadLines(this->line_offset, 1);
+            if(!new_line_l.empty()) {
+                this->read_lines.insert(this->read_lines.begin(), new_line_l.front());
+            }
+            this->UpdateLines();
         }
     }
 
     void FileContentLayout::ScrollDown() {
-        this->line_offset++;
-        this->read_lines.erase(this->read_lines.begin());
-        this->Update(false);
+        if(!this->read_lines.empty()) {
+            this->read_lines.erase(this->read_lines.begin());
+            this->line_offset++;
+
+            auto new_line_l = this->ReadLines(this->line_offset + this->read_lines.size(), 1);
+            if(!new_line_l.empty()) {
+                this->read_lines.push_back(new_line_l.front());
+            }
+            this->UpdateLines();
+        }
     }
 
 }

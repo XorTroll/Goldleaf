@@ -202,7 +202,7 @@ namespace ui {
                     info += "(10.0.0 -)";
                     break;
                 }
-                // TODO: more keys?
+                // TODO (high priority): more keys?
                 default: {
                     info += cfg::strings::Main.GetString(96);
                     break;

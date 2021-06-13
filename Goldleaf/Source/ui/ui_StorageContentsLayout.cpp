@@ -81,7 +81,7 @@ namespace ui {
             this->contents_menu->ClearItems();
             this->contents.clear();
         }
-        // TODO: cache system?
+        // TODO (low priority): cache system?
         auto cnts = hos::SearchTitles(NcmContentMetaType_Unknown, storage_id);
         for(const auto &cnt: cnts) {
             bool ok = true;

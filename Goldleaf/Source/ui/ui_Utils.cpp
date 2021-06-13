@@ -40,7 +40,7 @@ namespace ui {
         }
 
         inline pu::ui::Color GenerateColorVariation(pu::ui::Color clr, u8 min_v, u8 max_v) {
-            const auto v = (u8)RandomFromRange(min_v, max_v);
+            const auto v = static_cast<u8>(RandomFromRange(min_v, max_v));
             return { VariateChannelImpl(clr.R, v), VariateChannelImpl(clr.G, v), VariateChannelImpl(clr.B, v), clr.A };
         }
 
@@ -114,7 +114,7 @@ namespace ui {
         const auto g = static_cast<u8>(RandomFromRange(0, 0xFF));
         const auto b = static_cast<u8>(RandomFromRange(0, 0xFF));
 
-        pu::ui::Color clr = { r, g, b, 0xFF };
+        const pu::ui::Color clr = { r, g, b, 0xFF };
         scheme.Base = clr;
         scheme.Background = GenerateColorVariation(clr, 30, 50);
         scheme.BaseFocus = GenerateColorVariation(clr, 20, 30);

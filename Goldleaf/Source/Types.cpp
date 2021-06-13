@@ -142,21 +142,19 @@ u32 RandomFromRange(u32 min, u32 max) {
 }
 
 void EnsureDirectories() {
-    // TODO: make these constant, in a list...?
     auto nand_sys_exp = fs::GetNANDSystemExplorer();
     auto sd_exp = fs::GetSdCardExplorer();
-    nand_sys_exp->DeleteDirectory("Contents/temp");
-    nand_sys_exp->CreateDirectory("Contents/temp");
+    nand_sys_exp->EmptyDirectory("Contents/temp");
+
     sd_exp->CreateDirectory(consts::Root);
-    sd_exp->CreateDirectory(consts::Root + "/meta");
-    sd_exp->CreateDirectory(consts::Root + "/title");
-    sd_exp->CreateDirectory(consts::Root + "/dump");
-    sd_exp->CreateDirectory(consts::Root + "/reports");
-    sd_exp->CreateDirectory(consts::Root + "/amiibocache");
-    sd_exp->CreateDirectory(consts::Root + "/userdata");
-    sd_exp->CreateDirectory(consts::Root + "/dump/temp");
-    sd_exp->CreateDirectory(consts::Root + "/dump/update");
-    sd_exp->CreateDirectory(consts::Root + "/dump/title");
+    sd_exp->CreateDirectory(consts::Metadata);
+    sd_exp->CreateDirectory(consts::Title);
+    sd_exp->CreateDirectory(consts::Dump);
+    sd_exp->CreateDirectory(consts::DumpTemp);
+    sd_exp->CreateDirectory(consts::DumpUpdate);
+    sd_exp->CreateDirectory(consts::DumpTitle);
+    sd_exp->CreateDirectory(consts::Reports);
+    sd_exp->CreateDirectory(consts::UserData);
 }
 
 extern "C" {
@@ -175,9 +173,10 @@ extern "C" {
 
 }
 
-void Close(Result rc) {
+void NORETURN Close(Result rc) {
     if(GetLaunchMode() == LaunchMode::Application) {
         libappletRequestHomeMenu();
+        __builtin_unreachable();
     }
     else {
         __libnx_exit(rc);
@@ -205,14 +204,13 @@ Result Initialize() {
     return 0;
 }
 
-void Exit(Result rc) {
-    // TODO: stuck crashes
+void NORETURN Exit(Result rc) {
     if(g_MainApplication) {
         g_MainApplication->Close();
     }
 
     auto nand_sys_exp = fs::GetNANDSystemExplorer();
-    auto nand_safer_exp = fs::GetNANDSafeExplorer();
+    auto nand_safe_exp = fs::GetNANDSafeExplorer();
     auto nand_user_exp = fs::GetNANDUserExplorer();
     auto nand_prodinfof_exp = fs::GetPRODINFOFExplorer();
     auto sd_exp = fs::GetSdCardExplorer();
@@ -229,7 +227,7 @@ void Exit(Result rc) {
     operator delete[](work_buf, std::align_val_t(0x1000));
     
     delete nand_sys_exp;
-    delete nand_safer_exp;
+    delete nand_safe_exp;
     delete nand_user_exp;
     delete nand_prodinfof_exp;
     delete sd_exp;

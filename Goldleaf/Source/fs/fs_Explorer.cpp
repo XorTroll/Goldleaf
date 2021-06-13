@@ -235,12 +235,9 @@ namespace fs {
             for(u32 i = 0; i < read_size; i++) {
                 const auto ch = static_cast<char>(data_buf[i]);
                 if(ch == '\n') {
-                    if(data.size() >= line_count) {
-                        end = true;
-                        break;
-                    }
-                    if(tmp_line_offset < line_offset) {
-                        tmp_line_offset++;
+                    auto prev_tmp_line_offset = tmp_line_offset;
+                    tmp_line_offset++;
+                    if(prev_tmp_line_offset < line_offset) {
                         tmp_line = "";
                         continue;
                     }
@@ -253,9 +250,13 @@ namespace fs {
                         tmp_line.replace(find_pos, tab.length(), "    ");
                     }
                     data.push_back(tmp_line);
+                    if(data.size() >= line_count) {
+                        end = true;
+                        break;
+                    }
                     tmp_line = "";
                 }
-                else {
+                else if(tmp_line_offset >= line_offset) {
                     tmp_line += ch;
                 }
             }

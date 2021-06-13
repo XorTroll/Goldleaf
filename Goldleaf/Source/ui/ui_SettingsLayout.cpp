@@ -66,7 +66,7 @@ namespace ui
         this->options_menu->SetVisible(false);
         this->info_p_bar->SetVisible(true);
         g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + fw_ver.display_version + "...");
-        auto out_dir = sd_exp->FullPathFor(consts::Root + "/dump/update/" + fw_ver.display_version);
+        auto out_dir = sd_exp->FullPathFor(consts::DumpUpdate + "/" + fw_ver.display_version);
         sd_exp->DeleteDirectory(out_dir);
         exp->CopyDirectoryProgress(fw_path, out_dir, [&](double done, double total) {
             this->info_p_bar->SetMaxValue(total);

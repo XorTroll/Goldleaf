@@ -39,12 +39,6 @@ namespace ui {
     }
 
     void UpdateLayout::StartUpdateSearch() {
-        if(g_UpdatedNeedsRename) {
-            // We've already updated
-            // TODO: is this really a required restriction?
-            return;
-        }
-
         this->download_p_bar->SetVisible(false);
         this->info_text->SetText(cfg::strings::Main.GetString(305));
         g_MainApplication->CallForRender();
@@ -88,6 +82,8 @@ namespace ui {
                 hos::LockAutoSleep();
                 this->download_p_bar->SetVisible(true);
                 auto download_url = "https://github.com/XorTroll/Goldleaf/releases/download/" + last_id + "/Goldleaf.nro";
+                sd_exp->DeleteFile(consts::TempUpdatedNro);
+                // TODO: MakeAbsolute?
                 net::RetrieveToFile(download_url, "sdmc:/" + consts::TempUpdatedNro, [&](double done, double total)
                 {
                     this->download_p_bar->SetMaxValue(total);

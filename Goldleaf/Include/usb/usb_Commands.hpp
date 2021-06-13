@@ -22,7 +22,7 @@
 #pragma once
 #include <usb/usb_Detail.hpp>
 
-// TODO: C++20 concepts?
+// TODO (low priority): C++20 concepts?
 
 namespace usb {
 

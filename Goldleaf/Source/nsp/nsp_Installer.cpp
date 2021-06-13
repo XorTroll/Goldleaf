@@ -139,7 +139,7 @@ namespace nsp {
                         for(auto &cnt: control_nca_fs_obj.GetContents()) {
                             if(fs::GetExtension(cnt) == "dat") {
                                 auto sd_exp = fs::GetSdCardExplorer();
-                                this->icon = sd_exp->MakeAbsolute(consts::Root + "/meta/" + control_nca_content_id + ".jpg");
+                                this->icon = sd_exp->MakeAbsolute(consts::Metadata + "/" + control_nca_content_id + ".jpg");
                                 control_nca_fs_obj.CopyFile(cnt, this->icon);
                                 break;
                             }

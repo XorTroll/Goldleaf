@@ -30,7 +30,7 @@ namespace ui {
     namespace {
 
         inline void LaunchWebAppletImpl(const std::string &page) {
-            WebCommonConfig web;
+            WebCommonConfig web = {};
             webPageCreate(&web, page.c_str());
             webConfigSetWhitelist(&web, ".*");
             if(acc::HasSelectedUser()) {

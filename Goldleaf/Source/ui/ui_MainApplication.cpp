@@ -51,7 +51,7 @@ namespace ui {
         layout->Add(this->help_img); \
     }
 
-    // TODO: move OnInputs to each layout's code?
+    // TODO (low priority): move OnInputs to each layout's code?
 
     void MainApplication::OnLoad() {
         // Load the file hex-viewer font

@@ -25,6 +25,18 @@
 extern ui::MainApplication::Ref g_MainApplication;
 extern cfg::Settings g_Settings;
 
+namespace {
+
+    inline String FormatPlayStatsInfo(String kind, const hos::TitlePlayStats &stats) {
+        String fmt;
+        fmt += "\n" + kind;
+        fmt += "\n" + cfg::strings::Main.GetString(339) + " " + hos::FormatTime(stats.secs_from_last_launched);
+        fmt += "\n" + cfg::strings::Main.GetString(340) + " " + hos::FormatTime(stats.total_play_secs);
+        return fmt;
+    }
+
+}
+
 namespace ui {
 
     ContentInformationLayout::ContentInformationLayout() {
@@ -98,22 +110,18 @@ namespace ui {
 
         if(sub_cnt.IsBaseTitle() && (sub_cnt.storage_id != NcmStorageId_BuiltInSystem)) {
             msg += "\n";
-            // TODO: show both global and user stats?
-            auto stats = sub_cnt.GetGlobalPlayStats();
-            if(stats.total_play_secs == 0) {
+
+            const auto global_stats = sub_cnt.GetGlobalPlayStats();
+            if(global_stats.total_play_secs == 0) {
                 msg += "\n" + cfg::strings::Main.GetString(351) + "\n";
             }
-            else  {
+            else {
+                msg += FormatPlayStatsInfo(cfg::strings::Main.GetString(338), global_stats);
                 if(acc::HasSelectedUser()) {
-                    stats = sub_cnt.GetUserPlayStats(acc::GetSelectedUser());
-                    msg += "\n" + cfg::strings::Main.GetString(337);
-                    msg += "\n" + cfg::strings::Main.GetString(339) + " " + hos::FormatTime(stats.secs_from_last_launched);
-                    msg += "\n" + cfg::strings::Main.GetString(340) + " " + hos::FormatTime(stats.total_play_secs);
+                    const auto user_stats = sub_cnt.GetUserPlayStats(acc::GetSelectedUser());
                     msg += "\n";
+                    msg += FormatPlayStatsInfo(cfg::strings::Main.GetString(337), user_stats);
                 }
-                msg += "\n" + cfg::strings::Main.GetString(338);
-                msg += "\n" + cfg::strings::Main.GetString(339) + " " + hos::FormatTime(stats.secs_from_last_launched);
-                msg += "\n" + cfg::strings::Main.GetString(340) + " " + hos::FormatTime(stats.total_play_secs);
             }
         }
         const auto tiks = hos::GetAllTickets();
@@ -221,6 +229,7 @@ namespace ui {
             }
         }
         else if(((option_1 == 3) && !has_tik) || ((option_1 == 4) && has_tik)) {
+            // TODO: confirmation dialog
             const auto rc = hos::UpdateTitleVersion(sub_cnt); // ns::PushLaunchVersion(sub_cnt.app_id, 0);
             if(R_SUCCEEDED(rc)) {
                 g_MainApplication->ShowNotification(cfg::strings::Main.GetString(322));

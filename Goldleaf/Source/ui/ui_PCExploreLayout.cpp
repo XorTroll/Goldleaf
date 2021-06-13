@@ -45,7 +45,7 @@ namespace ui {
                 String label;
                 String path;
                 u32 tmp_size = 0;
-                // TODO: make use of drive size?
+                // TODO (low priority): make use of drive size?
                 rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(tmp_size), usb::Out32(tmp_size));
                 if(R_SUCCEEDED(rc)) {
                     this->names.push_back(label + " (" + path + ":\\)");

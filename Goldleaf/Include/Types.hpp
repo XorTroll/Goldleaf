@@ -65,7 +65,14 @@ namespace consts {
     static const std::string Log = Root + "/goldleaf.log";
     static const std::string Settings = Root + "/settings.json";
     static const std::string TempUpdatedNro = Root + "/update_tmp.nro";
-    static const std::string AmiiboCache = Root + "/amiibocache";
+    static const std::string Metadata = Root + "/meta";
+    static const std::string Title = Root + "/title";
+    static const std::string Dump = Root + "/dump";
+    static const std::string DumpTemp = Root + "/dump/temp";
+    static const std::string DumpUpdate = Root + "/dump/update";
+    static const std::string DumpTitle = Root + "/dump/title";
+    static const std::string Reports = Root + "/reports";
+    static const std::string UserData = Root + "/userdata";
 
 }
 
@@ -141,8 +148,8 @@ struct Version {
 };
 
 Result Initialize();
-void Close(Result rc);
-void Exit(Result rc);
+void NORETURN Close(Result rc);
+void NORETURN Exit(Result rc);
 
 inline ExecutableMode GetExecutableMode() {
     return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;

@@ -328,7 +328,7 @@ namespace ui {
                 }
             }
             else if(ext == "nxtheme") {
-                // TODO: shall we continue supporting this?
+                // TODO (to consider): shall we continue supporting this?
                 // This implementation is really shitty, and only works for SD files...
                 switch(option_1) {
                     case 0: {
@@ -498,7 +498,6 @@ namespace ui {
                     }
                 }
             }
-            // TODO: presentable path menu head etc?
             else if(!is_bin) {
                 switch(option_1) {
                     case 0: {

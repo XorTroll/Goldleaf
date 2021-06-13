@@ -99,13 +99,13 @@ namespace dump {
             std::string title_key;
             String out_rights_id;
             const auto &format_app_id = hos::FormatApplicationId(app_id);
-            const auto &outdir = consts::Root + "/dump/title/" + format_app_id;
+            const auto &outdir = consts::DumpTitle + "/" + format_app_id;
             u32 tmp_size = 0;
             while(true) {
                 if(!title_key.empty()) {
                     break;
                 }
-                u8 *data_buf = fs::GetWorkBuffer();
+                auto data_buf = fs::GetWorkBuffer();
                 const auto fr = f_read(&save, data_buf, 0x40000, &tmp_size);
                 if(fr) {
                     break;

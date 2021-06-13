@@ -149,6 +149,11 @@ namespace fs {
             virtual void DeleteFile(String path) = 0;
             virtual void DeleteDirectory(String path) = 0;
 
+            inline void EmptyDirectory(String path) {
+                this->DeleteDirectory(path);
+                this->CreateDirectory(path);
+            }
+
             virtual void StartFileImpl(String path, FileMode mode) = 0;
             virtual void EndFileImpl(FileMode mode) = 0;
 

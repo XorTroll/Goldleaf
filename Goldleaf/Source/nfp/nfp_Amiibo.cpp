@@ -97,8 +97,7 @@ namespace nfp {
         sd_exp->CreateDirectory(emuiibo_path);
 
         const auto amiibo_path = emuiibo_path + "/" + reg.amiibo_name;
-        sd_exp->DeleteDirectory(amiibo_path);
-        sd_exp->CreateDirectory(amiibo_path);
+        sd_exp->EmptyDirectory(amiibo_path);
         
         sd_exp->CreateFile(amiibo_path + "/amiibo.flag");
 

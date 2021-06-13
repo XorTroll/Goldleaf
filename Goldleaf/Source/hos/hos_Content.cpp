@@ -82,9 +82,8 @@ namespace hos {
     }
 
     void CleanPendingUpdate() {
-        auto sys = fs::GetNANDSystemExplorer();
-        sys->DeleteDirectory("Contents/placehld");
-        sys->CreateDirectory("Contents/placehld");
+        auto sys_exp = fs::GetNANDSystemExplorer();
+        sys_exp->EmptyDirectory("Contents/placehld");
 
         if(R_SUCCEEDED(nssuInitialize())) {
             nssuDestroySystemUpdateTask();
