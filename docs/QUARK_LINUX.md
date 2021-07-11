@@ -20,7 +20,7 @@ Close editor and reload udev rules.
 
 Set udev rule or run java as root. Ensure maven and JDK11 are installed and set as default or manually called. To ensure the result can be used on Java 8+ ensure you compile with Java SE 8.
 
-    git clone https://github.com/droidman/goldleaf.git
+    git clone https://github.com/XorTroll/Goldleaf.git
     cd Goldleaf/Quark
     mvn -B -DskipTests clean package
     java -jar target/Quark.jar
