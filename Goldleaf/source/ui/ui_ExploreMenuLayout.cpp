@@ -189,7 +189,7 @@ namespace ui {
         mounted_exp_item->SetIcon(icon);
         mounted_exp_item->SetColor(g_Settings.custom_scheme.Text);
         mounted_exp_item->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click, this, exp, name, icon));
-        mounted_exp_item->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click_X, this, exp), KEY_X);
+        mounted_exp_item->AddOnClick(std::bind(&ExploreMenuLayout::explorer_Click_X, this, exp), HidNpadButton_X);
         this->mounted_explorer_items.push_back(mounted_exp_item);
         this->mounted_explorers.push_back(exp);
     }

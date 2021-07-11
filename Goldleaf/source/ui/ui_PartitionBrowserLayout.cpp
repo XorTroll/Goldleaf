@@ -137,7 +137,7 @@ namespace ui {
                     }
                 }
                 mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this, itm));
-                mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click_Y, this, itm), KEY_Y);
+                mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click_Y, this, itm), HidNpadButton_Y);
                 this->browse_menu->AddItem(mitm);
             }
             u32 tmp_idx = 0;

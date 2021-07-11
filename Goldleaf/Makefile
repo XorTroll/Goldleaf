@@ -39,10 +39,10 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	Source/fatfs Source/acc Source/sm Source/amssu Source/bpcams Source/dump Source/err Source/es Source/fs Source/drive Source/hos Source/ncm Source/net Source/ns Source/nsp Source/cfg Source/nfp Source/ui Source/usb Source
-INCLUDES	:=	Include
+SOURCES		:=	source/fatfs source/acc source/sm source/amssu source/bpcams source/dump source/err source/es source/fs source/drive source/hos source/ncm source/net source/ns source/nsp source/cfg source/nfp source/ui source/usb source
+INCLUDES	:=	include
 DATA		:=	data
-ROMFS		:=	RomFs
+ROMFS		:=	romfs
 
 VER_MAJOR	:= 0
 VER_MINOR	:= 10
@@ -76,7 +76,7 @@ LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lusbhsfs -lntfs-3g -l
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/Output $(CURDIR)/../libusbhsfs
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/out $(CURDIR)/../libusbhsfs
 
 
 #---------------------------------------------------------------------------------

@@ -319,7 +319,7 @@ namespace ui {
     }
 
     void MainApplication::browser_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             if(this->partition_browser_lyt->GoBack()) {
                 this->partition_browser_lyt->UpdateElements(-1);
             }
@@ -329,7 +329,7 @@ namespace ui {
                 this->LoadLayout(this->explore_menu_lyt);
             }
         }
-        else if(down & KEY_X) {
+        else if(down & HidNpadButton_X) {
             if(!g_Clipboard.empty()) {
                 auto exp = fs::GetExplorerForPath(g_Clipboard);
                 const bool clipboard_is_dir = exp->IsDirectory(g_Clipboard);
@@ -375,7 +375,7 @@ namespace ui {
                 this->ShowNotification(cfg::strings::Main.GetString(224));
             }
         }
-        else if(down & KEY_L) {
+        else if(down & HidNpadButton_L) {
             auto file_name = AskForText(cfg::strings::Main.GetString(225), "");
             if(!file_name.empty()) {
                 auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(file_name);
@@ -389,7 +389,7 @@ namespace ui {
                 }
             }
         }
-        else if(down & KEY_R) {
+        else if(down & HidNpadButton_R) {
             auto dir_name = AskForText(cfg::strings::Main.GetString(250), "");
             if(!dir_name.empty()) {
                 auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(dir_name);
@@ -406,13 +406,13 @@ namespace ui {
     }
 
     void MainApplication::exploreMenu_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::pcExplore_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->UnloadMenuData();
             this->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
             this->LoadLayout(this->explore_menu_lyt);
@@ -420,63 +420,63 @@ namespace ui {
     }
 
     void MainApplication::fileContent_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->LoadLayout(this->partition_browser_lyt);
         }
-        else if((down & KEY_DDOWN) || (down & KEY_LSTICK_DOWN) || (held & KEY_RSTICK_DOWN)) {
+        else if((down & HidNpadButton_Down) || (down & HidNpadButton_StickLDown) || (held & HidNpadButton_StickRDown)) {
             this->file_content_lyt->ScrollDown();
         }
-        else if((down & KEY_DUP) || (down & KEY_LSTICK_UP) || (held & KEY_RSTICK_UP)) {
+        else if((down & HidNpadButton_Up) || (down & HidNpadButton_StickLUp) || (held & HidNpadButton_StickRUp)) {
             this->file_content_lyt->ScrollUp();
         }
     }
 
     void MainApplication::contentInformation_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->LoadMenuData(cfg::strings::Main.GetString(187), "Storage", cfg::strings::Main.GetString(189));
             this->LoadLayout(this->storage_cnts_lyt);
         }
     }
 
     void MainApplication::storageContents_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->LoadMenuData(cfg::strings::Main.GetString(187), "Storage", cfg::strings::Main.GetString(33));
             this->LoadLayout(this->cnt_manager_lyt);
         }
     }
 
     void MainApplication::contentManager_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::unusedTickets_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::account_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::amiibo_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::settings_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::memory_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->UnloadMenuData();
             this->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
             this->LoadLayout(this->settings_lyt);
@@ -484,13 +484,13 @@ namespace ui {
     }
 
     void MainApplication::webBrowser_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
     void MainApplication::about_Input(u64 down, u64 up, u64 held) {
-        if(down & KEY_B) {
+        if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
@@ -507,13 +507,13 @@ namespace ui {
     }
 
     void MainApplication::OnInput(u64 down, u64 up, u64 held) {
-        if(down & KEY_PLUS) {
+        if(down & HidNpadButton_Plus) {
             this->CloseWithFadeOut();
         }
-        else if(down & KEY_MINUS) {
+        else if(down & HidNpadButton_Minus) {
             this->helpImage_OnClick();
         }
-        else if((down & KEY_ZL) || (down & KEY_ZR)) {
+        else if((down & HidNpadButton_ZL) || (down & HidNpadButton_ZR)) {
             ShowPowerTasksDialog(cfg::strings::Main.GetString(229), cfg::strings::Main.GetString(230));
         }
     }
