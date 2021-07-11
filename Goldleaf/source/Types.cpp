@@ -86,6 +86,9 @@ Language StringToLanguage(std::string str) {
     else if(str == "ja") {
         return Language::Japanese;
     }
+    else if(str == "zh-hans") {
+        return Language::ChineseSimplified;
+    }
     else {
         return Language::English;
     }

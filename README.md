@@ -121,7 +121,7 @@
 
 - **About**: check Goldleaf's version and how it was launched (as an applet or an application)
 
-> Goldleaf currently supports 8 different languages: **English**, **Spanish**, **German**, **French**, **Italian**, **Dutch**, **Japanese** and **Portuguese**.
+> Goldleaf currently supports 8 different languages: **English**, **Spanish**, **German**, **French**, **Italian**, **Dutch**, **Japanese**, **Portuguese** and **simplified Chinese**.
 
 ### Controls
 
@@ -247,8 +247,6 @@ You can always contact me on my Discord server (invite link below) as an easier 
 Read this before making any new translations:
 
 - Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
-
-- Currently languages with special alphabets (like Russian or Arabic) are unsupported due to the lack of non-UTF-8 support for the JSON parser. This is planned to be solved soon.
 
 ## Credits and support
 
