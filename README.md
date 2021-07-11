@@ -8,7 +8,7 @@
 
 <img src="Screenshots/Goldleaf.4.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.5.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.6.jpg" alt="drawing" width="250"/>
 
-<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.7.jpg" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
+<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
 
 # Table of contents
 
