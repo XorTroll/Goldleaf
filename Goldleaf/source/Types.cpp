@@ -60,6 +60,12 @@ std::string LanguageToString(Language lang) {
         case Language::Portuguese: {
             return "pt";
         }
+        case Language::ChineseSimplified: {
+            return "zh-hans";
+        }
+        case Language::Korean: {
+            return "ko";
+        }
         case Language::English:
         default: {
             return "en";
@@ -86,8 +92,14 @@ Language StringToLanguage(std::string str) {
     else if(str == "ja") {
         return Language::Japanese;
     }
+    else if(str == "pt") {
+        return Language::Portuguese;
+    }
     else if(str == "zh-hans") {
         return Language::ChineseSimplified;
+    }
+    else if(str == "ko") {
+        return Language::Korean;
     }
     else {
         return Language::English;

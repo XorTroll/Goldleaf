@@ -96,7 +96,8 @@ enum class Language {
     Dutch,
     Japanese,
     Portuguese,
-    ChineseSimplified
+    ChineseSimplified,
+    Korean
 };
 
 std::string LanguageToString(Language lang);
