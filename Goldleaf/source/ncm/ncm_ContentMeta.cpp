@@ -67,6 +67,7 @@ namespace ncm {
             .extended_header_size = cnt_meta_header.extended_header_size,
             .content_count = static_cast<u16>(contents.size() + 1),
             .content_meta_count = cnt_meta_header.content_meta_count,
+            .attributes = cnt_meta_header.attributes; // Sparse Titles use 0x04 not 0x0
         };
         cnmt_buf.Append(install_cnt_meta_header);
         cnmt_buf.Resize(cnmt_buf.GetSize() + install_cnt_meta_header.extended_header_size);
