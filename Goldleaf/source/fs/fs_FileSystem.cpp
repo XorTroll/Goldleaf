@@ -37,123 +37,106 @@ namespace fs {
         RemotePCExplorer *g_RemotePCExplorer = nullptr;
         DriveExplorer *g_DriveExplorer = nullptr;
 
+        template<typename T, typename ...Args>
+        inline T *EnsureExplorer(T *&exp, Args &&...args) {
+            if(exp == nullptr) {
+                exp = new T(args...);
+            }
+            return exp;
+        }
+
+        template<typename T>
+        inline void DeleteExplorer(T *&exp) {
+            if(exp != nullptr) {
+                delete exp;
+                exp = nullptr;
+            }
+        }
+
+        template<typename T>
+        inline bool IsExplorer(T *&exp, String mount_name) {
+            return (exp != nullptr) && (exp->GetMountName() == mount_name);
+        }
+
     }
 
     SdCardExplorer *GetSdCardExplorer() {
-        if(g_SdCardExplorer == nullptr) {
-            g_SdCardExplorer = new SdCardExplorer();
-        }
-        return g_SdCardExplorer;
+        return EnsureExplorer(g_SdCardExplorer);
     }
 
     RomFsExplorer *GetRomFsExplorer() {
-        if(g_RomFsExplorer == nullptr) {
-            g_RomFsExplorer = new RomFsExplorer();
-        }
-        return g_RomFsExplorer;
+        return EnsureExplorer(g_RomFsExplorer);
     }
 
     NANDExplorer *GetPRODINFOFExplorer() {
-        if(g_PRODINFOFExplorer == nullptr) {
-            g_PRODINFOFExplorer = new NANDExplorer(Partition::PRODINFOF);
-        }
-        return g_PRODINFOFExplorer;
+        return EnsureExplorer(g_PRODINFOFExplorer, Partition::PRODINFOF);
     }
 
     NANDExplorer *GetNANDSafeExplorer() {
-        if(g_NANDSafeExplorer == nullptr) {
-            g_NANDSafeExplorer = new NANDExplorer(Partition::NANDSafe);
-        }
-        return g_NANDSafeExplorer;
+        return EnsureExplorer(g_NANDSafeExplorer, Partition::NANDSafe);
     }
 
     NANDExplorer *GetNANDUserExplorer() {
-        if(g_NANDUserExplorer == nullptr) {
-            g_NANDUserExplorer = new NANDExplorer(Partition::NANDUser);
-        }
-        return g_NANDUserExplorer;
+        return EnsureExplorer(g_NANDUserExplorer, Partition::NANDUser);
     }
 
     NANDExplorer *GetNANDSystemExplorer() {
-        if(g_NANDSystemExplorer == nullptr) {
-            g_NANDSystemExplorer = new NANDExplorer(Partition::NANDSystem);
-        }
-        return g_NANDSystemExplorer;
+        return EnsureExplorer(g_NANDSystemExplorer, Partition::NANDSystem);
     }
 
     RemotePCExplorer *GetRemotePCExplorer(String mount_name) {
-        const auto mnt_name_root = fs::GetPathRoot(mount_name);
-        if(g_RemotePCExplorer == nullptr) {
-            g_RemotePCExplorer = new RemotePCExplorer(mnt_name_root);
-            if(mount_name != mnt_name_root) {
-                String pth = fs::GetPathWithoutRoot(mount_name);
-                pth.erase(0, 1);
-                g_RemotePCExplorer->NavigateForward(pth);
-            }
+        if((g_RemotePCExplorer != nullptr) && (g_RemotePCExplorer->GetMountName() != mount_name)) {
+            DeleteExplorer(g_RemotePCExplorer);
         }
-        else {
-            if(g_RemotePCExplorer->GetMountName() != mount_name) {
-                delete g_RemotePCExplorer;
-                g_RemotePCExplorer = new RemotePCExplorer(mnt_name_root);
-                if(mount_name != mnt_name_root) {
-                    String pth = fs::GetPathWithoutRoot(mount_name);
-                    pth.erase(0, 1);
-                    g_RemotePCExplorer->NavigateForward(pth);
-                }
-            }
+
+        const auto mnt_name_root = fs::GetPathRoot(mount_name);
+        EnsureExplorer(g_RemotePCExplorer, mnt_name_root);
+        
+        if(mount_name != mnt_name_root) {
+            auto base_path = fs::GetPathWithoutRoot(mount_name);
+            base_path.erase(0, 1);
+            g_RemotePCExplorer->NavigateForward(base_path);
         }
         return g_RemotePCExplorer;
     }
 
     DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive) {
-        if(g_DriveExplorer == nullptr) {
-            g_DriveExplorer = new DriveExplorer(drive);
+        if((g_DriveExplorer != nullptr) && !drive::DrivesEqual(g_DriveExplorer->GetDrive(), drive)) {
+            DeleteExplorer(g_DriveExplorer);
         }
-        else {
-            if(!drive::DrivesEqual(g_DriveExplorer->GetDrive(), drive)) {
-                delete g_DriveExplorer;
-                g_DriveExplorer = new DriveExplorer(drive);
-            }
-        }
-        return g_DriveExplorer;
+
+        return EnsureExplorer(g_DriveExplorer, drive);
     }
 
     Explorer *GetExplorerForMountName(String mount_name) {
-        if((g_SdCardExplorer != nullptr) && (g_SdCardExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_SdCardExplorer, mount_name)) {
             return g_SdCardExplorer;
         }
-
-        if((g_RomFsExplorer != nullptr) && (g_RomFsExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_RomFsExplorer, mount_name)) {
             return g_RomFsExplorer;
         }
-
-        if((g_PRODINFOFExplorer != nullptr) && (g_PRODINFOFExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_PRODINFOFExplorer, mount_name)) {
             return g_PRODINFOFExplorer;
         }
-        
-        if((g_NANDSafeExplorer != nullptr) && (g_NANDSafeExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_NANDSafeExplorer, mount_name)) {
             return g_NANDSafeExplorer;
         }
-
-        if((g_NANDUserExplorer != nullptr) && (g_NANDUserExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_NANDUserExplorer, mount_name)) {
             return g_NANDUserExplorer;
         }
-
-        if((g_NANDSystemExplorer != nullptr) && (g_NANDSystemExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_NANDSystemExplorer, mount_name)) {
             return g_NANDSystemExplorer;
         }
-
-        if((g_RemotePCExplorer != nullptr) && (g_RemotePCExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_RemotePCExplorer, mount_name)) {
             return g_RemotePCExplorer;
         }
-
-        if((g_DriveExplorer != nullptr) && (g_DriveExplorer->GetMountName() == mount_name)) {
+        if(IsExplorer(g_DriveExplorer, mount_name)) {
             return g_DriveExplorer;
         }
 
         auto &mounted_exps = g_MainApplication->GetExploreMenuLayout()->GetMountedExplorers();
         for(auto &exp: mounted_exps) {
-            if(exp->GetMountName() == mount_name) {
+            if(IsExplorer(exp, mount_name)) {
                 return exp;
             }
         }
@@ -162,6 +145,20 @@ namespace fs {
 
     Explorer *GetExplorerForPath(String path) {
         return GetExplorerForMountName(GetPathRoot(path));
+    }
+
+    void Finalize() {
+        DeleteExplorer(g_SdCardExplorer);
+        DeleteExplorer(g_RomFsExplorer);
+        DeleteExplorer(g_PRODINFOFExplorer);
+        DeleteExplorer(g_NANDSafeExplorer);
+        DeleteExplorer(g_NANDUserExplorer);
+        DeleteExplorer(g_NANDSystemExplorer);
+        DeleteExplorer(g_RemotePCExplorer);
+        DeleteExplorer(g_DriveExplorer);
+
+        auto work_buf = GetWorkBuffer();
+        operator delete[](work_buf, std::align_val_t(0x1000));
     }
 
 }

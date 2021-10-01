@@ -196,19 +196,12 @@ namespace ui {
                 return;
             }
 
-            // TODO: maybe migrate this to fs:: namespace?
-            FsFileSystem fs;
-
-            const FsSaveDataAttribute attr = {
-                .application_id = sub_cnt.app_id,
-                .uid = acc::GetSelectedUser(),
-                .save_data_type = FsSaveDataType_Account,
-            };
-            auto rc = fsOpenSaveDataFileSystem(&fs, FsSaveDataSpaceId_User, &attr);
+            FsFileSystem save_data_fs;
+            const auto rc = fs::MountTitleSaveData(sub_cnt.app_id, acc::GetSelectedUser(), save_data_fs);
             if(R_SUCCEEDED(rc)) {
-                auto exp = new fs::FspExplorer("SaveData-0x" + hos::FormatApplicationId(sub_cnt.app_id), fs);
-                exp->SetShouldWarnOnWriteAccess(true);
-                g_MainApplication->GetExploreMenuLayout()->AddMountedExplorer(exp, cfg::strings::Main.GetString(408), icon);
+                auto save_data_exp = new fs::FspExplorer(save_data_fs, "fs.SaveData-0x" + hos::FormatApplicationId(sub_cnt.app_id));
+                save_data_exp->SetShouldWarnOnWriteAccess(true);
+                g_MainApplication->GetExploreMenuLayout()->AddMountedExplorer(save_data_exp, cfg::strings::Main.GetString(408), icon);
                 g_MainApplication->ShowNotification(cfg::strings::Main.GetString(412));
             }
             else {

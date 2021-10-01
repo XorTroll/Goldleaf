@@ -49,4 +49,6 @@ namespace fs {
         GetNANDSystemExplorer();
     }
 
+    void Finalize();
+
 }

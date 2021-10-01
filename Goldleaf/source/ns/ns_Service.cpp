@@ -41,7 +41,7 @@ namespace ns {
 
     }
 
-    Result PushApplicationRecord(u64 app_id, u8 last_modified_event, ContentStorageMetaKey *cnt_storage_record_buf, size_t cnt_storage_record_buf_size) {
+    Result PushApplicationRecord(u64 app_id, u8 last_modified_event, ContentStorageMetaKey *cnt_storage_record_buf, size_t cnt_storage_record_buf_count) {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
 
@@ -53,13 +53,13 @@ namespace ns {
         
         auto rc = serviceDispatchIn(use_srv, 16, in,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
-            .buffers = { { cnt_storage_record_buf, cnt_storage_record_buf_size } },
+            .buffers = { { cnt_storage_record_buf, cnt_storage_record_buf_count * sizeof(ContentStorageMetaKey) } },
         );
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }
 
-    Result ListApplicationRecordContentMeta(u64 offset, u64 app_id, void *out_buf, size_t out_buf_size, u32 *out_count) {
+    Result ListApplicationRecordContentMeta(u64 offset, u64 app_id, ContentStorageMetaKey *out_buf, size_t out_buf_count, u32 *out_count) {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
 
@@ -70,7 +70,7 @@ namespace ns {
 
         auto rc = serviceDispatchInOut(use_srv, 17, in, *out_count,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
-            .buffers = { { out_buf, out_buf_size } },
+            .buffers = { { out_buf, out_buf_count * sizeof(ContentStorageMetaKey) } },
         );
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;

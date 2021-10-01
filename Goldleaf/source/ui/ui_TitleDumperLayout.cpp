@@ -45,7 +45,7 @@ namespace ui {
         auto format_app_id = hos::FormatApplicationId(cnt.app_id);
         
         auto sd_exp = fs::GetSdCardExplorer();
-        auto out_dir = sd_exp->MakeAbsolute(consts::DumpTitle + "/" + format_app_id);
+        auto out_dir = sd_exp->MakeAbsolute(GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id);
         sd_exp->CreateDirectory(out_dir);
         this->dump_text->SetText(cfg::strings::Main.GetString(192));
         g_MainApplication->CallForRender();
@@ -278,7 +278,7 @@ namespace ui {
         }
 
         // TODO: better name?
-        auto out_nsp = "sdmc:/" + consts::DumpTitle + "/" + format_app_id + ".nsp";
+        auto out_nsp = "sdmc:/" GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id + ".nsp";
         fs::CreateConcatenationFile(out_nsp);
         this->cnt_p_bar->SetVisible(true);
         this->dump_text->SetText(cfg::strings::Main.GetString(196));
@@ -288,14 +288,14 @@ namespace ui {
             g_MainApplication->CallForRender();
         });
         hos::UnlockAutoSleep();
-        sd_exp->EmptyDirectory(consts::DumpTemp);
+        sd_exp->EmptyDirectory(GLEAF_PATH_DUMP_TEMP_DIR);
         sd_exp->DeleteDirectory(out_dir);
         if(ok) {
             g_MainApplication->ShowNotification(cfg::strings::Main.GetString(197) + " '" + out_nsp + "'");
         }
         else {
             HandleResult(err::result::ResultCouldNotBuildNSP, cfg::strings::Main.GetString(198));
-            sd_exp->EmptyDirectory(consts::Dump);
+            sd_exp->EmptyDirectory(GLEAF_PATH_DUMP_DIR);
             EnsureDirectories();
         }
         ncmContentStorageClose(&cnt_storage);

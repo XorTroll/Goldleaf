@@ -26,27 +26,24 @@ namespace fs {
 
     class FspExplorer : public StdExplorer {
         private:
-            bool dispose;
             FsFileSystem fs;
+            bool dispose;
         
         public:
-            FspExplorer(String display_name, FsFileSystem file_system);
-            FspExplorer(String display_name, std::string mount_name, FsFileSystem file_system);
+            FspExplorer(FsFileSystem fs, String display_name, const std::string &mount_name = "");
             ~FspExplorer();
-            bool IsOk();
-            FsFileSystem *GetFileSystem();
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
     };
 
     class SdCardExplorer final : public FspExplorer {
         public:
-            SdCardExplorer();
+            SdCardExplorer() : FspExplorer(*fsdevGetDeviceFileSystem("sdmc"), "SdCard", "sdmc") {}
     };
 
     class RomFsExplorer final : public FspExplorer {
         public:
-            RomFsExplorer();
+            RomFsExplorer() : FspExplorer({}, "RomFs", "romfs") {}
     };
 
     class NANDExplorer final : public FspExplorer {
@@ -54,22 +51,19 @@ namespace fs {
             Partition part;
         
         public:
-            NANDExplorer(Partition part);
-            static FsFileSystem MountNANDFileSystem(Partition part);
-            static std::string GetNANDPartitionName(Partition part);
-            Partition GetPartition();
+            NANDExplorer(const Partition part);
+            static FsFileSystem MountNANDFileSystem(const Partition part);
+            static std::string GetNANDPartitionName(const Partition part);
     };
 
-    class TitleSaveDataExplorer final : public FspExplorer {
-        private:
-            u64 appid;
-            AccountUid uid;
+    inline Result MountTitleSaveData(const u64 app_id, const AccountUid user_id, FsFileSystem &out_fs) {
+        const FsSaveDataAttribute attr = {
+            .application_id = app_id,
+            .uid = user_id,
+            .save_data_type = FsSaveDataType_Account
+        };
 
-        public:
-            TitleSaveDataExplorer(u64 app_id, AccountUid user_id);
-            static FsFileSystem MountTitleSaveData(u64 app_id, AccountUid user_id);
-            void DoCommit();
-            bool Matches(u64 app_id, AccountUid user_id);
-    };
+        return fsOpenSaveDataFileSystem(std::addressof(out_fs), FsSaveDataSpaceId_User, &attr);
+    }
 
 }

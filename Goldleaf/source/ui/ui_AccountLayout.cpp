@@ -98,7 +98,7 @@ namespace ui {
     }
 
     void AccountLayout::optsIcon_Click() {
-        const auto &base_icon_path = consts::UserData + "/" + hos::FormatHex128(acc::GetSelectedUser()) + ".jpg";
+        const auto &base_icon_path = GLEAF_PATH_USER_DATA_DIR "/" + hos::FormatHex128(acc::GetSelectedUser()) + ".jpg";
         auto sd_exp = fs::GetSdCardExplorer();
         auto icon_path = sd_exp->MakeAbsolute(base_icon_path);
         const auto p_icon_path = sd_exp->MakeAbsolutePresentable(base_icon_path);

@@ -45,36 +45,19 @@ namespace fs {
             return name;
         }
 
-        void DisposeMountName(std::string name) {
-            if(name.substr(0, 7) != MountNamePrefix) {
-                return;
-            }
-            u32 idx = 0;
-            bool found = false;
-            for(const auto &mount_name: g_MountNameTable) {
-                if(name == mount_name) {
-                    found = true;
-                    break;
-                }
-                idx++;
-            }
-            if(found) {
-                g_MountNameTable.erase(g_MountNameTable.begin() + idx);
-            }
+        void DisposeMountName(const std::string &name) {
+            g_MountNameTable.erase(std::remove(g_MountNameTable.begin(), g_MountNameTable.end(), name), g_MountNameTable.end());
         }
 
     }
 
-    FspExplorer::FspExplorer(String display_name, FsFileSystem file_system) : StdExplorer(), dispose(true) {
-        this->fs = file_system;
-        auto mount_name = AllocateMountName();
-        this->SetNames(mount_name, display_name);
-        fsdevMountDevice(this->mnt_name.AsUTF8().c_str(), this->fs);
-    }
-
-    FspExplorer::FspExplorer(String display_name, std::string mount_name, FsFileSystem file_system) : StdExplorer(), dispose(false) {
-        this->fs = file_system;
-        this->SetNames(mount_name, display_name);
+    FspExplorer::FspExplorer(FsFileSystem fs, String display_name, const std::string &mount_name) : StdExplorer(), fs(fs), dispose(mount_name.empty()) {
+        auto fs_mount_name = mount_name;
+        if(mount_name.empty()) {
+            fs_mount_name = AllocateMountName();
+            fsdevMountDevice(this->mnt_name.AsUTF8().c_str(), this->fs);
+        }
+        this->SetNames(fs_mount_name, display_name);
     }
 
     FspExplorer::~FspExplorer() {
@@ -82,14 +65,6 @@ namespace fs {
             fsdevUnmountDevice(this->mnt_name.AsUTF8().c_str());
             DisposeMountName(this->mnt_name.AsUTF8());
         }
-    }
-
-    bool FspExplorer::IsOk() {
-        return serviceIsActive(&this->fs.s);
-    }
-
-    FsFileSystem *FspExplorer::GetFileSystem() {
-        return &this->fs;
     }
 
     u64 FspExplorer::GetTotalSpace() {
@@ -104,15 +79,11 @@ namespace fs {
         return static_cast<u64>(size);
     }
 
-    SdCardExplorer::SdCardExplorer() : FspExplorer("SdCard", "sdmc", *fsdevGetDeviceFileSystem("sdmc")) {}
-
-    RomFsExplorer::RomFsExplorer() : FspExplorer("RomFs", "romfs", {}) {}
-
-    NANDExplorer::NANDExplorer(Partition part) : FspExplorer(NANDExplorer::GetNANDPartitionName(part), NANDExplorer::MountNANDFileSystem(part)), part(part) {
+    NANDExplorer::NANDExplorer(const Partition part) : FspExplorer(NANDExplorer::MountNANDFileSystem(part), NANDExplorer::GetNANDPartitionName(part)), part(part) {
         this->SetShouldWarnOnWriteAccess(true);
     }
 
-    std::string NANDExplorer::GetNANDPartitionName(Partition part) {
+    std::string NANDExplorer::GetNANDPartitionName(const Partition part) {
         switch(part) {
             case Partition::PRODINFOF: {
                 return "PRODINFOF";
@@ -132,7 +103,7 @@ namespace fs {
         }
     }
 
-    FsFileSystem NANDExplorer::MountNANDFileSystem(Partition part) {
+    FsFileSystem NANDExplorer::MountNANDFileSystem(const Partition part) {
         FsFileSystem fs;
         FsBisPartitionId id;
         switch(part) {
@@ -156,36 +127,9 @@ namespace fs {
                 return fs;
             }
         }
-        fsOpenBisFileSystem(&fs, id, "");
+
+        GLEAF_RC_ASSERT(fsOpenBisFileSystem(&fs, id, ""));
         return fs;
-    }
-
-    Partition NANDExplorer::GetPartition() {
-        return this->part;
-    }
-
-    TitleSaveDataExplorer::TitleSaveDataExplorer(u64 app_id, AccountUid user_id) : FspExplorer(std::string("SaveData-0x") + hos::FormatApplicationId(app_id), TitleSaveDataExplorer::MountTitleSaveData(app_id, user_id)), appid(app_id), uid(user_id) {
-        this->SetCommitFunction(std::bind(&TitleSaveDataExplorer::DoCommit, this));
-    }
-
-    FsFileSystem TitleSaveDataExplorer::MountTitleSaveData(u64 app_id, AccountUid user_id) {
-        FsFileSystem fs;
-
-        FsSaveDataAttribute attr = {};
-        attr.application_id = app_id;
-        attr.uid = user_id;
-        attr.save_data_type = FsSaveDataType_Account;
-
-        fsOpenSaveDataFileSystem(&fs, FsSaveDataSpaceId_User, &attr);
-        return fs;
-    }
-
-    void TitleSaveDataExplorer::DoCommit() {
-        fsdevCommitDevice(this->mnt_name.AsUTF8().c_str());
-    }
-
-    bool TitleSaveDataExplorer::Matches(u64 app_id, AccountUid user_id) {
-        return (this->appid == app_id) && acc::UidCompare(&this->uid, &user_id);
     }
 
 }

@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 #include <ncm/ncm_Types.hpp>
 
 namespace hos {

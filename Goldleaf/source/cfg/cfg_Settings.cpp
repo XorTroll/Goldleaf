@@ -73,8 +73,8 @@ namespace cfg {
         }
         
         auto sd_exp = fs::GetSdCardExplorer();
-        sd_exp->DeleteFile(consts::Settings);
-        sd_exp->WriteJSON(json, consts::Settings);
+        sd_exp->DeleteFile(GLEAF_PATH_SETTINGS_FILE);
+        sd_exp->WriteJSON(json, GLEAF_PATH_SETTINGS_FILE);
     }
 
     std::string Settings::PathForResource(const std::string &res_path) {
@@ -188,7 +188,7 @@ namespace cfg {
         settings.custom_scheme = ui::GenerateRandomScheme();
 
         auto sd_exp = fs::GetSdCardExplorer();
-        const auto &settings_json = sd_exp->ReadJSON(consts::Settings);
+        const auto &settings_json = sd_exp->ReadJSON(GLEAF_PATH_SETTINGS_FILE);
         if(settings_json.count("general")) {
             const auto &lang = settings_json["general"].value("customLanguage", "");
             if(!lang.empty()) {
@@ -270,6 +270,6 @@ namespace cfg {
 
     bool Exists() {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->IsFile(consts::Settings);
+        return sd_exp->IsFile(GLEAF_PATH_SETTINGS_FILE);
     }
 }

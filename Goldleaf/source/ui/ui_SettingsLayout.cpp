@@ -65,8 +65,9 @@ namespace ui
         auto exp = fs::GetNANDSystemExplorer();
         this->options_menu->SetVisible(false);
         this->info_p_bar->SetVisible(true);
-        g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + fw_ver.display_version + "...");
-        auto out_dir = sd_exp->FullPathFor(consts::DumpUpdate + "/" + fw_ver.display_version);
+        std::string fw_display_version = fw_ver.display_version;
+        g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + fw_display_version + "...");
+        auto out_dir = sd_exp->FullPathFor(GLEAF_PATH_DUMP_UPDATE_DIR "/" + fw_display_version);
         sd_exp->DeleteDirectory(out_dir);
         exp->CopyDirectoryProgress(fw_path, out_dir, [&](double done, double total) {
             this->info_p_bar->SetMaxValue(total);
@@ -106,7 +107,7 @@ namespace ui
         auto msg = cfg::strings::Main.GetString(362) + ":\n";
         msg += String("\n" + cfg::strings::Main.GetString(363) + ": ") + fw_ver.display_version + " (" + fw_ver.display_title + ")";
         msg += String("\n" + cfg::strings::Main.GetString(364) + ": '") + fw_ver.version_hash + "'";
-        msg += String("\n" + cfg::strings::Main.GetString(95) + " ") + std::to_string(hos::ComputeSystemKeyGeneration());
+        msg += String("\n" + cfg::strings::Main.GetString(95) + " ") + std::to_string(hos::ReadSystemKeyGeneration());
         msg += "\n\n" + cfg::strings::Main.GetString(365) + ":\n";
         hos::PendingUpdateVersion pupd = {};
         const auto is_pending_present = hos::GetPendingUpdateInfo(&pupd);

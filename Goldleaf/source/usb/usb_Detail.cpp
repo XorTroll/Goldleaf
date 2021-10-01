@@ -405,17 +405,17 @@ namespace usb::detail {
 
     Result Read(void *buf, size_t size)
     {
-        rwlockWriteLock(&g_usbCommsInterfaces[0].lock_out);
+        // rwlockWriteLock(&g_usbCommsInterfaces[0].lock_out);
         auto rc = TransferImpl(buf, size, g_usbCommsInterfaces[0].endpoint_out);
-        rwlockWriteUnlock(&g_usbCommsInterfaces[0].lock_out);
+        // rwlockWriteUnlock(&g_usbCommsInterfaces[0].lock_out);
         return rc;
     }
 
     Result Write(const void *buf, size_t size)
     {
-        rwlockWriteLock(&g_usbCommsInterfaces[0].lock_in);
+        // rwlockWriteLock(&g_usbCommsInterfaces[0].lock_in);
         auto rc = TransferImpl(const_cast<void*>(buf), size, g_usbCommsInterfaces[0].endpoint_in);
-        rwlockWriteUnlock(&g_usbCommsInterfaces[0].lock_in);
+        // rwlockWriteUnlock(&g_usbCommsInterfaces[0].lock_in);
         return rc;
     }
 

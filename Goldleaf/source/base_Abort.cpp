@@ -26,7 +26,7 @@ namespace {
 
     void SaveReport(String crash_log_file, const std::string &data) {
         auto sd_exp = fs::GetSdCardExplorer();
-        auto crash_log_path = sd_exp->MakeAbsolute(consts::Reports + "/" + crash_log_file);
+        auto crash_log_path = sd_exp->MakeAbsolute(GLEAF_PATH_REPORTS_DIR "/" + crash_log_file);
         sd_exp->WriteFile(crash_log_path, data.c_str(), data.length());
     }
 

@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 
 namespace hos {
 
@@ -30,23 +30,22 @@ namespace hos {
     std::string GetCurrentTime();
     
     template<typename N>
-    inline std::string FormatHex(N num) {
+    inline std::string FormatHex(const N num) {
         std::stringstream strm;
         strm << "0x" << std::hex << std::uppercase << num;
         return strm.str();
     }
 
-    std::string FormatHex128(AccountUid user_id);
-    std::string DoubleToString(double dbl);
-    std::string FormatResult(Result rc);
-    std::string FormatTime(u64 secs);
+    std::string FormatHex128(const AccountUid user_id);
+    std::string FormatResult(const Result rc);
+    std::string FormatTime(const u64 sec);
 
     void LockAutoSleep();
     void UnlockAutoSleep();
 
-    u8 ComputeSystemKeyGeneration();
+    u8 ReadSystemKeyGeneration();
 
-    Result PerformShutdown(bool do_reboot);
+    Result PerformShutdown(const bool do_reboot);
 
     inline Result PowerOff() {
         return PerformShutdown(false);
