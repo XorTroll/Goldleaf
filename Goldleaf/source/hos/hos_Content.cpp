@@ -50,10 +50,10 @@ namespace hos {
         for(auto &nca: ncas) {
             auto path = "@SystemContent://placehld/" + nca.AsUTF8();
             path.reserve(FS_MAX_PATH);
-            FsFileSystem ncafs;
+            FsFileSystem cnt_fs;
             // Just read the first CNMT NCA we succeed mounting
-            if(R_SUCCEEDED(fsOpenFileSystemWithId(&ncafs, 0, FsFileSystemType_ContentMeta, path.c_str()))) {
-                fs::FspExplorer fwfs("...", ncafs);
+            if(R_SUCCEEDED(fsOpenFileSystemWithId(&cnt_fs, 0, FsFileSystemType_ContentMeta, path.c_str()))) {
+                fs::FspExplorer fwfs(cnt_fs, "hos.SystemContentAny");
                 const auto fs = fwfs.GetContents();
                 for(const auto &f: fs) {
                     u32 raw_ver = 0;
@@ -82,13 +82,13 @@ namespace hos {
     }
 
     void CleanPendingUpdate() {
-        auto sys_exp = fs::GetNANDSystemExplorer();
-        sys_exp->EmptyDirectory("Contents/placehld");
-
         if(R_SUCCEEDED(nssuInitialize())) {
             nssuDestroySystemUpdateTask();
             nssuExit();
         }
+
+        auto sys_exp = fs::GetNANDSystemExplorer();
+        sys_exp->EmptyDirectory("Contents/placehld");
     }
  
 }

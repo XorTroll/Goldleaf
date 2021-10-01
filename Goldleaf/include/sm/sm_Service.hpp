@@ -20,14 +20,14 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 
 namespace sm {
 
     Result AtmosphereHasService(SmServiceName name, bool *out_has);
 
     inline bool HasService(SmServiceName name) {
-        bool has = false;
+        auto has = false;
         const auto rc = AtmosphereHasService(name, &has);
         return R_SUCCEEDED(rc) && has;
     }

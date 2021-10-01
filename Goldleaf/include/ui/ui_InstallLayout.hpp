@@ -26,7 +26,8 @@ namespace ui {
 
     class InstallLayout : public pu::ui::Layout {
         private:
-            pu::ui::elm::TextBlock::Ref install_text;
+            pu::ui::elm::TextBlock::Ref install_top_text;
+            pu::ui::elm::TextBlock::Ref install_bottom_text;
             pu::ui::elm::ProgressBar::Ref install_p_bar;
         public:
             InstallLayout();

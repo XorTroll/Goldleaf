@@ -21,7 +21,7 @@
 
 #pragma once
 #include <nsp/nsp_PFS0.hpp>
-#include <ncm/ncm_ContentMeta.hpp>
+#include <ncm/ncm_PackagedContentMeta.hpp>
 #include <es/es_Service.hpp>
 #include <ns/ns_Service.hpp>
 #include <fs/fs_FileSystem.hpp>
@@ -38,15 +38,15 @@ namespace nsp {
             NacpStruct nacp_data;
             u8 keygen;
             hos::TicketFile tik_file;
-            ncm::ContentMeta cnmt;
+            ncm::PackagedContentMeta packaged_cnt_meta;
             NcmStorageId storage_id;
-            ByteBuffer cnmt_buf;
             NcmContentMetaKey cnt_meta_key;
             NcmContentStorage cnt_storage;
             NcmContentMetaDatabase cnt_meta_db;
             u64 base_app_id;
             u64 tik_file_size;
             String tik_file_name;
+            NcmContentInfo meta_cnt_info;
             std::vector<NcmContentInfo> contents;
             String icon;
 
@@ -55,7 +55,7 @@ namespace nsp {
             ~Installer();
     
             Result PrepareInstallation();
-            Result PreProcessContents();
+            Result StartInstallation();
             
             inline constexpr NcmContentMetaType GetContentMetaType() {
                 return static_cast<NcmContentMetaType>(this->cnt_meta_key.type);

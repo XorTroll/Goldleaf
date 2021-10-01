@@ -22,19 +22,6 @@
 #pragma once
 #include <cfg/cfg_Strings.hpp>
 
-#define ERR_RC_UNLESS(expr, rc) ({ \
-    if(!(expr)) { \
-        return rc; \
-    } \
-})
-
-#define ERR_RC_TRY(rc) ({ \
-    const auto _tmp_rc = (rc); \
-    if(R_FAILED((_tmp_rc))) { \
-        return _tmp_rc; \
-    } \
-})
-
 namespace err {
 
     namespace result {

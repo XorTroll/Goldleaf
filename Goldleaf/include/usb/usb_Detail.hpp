@@ -22,7 +22,7 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 
 namespace usb::detail {
 

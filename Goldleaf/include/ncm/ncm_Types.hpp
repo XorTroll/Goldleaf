@@ -20,22 +20,25 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 
 namespace ncm {
 
-    struct ContentMetaHeader {
+    struct PackagedContentMetaHeader {
         u64 app_id;
         u32 title_version;
         u8 type;
         u8 pad;
-        u16 extended_header_size;
-        u16 content_count;
-        u16 content_meta_count;
-        u8 attributes;
-        u8 pad1[0x3];
+        NcmContentMetaHeader header;
+        u8 pad1[0x2];
         u32 required_download_system_version;
         u8 pad2[0x4];
-    } PACKED;
+    };
+
+    struct DeltaMetaExtendedHeader {
+        u64 app_id;
+        u32 extended_data_size;
+        u8 reserved[4];
+    };
 
 }

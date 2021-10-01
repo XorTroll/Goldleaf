@@ -27,7 +27,7 @@ bool g_UpdatedNeedsRename = false;
 
 int main() {
     // Initialize services
-    R_ASSERT(Initialize());
+    GLEAF_RC_ASSERT(Initialize());
 
     // Create the UI renderer and the application - it will initialize romfs
     auto renderer = pu::ui::render::Renderer::New(pu::ui::render::RendererInitOptions(SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags).WithIMG(pu::ui::render::IMGAllFlags).WithMixer(pu::ui::render::MixerAllFlags).WithTTF().WithDefaultFontSize(35).WithRomfs());

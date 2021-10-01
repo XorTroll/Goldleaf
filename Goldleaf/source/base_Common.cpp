@@ -37,7 +37,7 @@ String LowerCaseString(String str) {
     return u8_str;
 }
 
-std::string LanguageToString(Language lang) {
+std::string LanguageToString(const Language lang) {
     switch(lang) {
         case Language::Spanish: {
             return "es";
@@ -73,7 +73,7 @@ std::string LanguageToString(Language lang) {
     }
 }
 
-Language StringToLanguage(std::string str) {
+Language StringToLanguage(const std::string &str) {
     if(str == "es") {
         return Language::Spanish;
     }
@@ -148,7 +148,7 @@ Version Version::FromString(String ver_str) {
     return v;
 }
 
-u32 RandomFromRange(u32 min, u32 max) {
+u32 RandomFromRange(const u32 min, const u32 max) {
     const auto diff = max - min;
     u32 random_val = 0;
     randomGet(&random_val, sizeof(random_val));
@@ -161,15 +161,15 @@ void EnsureDirectories() {
     auto sd_exp = fs::GetSdCardExplorer();
     nand_sys_exp->EmptyDirectory("Contents/temp");
 
-    sd_exp->CreateDirectory(consts::Root);
-    sd_exp->CreateDirectory(consts::Metadata);
-    sd_exp->CreateDirectory(consts::Title);
-    sd_exp->CreateDirectory(consts::Dump);
-    sd_exp->CreateDirectory(consts::DumpTemp);
-    sd_exp->CreateDirectory(consts::DumpUpdate);
-    sd_exp->CreateDirectory(consts::DumpTitle);
-    sd_exp->CreateDirectory(consts::Reports);
-    sd_exp->CreateDirectory(consts::UserData);
+    sd_exp->CreateDirectory(GLEAF_PATH_ROOT_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_METADATA_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_TITLE_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_TEMP_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_UPDATE_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_TITLE_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_REPORTS_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_USER_DATA_DIR);
 }
 
 extern "C" {
@@ -188,65 +188,42 @@ extern "C" {
 
 }
 
-void NORETURN Close(Result rc) {
-    if(GetLaunchMode() == LaunchMode::Application) {
-        libappletRequestHomeMenu();
-        __builtin_unreachable();
-    }
-    else {
-        __libnx_exit(rc);
-    }
-}
-
 Result Initialize() {
     srand(time(nullptr));
     fs::Initialize();
     EnsureDirectories();
 
-    R_TRY(accountInitialize(AccountServiceType_Administrator));
-    R_TRY(ncmInitialize());
-    R_TRY(avmInitialize());
-    R_TRY(nsInitialize());
-    R_TRY(es::Initialize());
-    R_TRY(psmInitialize());
-    R_TRY(setInitialize());
-    R_TRY(setsysInitialize());
-    R_TRY(usb::detail::Initialize());
-    R_TRY(nifmInitialize(NifmServiceType_Admin));
-    R_TRY(pdmqryInitialize());
-    R_TRY(amssu::Initialize());
-    R_TRY(drive::Initialize());
+    GLEAF_RC_TRY(accountInitialize(AccountServiceType_Administrator));
+    GLEAF_RC_TRY(ncmInitialize());
+    GLEAF_RC_TRY(avmInitialize());
+    GLEAF_RC_TRY(nsInitialize());
+    GLEAF_RC_TRY(es::Initialize());
+    GLEAF_RC_TRY(psmInitialize());
+    GLEAF_RC_TRY(setInitialize());
+    GLEAF_RC_TRY(setsysInitialize());
+    GLEAF_RC_TRY(usb::detail::Initialize());
+    GLEAF_RC_TRY(nifmInitialize(NifmServiceType_Admin));
+    GLEAF_RC_TRY(pdmqryInitialize());
+    GLEAF_RC_TRY(amssu::Initialize());
+    GLEAF_RC_TRY(drive::Initialize());
     return 0;
 }
 
-void NORETURN Exit(Result rc) {
+void NORETURN Exit(const Result rc) {
     if(g_MainApplication) {
         g_MainApplication->Close();
     }
-
-    auto nand_sys_exp = fs::GetNANDSystemExplorer();
-    auto nand_safe_exp = fs::GetNANDSafeExplorer();
-    auto nand_user_exp = fs::GetNANDUserExplorer();
-    auto nand_prodinfof_exp = fs::GetPRODINFOFExplorer();
-    auto sd_exp = fs::GetSdCardExplorer();
 
     if(g_UpdatedNeedsRename) {
         romfsExit();
 
         const auto cur_nro_file = __system_argv[0];
+        auto sd_exp = fs::GetSdCardExplorer();
         sd_exp->DeleteFile(cur_nro_file);
-        sd_exp->RenameFile(consts::TempUpdatedNro, cur_nro_file);
+        sd_exp->RenameFile(GLEAF_PATH_TEMP_UPDATE_NRO, cur_nro_file);
     }
 
-    auto work_buf = fs::GetWorkBuffer();
-    operator delete[](work_buf, std::align_val_t(0x1000));
-    
-    delete nand_sys_exp;
-    delete nand_safe_exp;
-    delete nand_user_exp;
-    delete nand_prodinfof_exp;
-    delete sd_exp;
-
+    fs::Finalize();
     drive::Exit();
     amssu::Exit();
     usb::detail::Exit();
@@ -260,5 +237,11 @@ void NORETURN Exit(Result rc) {
     ncmExit();
     nifmExit();
     pdmqryExit();
-    Close(rc);
+
+    __libnx_exit(rc);
+}
+
+void LogImpl(const char *log_buf, const size_t log_buf_len) {
+    auto sd_exp = fs::GetSdCardExplorer();
+    sd_exp->WriteFile(GLEAF_PATH_LOG_FILE, log_buf, log_buf_len);
 }

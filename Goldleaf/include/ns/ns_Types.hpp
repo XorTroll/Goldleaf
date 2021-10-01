@@ -20,13 +20,13 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 
 namespace ns {
 
     struct ContentStorageMetaKey {
         NcmContentMetaKey meta_key;
         u64 storage_id;
-    } PACKED;
+    };
 
 }

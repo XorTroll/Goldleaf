@@ -43,38 +43,60 @@
 using JSON = nlohmann::json;
 using String = pu::String;
 
-String LowerCaseString(String str);
+#define GLEAF_LOG_WARN_PREFIX "[WARN] "
+#define GLEAF_LOG_ERR_PREFIX "[ERROR] "
 
-#define R_TRY(res_expr) ({ \
-    const Result _tmp_r_try_rc = res_expr; \
-    if (R_FAILED(_tmp_r_try_rc)) { \
-        return _tmp_r_try_rc; \
+#define GLEAF_LOG_FMT(fmt, ...) ({ \
+    char log_buf[0x400] = {}; \
+    const auto log_buf_len = sprintf(log_buf, fmt "\n", ##__VA_ARGS__); \
+    ::LogImpl(log_buf, log_buf_len); \
+})
+
+#define GLEAF_WARN_FMT(fmt, ...) GLEAF_LOG_FMT(GLEAF_LOG_WARN_PREFIX fmt, ##__VA_ARGS__)
+#define GLEAF_ERR_FMT(fmt, ...) GLEAF_LOG_FMT(GLEAF_LOG_ERR_PREFIX fmt, ##__VA_ARGS__)
+
+#define GLEAF_RC_TRY(res_expr) ({ \
+    const Result _tmp_rc = res_expr; \
+    if (R_FAILED(_tmp_rc)) { \
+        GLEAF_WARN_FMT("Expression " #res_expr " returned 0x%X", _tmp_rc); \
+        return _tmp_rc; \
     } \
 })
 
-#define R_ASSERT(res_expr) ({ \
-    const Result _tmp_r_try_rc = res_expr; \
-    if (R_FAILED(_tmp_r_try_rc)) { \
-        diagAbortWithResult(_tmp_r_try_rc); \
+#define GLEAF_RC_UNLESS(expr, rc) ({ \
+    if(!(expr)) { \
+        GLEAF_WARN_FMT("Expression " #expr " evaluated to false"); \
+        return rc; \
     } \
 })
 
-namespace consts {
+#define GLEAF_RC_ASSERT(res_expr) ({ \
+    const Result _tmp_rc = res_expr; \
+    if (R_FAILED(_tmp_rc)) { \
+        GLEAF_ERR_FMT("Assertion failed: " #res_expr " returned 0x%X", _tmp_rc); \
+        diagAbortWithResult(_tmp_rc); \
+    } \
+})
 
-    static const std::string Root = "switch/Goldleaf";
-    static const std::string Log = Root + "/goldleaf.log";
-    static const std::string Settings = Root + "/settings.json";
-    static const std::string TempUpdatedNro = Root + "/update_tmp.nro";
-    static const std::string Metadata = Root + "/meta";
-    static const std::string Title = Root + "/title";
-    static const std::string Dump = Root + "/dump";
-    static const std::string DumpTemp = Root + "/dump/temp";
-    static const std::string DumpUpdate = Root + "/dump/update";
-    static const std::string DumpTitle = Root + "/dump/title";
-    static const std::string Reports = Root + "/reports";
-    static const std::string UserData = Root + "/userdata";
+// TODO: switch to LogManager for logging?
 
-}
+#define GLEAF_PATH_ROOT_DIR "switch/Goldleaf"
+
+#define GLEAF_PATH_LOG_FILE GLEAF_PATH_ROOT_DIR "/goldleaf.log"
+#define GLEAF_PATH_SETTINGS_FILE GLEAF_PATH_ROOT_DIR "/settings.json"
+#define GLEAF_PATH_TEMP_UPDATE_NRO GLEAF_PATH_ROOT_DIR "/temp_update.nro"
+
+#define GLEAF_PATH_METADATA_DIR GLEAF_PATH_ROOT_DIR "/meta"
+
+#define GLEAF_PATH_TITLE_DIR GLEAF_PATH_ROOT_DIR "/title"
+
+#define GLEAF_PATH_DUMP_DIR GLEAF_PATH_ROOT_DIR "/dump"
+#define GLEAF_PATH_DUMP_TEMP_DIR GLEAF_PATH_DUMP_DIR "/temp"
+#define GLEAF_PATH_DUMP_UPDATE_DIR GLEAF_PATH_DUMP_DIR "/update"
+#define GLEAF_PATH_DUMP_TITLE_DIR GLEAF_PATH_DUMP_DIR "/title"
+
+#define GLEAF_PATH_REPORTS_DIR GLEAF_PATH_ROOT_DIR "/reports"
+#define GLEAF_PATH_USER_DATA_DIR GLEAF_PATH_ROOT_DIR "/userdata"
 
 enum class ExecutableMode {
     NSO,
@@ -99,9 +121,6 @@ enum class Language {
     ChineseSimplified,
     Korean
 };
-
-std::string LanguageToString(Language lang);
-Language StringToLanguage(std::string str);
 
 struct ColorScheme {
     pu::ui::Color Background;
@@ -150,8 +169,8 @@ struct Version {
 };
 
 Result Initialize();
-void NORETURN Close(Result rc);
-void NORETURN Exit(Result rc);
+void NORETURN Close(const Result rc);
+void NORETURN Exit(const Result rc);
 
 inline ExecutableMode GetExecutableMode() {
     return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;
@@ -164,6 +183,7 @@ inline LaunchMode GetLaunchMode() {
             return LaunchMode::Application;
         }
         case AppletType_LibraryApplet: {
+            // For us, any other kinds of applets (System/OverlayApplet) are intentionally not supported
             return LaunchMode::Applet;
         }
         default: {
@@ -178,7 +198,10 @@ inline u64 GetCurrentApplicationId() {
     return app_id;
 }
 
-bool HasKeyFile();
-u64 GetCurrentApplicationId();
-u32 RandomFromRange(u32 min, u32 max);
+std::string LanguageToString(const Language lang);
+Language StringToLanguage(const std::string &str);
+
+String LowerCaseString(String str);
+u32 RandomFromRange(const u32 min, const u32 max);
 void EnsureDirectories();
+void LogImpl(const char *log_buf, const size_t log_buf_len);

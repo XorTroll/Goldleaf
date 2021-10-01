@@ -33,9 +33,9 @@ namespace nsp {
     }
 
     Result Installer::PrepareInstallation() {
-        ERR_RC_UNLESS(pfs0_file.IsOk(), err::result::ResultInvalidNSP);
-        ERR_RC_TRY(ncmOpenContentStorage(&this->cnt_storage, this->storage_id));
-        ERR_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
+        GLEAF_RC_UNLESS(pfs0_file.IsOk(), err::result::ResultInvalidNSP);
+        GLEAF_RC_TRY(ncmOpenContentStorage(&this->cnt_storage, this->storage_id));
+        GLEAF_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
 
         String cnmt_nca_file_name;
         auto cnmt_nca_file_idx = PFS0::InvalidFileIndex;
@@ -60,8 +60,8 @@ namespace nsp {
                 }
             }
         }
-        ERR_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), err::result::ResultMetaNotFound);
-        ERR_RC_UNLESS(cnmt_nca_file_size > 0, err::result::ResultMetaNotFound);
+        GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), err::result::ResultMetaNotFound);
+        GLEAF_RC_UNLESS(cnmt_nca_file_size > 0, err::result::ResultMetaNotFound);
         auto cnmt_nca_content_id = fs::GetFileName(cnmt_nca_file_name);
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
@@ -80,15 +80,15 @@ namespace nsp {
         char cnmt_nca_content_path[FS_MAX_PATH] = {};
         sprintf(cnmt_nca_content_path, "@SystemContent://temp/%s", cnmt_nca_file_name.AsUTF8().c_str());
         FsRightsId tmp_rid;
-        ERR_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, &keygen, &tmp_rid));
-        const auto system_keygen = hos::ComputeSystemKeyGeneration();
-        ERR_RC_UNLESS(system_keygen >= keygen, err::result::ResultKeyGenMismatch);
+        GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, &this->keygen, &tmp_rid));
+        const auto system_keygen = hos::ReadSystemKeyGeneration();
+        GLEAF_RC_UNLESS(system_keygen >= this->keygen, err::result::ResultKeyGenMismatch);
 
         FsFileSystem cnmt_nca_fs;
-        ERR_RC_TRY(fsOpenFileSystemWithId(&cnmt_nca_fs, 0, FsFileSystemType_ContentMeta, cnmt_nca_content_path));
+        GLEAF_RC_TRY(fsOpenFileSystemWithId(&cnmt_nca_fs, 0, FsFileSystemType_ContentMeta, cnmt_nca_content_path));
         
         {
-            fs::FspExplorer cnmt_nca_fs_obj("NSP-ContentMeta", cnmt_nca_fs);
+            fs::FspExplorer cnmt_nca_fs_obj(cnmt_nca_fs, "nsp.ContentMeta");
             String cnmt_file_name;
             for(auto &cnt: cnmt_nca_fs_obj.GetContents()) {
                 if(fs::GetExtension(cnt) == "cnmt") {
@@ -96,36 +96,43 @@ namespace nsp {
                     break;
                 }
             }
-            ERR_RC_UNLESS(!cnmt_file_name.empty(), err::result::ResultMetaNotFound);
+            GLEAF_RC_UNLESS(!cnmt_file_name.empty(), err::result::ResultMetaNotFound);
+
             const auto cnmt_file_size = cnmt_nca_fs_obj.GetFileSize(cnmt_file_name);
-            auto cnmt_tmp_buf = fs::GetWorkBuffer();
-            cnmt_nca_fs_obj.ReadFile(cnmt_file_name, 0, cnmt_file_size, cnmt_tmp_buf);
-            this->cnmt = ncm::ContentMeta(cnmt_tmp_buf, cnmt_file_size);
+            auto cnmt_read_buf = fs::GetWorkBuffer();
+            cnmt_nca_fs_obj.ReadFile(cnmt_file_name, 0, cnmt_file_size, cnmt_read_buf);
+            GLEAF_RC_UNLESS(ncm::ReadContentMeta(cnmt_read_buf, cnmt_file_size, this->packaged_cnt_meta), err::result::ResultMetaNotFound);
         }
 
-        NcmContentInfo cnt_info = {
+        this->meta_cnt_info = {
             .content_id = hos::StringAsContentId(cnmt_nca_content_id),
             .content_type = NcmContentType_Meta,
         };
-        *reinterpret_cast<u64*>(cnt_info.size) = cnmt_nca_file_size;
+        *reinterpret_cast<u64*>(this->meta_cnt_info.size) = cnmt_nca_file_size;
 
-        this->cnt_meta_key = cnmt.GetContentMetaKey();
-        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
-        ERR_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        const NcmContentMetaKey meta_key = {
+            .id = this->packaged_cnt_meta.header.app_id,
+            .version = this->packaged_cnt_meta.header.title_version,
+            .type = this->packaged_cnt_meta.header.type,
+            .install_type = NcmContentInstallType_Full
+        };
+        this->cnt_meta_key = meta_key;
+        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
         
         bool has_cnmt_installed = false;
-        ERR_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &cnt_info.content_id));
+        GLEAF_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &this->meta_cnt_info.content_id));
         if(!has_cnmt_installed) {
-            this->contents.push_back(cnt_info);
+            this->contents.push_back(this->meta_cnt_info);
         }
-        this->cnmt.GetInstallContentMeta(this->cnmt_buf, cnt_info, g_Settings.ignore_required_fw_ver);
+
         this->base_app_id = hos::GetBaseApplicationId(this->cnt_meta_key.id, static_cast<NcmContentMetaType>(this->cnt_meta_key.type));
         this->nacp_data = {};
 
-        for(const auto &cnt: this->cnmt.GetContents()) {
-            this->contents.push_back(cnt);
-            if(cnt.content_type == NcmContentType_Control) {
-                auto control_nca_content_id = hos::ContentIdAsString(cnt.content_id);
+        for(const auto &cnt: this->packaged_cnt_meta.contents) {
+            this->contents.push_back(cnt.info);
+            if(cnt.info.content_type == NcmContentType_Control) {
+                auto control_nca_content_id = hos::ContentIdAsString(cnt.info.content_id);
                 auto control_nca_file_name = control_nca_content_id + ".nca";
                 const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
                 if(PFS0::IsValidFileIndex(control_nca_file_idx)) {
@@ -135,11 +142,12 @@ namespace nsp {
                     sprintf(control_nca_content_path, "@SystemContent://temp/%s", control_nca_file_name.AsUTF8().c_str());
                     FsFileSystem control_nca_fs;
                     if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path))) {
-                        fs::FspExplorer control_nca_fs_obj("ControlData", control_nca_fs);
+                        fs::FspExplorer control_nca_fs_obj(control_nca_fs, "nsp.ControlData");
                         for(auto &cnt: control_nca_fs_obj.GetContents()) {
                             if(fs::GetExtension(cnt) == "dat") {
                                 auto sd_exp = fs::GetSdCardExplorer();
-                                this->icon = sd_exp->MakeAbsolute(consts::Metadata + "/" + control_nca_content_id + ".jpg");
+                                // TODO: select .dat icon by system language?
+                                this->icon = sd_exp->MakeAbsolute(GLEAF_PATH_METADATA_DIR "/" + control_nca_content_id + ".jpg");
                                 control_nca_fs_obj.CopyFile(cnt, this->icon);
                                 break;
                             }
@@ -152,21 +160,25 @@ namespace nsp {
         return err::result::ResultSuccess;
     }
 
-    Result Installer::PreProcessContents() {
-        ERR_RC_TRY(ncmContentMetaDatabaseSet(&this->cnt_meta_db, &this->cnt_meta_key, this->cnmt_buf.GetData(), this->cnmt_buf.GetSize()));
-        ERR_RC_TRY(ncmContentMetaDatabaseCommit(&this->cnt_meta_db));
+    Result Installer::StartInstallation() {
+        u8 *meta_data;
+        size_t meta_data_size;
+        this->packaged_cnt_meta.CreateContentMetaForInstall(this->meta_cnt_info, meta_data, meta_data_size, g_Settings.ignore_required_fw_ver);
+        GLEAF_RC_TRY(ncmContentMetaDatabaseSet(&this->cnt_meta_db, &this->cnt_meta_key, meta_data, meta_data_size));
+        GLEAF_RC_TRY(ncmContentMetaDatabaseCommit(&this->cnt_meta_db));
+        delete[] meta_data;
 
         s32 content_meta_count = 0;
         const auto rc = nsCountApplicationContentMeta(this->base_app_id, &content_meta_count);
         if(rc != 0x410) {
-            ERR_RC_TRY(rc);
+            GLEAF_RC_TRY(rc);
         }
 
         std::vector<ns::ContentStorageMetaKey> content_storage_meta_keys;
         if(content_meta_count > 0) {
             auto cnt_storage_meta_key_buf = reinterpret_cast<ns::ContentStorageMetaKey*>(fs::GetWorkBuffer());
             u32 real_count = 0;
-            ERR_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, cnt_storage_meta_key_buf, content_meta_count * sizeof(ns::ContentStorageMetaKey), &real_count));
+            GLEAF_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, cnt_storage_meta_key_buf, content_meta_count, &real_count));
             for(u32 i = 0; i < real_count; i++) {
                 content_storage_meta_keys.push_back(cnt_storage_meta_key_buf[i]);
             }
@@ -178,14 +190,14 @@ namespace nsp {
         };
         content_storage_meta_keys.push_back(cnt_storage_meta_key);
         ns::DeleteApplicationRecord(this->base_app_id);
-        ERR_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_meta_keys.data(), content_storage_meta_keys.size() * sizeof(ns::ContentStorageMetaKey)));
+        GLEAF_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_meta_keys.data(), content_storage_meta_keys.size()));
 
         if(this->tik_file_size > 0) {
             auto tmp_buf = fs::GetWorkBuffer();
             auto tik_path = "Contents/temp/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
             nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tmp_buf);
-            ERR_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
+            GLEAF_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
         }
         return err::result::ResultSuccess;
     }
@@ -207,7 +219,7 @@ namespace nsp {
             }
             content_file_name += ".nca";
             const auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
-            ERR_RC_UNLESS(PFS0::IsValidFileIndex(content_file_idx), err::result::ResultInvalidNSP);
+            GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(content_file_idx), err::result::ResultInvalidNSP);
             total_size += pfs0_file.GetFileSize(content_file_idx);
             content_file_idxs.push_back(content_file_idx);
         }
@@ -222,7 +234,7 @@ namespace nsp {
             memcpy(placehld_id.uuid.uuid, cnt.content_id.c, 0x10);
             
             ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &placehld_id);
-            ERR_RC_TRY(ncmContentStorageCreatePlaceHolder(&this->cnt_storage, &cnt.content_id, &placehld_id, content_file_size));
+            GLEAF_RC_TRY(ncmContentStorageCreatePlaceHolder(&this->cnt_storage, &cnt.content_id, &placehld_id, content_file_size));
             u64 cur_written_size = 0;
             auto rem_size = content_file_size;
             auto content_path = "Contents/temp/" + content_file_name;
@@ -252,7 +264,7 @@ namespace nsp {
                         break;
                     }
                 }
-                ERR_RC_TRY(ncmContentStorageWritePlaceHolder(&this->cnt_storage, &placehld_id, cur_written_size, tmp_buf, tmp_read_size));
+                GLEAF_RC_TRY(ncmContentStorageWritePlaceHolder(&this->cnt_storage, &placehld_id, cur_written_size, tmp_buf, tmp_read_size));
                 cur_written_size += tmp_read_size;
                 rem_size -= tmp_read_size;
                 const auto time_post = std::chrono::steady_clock::now();
@@ -272,7 +284,7 @@ namespace nsp {
                 }
             }
             total_written_size += cur_written_size;
-            ERR_RC_TRY(ncmContentStorageRegister(&this->cnt_storage, &cnt.content_id, &placehld_id));
+            GLEAF_RC_TRY(ncmContentStorageRegister(&this->cnt_storage, &cnt.content_id, &placehld_id));
             ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &placehld_id);
         }
         return err::result::ResultSuccess;

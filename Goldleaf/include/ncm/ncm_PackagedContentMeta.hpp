@@ -19,24 +19,26 @@
 
 */
 
-#include <ByteBuffer.hpp>
+#pragma once
+#include <ncm/ncm_Types.hpp>
 
-ByteBuffer::ByteBuffer(size_t reserve_size) {
-    this->buffer.resize(reserve_size);
-}
+namespace ncm {
 
-ByteBuffer::~ByteBuffer() {
-    this->buffer.clear();
-}
+    struct PackagedContentMeta {
+        PackagedContentMetaHeader header;
+        std::vector<NcmPackagedContentInfo> contents;
 
-size_t ByteBuffer::GetSize() {
-    return this->buffer.size();
-}
+        union {
+            NcmSystemUpdateMetaExtendedHeader system_update;
+            NcmApplicationMetaExtendedHeader application;
+            NcmPatchMetaExtendedHeader patch;
+            NcmAddOnContentMetaExtendedHeader aoc;
+            DeltaMetaExtendedHeader delta;
+        } extended_header;
 
-u8 *ByteBuffer::GetData() {
-    return this->buffer.data();
-}
+        void CreateContentMetaForInstall(const NcmContentInfo self_cnt_info, u8 *&out_data, size_t &out_data_size, const bool ignore_required_fw_ver);
+    };
 
-void ByteBuffer::Resize(size_t size) {
-    this->buffer.resize(size, 0);
+    bool ReadContentMeta(const u8 *cnmt_buf, const size_t cnmt_size, PackagedContentMeta &out_cnmt);
+
 }

@@ -28,12 +28,16 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     InstallLayout::InstallLayout() : pu::ui::Layout() {
-        this->install_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
-        this->install_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->install_text->SetColor(g_Settings.custom_scheme.Text);
-        this->install_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
+        this->install_top_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
+        this->install_top_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->install_top_text->SetColor(g_Settings.custom_scheme.Text);
+        this->install_bottom_text = pu::ui::elm::TextBlock::New(150, 350, cfg::strings::Main.GetString(151));
+        this->install_bottom_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->install_bottom_text->SetColor(g_Settings.custom_scheme.Text);
+        this->install_p_bar = pu::ui::elm::ProgressBar::New(340, 400, 600, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->install_p_bar);
-        this->Add(this->install_text);
+        this->Add(this->install_top_text);
+        this->Add(this->install_bottom_text);
         this->Add(this->install_p_bar);
     }
 
@@ -252,25 +256,31 @@ namespace ui {
         }
         
         if(do_install) {
-            rc = nsp_installer.PreProcessContents();
+            rc = nsp_installer.StartInstallation();
             if(R_FAILED(rc)) {
                 HandleResult(rc, cfg::strings::Main.GetString(251));
                 return;
             }
-            this->install_text->SetText(cfg::strings::Main.GetString(146));
+            this->install_top_text->SetText(cfg::strings::Main.GetString(146));
+            this->install_bottom_text->SetText("Balls in my jaw");
             g_MainApplication->CallForRender();
             this->install_p_bar->SetVisible(true);
             hos::LockAutoSleep();
             rc = nsp_installer.WriteContents([&](NcmContentInfo cnt_info, u32 cnt, u32 cnt_count, double done, double total, u64 bytes_per_sec) {
                 this->install_p_bar->SetMaxValue(total);
-                auto name = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(cnt_info.content_id);
+
+                auto top_text_msg = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(cnt_info.content_id);
                 if(cnt_info.content_type == NcmContentType_Meta) {
-                    name += ".cnmt";
+                    top_text_msg += ".cnmt";
                 }
-                u64 size = (u64)(total - done);
+                top_text_msg += ".nca\'... [" + std::to_string(cnt + 1) + "/" + std::to_string(cnt_count) + "]";
+                this->install_top_text->SetText(top_text_msg);
+
+                const u64 size = (u64)(total - done);
                 const auto secs = size / bytes_per_sec;
-                name += ".nca\'... (" + fs::FormatSize(bytes_per_sec) + "/s  →  " + hos::FormatTime(secs) + ")";
-                this->install_text->SetText(name);
+                auto bottom_text_msg = "(" + fs::FormatSize(bytes_per_sec) + "/s  →  " + hos::FormatTime(secs) + ")";
+                this->install_bottom_text->SetText(bottom_text_msg);
+                
                 this->install_p_bar->SetProgress(done);
                 g_MainApplication->CallForRender();
             });

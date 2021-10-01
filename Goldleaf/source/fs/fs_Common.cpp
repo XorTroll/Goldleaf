@@ -25,7 +25,7 @@ namespace fs {
 
     namespace {
 
-        const char *g_SizeSuffixes[] = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
+        constexpr const char *SizeSuffixes[] = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
         u8 *g_WorkBuffer = nullptr;
 
     }
@@ -49,7 +49,7 @@ namespace fs {
         exp->CopyDirectoryProgress(dir, new_dir, cb_fn);
     }
 
-    u64 GetTotalSpaceForPartition(Partition partition) {
+    u64 GetTotalSpaceForPartition(const Partition partition) {
         fs::Explorer *exp = nullptr;
         switch(partition) {
             case Partition::PRODINFOF: {
@@ -79,7 +79,7 @@ namespace fs {
         return 0;
     }
 
-    u64 GetFreeSpaceForPartition(Partition partition) {
+    u64 GetFreeSpaceForPartition(const Partition partition) {
         fs::Explorer *exp = nullptr;
         switch(partition) {
             case Partition::PRODINFOF: {
@@ -109,22 +109,23 @@ namespace fs {
         return 0;
     }
 
-    String FormatSize(u64 bytes) {
+    String FormatSize(const u64 bytes) {
         if(bytes == 0) {
-            return String("0") + " " + g_SizeSuffixes[0];
+            return String("0") + " " + SizeSuffixes[0];
         }
         const auto plc = static_cast<u32>(floor(log(bytes) / log(1024)));
         const auto byte_num = (double)(bytes / pow(1024, plc));
         const double rbt = ((int)(byte_num * 100.0) / 100.0);
         std::stringstream strm;
         strm << rbt;
-        return strm.str() + " " + g_SizeSuffixes[plc];
+        return strm.str() + " " + SizeSuffixes[plc];
     }
 
     u8 *GetWorkBuffer() {
         if(g_WorkBuffer == nullptr) {
             g_WorkBuffer = new (std::align_val_t(0x1000)) u8[WorkBufferSize]();
         }
+
         memset(g_WorkBuffer, 0, WorkBufferSize);
         return g_WorkBuffer;
     }

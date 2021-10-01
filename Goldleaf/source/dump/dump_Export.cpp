@@ -99,7 +99,7 @@ namespace dump {
             std::string title_key;
             String out_rights_id;
             const auto &format_app_id = hos::FormatApplicationId(app_id);
-            const auto &outdir = consts::DumpTitle + "/" + format_app_id;
+            const auto &outdir = GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id;
             u32 tmp_size = 0;
             while(true) {
                 if(!title_key.empty()) {

@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <Types.hpp>
+#include <base_Common.hpp>
 
 namespace fs {
 
@@ -63,9 +63,9 @@ namespace fs {
         return path.substr(path.find_first_of(":") + 1);
     }
 
-    u64 GetTotalSpaceForPartition(Partition partition);
-    u64 GetFreeSpaceForPartition(Partition partition);
-    String FormatSize(u64 bytes);
+    u64 GetTotalSpaceForPartition(const Partition partition);
+    u64 GetFreeSpaceForPartition(const Partition partition);
+    String FormatSize(const u64 bytes);
 
     u8 *GetWorkBuffer();
 

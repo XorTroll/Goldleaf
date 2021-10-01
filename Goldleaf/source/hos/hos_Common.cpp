@@ -45,32 +45,26 @@ namespace hos {
         return time_str;
     }
 
-    std::string FormatHex128(AccountUid user_id) {
-        auto ptr = reinterpret_cast<u8*>(user_id.uid);
+    std::string FormatHex128(const AccountUid user_id) {
+        auto ptr = reinterpret_cast<const u8*>(user_id.uid);
         std::stringstream strm;
         strm << std::hex << std::uppercase;
         for(u32 i = 0; i < sizeof(AccountUid); i++) {
-            strm << (u32)ptr[i];
+            strm << static_cast<u32>(ptr[i]);
         }
         return strm.str();
     }
 
-    std::string DoubleToString(double dbl) {
-        std::stringstream strm;
-        strm << dbl;
-        return strm.str();
-    }
-
-    std::string FormatResult(Result rc) {
+    std::string FormatResult(const Result rc) {
         char res_err[0x10] = {};
         sprintf(res_err, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
         return res_err;
     }
 
-    std::string FormatTime(u64 secs) {
-        if(secs > 60) {
-            const auto mins = secs / 60;
-            const auto secs_rem = secs % 60;
+    std::string FormatTime(const u64 sec) {
+        if(sec > 60) {
+            const auto mins = sec / 60;
+            const auto secs_rem = sec % 60;
             if(mins > 60) {
                 const auto hours = mins / 60;
                 const auto mins_rem = mins % 60;
@@ -78,7 +72,7 @@ namespace hos {
             }
             return std::to_string(mins) + " min" + ((secs_rem > 0) ? (" " + std::to_string(secs_rem) + " s") : "");
         }
-        return std::to_string(secs) + " s";
+        return std::to_string(sec) + " s";
     }
 
     void LockAutoSleep() {
@@ -95,7 +89,7 @@ namespace hos {
         }
     }
 
-    u8 ComputeSystemKeyGeneration() {
+    u8 ReadSystemKeyGeneration() {
         FsStorage boot0;
         if(R_SUCCEEDED(fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root))) {
             u32 keygen_ver = 0;
@@ -106,9 +100,9 @@ namespace hos {
         return 0;
     }
 
-    Result PerformShutdown(bool do_reboot) {
-        R_TRY(spsmInitialize());
-        R_TRY(spsmShutdown(do_reboot));
+    Result PerformShutdown(const bool do_reboot) {
+        GLEAF_RC_TRY(spsmInitialize());
+        GLEAF_RC_TRY(spsmShutdown(do_reboot));
         spsmExit();
 
         return 0;

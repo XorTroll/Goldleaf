@@ -74,7 +74,7 @@ namespace ui {
             if(option == 0) {
                 EnsureDirectories();
                 auto sd_exp = fs::GetSdCardExplorer();
-                sd_exp->DeleteFile(consts::TempUpdatedNro);
+                sd_exp->DeleteFile(GLEAF_PATH_TEMP_UPDATE_NRO);
 
                 this->info_text->SetText(cfg::strings::Main.GetString(309));
                 g_MainApplication->CallForRender();
@@ -82,9 +82,8 @@ namespace ui {
                 hos::LockAutoSleep();
                 this->download_p_bar->SetVisible(true);
                 auto download_url = "https://github.com/XorTroll/Goldleaf/releases/download/" + last_id + "/Goldleaf.nro";
-                sd_exp->DeleteFile(consts::TempUpdatedNro);
-                // TODO: MakeAbsolute?
-                net::RetrieveToFile(download_url, "sdmc:/" + consts::TempUpdatedNro, [&](double done, double total)
+                sd_exp->DeleteFile(GLEAF_PATH_TEMP_UPDATE_NRO);
+                net::RetrieveToFile(download_url, sd_exp->AbsolutePathFor(GLEAF_PATH_TEMP_UPDATE_NRO).AsUTF8(), [&](double done, double total)
                 {
                     this->download_p_bar->SetMaxValue(total);
                     this->download_p_bar->SetProgress(done);
@@ -93,7 +92,7 @@ namespace ui {
                 this->download_p_bar->SetVisible(false);
                 hos::UnlockAutoSleep();
 
-                if(sd_exp->IsFile(consts::TempUpdatedNro)) {
+                if(sd_exp->IsFile(GLEAF_PATH_TEMP_UPDATE_NRO)) {
                     g_UpdatedNeedsRename = true;
                 }
                 
