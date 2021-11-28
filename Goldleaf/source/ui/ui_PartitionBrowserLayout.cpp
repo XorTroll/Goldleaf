@@ -37,7 +37,7 @@ namespace ui {
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout() {
         this->cur_exp = fs::GetSdCardExplorer();
-        this->browse_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->browse_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         this->browse_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
         g_Settings.ApplyScrollBarColor(this->browse_menu);
         this->empty_dir_text = pu::ui::elm::TextBlock::New(30, 630, cfg::strings::Main.GetString(49));

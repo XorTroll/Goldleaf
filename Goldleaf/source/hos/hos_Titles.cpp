@@ -341,8 +341,7 @@ namespace hos {
     std::vector<Ticket> GetAllTickets() {
         std::vector<Ticket> tickets;
 
-        u32 common_count = 0;
-        es::CountCommonTicket(&common_count);
+        const auto common_count = es::CountCommonTicket();
         if(common_count > 0) {
             const auto ids_size = common_count * sizeof(es::RightsId);
             auto ids = new es::RightsId[common_count]();
@@ -351,7 +350,7 @@ namespace hos {
                 for(u32 i = 0; i < written; i++) {
                     const Ticket common_tik = {
                         .rights_id = ids[i],
-                        .type = hos::TicketType::Common,
+                        .type = hos::TicketType::Common
                     };
                     tickets.push_back(common_tik);
                 }
@@ -359,8 +358,7 @@ namespace hos {
             delete[] ids;
         }
 
-        u32 personalized_count = 0;
-        es::CountPersonalizedTicket(&personalized_count);
+        const auto personalized_count = es::CountPersonalizedTicket();
         if(personalized_count > 0) {
             const auto ids_size = personalized_count * sizeof(es::RightsId);
             auto ids = new es::RightsId[personalized_count]();
@@ -369,7 +367,7 @@ namespace hos {
                 for(u32 i = 0; i < written; i++) {
                     const Ticket personalized_tik = {
                         .rights_id = ids[i],
-                        .type = hos::TicketType::Personalized,
+                        .type = hos::TicketType::Personalized
                     };
                     tickets.push_back(personalized_tik);
                 }

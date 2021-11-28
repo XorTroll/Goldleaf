@@ -58,7 +58,7 @@ namespace ui {
     }
 
     StorageContentsLayout::StorageContentsLayout() {
-        this->contents_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->contents_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         this->contents_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
         g_Settings.ApplyScrollBarColor(this->contents_menu);
         this->no_contents_text = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(188));

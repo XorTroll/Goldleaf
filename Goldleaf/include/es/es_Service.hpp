@@ -30,8 +30,8 @@ namespace es {
 
     Result ImportTicket(const void *tik, size_t tik_size, const void *cert, size_t cert_size);
     Result DeleteTicket(const RightsId &rights_id);
-    Result CountCommonTicket(u32 *out_count);
-    Result CountPersonalizedTicket(u32 *out_count);
+    u32 CountCommonTicket();
+    u32 CountPersonalizedTicket();
     Result ListCommonTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size);
     Result ListPersonalizedTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size);
 

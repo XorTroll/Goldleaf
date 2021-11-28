@@ -33,7 +33,7 @@ namespace ui {
             PU_SMART_CTOR(UnusedTicketsLayout)
             
             void UpdateElements(bool cooldown);
-            void tickets_Click(const hos::Ticket &tik);
+            void tickets_Click(const hos::Ticket tik);
     };
 
 }

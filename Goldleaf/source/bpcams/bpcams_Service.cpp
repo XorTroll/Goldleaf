@@ -48,8 +48,7 @@ namespace bpcams {
         }
     }
 
-    bool HasInitialized()
-    {
+    bool HasInitialized() {
         return serviceIsActive(&g_BpcAmsService);
     }
 

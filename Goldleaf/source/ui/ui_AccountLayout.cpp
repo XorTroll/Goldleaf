@@ -28,7 +28,7 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     AccountLayout::AccountLayout() : pu::ui::Layout() {
-        this->options_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->options_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         this->options_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
         g_Settings.ApplyScrollBarColor(this->options_menu);
         this->ReloadItems();

@@ -28,7 +28,7 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     ContentManagerLayout::ContentManagerLayout() : pu::ui::Layout() {
-        this->types_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, (560 / g_Settings.menu_item_size));
+        this->types_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         this->types_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
         g_Settings.ApplyScrollBarColor(this->types_menu);
         this->sd_card_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(19));

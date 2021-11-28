@@ -66,12 +66,16 @@ namespace es {
         );
     }
 
-    Result CountCommonTicket(u32 *out_count) {
-        return serviceDispatchOut(&g_EsService, 9, *out_count);
+    u32 CountCommonTicket() {
+        u32 count = 0;
+        serviceDispatchOut(&g_EsService, 9, count);
+        return count;
     }
 
-    Result CountPersonalizedTicket(u32 *out_count) {
-        return serviceDispatchOut(&g_EsService, 10, *out_count);
+    u32 CountPersonalizedTicket() {
+        u32 count = 0;
+        serviceDispatchOut(&g_EsService, 10, count);
+        return count;
     }
 
     Result ListCommonTicket(u32 *out_written, RightsId *out_rights_id_buf, size_t out_rights_id_buf_size) {

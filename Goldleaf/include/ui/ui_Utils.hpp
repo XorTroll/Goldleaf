@@ -38,4 +38,10 @@ namespace ui {
 
     ColorScheme GenerateRandomScheme();
 
+    constexpr u32 DefaultMenuHeight = 560;
+
+    inline constexpr u32 ComputeDefaultMenuItemCount(const u32 menu_item_size) {
+        return DefaultMenuHeight / menu_item_size;
+    }
+
 }
