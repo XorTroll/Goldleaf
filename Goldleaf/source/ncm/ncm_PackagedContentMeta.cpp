@@ -151,7 +151,11 @@ namespace ncm {
         for(u32 i = 0; i < header.header.content_count; i++) {
             const auto content_info_offset = sizeof(PackagedContentMetaHeader) + header.header.extended_header_size + i * sizeof(NcmPackagedContentInfo);
             const auto content_info = *reinterpret_cast<const NcmPackagedContentInfo*>(cnmt_buf + content_info_offset);
-            out_cnmt.contents.push_back(content_info);
+
+            // Delta fragments are not like the other installable content
+            if(static_cast<NcmContentType>(content_info.info.content_type) != NcmContentType_DeltaFragment) {
+                out_cnmt.contents.push_back(content_info);
+            }
         }
 
         return true;
