@@ -54,7 +54,7 @@ namespace err {
         }
     }
 
-    String GetModuleName(u32 module_id);
-    String GetResultDescription(Result rc);
+    String GetModuleName(const u32 module_id);
+    String GetResultDescription(const Result rc);
 
 }

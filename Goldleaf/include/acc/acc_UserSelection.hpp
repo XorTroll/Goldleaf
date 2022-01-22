@@ -36,13 +36,13 @@ namespace acc {
     u32 GetUserCount();
     AccountUid GetSelectedUser();
     bool HasSelectedUser();
-    void SetSelectedUser(AccountUid user_id);
+    void SetSelectedUser(const AccountUid user_id);
     void ResetSelectedUser();
     bool SelectFromPreselectedUser();
     bool SelectUser();
     Result ReadSelectedUser(AccountProfileBase *out_prof_base, AccountUserData *out_user_data);
     Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb);
-    Result EditUserIcon(u8 *jpg, size_t size);
+    Result EditUserIcon(const u8 *jpg, const size_t size);
     void CacheSelectedUserIcon();
     std::string GetCachedUserIcon();
     bool IsLinked();

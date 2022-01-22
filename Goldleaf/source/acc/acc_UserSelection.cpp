@@ -51,7 +51,7 @@ namespace acc {
         return accountUidIsValid(&g_SelectedUser);
     }
 
-    void SetSelectedUser(AccountUid user_id) {
+    void SetSelectedUser(const AccountUid user_id) {
         g_SelectedUser = user_id;
     }
 
@@ -111,7 +111,7 @@ namespace acc {
         return rc;
     }
 
-    Result EditUserIcon(u8 *jpg, size_t size) {
+    Result EditUserIcon(const u8 *jpg, const size_t size) {
         AccountProfile prof;
         auto rc = accountGetProfile(&prof, g_SelectedUser);
         if(R_SUCCEEDED(rc)) {

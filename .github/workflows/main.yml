@@ -8,13 +8,13 @@ jobs:
     container: devkitpro/devkita64_devkitarm
     steps:
     - uses: actions/checkout@v1
-    - name: Update repo.
+    - name: Update repo
       run: |
         git submodule update --init --recursive
         
-    - name: Building Goldleaf
+    - name: Build Goldleaf
       run: |
-        make -j$(nproc)
+        make initial -j$(nproc)
         
     - uses: actions/upload-artifact@master
       with:

@@ -24,9 +24,9 @@
 
 namespace sm {
 
-    Result AtmosphereHasService(SmServiceName name, bool *out_has);
+    Result AtmosphereHasService(const SmServiceName name, bool *out_has);
 
-    inline bool HasService(SmServiceName name) {
+    inline bool HasService(const SmServiceName name) {
         auto has = false;
         const auto rc = AtmosphereHasService(name, &has);
         return R_SUCCEEDED(rc) && has;

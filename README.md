@@ -19,7 +19,8 @@
 5. [Known bugs](#known-bugs)
 6. [Building](#building)
 7. [Contributing](#contributing)
-8. [Credits and support](#credits-and-support)
+8. [TODO](#todo)
+9. [Credits and support](#credits-and-support)
 
 > Having any issues? Check [our FAQ](docs/FAQ.md) for help!
 
@@ -247,6 +248,14 @@ You can always contact me on my Discord server (invite link below) as an easier 
 Read this before making any new translations:
 
 - Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
+
+## TODO
+
+This is the list of features planned (or at least considered) to be implemented in Goldleaf:
+
+- More work into settings, settings for 12/24h time and/or overwriting already installed content, etc.
+
+- Menus back forward reset index
 
 ## Credits and support
 

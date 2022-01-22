@@ -23,25 +23,25 @@
 
 namespace acc {
 
-    Result DeleteUser(AccountUid user_id) {
+    Result DeleteUser(const AccountUid user_id) {
         return serviceDispatchIn(accountGetServiceSession(), 203, user_id);
     }
 
-    Result GetProfileEditor(AccountUid user_id, Service *out_editor_srv) {
+    Result GetProfileEditor(const AccountUid user_id, Service *out_editor_srv) {
         return serviceDispatchIn(accountGetServiceSession(), 205, user_id,
             .out_num_objects = 1,
             .out_objects = out_editor_srv,
         );
     }
 
-    Result ProfileEditor_Store(Service *editor_srv, AccountProfileBase prof_base, AccountUserData user_data) {
+    Result ProfileEditor_Store(Service *editor_srv, const AccountProfileBase prof_base, const AccountUserData user_data) {
         return serviceDispatchIn(editor_srv, 100, prof_base,
             .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_In | SfBufferAttr_HipcPointer },
             .buffers = { { &user_data, sizeof(user_data) } },
         );
     }
 
-    Result ProfileEditor_StoreWithImage(Service *editor_srv, AccountProfileBase prof_base, AccountUserData user_data, u8 *jpg, size_t jpg_size) {
+    Result ProfileEditor_StoreWithImage(Service *editor_srv, const AccountProfileBase prof_base, const AccountUserData user_data, const u8 *jpg, const size_t jpg_size) {
         return serviceDispatchIn(editor_srv, 101, prof_base,
             .buffer_attrs = {
                 SfBufferAttr_FixedSize | SfBufferAttr_In | SfBufferAttr_HipcPointer,
@@ -54,7 +54,7 @@ namespace acc {
         );
     }
 
-    Result GetBaasAccountAdministrator(AccountUid user_id, Service *out_admin_srv) {
+    Result GetBaasAccountAdministrator(const AccountUid user_id, Service *out_admin_srv) {
         return serviceDispatchIn(accountGetServiceSession(), 250, user_id,
             .out_num_objects = 1,
             .out_objects = out_admin_srv,

@@ -23,7 +23,7 @@
 
 namespace sm {
 
-    Result AtmosphereHasService(SmServiceName name, bool *out_has) {
+    Result AtmosphereHasService(const SmServiceName name, bool *out_has) {
         return serviceDispatchInOut(smGetServiceSession(), 65100, name, *out_has);
     }
 

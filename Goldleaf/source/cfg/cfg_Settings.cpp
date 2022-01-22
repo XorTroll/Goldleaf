@@ -27,7 +27,7 @@ namespace cfg {
 
     namespace {
 
-        inline std::string ColorToHex(pu::ui::Color clr) {
+        inline std::string ColorToHex(const pu::ui::Color &clr) {
             char str[0x20] = {0};
             sprintf(str, "#%02X%02X%02X%02X", clr.R, clr.G, clr.B, clr.A);
             return str;
@@ -188,7 +188,7 @@ namespace cfg {
         settings.custom_scheme = ui::GenerateRandomScheme();
 
         auto sd_exp = fs::GetSdCardExplorer();
-        const auto &settings_json = sd_exp->ReadJSON(GLEAF_PATH_SETTINGS_FILE);
+        const auto settings_json = sd_exp->ReadJSON(GLEAF_PATH_SETTINGS_FILE);
         if(settings_json.count("general")) {
             const auto &lang = settings_json["general"].value("customLanguage", "");
             if(!lang.empty()) {
