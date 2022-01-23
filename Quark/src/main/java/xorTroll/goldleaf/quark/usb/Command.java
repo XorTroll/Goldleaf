@@ -22,6 +22,7 @@
 package xorTroll.goldleaf.quark.usb;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import xorTroll.goldleaf.quark.Buffer;
 import xorTroll.goldleaf.quark.usb.USBInterface;
@@ -104,7 +105,7 @@ public class Command
 
     public String readString()
     {
-        return new String(inner_buf.readBytes(read32() * 2), Charset.forName("UTF_16LE"));
+        return new String(inner_buf.readBytes(read32()), StandardCharsets.UTF_8);
     }
 
     public int read32()
@@ -129,7 +130,7 @@ public class Command
 
     public void writeString(String val)
     {
-        byte[] raw = val.getBytes(Charset.forName("UTF_16LE"));
+        byte[] raw = val.getBytes(StandardCharsets.UTF_8);
         write32(val.length());
         resp_buf.writeBytes(raw);
     }

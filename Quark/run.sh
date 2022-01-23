@@ -9,4 +9,4 @@ sleep 1
 echo
 reset
 
-cmd.exe /c java -jar j8/target/Quark-j8.jar
+java -jar j9/target/Quark-j9.jar
