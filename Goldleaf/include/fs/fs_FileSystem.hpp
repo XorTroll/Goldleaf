@@ -35,10 +35,10 @@ namespace fs {
     NANDExplorer *GetNANDSafeExplorer();
     NANDExplorer *GetNANDUserExplorer();
     NANDExplorer *GetNANDSystemExplorer();
-    RemotePCExplorer *GetRemotePCExplorer(String mount_name);
+    RemotePCExplorer *GetRemotePCExplorer(const std::string &mount_name);
     DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive);
-    Explorer *GetExplorerForMountName(String mount_name);
-    Explorer *GetExplorerForPath(String path);
+    Explorer *GetExplorerForMountName(const std::string &mount_name);
+    Explorer *GetExplorerForPath(const std::string &path);
 
     inline void Initialize() {
         GetSdCardExplorer();

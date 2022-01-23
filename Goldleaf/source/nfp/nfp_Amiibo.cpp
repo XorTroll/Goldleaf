@@ -91,7 +91,7 @@ namespace nfp {
     void DumpToEmuiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model) {
         auto sd_exp = fs::GetSdCardExplorer();
 
-        String emuiibo_path = "emuiibo";
+        std::string emuiibo_path = "emuiibo";
         sd_exp->CreateDirectory(emuiibo_path);
         emuiibo_path += "/amiibo";
         sd_exp->CreateDirectory(emuiibo_path);

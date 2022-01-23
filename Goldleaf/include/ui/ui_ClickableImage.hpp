@@ -25,35 +25,73 @@
 namespace ui {
 
     class ClickableImage : public pu::ui::elm::Element {
+        public:
+            using OnClickCallback = std::function<void()>;
+
         protected:
             s32 x;
             s32 y;
             s32 w;
             s32 h;
             std::string img;
-            pu::sdl2::Texture native_tex;
-            std::function<void()> cb;
+            pu::sdl2::Texture img_tex;
+            OnClickCallback cb;
             std::chrono::steady_clock::time_point touch_time_point;
             bool touched;
+
         public:
-            ClickableImage(s32 x, s32 y, const std::string &img);
+            ClickableImage(const s32 x, const s32 y, const std::string &img);
             PU_SMART_CTOR(ClickableImage)
             ~ClickableImage();
 
-            s32 GetX();
-            void SetX(s32 x);
-            s32 GetY();
-            void SetY(s32 y);
-            s32 GetWidth();
-            void SetWidth(s32 w);
-            s32 GetHeight();
-            void SetHeight(s32 h);
-            std::string GetImage();
+            inline s32 GetX() override {
+                return this->x;
+            }
+
+            inline void SetX(const s32 x) {
+                this->x = x;
+            }
+
+            inline s32 GetY() override {
+                return this->y;
+            }
+
+            inline void SetY(const s32 y) {
+                this->y = y;
+            }
+
+            inline s32 GetWidth() override {
+                return this->w;
+            }
+
+            inline void SetWidth(const s32 w) {
+                this->w = w;
+            }
+
+            inline s32 GetHeight() override {
+                return this->h;
+            }
+
+            inline void SetHeight(const s32 h) {
+                this->h = h;
+            }
+
+            inline std::string GetImage() {
+                return this->img;
+            }
+            
             void SetImage(const std::string &img);
-            bool IsImageValid();
-            void SetOnClick(std::function<void()> cb_fn);
-            void OnRender(pu::ui::render::Renderer::Ref &drawer, s32 x, s32 y);
-            void OnInput(u64 down, u64 up, u64 held, pu::ui::Touch pos);
+            
+            inline bool IsImageValid() {
+                return this->img_tex != nullptr;
+            }
+            
+            inline void SetOnClick(OnClickCallback cb) {
+                this->cb = cb;
+            }
+
+            void OnRender(pu::ui::render::Renderer::Ref &drawer, const s32 x, const s32 y) override;
+            void OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint pos) override;
     };
 
 }

@@ -30,14 +30,14 @@ namespace ui {
     CopyLayout::CopyLayout() {
         this->info_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->info_text->SetColor(g_Settings.custom_scheme.Text);
+        this->info_text->SetColor(g_Settings.custom_scheme.text);
         this->copy_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->copy_p_bar);
         this->Add(this->info_text);
         this->Add(this->copy_p_bar);
     }
 
-    void CopyLayout::StartCopy(String path, String new_path) {
+    void CopyLayout::StartCopy(const std::string &path, const std::string &new_path) {
         auto exp = fs::GetExplorerForPath(path);
         auto new_exp = fs::GetExplorerForPath(new_path);
         if(exp->IsDirectory(path)) {
@@ -51,8 +51,8 @@ namespace ui {
                 }
             }
             hos::LockAutoSleep();
-            exp->CopyDirectoryProgress(path, new_path, [&](double done, double total) {
-                this->copy_p_bar->SetMaxValue(total);
+            exp->CopyDirectoryProgress(path, new_path, [&](const double done, const double total) {
+                this->copy_p_bar->SetMaxProgress(total);
                 this->copy_p_bar->SetProgress(done);
                 g_MainApplication->CallForRender();
             });
@@ -68,8 +68,8 @@ namespace ui {
             }
             new_exp->DeleteFile(new_path);
             hos::LockAutoSleep();
-            exp->CopyFileProgress(path, new_path, [&](double done, double total) {
-                this->copy_p_bar->SetMaxValue(total);
+            exp->CopyFileProgress(path, new_path, [&](const double done, const double total) {
+                this->copy_p_bar->SetMaxProgress(total);
                 this->copy_p_bar->SetProgress(done);
                 g_MainApplication->CallForRender();
             });

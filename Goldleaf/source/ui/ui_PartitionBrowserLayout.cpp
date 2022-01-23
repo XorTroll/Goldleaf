@@ -37,29 +37,28 @@ namespace ui {
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout() {
         this->cur_exp = fs::GetSdCardExplorer();
-        this->browse_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->browse_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        this->browse_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->browse_menu);
         this->empty_dir_text = pu::ui::elm::TextBlock::New(30, 630, cfg::strings::Main.GetString(49));
         this->empty_dir_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->empty_dir_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->empty_dir_text->SetColor(g_Settings.custom_scheme.Text);
+        this->empty_dir_text->SetColor(g_Settings.custom_scheme.text);
         this->Add(this->browse_menu);
         this->Add(this->empty_dir_text);
     }
 
-    void PartitionBrowserLayout::ChangePartitionExplorer(fs::Explorer *exp, bool update_contents) {
+    void PartitionBrowserLayout::ChangePartitionExplorer(fs::Explorer *exp, const bool update_contents) {
         this->cur_exp = exp;
         if(update_contents) {
             this->UpdateElements();
         }
     }
 
-    void PartitionBrowserLayout::ChangePartitionSdCard(bool update_contents) {
+    void PartitionBrowserLayout::ChangePartitionSdCard(const bool update_contents) {
         this->ChangePartitionExplorer(fs::GetSdCardExplorer(), update_contents);
     }
 
-    void PartitionBrowserLayout::ChangePartitionNAND(fs::Partition partition, bool update_contents) {
+    void PartitionBrowserLayout::ChangePartitionNAND(const fs::Partition partition, const bool update_contents) {
         fs::Explorer *exp = nullptr;
         switch(partition) {
             case fs::Partition::PRODINFOF: {
@@ -85,60 +84,60 @@ namespace ui {
         this->ChangePartitionExplorer(exp, update_contents);
     }
     
-    void PartitionBrowserLayout::ChangePartitionPCDrive(String mount_name, bool update_contents) {
+    void PartitionBrowserLayout::ChangePartitionPCDrive(const std::string &mount_name, const bool update_contents) {
         this->ChangePartitionExplorer(fs::GetRemotePCExplorer(mount_name), update_contents);
     }
 
-    void PartitionBrowserLayout::ChangePartitionDrive(UsbHsFsDevice &drv, bool update_contents) {
+    void PartitionBrowserLayout::ChangePartitionDrive(UsbHsFsDevice &drv, const bool update_contents) {
         this->ChangePartitionExplorer(fs::GetDriveExplorer(drv), update_contents);
     }
 
-    void PartitionBrowserLayout::UpdateElements(int idx) {
-        auto contents = this->cur_exp->GetContents();
+    void PartitionBrowserLayout::UpdateElements(const int idx) {
+        const auto contents = this->cur_exp->GetContents();
         this->browse_menu->ClearItems();
         g_MainApplication->LoadMenuHead(this->cur_exp->GetPresentableCwd());
         this->browse_menu->SetVisible(!contents.empty());
         this->empty_dir_text->SetVisible(contents.empty());
         if(!contents.empty()) {
-            for(auto &itm: contents) {
-                auto mitm = pu::ui::elm::MenuItem::New(itm);
-                mitm->SetColor(g_Settings.custom_scheme.Text);
+            for(const auto &itm: contents) {
+                auto menu_itm = pu::ui::elm::MenuItem::New(itm);
+                menu_itm->SetColor(g_Settings.custom_scheme.text);
                 if(this->cur_exp->IsDirectory(itm)) {
-                    mitm->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
+                    menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
                 }
                 else {
-                    auto ext = LowerCaseString(fs::GetExtension(itm));
+                    const auto ext = LowerCaseString(fs::GetExtension(itm));
                     if(ext == "nsp") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/NSP.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NSP.png"));
                     }
                     else if(ext == "nro") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/NRO.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NRO.png"));
                     }
                     else if(ext == "tik") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/TIK.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/TIK.png"));
                     }
                     else if(ext == "cert") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/CERT.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/CERT.png"));
                     }
                     else if(ext == "nxtheme") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/NXTheme.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NXTheme.png"));
                     }
                     else if(ext == "nca") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/NCA.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NCA.png"));
                     }
                     else if(ext == "nacp") {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/NACP.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NACP.png"));
                     }
                     else if((ext == "jpg") || (ext == "jpeg")) {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/JPEG.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/JPEG.png"));
                     }
                     else {
-                        mitm->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
+                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
                     }
                 }
-                mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click, this, itm));
-                mitm->AddOnClick(std::bind(&PartitionBrowserLayout::fsItems_Click_Y, this, itm), HidNpadButton_Y);
-                this->browse_menu->AddItem(mitm);
+                menu_itm->AddOnKey(std::bind(&PartitionBrowserLayout::fsItems_DefaultKey, this, itm));
+                menu_itm->AddOnKey(std::bind(&PartitionBrowserLayout::fsItems_Y, this, itm), HidNpadButton_Y);
+                this->browse_menu->AddItem(menu_itm);
             }
             u32 tmp_idx = 0;
             if(idx < 0) {
@@ -157,12 +156,12 @@ namespace ui {
         }
     }
 
-    void PartitionBrowserLayout::HandleFileDirectly(String path) {
-        auto dir = fs::GetBaseDirectory(path);
-        auto file_name = fs::GetFileName(path);
+    void PartitionBrowserLayout::HandleFileDirectly(const std::string &path) {
+        const auto dir = fs::GetBaseDirectory(path);
+        const auto file_name = fs::GetFileName(path);
         this->ChangePartitionPCDrive(dir);
 
-        auto items = this->browse_menu->GetItems();
+        auto &items = this->browse_menu->GetItems();
         const auto it = std::find_if(items.begin(), items.end(), [&](pu::ui::elm::MenuItem::Ref &item) -> bool {
             return item->GetName() == file_name;
         });
@@ -172,7 +171,7 @@ namespace ui {
 
         const auto idx = std::distance(items.begin(), it);
         this->browse_menu->SetSelectedIndex(idx);
-        fsItems_Click(file_name);
+        fsItems_DefaultKey(file_name);
     }
 
     bool PartitionBrowserLayout::GoBack() {
@@ -187,15 +186,15 @@ namespace ui {
         return option == 0;
     }
 
-    void PartitionBrowserLayout::fsItems_Click(String item) {
-        auto full_item = this->cur_exp->FullPathFor(item);
-        auto pres_full_item = this->cur_exp->FullPresentablePathFor(item);
+    void PartitionBrowserLayout::fsItems_DefaultKey(const std::string &item) {
+        const auto full_item = this->cur_exp->FullPathFor(item);
+        const auto pres_full_item = this->cur_exp->FullPresentablePathFor(item);
         if(this->cur_exp->NavigateForward(full_item)) {
             g_EntryIndexStack.push_back(this->browse_menu->GetSelectedIndex());
             this->UpdateElements();
         }
         else {
-            auto ext = LowerCaseString(fs::GetExtension(item));
+            const auto ext = LowerCaseString(fs::GetExtension(item));
             auto msg = cfg::strings::Main.GetString(52) + " ";
             if(ext == "nsp") {
                 msg += cfg::strings::Main.GetString(53);
@@ -223,46 +222,46 @@ namespace ui {
             }
             msg += "\n\n" + cfg::strings::Main.GetString(64) + " " + fs::FormatSize(this->cur_exp->GetFileSize(full_item));
             const auto is_bin = this->cur_exp->IsFileBinary(full_item);
-            std::vector<String> vopts;
+            std::vector<std::string> dialog_opts;
             u32 option_count = 5;
             if(ext == "nsp") {
-                vopts.push_back(cfg::strings::Main.GetString(65));
+                dialog_opts.push_back(cfg::strings::Main.GetString(65));
                 option_count++;
             }
             else if(ext == "nro") {
-                vopts.push_back(cfg::strings::Main.GetString(66));
+                dialog_opts.push_back(cfg::strings::Main.GetString(66));
                 option_count++;
             }
             else if(ext == "tik") {
-                vopts.push_back(cfg::strings::Main.GetString(67));
+                dialog_opts.push_back(cfg::strings::Main.GetString(67));
                 option_count++;
             }
             else if(ext == "nxtheme") {
-                vopts.push_back(cfg::strings::Main.GetString(65));
+                dialog_opts.push_back(cfg::strings::Main.GetString(65));
                 option_count++;
             }
             else if(ext == "nacp") {
-                vopts.push_back(cfg::strings::Main.GetString(69));
+                dialog_opts.push_back(cfg::strings::Main.GetString(69));
                 option_count++;
             }
             else if((ext == "jpg") || (ext == "jpeg")) {
-                vopts.push_back(cfg::strings::Main.GetString(70));
+                dialog_opts.push_back(cfg::strings::Main.GetString(70));
                 option_count++;
             }
             else if(ext == "bin") {
-                vopts.push_back(cfg::strings::Main.GetString(66));
+                dialog_opts.push_back(cfg::strings::Main.GetString(66));
                 option_count++;
             }
             else if(!is_bin) {
-                vopts.push_back(cfg::strings::Main.GetString(71));
+                dialog_opts.push_back(cfg::strings::Main.GetString(71));
                 option_count++;
             }
-            vopts.push_back(cfg::strings::Main.GetString(72));
-            vopts.push_back(cfg::strings::Main.GetString(73));
-            vopts.push_back(cfg::strings::Main.GetString(74));
-            vopts.push_back(cfg::strings::Main.GetString(75));
-            vopts.push_back(cfg::strings::Main.GetString(18));
-            const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(76), msg, vopts, true);
+            dialog_opts.push_back(cfg::strings::Main.GetString(72));
+            dialog_opts.push_back(cfg::strings::Main.GetString(73));
+            dialog_opts.push_back(cfg::strings::Main.GetString(74));
+            dialog_opts.push_back(cfg::strings::Main.GetString(75));
+            dialog_opts.push_back(cfg::strings::Main.GetString(18));
+            const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(76), msg, dialog_opts, true);
             if(option_1 < 0) {
                 return;
             }
@@ -298,7 +297,7 @@ namespace ui {
                             if(option_2 < 0) {
                                 return;
                             }
-                            envSetNextLoad(full_item.AsUTF8().c_str(), full_item.AsUTF8().c_str());
+                            envSetNextLoad(full_item.c_str(), full_item.c_str());
                             g_MainApplication->CloseWithFadeOut();
                             return;
                         }
@@ -338,7 +337,7 @@ namespace ui {
                             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(104), cfg::strings::Main.GetString(105), { cfg::strings::Main.GetString(234) }, false);
                             return;
                         }
-                        auto arg = nxthemes_nro_path + " installtheme=" + full_item.AsUTF8();
+                        auto arg = nxthemes_nro_path + " installtheme=" + full_item;
                         size_t index = 0;
                         while(true) {
                             index = arg.find(" ", index);
@@ -536,12 +535,12 @@ namespace ui {
                 }
             }
             else if(option_1 == rename_option) {
-                auto new_name = AskForText(cfg::strings::Main.GetString(130), item);
+                const auto new_name = AskForText(cfg::strings::Main.GetString(130), item);
                 if(!new_name.empty()) {
                     if(new_name == item) {
                         return;
                     }
-                    auto new_path = this->cur_exp->FullPathFor(new_name);
+                    const auto new_path = this->cur_exp->FullPathFor(new_name);
                     if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
                         HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
                     }
@@ -555,26 +554,26 @@ namespace ui {
         }
     }
 
-    void PartitionBrowserLayout::fsItems_Click_Y(String item) {
-        auto full_item = this->cur_exp->FullPathFor(item);
-        auto pres_full_item = this->cur_exp->FullPresentablePathFor(item);
+    void PartitionBrowserLayout::fsItems_Y(const std::string &item) {
+        const auto full_item = this->cur_exp->FullPathFor(item);
+        const auto pres_full_item = this->cur_exp->FullPresentablePathFor(item);
 
-        auto ipc_full_item = this->cur_exp->RemoveMountName(full_item);
+        const auto ipc_full_item = this->cur_exp->RemoveMountName(full_item);
         amssu::UpdateInformation update_info = {};
-        auto rc = amssu::GetUpdateInformation(ipc_full_item.AsUTF8().c_str(), &update_info);
+        auto rc = amssu::GetUpdateInformation(ipc_full_item.c_str(), &update_info);
         const auto is_valid_update = R_SUCCEEDED(rc);
 
         if(this->cur_exp->IsDirectory(full_item)) {
-            auto files = this->cur_exp->GetFiles(full_item);
-            std::vector<String> nsps;
-            for(auto &file: files) {
-                auto path = full_item + "/" + file;
-                auto ext = LowerCaseString(fs::GetExtension(path));
+            const auto files = this->cur_exp->GetFiles(full_item);
+            std::vector<std::string> nsps;
+            for(const auto &file: files) {
+                const auto path = full_item + "/" + file;
+                const auto ext = LowerCaseString(fs::GetExtension(path));
                 if(ext == "nsp") {
                     nsps.push_back(file);
                 }
             }
-            std::vector<String> extra_options = { cfg::strings::Main.GetString(281) };
+            std::vector<std::string> extra_options = { cfg::strings::Main.GetString(281) };
             if(!nsps.empty()) {
                 extra_options.push_back(cfg::strings::Main.GetString(282));
             }
@@ -586,7 +585,7 @@ namespace ui {
             switch(option_1) {
                 case 0: {
                     if(is_valid_update) {
-                        String update_msg = "";
+                        std::string update_msg = "";
                         const auto version_str = std::to_string((update_info.version >> 26) & 0x1F) + "." + std::to_string((update_info.version >> 20) & 0x1F) + "." + std::to_string((update_info.version >> 16) & 0xF);
                         update_msg += " - " + cfg::strings::Main.GetString(417) + " " + version_str + "\n\n";
                         update_msg += " - " + cfg::strings::Main.GetString(418) + " " + (update_info.exfat_supported ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
@@ -594,7 +593,7 @@ namespace ui {
                         const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(416), update_msg, { cfg::strings::Main.GetString(419), cfg::strings::Main.GetString(18) }, true);
                         if(option_2 == 0) {
                             amssu::UpdateValidationInfo update_validation_info = {};
-                            rc = amssu::ValidateUpdate(ipc_full_item.AsUTF8().c_str(), &update_validation_info);
+                            rc = amssu::ValidateUpdate(ipc_full_item.c_str(), &update_validation_info);
                             if(R_SUCCEEDED(rc) && R_SUCCEEDED(update_validation_info.result) && R_SUCCEEDED(update_validation_info.exfat_result)) {
                                 const auto option_3 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(420), cfg::strings::Main.GetString(421), { cfg::strings::Main.GetString(423), cfg::strings::Main.GetString(18) }, true);
                                 if(option_3 == 0) {
@@ -603,7 +602,7 @@ namespace ui {
                                         const auto with_exfat = option_4 == 0;
                                         SetSysFirmwareVersion fw_ver = {};
                                         setsysGetFirmwareVersion(&fw_ver);
-                                        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(424), "Update", String(fw_ver.display_version) + " → " + version_str + "...");
+                                        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(424), "Update", std::string(fw_ver.display_version) + " → " + version_str + "...");
                                         g_MainApplication->LoadLayout(g_MainApplication->GetUpdateInstallLayout());
                                         g_MainApplication->GetUpdateInstallLayout()->InstallUpdate(ipc_full_item, with_exfat);
                                     }
@@ -643,13 +642,13 @@ namespace ui {
                     break;
                 }
                 case 3: {
-                    auto new_name = AskForText(cfg::strings::Main.GetString(238), item);
+                    const auto new_name = AskForText(cfg::strings::Main.GetString(238), item);
                     if(!new_name.empty()) {
                         if(new_name == item) {
                             // TODO: special handling?
                             return;
                         }
-                        auto new_path = this->cur_exp->FullPathFor(new_name);
+                        const auto new_path = this->cur_exp->FullPathFor(new_name);
                         if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
                             HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
                         }
@@ -677,8 +676,8 @@ namespace ui {
                             }
                             const auto dst = (option_2 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
                             for(auto &nsp_name: nsps) {
-                                auto nsp_path = full_item + "/" + nsp_name;
-                                auto pres_nsp_path = pres_full_item + "/" + nsp_name;
+                                const auto nsp_path = full_item + "/" + nsp_name;
+                                const auto pres_nsp_path = pres_full_item + "/" + nsp_name;
                                 
                                 const auto file_size = this->cur_exp->GetFileSize(nsp_path);
                                 const auto free_space = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));

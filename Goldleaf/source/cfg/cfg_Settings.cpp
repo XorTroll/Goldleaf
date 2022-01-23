@@ -27,9 +27,9 @@ namespace cfg {
 
     namespace {
 
-        inline std::string ColorToHex(const pu::ui::Color &clr) {
+        inline std::string ColorToHex(const pu::ui::Color clr) {
             char str[0x20] = {0};
-            sprintf(str, "#%02X%02X%02X%02X", clr.R, clr.G, clr.B, clr.A);
+            sprintf(str, "#%02X%02X%02X%02X", clr.r, clr.g, clr.b, clr.a);
             return str;
         }
 
@@ -51,9 +51,9 @@ namespace cfg {
         }
 
         if(this->has_custom_scheme) {
-            json["ui"]["base"] = ColorToHex(this->custom_scheme.Base);
-            json["ui"]["baseFocus"] = ColorToHex(this->custom_scheme.BaseFocus);
-            json["ui"]["text"] = ColorToHex(this->custom_scheme.Text);
+            json["ui"]["base"] = ColorToHex(this->custom_scheme.base);
+            json["ui"]["baseFocus"] = ColorToHex(this->custom_scheme.base_focus);
+            json["ui"]["text"] = ColorToHex(this->custom_scheme.text);
         }
 
         if(this->has_scrollbar_color) {
@@ -88,7 +88,7 @@ namespace cfg {
                 return ext_path;
             }
         }
-        return romfs_exp->MakeAbsolute(res_path).AsUTF8();
+        return romfs_exp->MakeAbsolute(res_path);
     }
 
     JSON Settings::ReadJSONResource(const std::string &res_path) {
@@ -222,22 +222,22 @@ namespace cfg {
             const auto &background_clr = settings_json["ui"].value("background", "");
             if(!background_clr.empty()) {
                 settings.has_custom_scheme = true;
-                settings.custom_scheme.Background = pu::ui::Color::FromHex(background_clr);
+                settings.custom_scheme.bg = pu::ui::Color::FromHex(background_clr);
             }
             const auto &base_clr = settings_json["ui"].value("base", "");
             if(!base_clr.empty()) {
                 settings.has_custom_scheme = true;
-                settings.custom_scheme.Base = pu::ui::Color::FromHex(base_clr);
+                settings.custom_scheme.base = pu::ui::Color::FromHex(base_clr);
             }
             const auto &base_focus_clr = settings_json["ui"].value("baseFocus", "");
             if(!base_focus_clr.empty()) {
                 settings.has_custom_scheme = true;
-                settings.custom_scheme.BaseFocus = pu::ui::Color::FromHex(base_focus_clr);
+                settings.custom_scheme.base_focus = pu::ui::Color::FromHex(base_focus_clr);
             }
             const auto &text_clr = settings_json["ui"].value("text", "");
             if(!text_clr.empty()) {
                 settings.has_custom_scheme = true;
-                settings.custom_scheme.Text = pu::ui::Color::FromHex(text_clr);
+                settings.custom_scheme.text = pu::ui::Color::FromHex(text_clr);
             }
             const auto &scrollbar_clr = settings_json["ui"].value("scrollBar", "");
             if(!scrollbar_clr.empty()) {

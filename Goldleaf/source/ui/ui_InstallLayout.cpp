@@ -30,10 +30,10 @@ namespace ui {
     InstallLayout::InstallLayout() : pu::ui::Layout() {
         this->install_top_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->install_top_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->install_top_text->SetColor(g_Settings.custom_scheme.Text);
+        this->install_top_text->SetColor(g_Settings.custom_scheme.text);
         this->install_bottom_text = pu::ui::elm::TextBlock::New(150, 350, cfg::strings::Main.GetString(151));
         this->install_bottom_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->install_bottom_text->SetColor(g_Settings.custom_scheme.Text);
+        this->install_bottom_text->SetColor(g_Settings.custom_scheme.text);
         this->install_p_bar = pu::ui::elm::ProgressBar::New(340, 400, 600, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->install_p_bar);
         this->Add(this->install_top_text);
@@ -41,7 +41,7 @@ namespace ui {
         this->Add(this->install_p_bar);
     }
 
-    void InstallLayout::StartInstall(String path, fs::Explorer *exp, NcmStorageId storage_id, bool omit_confirmation) {
+    void InstallLayout::StartInstall(const std::string &path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
         nsp::Installer nsp_installer(path, exp, storage_id);
 
         auto rc = nsp_installer.PrepareInstallation();
@@ -53,7 +53,7 @@ namespace ui {
                     if(title.app_id == nsp_installer.GetApplicationId()) {
                         hos::RemoveTitle(title);
                         nsp_installer.FinalizeInstallation();
-                        auto rc = nsp_installer.PrepareInstallation();
+                        rc = nsp_installer.PrepareInstallation();
                         if(R_FAILED(rc)) {
                             HandleResult(rc, cfg::strings::Main.GetString(251));
                             return;
@@ -249,7 +249,9 @@ namespace ui {
                     }
                 }
             }
-            else info += "\n\n" + cfg::strings::Main.GetString(97);
+            else {
+                info += "\n\n" + cfg::strings::Main.GetString(97);
+            }
 
             const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(77), info, { cfg::strings::Main.GetString(65), cfg::strings::Main.GetString(18) }, true, nsp_installer.GetExportedIconPath());
             do_install = option == 0;
@@ -262,12 +264,12 @@ namespace ui {
                 return;
             }
             this->install_top_text->SetText(cfg::strings::Main.GetString(146));
-            this->install_bottom_text->SetText("Balls in my jaw");
+            this->install_bottom_text->SetText("TODO...");
             g_MainApplication->CallForRender();
             this->install_p_bar->SetVisible(true);
             hos::LockAutoSleep();
-            rc = nsp_installer.WriteContents([&](NcmContentInfo cnt_info, u32 cnt, u32 cnt_count, double done, double total, u64 bytes_per_sec) {
-                this->install_p_bar->SetMaxValue(total);
+            rc = nsp_installer.WriteContents([&](const NcmContentInfo cnt_info, const u32 cnt, const u32 cnt_count, const double done, const double total, const u64 bytes_per_sec) {
+                this->install_p_bar->SetMaxProgress(total);
 
                 auto top_text_msg = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(cnt_info.content_id);
                 if(cnt_info.content_type == NcmContentType_Meta) {
@@ -278,7 +280,7 @@ namespace ui {
 
                 const u64 size = (u64)(total - done);
                 const auto secs = size / bytes_per_sec;
-                auto bottom_text_msg = "(" + fs::FormatSize(bytes_per_sec) + "/s  →  " + hos::FormatTime(secs) + ")";
+                const auto bottom_text_msg = "(" + fs::FormatSize(bytes_per_sec) + "/s  →  " + hos::FormatTime(secs) + ")";
                 this->install_bottom_text->SetText(bottom_text_msg);
                 
                 this->install_p_bar->SetProgress(done);

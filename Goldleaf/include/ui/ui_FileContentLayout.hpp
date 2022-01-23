@@ -27,20 +27,21 @@ namespace ui {
     class FileContentLayout : public pu::ui::Layout {
         private:
             u32 line_offset;
-            std::vector<String> read_lines;
+            std::vector<std::string> read_lines;
             bool read_hex;
-            String path;
+            std::string path;
             pu::ui::elm::TextBlock::Ref cnt_text;
             fs::Explorer *file_exp;
+
         public:
             FileContentLayout();
             PU_SMART_CTOR(FileContentLayout)
 
-            void LoadFile(String path, fs::Explorer *exp, bool read_hex);
+            void LoadFile(const std::string &path, fs::Explorer *exp, const bool read_hex);
             void ScrollUp();
             void ScrollDown();
 
-            inline std::vector<String> ReadLines(u32 line_offset, u32 count) {
+            inline std::vector<std::string> ReadLines(const u32 line_offset, const u32 count) {
                 if(this->read_hex) {
                     return this->file_exp->ReadFileFormatHex(this->path, line_offset, count);
                 }
@@ -50,7 +51,7 @@ namespace ui {
             }
 
             inline void UpdateLines() {
-                String new_cnt;
+                std::string new_cnt;
                 for(auto &line: this->read_lines) {
                     new_cnt += line + "\n";
                 }

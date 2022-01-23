@@ -25,15 +25,17 @@ namespace fs {
 
     namespace {
 
-        bool InternalCaseCompare(String a, String b) {
-            std::transform(a.begin(), a.end(), a.begin(), ::tolower);
-            std::transform(b.begin(), b.end(), b.begin(), ::tolower);
-            return (a.AsUTF16() < b.AsUTF16());
+        bool InternalCaseCompare(const std::string &a, const std::string &b) {
+            auto a_copy = a;
+            auto b_copy = b;
+            std::transform(a_copy.begin(), a_copy.end(), a_copy.begin(), ::tolower);
+            std::transform(b_copy.begin(), b_copy.end(), b_copy.begin(), ::tolower);
+            return a_copy < b_copy;
         }
 
     }
 
-    void Explorer::SetNames(String mount_name, String display_name) {
+    void Explorer::SetNames(const std::string &mount_name, const std::string &display_name) {
         this->disp_name = display_name;
         this->mnt_name = mount_name;
         this->cwd = mount_name + ":/";
@@ -51,7 +53,7 @@ namespace fs {
         return true;
     }
 
-    bool Explorer::NavigateForward(String path) {
+    bool Explorer::NavigateForward(const std::string &path) {
         const auto is_dir = this->IsDirectory(path);
         if(is_dir) {
             this->cwd = this->MakeFull(path);
@@ -59,7 +61,7 @@ namespace fs {
         return is_dir;
     }
 
-    std::vector<String> Explorer::GetContents() {
+    std::vector<std::string> Explorer::GetContents() {
         auto dirs = this->GetDirectories(this->cwd);
         auto files = this->GetFiles(this->cwd);
 
@@ -73,15 +75,15 @@ namespace fs {
         return dirs;
     }
 
-    String Explorer::GetMountName() {
+    std::string Explorer::GetMountName() {
         return this->mnt_name;
     }
 
-    String Explorer::GetCwd() {
+    std::string Explorer::GetCwd() {
         return this->cwd;
     }
 
-    String Explorer::GetPresentableCwd() {
+    std::string Explorer::GetPresentableCwd() {
         if(this->cwd == (this->mnt_name + ":/")) {
             return this->disp_name + ":/";
         }
@@ -89,7 +91,7 @@ namespace fs {
         return this->disp_name + ":/" + this->cwd.substr(mnt_root_size);
     }
 
-    void Explorer::CopyFile(String path, String new_path) {
+    void Explorer::CopyFile(const std::string &path, const std::string &new_path) {
         const auto full_path = this->MakeFull(path);
         auto exp = GetExplorerForPath(new_path);
         const auto full_new_path = exp->MakeFull(new_path);
@@ -108,7 +110,7 @@ namespace fs {
         exp->EndFile();
     }
 
-    void Explorer::CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn) {
+    void Explorer::CopyFileProgress(const std::string &path, const std::string &new_path, std::function<void(double Done, double Total)> cb_fn) {
         const auto full_path = this->MakeFull(path);
         auto exp = GetExplorerForPath(new_path);
         const auto full_new_path = exp->MakeFull(new_path);
@@ -129,7 +131,7 @@ namespace fs {
         exp->EndFile();
     }
 
-    void Explorer::CopyDirectory(String dir, String new_dir) {
+    void Explorer::CopyDirectory(const std::string &dir, const std::string &new_dir) {
         const auto full_dir = this->MakeFull(dir);
         auto exp = GetExplorerForPath(new_dir);
         const auto full_new_dir = exp->MakeFull(new_dir);
@@ -148,10 +150,10 @@ namespace fs {
         }
     }
 
-    void Explorer::CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn) {
-        String full_dir = this->MakeFull(dir);
+    void Explorer::CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyCallback cb_fn) {
+        const auto full_dir = this->MakeFull(dir);
         auto exp = GetExplorerForPath(new_dir);
-        String full_new_dir = exp->MakeFull(new_dir);
+        const auto full_new_dir = exp->MakeFull(new_dir);
         exp->CreateDirectory(full_new_dir);
         auto files = this->GetFiles(full_dir);
         for(auto &cfile: files) this->CopyFileProgress(full_dir + "/" + cfile, full_new_dir + "/" + cfile, cb_fn);
@@ -159,7 +161,7 @@ namespace fs {
         for(auto &cdir: dirs) this->CopyDirectoryProgress(full_dir + "/" + cdir, full_new_dir + "/" + cdir, cb_fn);
     }
 
-    bool Explorer::IsFileBinary(String path) {
+    bool Explorer::IsFileBinary(const std::string &path) {
         const auto full_path = this->MakeFull(path);
         if(!this->IsFile(full_path)) {
             return false;
@@ -183,7 +185,7 @@ namespace fs {
         return false;
     }
 
-    std::vector<u8> Explorer::ReadFile(String path) {
+    std::vector<u8> Explorer::ReadFile(const std::string &path) {
         const auto full_path = this->MakeFull(path);
         const auto file_size = this->GetFileSize(full_path);
 
@@ -195,7 +197,7 @@ namespace fs {
         return data;
     }
 
-    JSON Explorer::ReadJSON(String path) {
+    JSON Explorer::ReadJSON(const std::string &path) {
         const auto full_path = this->MakeFull(path);
         const auto file_size = this->GetFileSize(full_path);
 
@@ -212,14 +214,14 @@ namespace fs {
         }
     }
 
-    std::vector<String> Explorer::ReadFileLines(String path, u32 line_offset, u32 line_count) {
-        std::vector<String> data;
+    std::vector<std::string> Explorer::ReadFileLines(const std::string &path, const u32 line_offset, const u32 line_count) {
+        std::vector<std::string> data;
         const auto full_path = this->MakeFull(path);
         const auto file_size = this->GetFileSize(full_path);
         if(file_size == 0) {
             return data;
         }
-        String tmp_line;
+        std::string tmp_line;
         u32 tmp_line_offset = 0;
         auto rem_size = file_size;
         u64 offset = 0;
@@ -235,16 +237,16 @@ namespace fs {
             for(u32 i = 0; i < read_size; i++) {
                 const auto ch = static_cast<char>(data_buf[i]);
                 if(ch == '\n') {
-                    auto prev_tmp_line_offset = tmp_line_offset;
+                    const auto prev_tmp_line_offset = tmp_line_offset;
                     tmp_line_offset++;
                     if(prev_tmp_line_offset < line_offset) {
                         tmp_line = "";
                         continue;
                     }
-                    String tab = "\t";
+                    std::string tab = "\t";
                     while(true) {
                         const auto find_pos = tmp_line.find(tab);
-                        if(find_pos == String::npos) {
+                        if(find_pos == std::string::npos) {
                             break;
                         }
                         tmp_line.replace(find_pos, tab.length(), "    ");
@@ -268,8 +270,8 @@ namespace fs {
         return data;
     }
 
-    std::vector<String> Explorer::ReadFileFormatHex(String path, u32 line_offset, u32 line_count) {
-        std::vector<String> str_data;
+    std::vector<std::string> Explorer::ReadFileFormatHex(const std::string &path, const u32 line_offset, const u32 line_count) {
+        std::vector<std::string> str_data;
         const auto full_path = this->MakeFull(path);
         const auto file_size = this->GetFileSize(full_path);
         const auto offset = 16 * line_offset;
@@ -284,14 +286,14 @@ namespace fs {
         auto data_buf = GetWorkBuffer();
         this->ReadFile(full_path, offset, data_read_size, data_buf);
         u32 count = 0;
-        String tmp_line;
-        String tmp_chr;
+        std::string tmp_line;
+        std::string tmp_chr;
         u32 tmp_offset = 0;
         for(u32 i = 0; i < (data_read_size + 1); i++) {
             if(count == 16) {
                 std::stringstream ostrm;
                 ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
-                auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
+                const auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
                 str_data.push_back(def);
                 tmp_offset += 16;
                 count = 0;
@@ -308,7 +310,7 @@ namespace fs {
                 }
                 std::stringstream ostrm;
                 ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
-                auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
+                const auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
                 str_data.push_back(def);
                 break;
             }
@@ -327,7 +329,7 @@ namespace fs {
         return str_data;
     }
 
-    u64 Explorer::GetDirectorySize(String path) {
+    u64 Explorer::GetDirectorySize(const std::string &path) {
         u64 size = 0;
         const auto full_path = this->MakeFull(path);
 

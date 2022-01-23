@@ -26,17 +26,18 @@ namespace ui {
 
     class PCExploreLayout : public pu::ui::Layout {
         private:
-            std::vector<String> names;
-            std::vector<String> paths;
+            std::vector<std::string> names;
+            std::vector<std::string> paths;
             pu::ui::elm::Menu::Ref paths_menu;
             std::vector<pu::ui::elm::MenuItem::Ref> path_items;
+
         public:
             PCExploreLayout();
             PU_SMART_CTOR(PCExploreLayout)
 
             void UpdatePaths();
-            void path_Click();
-            void fileSelect_Click();
+            void path_DefaultKey();
+            void fileSelect_DefaultKey();
     };
 
 }

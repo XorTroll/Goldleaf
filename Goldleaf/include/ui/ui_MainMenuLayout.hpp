@@ -39,14 +39,14 @@ namespace ui {
             MainMenuLayout();
             PU_SMART_CTOR(MainMenuLayout)
 
-            void ExploreMenu_OnClick();
-            void ContentManager_OnClick();
-            void WebBrowser_OnClick();
-            void Account_OnClick();
-            void Amiibo_OnClick();
-            void Settings_OnClick();
-            void Update_OnClick();
-            void About_OnClick();
+            void exploreMenu_DefaultKey();
+            void contentManager_DefaultKey();
+            void webBrowser_DefaultKey();
+            void account_DefaultKey();
+            void amiibo_DefaultKey();
+            void settings_DefaultKey();
+            void update_DefaultKey();
+            void about_DefaultKey();
     };
 
 }

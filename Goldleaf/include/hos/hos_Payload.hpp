@@ -24,6 +24,6 @@
 
 namespace hos {
 
-    bool RebootWithPayload(String path);
+    bool RebootWithPayload(const std::string &path);
 
 }

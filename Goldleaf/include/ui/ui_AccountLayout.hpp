@@ -33,10 +33,10 @@ namespace ui {
 
             void ReloadItems();
             void Load();
-            void optsRename_Click();
-            void optsIcon_Click();
-            void optsDelete_Click();
-            void optsServicesInfo_Click();
+            void optsRename_DefaultKey();
+            void optsIcon_DefaultKey();
+            void optsDelete_DefaultKey();
+            void optsServicesInfo_DefaultKey();
     };
 
 }

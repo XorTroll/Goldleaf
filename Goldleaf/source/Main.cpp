@@ -30,7 +30,13 @@ int main() {
     GLEAF_RC_ASSERT(Initialize());
 
     // Create the UI renderer and the application - it will initialize romfs
-    auto renderer = pu::ui::render::Renderer::New(pu::ui::render::RendererInitOptions(SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags).WithIMG(pu::ui::render::IMGAllFlags).WithMixer(pu::ui::render::MixerAllFlags).WithTTF().WithDefaultFontSize(35).WithRomfs());
+    auto renderer_opts = pu::ui::render::RendererInitOptions(SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags);
+    renderer_opts.UseImage(pu::ui::render::IMGAllFlags);
+    renderer_opts.UseAudio(pu::ui::render::MixerAllFlags);
+    renderer_opts.UseTTF();
+    renderer_opts.SetExtraDefaultFontSize(35);
+    renderer_opts.UseRomfs();
+    auto renderer = pu::ui::render::Renderer::New(renderer_opts);
     g_MainApplication = ui::MainApplication::New(renderer);
     
     // Initialize and load config

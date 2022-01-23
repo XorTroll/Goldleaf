@@ -23,35 +23,49 @@
 
 namespace usb {
 
-    InCommandBlock::InCommandBlock(CommandId cmd_id) {
+    InCommandBlock::InCommandBlock(const CommandId cmd_id) {
         this->base.position = 0;
+        this->ok = true;
         this->base.block_buf = new(std::align_val_t(0x1000)) u8[BlockSize]();
-        Write32(InputMagic);
-        Write32(static_cast<u32>(cmd_id));
+        
+        if(!this->WriteValue(InputMagic)) {
+            this->ok = false;
+        }
+
+        if(!this->WriteValue(static_cast<u32>(cmd_id))) {
+            this->ok = false;
+        }
     }
 
-    void InCommandBlock::Write32(u32 val) {
-        WriteBuffer(&val, sizeof(u32));
-    }
-
-    void InCommandBlock::Write64(u64 val) {
-        WriteBuffer(&val, sizeof(u64));
-    }
-
-    void InCommandBlock::WriteString(String val) {
+    bool InCommandBlock::WriteString(const std::string &val) {
         const auto len = val.length();
-        Write32(len);
-        WriteBuffer(val.AsUTF16().c_str(), sizeof(char16_t) * len);
+        
+        if(!this->WriteValue(static_cast<u32>(len))) {
+            return false;
+        }
+
+        if(!this->WriteBuffer(val.c_str(), len)) {
+            return false;
+        }
+
+        return true;
     }
 
-    void InCommandBlock::WriteBuffer(const void *buf, size_t size) {
-        memcpy(this->base.block_buf + this->base.position, buf, size);
-        this->base.position += size;
+    bool InCommandBlock::WriteBuffer(const void *buf, const size_t size) {
+        if((this->base.position + size) > BlockSize) {
+            return false;
+        }
+        else {
+            memcpy(this->base.block_buf + this->base.position, buf, size);
+            this->base.position += size;
+            return true;
+        }
     }
 
     Result InCommandBlock::Send() {
         const auto rc = detail::Write(this->base.block_buf, BlockSize);
         operator delete[](this->base.block_buf, std::align_val_t(0x1000));
+        this->base.block_buf = nullptr;
         return rc;
     }
 
@@ -60,132 +74,65 @@ namespace usb {
         this->base.block_buf = new(std::align_val_t(0x1000)) u8[BlockSize]();
         this->res = detail::Read(this->base.block_buf, BlockSize);
         if(R_SUCCEEDED(this->res)) {
-            this->magic = Read32();
-            this->res = Read32();
+            if(!this->ReadValue(this->magic)) {
+                this->res = 0xBABA;
+            }
+            if(!this->ReadValue(this->res)) {
+                this->res = 0xBABA;
+            }
         }
     }
 
     void OutCommandBlock::Cleanup() {
-        operator delete[](this->base.block_buf, std::align_val_t(0x1000));
+        if(this->base.block_buf != nullptr) {
+            operator delete[](this->base.block_buf, std::align_val_t(0x1000));
+            this->base.block_buf = nullptr;
+        }
     }
 
-    bool OutCommandBlock::IsValid() {
-        if(this->magic != OutputMagic) {
+    bool OutCommandBlock::ReadString(std::string &out_str) {
+        u32 str_len = 0;
+        if(!this->ReadValue(str_len)) {
             return false;
         }
-        return R_SUCCEEDED(this->res);
-    }
 
-    u32 OutCommandBlock::Read32() {
-        u32 val = 0;
-        ReadBuffer(&val, sizeof(val));
-        return val;
-    }
-
-    u64 OutCommandBlock::Read64() {
-        u64 val = 0;
-        ReadBuffer(&val, sizeof(val));
-        return val;
-    }
-
-    String OutCommandBlock::ReadString() {
-        const auto len = Read32();
-        auto str_buf = new char16_t[len + 1]();
-        ReadBuffer(str_buf, len * sizeof(char16_t));
+        auto str_buf = new char[str_len + 1]();
+        if(!this->ReadBuffer(str_buf, str_len)) {
+            return false;
+        }
     
-        String str = str_buf;
+        out_str.assign(str_buf);
         delete[] str_buf;
-        return str;
+        return true;
     }
 
-    void OutCommandBlock::ReadBuffer(void *buf, size_t size) {
-        memcpy(buf, this->base.block_buf + this->base.position, size);
-        this->base.position += size;
+    bool OutCommandBlock::ReadBuffer(void *buf, const size_t size) {
+        if((this->base.position + size) > BlockSize) {
+            return false;
+        }
+        else {
+            memcpy(buf, this->base.block_buf + this->base.position, size);
+            this->base.position += size;
+            return true;
+        }
     }
 
-    In32::In32(u32 val) : val(val) {}
-
-    void In32::ProcessIn(InCommandBlock &block) {
-        block.Write32(this->val);
-    }
-
-    void In32::ProcessAfterIn() {}
-    void In32::ProcessOut(OutCommandBlock &block) {}
-    void In32::ProcessAfterOut() {}
-
-    Out32::Out32(u32 &val) : val(val) {}
-    void Out32::ProcessIn(InCommandBlock &block) {}
-    void Out32::ProcessAfterIn() {}
-
-    void Out32::ProcessOut(OutCommandBlock &block) {
-        this->val = block.Read32();
-    }
-
-    void Out32::ProcessAfterOut() {}
-
-    In64::In64(u64 val) : val(val) {}
-
-    void In64::ProcessIn(InCommandBlock &block) {
-        block.Write64(this->val);
-    }
-
-    void In64::ProcessAfterIn() {}
-    void In64::ProcessOut(OutCommandBlock &block) {}
-    void In64::ProcessAfterOut() {}
-
-    Out64::Out64(u64 &val) : val(val) { }
-    void Out64::ProcessIn(InCommandBlock &block) {}
-    void Out64::ProcessAfterIn() {}
-
-    void Out64::ProcessOut(OutCommandBlock &block) {
-        this->val = block.Read64();
-    }
-
-    void Out64::ProcessAfterOut() {}
-
-    InString::InString(String val) : val(val) {}
-
-    void InString::ProcessIn(InCommandBlock &block) {
-        block.WriteString(this->val);
-    }
-
-    void InString::ProcessAfterIn() {}
-    void InString::ProcessOut(OutCommandBlock &block) {}
-    void InString::ProcessAfterOut() {}
-
-    OutString::OutString(String &val) : val(val) {}
-    void OutString::ProcessIn(InCommandBlock &block) {}
-    void OutString::ProcessAfterIn() {}
-
-    void OutString::ProcessOut(OutCommandBlock &block) {
-        this->val = block.ReadString();
-    }
-
-    void OutString::ProcessAfterOut() {}
-
-    InBuffer::InBuffer(const void *buf, size_t size) : buf(buf), size(size) {}
-    void InBuffer::ProcessIn(InCommandBlock &block) {}
-
-    void InBuffer::ProcessAfterIn() {
+    bool InBuffer::ProcessAfterIn() {
         auto aligned_buf = new (std::align_val_t(0x1000)) u8[this->size]();
         memcpy(aligned_buf, this->buf, this->size);
-        detail::Write(aligned_buf, this->size);
+
+        const auto ok = R_SUCCEEDED(detail::Write(aligned_buf, this->size));
         operator delete[](aligned_buf, std::align_val_t(0x1000));
+        return ok;
     }
 
-    void InBuffer::ProcessOut(OutCommandBlock &block) {}
-    void InBuffer::ProcessAfterOut() {}
-
-    OutBuffer::OutBuffer(void *buf, size_t size) : buf(buf), size(size) {}
-    void OutBuffer::ProcessIn(InCommandBlock &block) {}
-    void OutBuffer::ProcessAfterIn() {}
-    void OutBuffer::ProcessOut(OutCommandBlock &block) {}
-
-    void OutBuffer::ProcessAfterOut() {
+    bool OutBuffer::ProcessAfterOut() {
         auto aligned_buf = new (std::align_val_t(0x1000)) u8[this->size]();
-        detail::Read(aligned_buf, this->size);
+
+        const auto ok = R_SUCCEEDED(detail::Read(aligned_buf, this->size));
         memcpy(this->buf, aligned_buf, this->size);
         operator delete[](aligned_buf, std::align_val_t(0x1000));
+        return ok;
     }
 
 }

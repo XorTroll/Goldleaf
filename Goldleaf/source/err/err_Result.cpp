@@ -81,7 +81,7 @@ namespace err {
 
     }
 
-    String GetModuleName(const u32 module_id) {
+    std::string GetModuleName(const u32 module_id) {
         u32 idx = 0;
         auto find = g_ModuleStringTable.find(module_id);
         if(find != g_ModuleStringTable.end()) {
@@ -90,7 +90,7 @@ namespace err {
         return cfg::strings::Modules.GetString(idx);
     }
 
-    String GetResultDescription(const Result rc) {
+    std::string GetResultDescription(const Result rc) {
         u32 idx = 0;
         auto find = g_ResultStringTable.find(rc);
         if(find != g_ResultStringTable.end()) {

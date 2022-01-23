@@ -27,8 +27,8 @@ extern cfg::Settings g_Settings;
 
 namespace {
 
-    inline String FormatPlayStatsInfo(String kind, const hos::TitlePlayStats &stats) {
-        String fmt;
+    inline std::string FormatPlayStatsInfo(const std::string &kind, const hos::TitlePlayStats &stats) {
+        std::string fmt;
         fmt += "\n" + kind;
         fmt += "\n" + cfg::strings::Main.GetString(339) + " " + hos::FormatTime(stats.secs_from_last_launched);
         fmt += "\n" + cfg::strings::Main.GetString(340) + " " + hos::FormatTime(stats.total_play_secs);
@@ -40,8 +40,7 @@ namespace {
 namespace ui {
 
     ContentInformationLayout::ContentInformationLayout() {
-        this->options_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->options_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        this->options_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->options_menu);
         this->Add(this->options_menu);
     }
@@ -57,18 +56,18 @@ namespace ui {
                 name = cfg::strings::Main.GetString(263) + " " + std::to_string(hos::GetIdFromAddOnContentApplicationId(sub_cnt.app_id));
             }
             auto sub_cnt_item = pu::ui::elm::MenuItem::New(name);
-            sub_cnt_item->SetColor(g_Settings.custom_scheme.Text);
-            sub_cnt_item->AddOnClick(std::bind(&ContentInformationLayout::options_Click, this));
+            sub_cnt_item->SetColor(g_Settings.custom_scheme.text);
+            sub_cnt_item->AddOnKey(std::bind(&ContentInformationLayout::options_DefaultKey, this));
             this->options_menu->AddItem(sub_cnt_item);
         }
         this->options_menu->SetSelectedIndex(0);
     }
 
-    void ContentInformationLayout::options_Click() {
+    void ContentInformationLayout::options_DefaultKey() {
         const auto idx = this->options_menu->GetSelectedIndex();
         auto msg = cfg::strings::Main.GetString(169) + "\n\n";
         msg += cfg::strings::Main.GetString(170) + " ";
-        std::vector<String> options = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(414) };
+        std::vector<std::string> options = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(414) };
         std::string icon;
         const auto &sub_cnt = this->cnt_subcontents[idx];
         auto sd_exp = fs::GetSdCardExplorer();
@@ -243,7 +242,7 @@ namespace ui {
                 this->cnt_subcontents.push_back(cnt);
             }
         }
-        String head = hos::FormatApplicationId(content.app_id);
+        auto head = hos::FormatApplicationId(content.app_id);
         const auto nacp = content.TryGetNACP();
         if(!hos::IsNacpEmpty(nacp)) {
             head = hos::FindNacpName(nacp) + " (" + nacp.display_version + ")";

@@ -24,6 +24,8 @@
 
 namespace nsp {
 
-    bool GenerateFrom(String input_path, String output_nsp, std::function<void(u64, u64)> cb_fn);
+    using GenerateCallback = std::function<void(const u64, const u64)>;
+
+    bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateCallback cb_fn);
 
 }

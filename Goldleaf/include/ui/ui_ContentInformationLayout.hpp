@@ -34,7 +34,7 @@ namespace ui {
             PU_SMART_CTOR(ContentInformationLayout)
 
             void UpdateElements();
-            void options_Click();
+            void options_DefaultKey();
             void LoadContent(const hos::Title &content);
     };
 

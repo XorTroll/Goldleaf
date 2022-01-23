@@ -51,7 +51,7 @@ namespace fs {
 
     }
 
-    FspExplorer::FspExplorer(FsFileSystem fs, String display_name, const std::string &mount_name) : StdExplorer(), fs(fs), dispose(mount_name.empty()) {
+    FspExplorer::FspExplorer(FsFileSystem fs, const std::string &display_name, const std::string &mount_name) : StdExplorer(), fs(fs), dispose(mount_name.empty()) {
         auto fs_mount_name = mount_name;
         const auto needs_to_handle_mount = mount_name.empty();
         if(needs_to_handle_mount) {
@@ -61,14 +61,14 @@ namespace fs {
         this->SetNames(fs_mount_name, display_name);
 
         if(needs_to_handle_mount) {
-            fsdevMountDevice(this->mnt_name.AsUTF8().c_str(), this->fs);
+            fsdevMountDevice(this->mnt_name.c_str(), this->fs);
         }
     }
 
     FspExplorer::~FspExplorer() {
         if(this->dispose) {
-            fsdevUnmountDevice(this->mnt_name.AsUTF8().c_str());
-            DisposeMountName(this->mnt_name.AsUTF8());
+            fsdevUnmountDevice(this->mnt_name.c_str());
+            DisposeMountName(this->mnt_name);
         }
     }
 

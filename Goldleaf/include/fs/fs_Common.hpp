@@ -24,6 +24,7 @@
 
 namespace fs {
 
+    // TODO: just use StorageId?
     enum class Partition {
         PRODINFOF,
         NANDSafe,
@@ -32,40 +33,39 @@ namespace fs {
         SdCard = 5,
     };
 
-    using ifstream = std::basic_ifstream<char16_t>;
-    using ofstream = std::basic_ofstream<char16_t>;
+    constexpr size_t Size4GB = 0x100000000;
+    constexpr size_t WorkBufferSize = 0x800000; // 8MB
 
-    constexpr u64 Size4GB = 0x100000000;
-    constexpr u64 WorkBufferSize = 0x800000; // 8MB
+    void CreateConcatenationFile(const std::string &path);
 
-    void CreateConcatenationFile(String path);
+    using CopyCallback = std::function<void(const double, const double)>;
     
-    void CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn);
-    void CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn);
+    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyCallback cb_fn);
+    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyCallback cb_fn);
     
-    inline String GetFileName(String path) {
+    inline std::string GetFileName(const std::string &path) {
         return path.substr(path.find_last_of("/") + 1);
     }
 
-    inline String GetBaseDirectory(String path) {
+    inline std::string GetBaseDirectory(const std::string &path) {
         return path.substr(0, path.find_last_of("/"));
     }
 
-    inline String GetExtension(String path) {
+    inline std::string GetExtension(const std::string &path) {
         return path.substr(path.find_last_of(".") + 1);
     }
 
-    inline String GetPathRoot(String path) {
+    inline std::string GetPathRoot(const std::string &path) {
         return path.substr(0, path.find_first_of(":"));
     }
 
-    inline String GetPathWithoutRoot(String path) {
+    inline std::string GetPathWithoutRoot(const std::string &path) {
         return path.substr(path.find_first_of(":") + 1);
     }
 
     u64 GetTotalSpaceForPartition(const Partition partition);
     u64 GetFreeSpaceForPartition(const Partition partition);
-    String FormatSize(const u64 bytes);
+    std::string FormatSize(const u64 bytes);
 
     u8 *GetWorkBuffer();
 

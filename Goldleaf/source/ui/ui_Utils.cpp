@@ -27,11 +27,11 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
-    String g_Clipboard;
+    std::string g_Clipboard;
 
     namespace {
 
-        inline constexpr u8 VariateChannelImpl(u8 input, u8 v) {
+        inline constexpr u8 VariateChannelImpl(const u8 input, const u8 v) {
             const auto tmp = static_cast<u32>(input + v);
             if(tmp > 0xFF) {
                 return 0xFF;
@@ -39,9 +39,9 @@ namespace ui {
             return static_cast<u8>(tmp);
         }
 
-        inline pu::ui::Color GenerateColorVariation(pu::ui::Color clr, u8 min_v, u8 max_v) {
+        inline pu::ui::Color GenerateColorVariation(const pu::ui::Color clr, const u8 min_v, const u8 max_v) {
             const auto v = static_cast<u8>(RandomFromRange(min_v, max_v));
-            return { VariateChannelImpl(clr.R, v), VariateChannelImpl(clr.G, v), VariateChannelImpl(clr.B, v), clr.A };
+            return { VariateChannelImpl(clr.r, v), VariateChannelImpl(clr.g, v), VariateChannelImpl(clr.b, v), clr.a };
         }
 
         constexpr pu::ui::Color TextLight = { 225, 225, 225, 0xFF };
@@ -49,19 +49,11 @@ namespace ui {
 
     }
 
-    void SetClipboard(String path) {
+    void SetClipboard(const std::string &path) {
         g_Clipboard = path;
     }
-    
-    void ClearClipboard() {
-        g_Clipboard = "";
-    }
 
-    bool ClipboardEmpty() {
-        return g_Clipboard.empty();
-    }
-
-    void ShowPowerTasksDialog(String title, String msg) {
+    void ShowPowerTasksDialog(const std::string &title, const std::string &msg) {
         const auto option = g_MainApplication->CreateShowDialog(title, msg, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
         switch(option) {
             case 0: {
@@ -75,7 +67,7 @@ namespace ui {
         }
     }
 
-    String AskForText(String guide_text, String initial_text, int max_len) {
+    std::string AskForText(const std::string &guide_text, const std::string &initial_text, int max_len) {
         SwkbdConfig kbd;
         auto rc = swkbdCreate(&kbd, 0);
         if(R_SUCCEEDED(rc)) {
@@ -83,11 +75,13 @@ namespace ui {
             if(max_len > 0) {
                 swkbdConfigSetStringLenMax(&kbd, static_cast<u32>(max_len));
             }
+
             if(!guide_text.empty()) {
-                swkbdConfigSetGuideText(&kbd, guide_text.AsUTF8().c_str());
+                swkbdConfigSetGuideText(&kbd, guide_text.c_str());
             }
+
             if(!initial_text.empty()) {
-                swkbdConfigSetInitialText(&kbd, initial_text.AsUTF8().c_str());
+                swkbdConfigSetInitialText(&kbd, initial_text.c_str());
             }
 
             char out_text[FS_MAX_PATH] = {};
@@ -97,13 +91,14 @@ namespace ui {
             }
             swkbdClose(&kbd);
         }
+
         return "";
     }
 
-    void HandleResult(Result rc, String info) {
+    void HandleResult(const Result rc, const std::string &info) {
         if(R_FAILED(rc)) {
-            auto mod_info = err::GetModuleName(R_MODULE(rc)) + " (" + std::to_string(R_MODULE(rc)) + ")";
-            auto desc_info = err::GetResultDescription(rc) + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
+            const auto mod_info = err::GetModuleName(R_MODULE(rc)) + " (" + std::to_string(R_MODULE(rc)) + ")";
+            const auto desc_info = err::GetResultDescription(rc) + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + mod_info + "\n" + cfg::strings::Main.GetString(265) + ": " + desc_info + "", { cfg::strings::Main.GetString(234) }, false);
         }
     }
@@ -115,17 +110,18 @@ namespace ui {
         const auto b = static_cast<u8>(RandomFromRange(0, 0xFF));
 
         const pu::ui::Color clr = { r, g, b, 0xFF };
-        scheme.Base = clr;
-        scheme.Background = GenerateColorVariation(clr, 30, 50);
-        scheme.BaseFocus = GenerateColorVariation(clr, 20, 30);
+        scheme.base = clr;
+        scheme.bg = GenerateColorVariation(clr, 30, 50);
+        scheme.base_focus = GenerateColorVariation(clr, 20, 30);
 
         const auto av = (r + g + b) / 3;
         if((2 * av) < 0xFF) {
-            scheme.Text = TextLight;
+            scheme.text = TextLight;
         }
         else {
-            scheme.Text = TextDark;
+            scheme.text = TextDark;
         }
+
         return scheme;
     }
 

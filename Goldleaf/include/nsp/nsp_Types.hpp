@@ -42,9 +42,9 @@ namespace nsp {
 
     struct PFS0File {
         PFS0FileEntry entry;
-        String name;
+        std::string name;
     };
 
-    constexpr u32 Magic = 0x30534650;
+    constexpr u32 Magic = 0x30534650; // 'PFS0'
 
 }

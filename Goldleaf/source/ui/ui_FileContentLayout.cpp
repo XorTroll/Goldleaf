@@ -35,13 +35,13 @@ namespace ui {
 
     FileContentLayout::FileContentLayout() {
         this->cnt_text = pu::ui::elm::TextBlock::New(40, 180, "");
-        this->cnt_text->SetColor(g_Settings.custom_scheme.Text);
+        this->cnt_text->SetColor(g_Settings.custom_scheme.text);
         this->cnt_text->SetFont("FileContentFont");
         this->Add(this->cnt_text);
         this->line_offset = 0;
     }
 
-    void FileContentLayout::LoadFile(String path, fs::Explorer *exp, bool read_hex) {
+    void FileContentLayout::LoadFile(const std::string &path, fs::Explorer *exp, const bool read_hex) {
         this->path = path;
         this->read_hex = read_hex;
         this->file_exp = exp;

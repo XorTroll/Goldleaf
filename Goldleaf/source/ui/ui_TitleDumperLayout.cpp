@@ -30,7 +30,7 @@ namespace ui {
     TitleDumperLayout::TitleDumperLayout() {
         this->dump_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->dump_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->dump_text->SetColor(g_Settings.custom_scheme.Text);
+        this->dump_text->SetColor(g_Settings.custom_scheme.text);
         this->cnt_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         this->cnt_p_bar->SetVisible(false);
         g_Settings.ApplyProgressBarColor(this->cnt_p_bar);
@@ -80,105 +80,105 @@ namespace ui {
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
-        auto meta_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, &meta_cnt_id);
+        const auto meta_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, meta_cnt_id);
 
         NcmContentId program_cnt_id;
         const auto has_program_cnt = dump::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_Program, &program_cnt_id);
-        String program_cnt_ncm_path;
+        std::string program_cnt_ncm_path;
         if(has_program_cnt) {
-            program_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, &program_cnt_id);
+            program_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, program_cnt_id);
         }
 
         NcmContentId control_cnt_id;
         const auto has_control_cnt = dump::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_Control, &control_cnt_id);
-        String control_cnt_ncm_path;
+        std::string control_cnt_ncm_path;
         if(has_control_cnt) {
-            control_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, &control_cnt_id);
+            control_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, control_cnt_id);
         }
 
         NcmContentId legal_info_cnt_id;
         const auto has_legal_info_cnt = dump::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_LegalInformation, &legal_info_cnt_id);
-        String legal_info_cnt_ncm_path;
+        std::string legal_info_cnt_ncm_path;
         if(has_legal_info_cnt) {
-            legal_info_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, &legal_info_cnt_id);
+            legal_info_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, legal_info_cnt_id);
         }
 
         NcmContentId html_doc_cnt_id;
         const auto has_html_doc_cnt = dump::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_HtmlDocument, &html_doc_cnt_id);
-        String html_doc_cnt_ncm_path;
+        std::string html_doc_cnt_ncm_path;
         if(has_html_doc_cnt) {
-            html_doc_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, &html_doc_cnt_id);
+            html_doc_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, html_doc_cnt_id);
         }
 
         NcmContentId data_cnt_id;
         const auto has_data_cnt = dump::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_Data, &data_cnt_id);
-        String data_cnt_ncm_path;
+        std::string data_cnt_ncm_path;
         if(has_data_cnt) {
-            data_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, &data_cnt_id);
+            data_cnt_ncm_path = dump::GetContentIdPath(&cnt_storage, data_cnt_id);
         }
 
         hos::LockAutoSleep();
         if(cnt.storage_id == NcmStorageId_SdCard) {
             this->dump_text->SetText(cfg::strings::Main.GetString(194));
-            auto out_meta_cnt_path = out_dir + "/" + hos::ContentIdAsString(meta_cnt_id) + ".cnmt.nca";
+            const auto out_meta_cnt_path = out_dir + "/" + hos::ContentIdAsString(meta_cnt_id) + ".cnmt.nca";
             fs::CreateConcatenationFile(out_meta_cnt_path);
             this->cnt_p_bar->SetVisible(true);
-            dump::DecryptCopyNAX0ToNCA(&cnt_storage, meta_cnt_id, out_meta_cnt_path, [&](double done, double total) {
-                this->cnt_p_bar->SetMaxValue(total);
+            dump::DecryptCopyNAX0ToNCA(&cnt_storage, meta_cnt_id, out_meta_cnt_path, [&](const double done, const double total) {
+                this->cnt_p_bar->SetMaxProgress(total);
                 this->cnt_p_bar->SetProgress(done);
                 g_MainApplication->CallForRender();
             });
             this->cnt_p_bar->SetVisible(false);
             if(has_program_cnt) {
-                auto out_program_cnt_path = out_dir + "/" + hos::ContentIdAsString(program_cnt_id) + ".nca";
+                const auto out_program_cnt_path = out_dir + "/" + hos::ContentIdAsString(program_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_program_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                dump::DecryptCopyNAX0ToNCA(&cnt_storage, program_cnt_id, out_program_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                dump::DecryptCopyNAX0ToNCA(&cnt_storage, program_cnt_id, out_program_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_control_cnt) {
-                auto out_control_cnt_path = out_dir + "/" + hos::ContentIdAsString(control_cnt_id) + ".nca";
+                const auto out_control_cnt_path = out_dir + "/" + hos::ContentIdAsString(control_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_control_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                dump::DecryptCopyNAX0ToNCA(&cnt_storage, control_cnt_id, out_control_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                dump::DecryptCopyNAX0ToNCA(&cnt_storage, control_cnt_id, out_control_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_legal_info_cnt) {
-                auto out_legal_info_cnt_path = out_dir + "/" + hos::ContentIdAsString(legal_info_cnt_id) + ".nca";
+                const auto out_legal_info_cnt_path = out_dir + "/" + hos::ContentIdAsString(legal_info_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_legal_info_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                dump::DecryptCopyNAX0ToNCA(&cnt_storage, legal_info_cnt_id, out_legal_info_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                dump::DecryptCopyNAX0ToNCA(&cnt_storage, legal_info_cnt_id, out_legal_info_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_html_doc_cnt) {
-                auto out_html_doc_cnt_path = out_dir + "/" + hos::ContentIdAsString(html_doc_cnt_id) + ".nca";
+                const auto out_html_doc_cnt_path = out_dir + "/" + hos::ContentIdAsString(html_doc_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_html_doc_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                dump::DecryptCopyNAX0ToNCA(&cnt_storage, html_doc_cnt_id, out_html_doc_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                dump::DecryptCopyNAX0ToNCA(&cnt_storage, html_doc_cnt_id, out_html_doc_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_data_cnt) {
-                auto out_data_cnt_path = out_dir + "/" + hos::ContentIdAsString(data_cnt_id) + ".nca";
+                const auto out_data_cnt_path = out_dir + "/" + hos::ContentIdAsString(data_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_data_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                dump::DecryptCopyNAX0ToNCA(&cnt_storage, data_cnt_id, out_data_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                dump::DecryptCopyNAX0ToNCA(&cnt_storage, data_cnt_id, out_data_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
@@ -203,24 +203,24 @@ namespace ui {
             }
             this->dump_text->SetText(cfg::strings::Main.GetString(195));
 
-            auto meta_cnt_nand_path = nand_exp->FullPathFor("Contents/" + meta_cnt_ncm_path.substr(15));
-            auto out_meta_cnt_path = out_dir + "/" + hos::ContentIdAsString(meta_cnt_id) + ".cnmt.nca";
+            const auto meta_cnt_nand_path = nand_exp->FullPathFor("Contents/" + meta_cnt_ncm_path.substr(15));
+            const auto out_meta_cnt_path = out_dir + "/" + hos::ContentIdAsString(meta_cnt_id) + ".cnmt.nca";
             fs::CreateConcatenationFile(out_meta_cnt_path);
             this->cnt_p_bar->SetVisible(true);
-            fs::CopyFileProgress(meta_cnt_nand_path, out_meta_cnt_path, [&](double done, double total) {
-                this->cnt_p_bar->SetMaxValue(total);
+            fs::CopyFileProgress(meta_cnt_nand_path, out_meta_cnt_path, [&](const double done, const double total) {
+                this->cnt_p_bar->SetMaxProgress(total);
                 this->cnt_p_bar->SetProgress(done);
                 g_MainApplication->CallForRender();
             });
             this->cnt_p_bar->SetVisible(false);
 
             if(has_program_cnt) {
-                auto program_cnt_nand_path = nand_exp->FullPathFor("Contents/" + program_cnt_ncm_path.substr(15));
-                auto out_program_cnt_path = out_dir + "/" + hos::ContentIdAsString(program_cnt_id) + ".nca";
+                const auto program_cnt_nand_path = nand_exp->FullPathFor("Contents/" + program_cnt_ncm_path.substr(15));
+                const auto out_program_cnt_path = out_dir + "/" + hos::ContentIdAsString(program_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_program_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                fs::CopyFileProgress(program_cnt_nand_path, out_program_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                fs::CopyFileProgress(program_cnt_nand_path, out_program_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
@@ -228,48 +228,48 @@ namespace ui {
             }
 
             if(has_control_cnt) {
-                auto control_cnt_nand_path = nand_exp->FullPathFor("Contents/" + control_cnt_ncm_path.substr(15));
-                auto out_control_cnt_path = out_dir + "/" + hos::ContentIdAsString(control_cnt_id) + ".nca";
+                const auto control_cnt_nand_path = nand_exp->FullPathFor("Contents/" + control_cnt_ncm_path.substr(15));
+                const auto out_control_cnt_path = out_dir + "/" + hos::ContentIdAsString(control_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_control_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                fs::CopyFileProgress(control_cnt_nand_path, out_control_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                fs::CopyFileProgress(control_cnt_nand_path, out_control_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_legal_info_cnt) {
-                auto legal_info_cnt_nand_path = nand_exp->FullPathFor("Contents/" + legal_info_cnt_ncm_path.substr(15));
-                auto out_legal_info_cnt_path = out_dir + "/" + hos::ContentIdAsString(legal_info_cnt_id) + ".nca";
+                const auto legal_info_cnt_nand_path = nand_exp->FullPathFor("Contents/" + legal_info_cnt_ncm_path.substr(15));
+                const auto out_legal_info_cnt_path = out_dir + "/" + hos::ContentIdAsString(legal_info_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_legal_info_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                fs::CopyFileProgress(legal_info_cnt_nand_path, out_legal_info_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                fs::CopyFileProgress(legal_info_cnt_nand_path, out_legal_info_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_html_doc_cnt) {
-                auto html_doc_cnt_nand_path = nand_exp->FullPathFor("Contents/" + html_doc_cnt_ncm_path.substr(15));
-                auto out_html_doc_cnt_path = out_dir + "/" + hos::ContentIdAsString(html_doc_cnt_id) + ".nca";
+                const auto html_doc_cnt_nand_path = nand_exp->FullPathFor("Contents/" + html_doc_cnt_ncm_path.substr(15));
+                const auto out_html_doc_cnt_path = out_dir + "/" + hos::ContentIdAsString(html_doc_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_html_doc_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                fs::CopyFileProgress(html_doc_cnt_nand_path, out_html_doc_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                fs::CopyFileProgress(html_doc_cnt_nand_path, out_html_doc_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
                 this->cnt_p_bar->SetVisible(false);
             }
             if(has_data_cnt) {
-                auto data_cnt_nand_path = nand_exp->FullPathFor("Contents/" + data_cnt_ncm_path.substr(15));
-                auto out_data_cnt_path = out_dir + "/" + hos::ContentIdAsString(data_cnt_id) + ".nca";
+                const auto data_cnt_nand_path = nand_exp->FullPathFor("Contents/" + data_cnt_ncm_path.substr(15));
+                const auto out_data_cnt_path = out_dir + "/" + hos::ContentIdAsString(data_cnt_id) + ".nca";
                 fs::CreateConcatenationFile(out_data_cnt_path);
                 this->cnt_p_bar->SetVisible(true);
-                fs::CopyFileProgress(data_cnt_nand_path, out_data_cnt_path, [&](double done, double total) {
-                    this->cnt_p_bar->SetMaxValue(total);
+                fs::CopyFileProgress(data_cnt_nand_path, out_data_cnt_path, [&](const double done, const double total) {
+                    this->cnt_p_bar->SetMaxProgress(total);
                     this->cnt_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
@@ -278,12 +278,12 @@ namespace ui {
         }
 
         // TODO: better name?
-        auto out_nsp = "sdmc:/" GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id + ".nsp";
+        const auto out_nsp = "sdmc:/" GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id + ".nsp";
         fs::CreateConcatenationFile(out_nsp);
         this->cnt_p_bar->SetVisible(true);
         this->dump_text->SetText(cfg::strings::Main.GetString(196));
-        const auto ok = nsp::GenerateFrom(out_dir, out_nsp, [&](u64 done, u64 total) {
-            this->cnt_p_bar->SetMaxValue((double)total);
+        const auto ok = nsp::GenerateFrom(out_dir, out_nsp, [&](const u64 done, const u64 total) {
+            this->cnt_p_bar->SetMaxProgress((double)total);
             this->cnt_p_bar->SetProgress((double)done);
             g_MainApplication->CallForRender();
         });

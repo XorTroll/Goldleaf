@@ -51,7 +51,7 @@ namespace ui {
             bool usb_ok;
             u32 cur_conn_strength;
             AccountUid cur_selected_user;
-            String cur_time;
+            std::string cur_time;
             bool read_values_once;
             MainMenuLayout::Ref main_menu_lyt;
             PartitionBrowserLayout::Ref partition_browser_lyt;
@@ -89,36 +89,36 @@ namespace ui {
             ClickableImage::Ref help_img;
             pu::ui::extras::Toast::Ref toast;
             std::chrono::time_point<std::chrono::steady_clock> start_time;
+
         public:
             using Application::Application;
             PU_SMART_CTOR(MainApplication)
 
             void OnLoad() override;
 
-            void ShowNotification(String text);
+            void ShowNotification(const std::string &text);
             void UpdateValues();
             void ReturnToMainMenu();
-            void LoadMenuData(String name, const std::string &img_name, String temp_head, bool is_common_icon = true);
-            void LoadMenuHead(String head);
+            void LoadMenuData(const std::string &name, const std::string &img_name, const std::string &temp_head, const bool is_common_icon = true);
+            void LoadMenuHead(const std::string &head);
             void UnloadMenuData();
-            void browser_Input(u64 down, u64 up, u64 held);
-            void exploreMenu_Input(u64 down, u64 up, u64 held);
-            void pcExplore_Input(u64 down, u64 up, u64 held);
-            void fileContent_Input(u64 down, u64 up, u64 held);
-            void contentInformation_Input(u64 down, u64 up, u64 held);
-            void storageContents_Input(u64 down, u64 up, u64 held);
-            void contentManager_Input(u64 down, u64 up, u64 held);
-            void unusedTickets_Input(u64 down, u64 up, u64 held);
-            void account_Input(u64 down, u64 up, u64 held);
-            void amiibo_Input(u64 down, u64 up, u64 held);
-            void settings_Input(u64 down, u64 up, u64 held);
-            void memory_Input(u64 down, u64 up, u64 held);
-            void webBrowser_Input(u64 down, u64 up, u64 held);
-            void about_Input(u64 down, u64 up, u64 held);
+            void browser_Input(const u64 down, const u64 up, const u64 held);
+            void exploreMenu_Input(const u64 down, const u64 up, const u64 held);
+            void pcExplore_Input(const u64 down, const u64 up, const u64 held);
+            void fileContent_Input(const u64 down, const u64 up, const u64 held);
+            void contentInformation_Input(const u64 down, const u64 up, const u64 held);
+            void storageContents_Input(const u64 down, const u64 up, const u64 held);
+            void contentManager_Input(const u64 down, const u64 up, const u64 held);
+            void unusedTickets_Input(const u64 down, const u64 up, const u64 held);
+            void account_Input(const u64 down, const u64 up, const u64 held);
+            void amiibo_Input(const u64 down, const u64 up, const u64 held);
+            void settings_Input(const u64 down, const u64 up, const u64 held);
+            void memory_Input(const u64 down, const u64 up, const u64 held);
+            void webBrowser_Input(const u64 down, const u64 up, const u64 held);
+            void about_Input(const u64 down, const u64 up, u64 const held);
             void userImage_OnClick();
             void helpImage_OnClick();
-            void ReloadUser(AccountUid User);
-            void OnInput(u64 down, u64 up, u64 held);
+            void OnInput(const u64 down, const u64 up, const u64 held);
             
             inline MainMenuLayout::Ref &GetMainMenuLayout() {
                 return this->main_menu_lyt;
@@ -201,10 +201,10 @@ namespace ui {
             }
     };
 
-    constexpr ColorScheme DefaultLight = { { 124, 199, 239, 255 }, { 196, 224, 239, 255 }, { 168, 214, 237, 255 }, { 15, 15, 15, 255 } };
-    constexpr ColorScheme DefaultDark = { { 29, 81, 114, 255 }, { 37, 104, 145, 255 }, { 45, 124, 173, 255 }, { 225, 225, 225, 255 } };
+    constexpr ColorScheme DefaultLight = { { 124, 199, 239, 0xFF }, { 196, 224, 239, 0xFF }, { 168, 214, 237, 0xFF }, { 15, 15, 15, 0xFF } };
+    constexpr ColorScheme DefaultDark = { { 29, 81, 114, 0xFF }, { 37, 104, 145, 0xFF }, { 45, 124, 173, 0xFF }, { 225, 225, 225, 0xFF } };
 
-    void UpdateClipboard(String Path);
+    void UpdateClipboard(const std::string &path);
 
     void ApplyRandomScheme();
 

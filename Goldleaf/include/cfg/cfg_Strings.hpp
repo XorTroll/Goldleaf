@@ -28,7 +28,7 @@ namespace cfg {
         Language language;
         JSON json;
 
-        String GetString(u32 idx);
+        std::string GetString(const u32 idx);
     };
 
     namespace strings {

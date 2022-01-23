@@ -41,7 +41,6 @@
 #include <pu/Plutonium>
 
 using JSON = nlohmann::json;
-using String = pu::String;
 
 #define GLEAF_LOG_WARN_PREFIX "[WARN] "
 #define GLEAF_LOG_ERR_PREFIX "[ERROR] "
@@ -123,10 +122,10 @@ enum class Language {
 };
 
 struct ColorScheme {
-    pu::ui::Color Background;
-    pu::ui::Color Base;
-    pu::ui::Color BaseFocus;
-    pu::ui::Color Text;
+    pu::ui::Color bg;
+    pu::ui::Color base;
+    pu::ui::Color base_focus;
+    pu::ui::Color text;
 };
 
 struct Version {
@@ -134,13 +133,13 @@ struct Version {
     u32 minor;
     s32 micro;
 
-    String AsString();
+    std::string AsString();
 
-    static inline constexpr Version MakeVersion(u32 major, u32 minor, u32 micro) {
+    static inline constexpr Version MakeVersion(const u32 major, const u32 minor, const u32 micro) {
         return { major, minor, static_cast<s32>(micro) };
     }
 
-    static Version FromString(String ver_str);
+    static Version FromString(const std::string &ver_str);
     
     inline constexpr bool IsLower(const Version &other) const {
         if(this->major > other.major) {
@@ -201,7 +200,7 @@ inline u64 GetCurrentApplicationId() {
 std::string LanguageToString(const Language lang);
 Language StringToLanguage(const std::string &str);
 
-String LowerCaseString(String str);
+std::string LowerCaseString(const std::string &str);
 u32 RandomFromRange(const u32 min, const u32 max);
 void EnsureDirectories();
 void LogImpl(const char *log_buf, const size_t log_buf_len);

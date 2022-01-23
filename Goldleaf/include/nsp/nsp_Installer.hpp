@@ -30,9 +30,10 @@
 
 namespace nsp {
 
-    using OnContentsWriteFunction = std::function<void(NcmContentInfo, u32, u32, double, double, u64)>;
-
     class Installer {
+        public:
+            using OnContentsWriteFunction = std::function<void(const NcmContentInfo, const u32, const u32, const double, const double, const u64)>;
+
         private:
             PFS0 pfs0_file;
             NacpStruct nacp_data;
@@ -45,13 +46,13 @@ namespace nsp {
             NcmContentMetaDatabase cnt_meta_db;
             u64 base_app_id;
             u64 tik_file_size;
-            String tik_file_name;
+            std::string tik_file_name;
             NcmContentInfo meta_cnt_info;
             std::vector<NcmContentInfo> contents;
-            String icon;
+            std::string icon;
 
         public:
-            Installer(String path, fs::Explorer *exp, NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id) {}
+            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id) {}
             ~Installer();
     
             Result PrepareInstallation();
@@ -65,7 +66,9 @@ namespace nsp {
                 return this->cnt_meta_key.id;
             }
 
-            std::string GetExportedIconPath();
+            inline std::string GetExportedIconPath() {
+                return this->icon;
+            }
             
             inline const NacpStruct &GetNacp() {
                 return this->nacp_data;

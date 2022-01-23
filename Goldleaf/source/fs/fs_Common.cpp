@@ -30,11 +30,11 @@ namespace fs {
 
     }
 
-    void CreateConcatenationFile(String path) {
-        fsdevCreateFile(path.AsUTF8().c_str(), 0, FsCreateOption_BigFile);
+    void CreateConcatenationFile(const std::string &path) {
+        fsdevCreateFile(path.c_str(), 0, FsCreateOption_BigFile);
     }
 
-    void CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn) {
+    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyCallback cb_fn) {
         auto exp = GetExplorerForPath(path);
         auto new_exp = GetExplorerForPath(new_path);
         const auto file_size = exp->GetFileSize(path);
@@ -44,7 +44,7 @@ namespace fs {
         exp->CopyFileProgress(path, new_path, cb_fn);
     }
 
-    void CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn) {
+    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyCallback cb_fn) {
         auto exp = GetExplorerForPath(dir);
         exp->CopyDirectoryProgress(dir, new_dir, cb_fn);
     }
@@ -109,10 +109,11 @@ namespace fs {
         return 0;
     }
 
-    String FormatSize(const u64 bytes) {
+    std::string FormatSize(const u64 bytes) {
         if(bytes == 0) {
-            return String("0") + " " + SizeSuffixes[0];
+            return std::string("0") + " " + SizeSuffixes[0];
         }
+
         const auto plc = static_cast<u32>(floor(log(bytes) / log(1024)));
         const auto byte_num = (double)(bytes / pow(1024, plc));
         const double rbt = ((int)(byte_num * 100.0) / 100.0);

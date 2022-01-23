@@ -36,6 +36,7 @@ namespace ui {
             pu::ui::elm::MenuItem::Ref nand_system_menu_item;
             std::vector<fs::Explorer*> mounted_explorers;
             std::vector<pu::ui::elm::MenuItem::Ref> mounted_explorer_items;
+
         public:
             ExploreMenuLayout();
             ~ExploreMenuLayout();
@@ -43,19 +44,19 @@ namespace ui {
 
             void UpdateMenu();
             void mountsMenu_SelectionChanged();
-            void sdCard_Click();
-            void pcDrive_Click();
-            void usbDrive_Click();
-            void nandProdInfoF_Click();
-            void nandSafe_Click();
-            void nandUser_Click();
-            void nandSystem_Click();
-            void otherMount_Click();
-            void specialMount_Click_X();
-            void otherMount_Click_X();
-            void explorer_Click(fs::Explorer *exp, String name, const std::string &icon);
-            void explorer_Click_X(fs::Explorer *exp);
-            void AddMountedExplorer(fs::Explorer *exp, String name, const std::string &icon);
+            void sdCard_DefaultKey();
+            void pcDrive_DefaultKey();
+            void usbDrive_DefaultKey();
+            void nandProdInfoF_DefaultKey();
+            void nandSafe_DefaultKey();
+            void nandUser_DefaultKey();
+            void nandSystem_DefaultKey();
+            void otherMount_DefaultKey();
+            void specialMount_X();
+            void otherMount_X();
+            void explorer_DefaultKey(fs::Explorer *exp, const std::string &name, const std::string &icon);
+            void explorer_X(fs::Explorer *exp);
+            void AddMountedExplorer(fs::Explorer *exp, const std::string &name, const std::string &icon);
             std::vector<fs::Explorer*> &GetMountedExplorers();
     };
 

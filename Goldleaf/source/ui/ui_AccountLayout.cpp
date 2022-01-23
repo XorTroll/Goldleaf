@@ -28,8 +28,7 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     AccountLayout::AccountLayout() : pu::ui::Layout() {
-        this->options_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->options_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        this->options_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->options_menu);
         this->ReloadItems();
         this->Add(this->options_menu);
@@ -38,24 +37,24 @@ namespace ui {
     void AccountLayout::ReloadItems() {
         this->options_menu->ClearItems();
         auto rename_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(208));
-        rename_itm->SetColor(g_Settings.custom_scheme.Text);
-        rename_itm->AddOnClick(std::bind(&AccountLayout::optsRename_Click, this));
+        rename_itm->SetColor(g_Settings.custom_scheme.text);
+        rename_itm->AddOnKey(std::bind(&AccountLayout::optsRename_DefaultKey, this));
         this->options_menu->AddItem(rename_itm);
 
         auto icon_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(209));
-        icon_itm->SetColor(g_Settings.custom_scheme.Text);
-        icon_itm->AddOnClick(std::bind(&AccountLayout::optsIcon_Click, this));
+        icon_itm->SetColor(g_Settings.custom_scheme.text);
+        icon_itm->AddOnKey(std::bind(&AccountLayout::optsIcon_DefaultKey, this));
         this->options_menu->AddItem(icon_itm);
 
         auto delete_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(210));
-        delete_itm->SetColor(g_Settings.custom_scheme.Text);
-        delete_itm->AddOnClick(std::bind(&AccountLayout::optsDelete_Click, this));
+        delete_itm->SetColor(g_Settings.custom_scheme.text);
+        delete_itm->AddOnKey(std::bind(&AccountLayout::optsDelete_DefaultKey, this));
         this->options_menu->AddItem(delete_itm);
 
         if(acc::IsLinked()) {
             auto services_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(336));
-            services_itm->SetColor(g_Settings.custom_scheme.Text);
-            services_itm->AddOnClick(std::bind(&AccountLayout::optsServicesInfo_Click, this));
+            services_itm->SetColor(g_Settings.custom_scheme.text);
+            services_itm->AddOnKey(std::bind(&AccountLayout::optsServicesInfo_DefaultKey, this));
             this->options_menu->AddItem(services_itm);
         }
     }
@@ -81,11 +80,11 @@ namespace ui {
         this->ReloadItems();
     }
 
-    void AccountLayout::optsRename_Click() {
-        auto name = AskForText(cfg::strings::Main.GetString(213), "", 10);
+    void AccountLayout::optsRename_DefaultKey() {
+        const auto name = AskForText(cfg::strings::Main.GetString(213), "", 10);
         if(!name.empty()) {
             const auto rc = acc::EditUser([&](AccountProfileBase *prof_base, AccountUserData *_user_data) {
-                strcpy(prof_base->nickname, name.AsUTF8().c_str());
+                strcpy(prof_base->nickname, name.c_str());
             });
             if(R_SUCCEEDED(rc)) {
                 g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(212) + " " + name);
@@ -97,15 +96,15 @@ namespace ui {
         }
     }
 
-    void AccountLayout::optsIcon_Click() {
+    void AccountLayout::optsIcon_DefaultKey() {
         const auto &base_icon_path = GLEAF_PATH_USER_DATA_DIR "/" + hos::FormatHex128(acc::GetSelectedUser()) + ".jpg";
         auto sd_exp = fs::GetSdCardExplorer();
-        auto icon_path = sd_exp->MakeAbsolute(base_icon_path);
+        const auto icon_path = sd_exp->MakeAbsolute(base_icon_path);
         const auto p_icon_path = sd_exp->MakeAbsolutePresentable(base_icon_path);
-        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(217) + "\n\'" + p_icon_path + "\'", { cfg::strings::Main.GetString(234) }, false, icon_path.AsUTF8());
+        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(217) + "\n\'" + p_icon_path + "\'", { cfg::strings::Main.GetString(234) }, false, icon_path);
     }
 
-    void AccountLayout::optsDelete_Click() {
+    void AccountLayout::optsDelete_DefaultKey() {
         const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(218), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
         if(option == 0) {
             if(acc::GetUserCount() < 2) {
@@ -124,7 +123,7 @@ namespace ui {
         }
     }
 
-    void AccountLayout::optsServicesInfo_Click() {
+    void AccountLayout::optsServicesInfo_DefaultKey() {
         const auto linked_info = acc::GetUserLinkedInfo();
         const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(330), cfg::strings::Main.GetString(328) + " " + hos::FormatHex(linked_info.account_id) + "\n" + cfg::strings::Main.GetString(329) + " " + hos::FormatHex(linked_info.nintendo_account_id), { cfg::strings::Main.GetString(331), cfg::strings::Main.GetString(18) }, true);
         if(option_1 == 0) {

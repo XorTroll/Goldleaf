@@ -42,8 +42,7 @@ namespace ui {
     }
 
     WebBrowserLayout::WebBrowserLayout() : pu::ui::Layout() {
-        this->opts_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->opts_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        this->opts_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->opts_menu);
         this->Add(this->opts_menu);
     }
@@ -52,28 +51,28 @@ namespace ui {
         this->opts_menu->ClearItems();
     
         auto input_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(378));
-        input_itm->SetColor(g_Settings.custom_scheme.Text);
-        input_itm->AddOnClick(std::bind(&WebBrowserLayout::input_Click, this));
+        input_itm->SetColor(g_Settings.custom_scheme.text);
+        input_itm->AddOnKey(std::bind(&WebBrowserLayout::input_DefaultKey, this));
         this->opts_menu->AddItem(input_itm);
 
         for(const auto &bmk: g_Settings.bookmarks) {
             auto bmk_itm = pu::ui::elm::MenuItem::New(bmk.name);
-            bmk_itm->SetColor(g_Settings.custom_scheme.Text);
+            bmk_itm->SetColor(g_Settings.custom_scheme.text);
             bmk_itm->SetIcon(g_Settings.PathForResource("/Common/Browser.png"));
-            bmk_itm->AddOnClick(std::bind(&WebBrowserLayout::bookmark_Click, this, bmk));
+            bmk_itm->AddOnKey(std::bind(&WebBrowserLayout::bookmark_DefaultKey, this, bmk));
             this->opts_menu->AddItem(bmk_itm);
         }
     }
 
-    void WebBrowserLayout::input_Click() {
+    void WebBrowserLayout::input_DefaultKey() {
         auto url = AskForText(cfg::strings::Main.GetString(38), "https://");
-        LaunchWebAppletImpl(url.AsUTF8());
+        LaunchWebAppletImpl(url);
 
         const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(379), cfg::strings::Main.GetString(380), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
         if(option == 0) {
-            auto name = AskForText(cfg::strings::Main.GetString(381));
+            const auto name = AskForText(cfg::strings::Main.GetString(381));
             if(!name.empty()) {
-                const cfg::WebBookmark bmk = { name.AsUTF8(), url.AsUTF8() };
+                const cfg::WebBookmark bmk = { name, url };
                 g_Settings.bookmarks.push_back(bmk);
                 g_Settings.Save();
                 this->Refresh();
@@ -82,7 +81,7 @@ namespace ui {
         }
     }
     
-    void WebBrowserLayout::bookmark_Click(cfg::WebBookmark &bmk) {
+    void WebBrowserLayout::bookmark_DefaultKey(cfg::WebBookmark &bmk) {
         const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(383), cfg::strings::Main.GetString(384), { cfg::strings::Main.GetString(385), cfg::strings::Main.GetString(386), cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
         switch(option_1) {
             case 0: {
@@ -93,11 +92,11 @@ namespace ui {
                 const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(387), cfg::strings::Main.GetString(388), { cfg::strings::Main.GetString(389), cfg::strings::Main.GetString(390), cfg::strings::Main.GetString(18) }, true);
                 switch(option_2) {
                     case 0: {
-                        auto name = AskForText(cfg::strings::Main.GetString(391));
+                        const auto name = AskForText(cfg::strings::Main.GetString(391));
                         if(!name.empty()) {
                             for(auto &saved_bmk: g_Settings.bookmarks) {
                                 if(saved_bmk.name == bmk.name) {
-                                    saved_bmk.name = name.AsUTF8();
+                                    saved_bmk.name = name;
                                     g_Settings.Save();
                                     this->Refresh();
                                     g_MainApplication->ShowNotification(cfg::strings::Main.GetString(393));
@@ -107,11 +106,11 @@ namespace ui {
                         break;
                     }
                     case 1: {
-                        auto url = AskForText(cfg::strings::Main.GetString(392), "https://");
+                        const auto url = AskForText(cfg::strings::Main.GetString(392), "https://");
                         if(!url.empty()) {
                             for(auto &saved_bmk: g_Settings.bookmarks) {
                                 if(saved_bmk.name == bmk.name) {
-                                    saved_bmk.url = url.AsUTF8();
+                                    saved_bmk.url = url;
                                     g_Settings.Save();
                                     this->Refresh();
                                     g_MainApplication->ShowNotification(cfg::strings::Main.GetString(394));

@@ -28,7 +28,7 @@ FsStorage g_FatFsDumpBisStorage;
 
 namespace dump {
 
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, NcmContentId cnt_id, String path, std::function<void(double Done, double Total)> cb_fn) {
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, std::function<void(double Done, double Total)> cb_fn) {
         s64 cnt_size = 0;
         ncmContentStorageGetSizeFromContentId(cnt_storage, &cnt_size, &cnt_id);
         auto rem_size = static_cast<u64>(cnt_size);
@@ -50,7 +50,7 @@ namespace dump {
         exp->EndFile();
     }
 
-    bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, u64 app_id, NcmContentMetaKey *out) {
+    bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, const u64 app_id, NcmContentMetaKey *out) {
         auto meta_key_array = new NcmContentMetaKey[hos::MaxTitleCount]();
         s32 total = 0;
         s32 written = 0;
@@ -69,7 +69,7 @@ namespace dump {
         return got;
     }
 
-    NcmStorageId GetApplicationLocation(u64 app_id) {
+    NcmStorageId GetApplicationLocation(const u64 app_id) {
         NcmContentMetaDatabase cnt_meta_db;
         if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, NcmStorageId_SdCard))) {
             NcmContentMetaKey temp_meta_key;
@@ -89,7 +89,7 @@ namespace dump {
         return NcmStorageId_None;
     }
 
-    void GenerateTicketCert(u64 app_id) {
+    void GenerateTicketCert(const u64 app_id) {
         if(R_SUCCEEDED(fsOpenBisStorage(&g_FatFsDumpBisStorage, FsBisPartitionId_System))) {
             auto exp = fs::GetSdCardExplorer();
             FATFS fs;
@@ -97,7 +97,7 @@ namespace dump {
             FIL save;
             f_open(&save, "0:save/80000000000000e1", FA_READ | FA_OPEN_EXISTING);
             std::string title_key;
-            String out_rights_id;
+            std::string out_rights_id;
             const auto &format_app_id = hos::FormatApplicationId(app_id);
             const auto &outdir = GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id;
             u32 tmp_size = 0;
@@ -157,15 +157,15 @@ namespace dump {
         }
     }
 
-    String GetContentIdPath(NcmContentStorage *cnt_storage, NcmContentId *cnt_id) {
+    std::string GetContentIdPath(NcmContentStorage *cnt_storage, const NcmContentId cnt_id) {
         char out[FS_MAX_PATH] = {};
-        if(R_SUCCEEDED(ncmContentStorageGetPath(cnt_storage, out, FS_MAX_PATH, cnt_id))) {
+        if(R_SUCCEEDED(ncmContentStorageGetPath(cnt_storage, out, FS_MAX_PATH, &cnt_id))) {
             return out;
         }
         return "";
     }
 
-    bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, u64 app_id, NcmContentType cnt_type, NcmContentId *out) {
+    bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, const u64 app_id, const NcmContentType cnt_type, NcmContentId *out) {
         return R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(cnt_meta_db, out, cnt_meta_key, cnt_type));
     }
 

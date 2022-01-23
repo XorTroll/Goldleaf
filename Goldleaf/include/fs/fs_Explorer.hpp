@@ -33,9 +33,9 @@ namespace fs {
 
     class Explorer {
         protected:
-            String disp_name;
-            String mnt_name;
-            String cwd;
+            std::string disp_name;
+            std::string mnt_name;
+            std::string cwd;
             bool warn_write;
             FileMode started_file_mode;
 
@@ -43,15 +43,15 @@ namespace fs {
             Explorer() : warn_write(false), started_file_mode(FileMode::None) {}
             virtual ~Explorer() {}
 
-            void SetNames(String mount_name, String display_name);
+            void SetNames(const std::string &mount_name, const std::string &display_name);
             bool NavigateBack();
-            bool NavigateForward(String path);
-            std::vector<String> GetContents();
-            String GetMountName();
-            String GetCwd();
-            String GetPresentableCwd();
+            bool NavigateForward(const std::string &path);
+            std::vector<std::string> GetContents();
+            std::string GetMountName();
+            std::string GetCwd();
+            std::string GetPresentableCwd();
         
-            inline String FullPathFor(String path) {
+            inline std::string FullPathFor(const std::string &path) {
                 auto new_path = this->cwd;
                 if(this->cwd.substr(this->cwd.length() - 1) != "/") {
                     new_path += "/";
@@ -60,7 +60,7 @@ namespace fs {
                 return new_path;
             }
 
-            inline String AbsolutePathFor(String path) {
+            inline std::string AbsolutePathFor(const std::string &path) {
                 auto new_path = this->mnt_name + ":";
                 if(path.substr(0, 1) != "/") {
                     new_path += "/";
@@ -69,7 +69,7 @@ namespace fs {
                 return new_path;
             }
 
-            inline String FullPresentablePathFor(String path) {
+            inline std::string FullPresentablePathFor(const std::string &path) {
                 auto pres_cwd = this->GetPresentableCwd();
                 auto new_path = pres_cwd;
                 if(pres_cwd.substr(pres_cwd.length() - 1) != "/") {
@@ -79,7 +79,7 @@ namespace fs {
                 return new_path;
             }
 
-            inline String AbsolutePresentablePathFor(String path) {
+            inline std::string AbsolutePresentablePathFor(const std::string &path) {
                 auto new_path = this->disp_name + ":";
                 if(path.substr(0, 1) != "/") {
                     new_path += "/";
@@ -88,46 +88,46 @@ namespace fs {
                 return new_path;
             }
 
-            inline String MakeFull(String path) {
+            inline std::string MakeFull(const std::string &path) {
                 return this->IsFullPath(path) ? path : this->FullPathFor(path);
             }
 
-            inline String MakeFullPresentable(String path) {
+            inline std::string MakeFullPresentable(const std::string &path) {
                 return this->IsFullPath(path) ? path : this->FullPresentablePathFor(path);
             }
 
-            inline String MakeAbsolute(String path) {
+            inline std::string MakeAbsolute(const std::string &path) {
                 return this->IsFullPath(path) ? path : this->AbsolutePathFor(path);
             }
 
-            inline String MakeAbsolutePresentable(String path) {
+            inline std::string MakeAbsolutePresentable(const std::string &path) {
                 return this->IsFullPath(path) ? path : this->AbsolutePresentablePathFor(path);
             }
 
-            inline String RemoveMountName(String path) {
+            inline std::string RemoveMountName(const std::string &path) {
                 return path.substr(this->mnt_name.length() + 1);
             }
 
-            inline bool IsFullPath(String path) {
-                return path.find(":/") != String::npos;
+            inline bool IsFullPath(const std::string &path) {
+                return path.find(":/") != std::string::npos;
             }
 
-            void CopyFile(String path, String new_path);
-            void CopyFileProgress(String path, String new_path, std::function<void(double Done, double Total)> cb_fn);
-            void CopyDirectory(String dir, String new_dir);
-            void CopyDirectoryProgress(String dir, String new_dir, std::function<void(double Done, double Total)> cb_fn);
-            bool IsFileBinary(String path);
-            std::vector<u8> ReadFile(String path);
-            JSON ReadJSON(String path);
+            void CopyFile(const std::string &path, const std::string &new_path);
+            void CopyFileProgress(const std::string &path, const std::string &new_path, std::function<void(double Done, double Total)> cb_fn);
+            void CopyDirectory(const std::string &dir, const std::string &new_dir);
+            void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, std::function<void(double Done, double Total)> cb_fn);
+            bool IsFileBinary(const std::string &path);
+            std::vector<u8> ReadFile(const std::string &path);
+            JSON ReadJSON(const std::string &path);
 
-            inline void WriteJSON(const JSON &json, String path) {
+            inline void WriteJSON(const JSON &json, const std::string &path) {
                 const auto json_str = json.dump(4);
                 this->WriteFile(path, json_str.c_str(), json_str.length());
             }
 
-            std::vector<String> ReadFileLines(String path, u32 line_offset, u32 line_count);
-            std::vector<String> ReadFileFormatHex(String path, u32 line_offset, u32 line_count);
-            u64 GetDirectorySize(String path);
+            std::vector<std::string> ReadFileLines(const std::string &path, u32 line_offset, u32 line_count);
+            std::vector<std::string> ReadFileFormatHex(const std::string &path, u32 line_offset, u32 line_count);
+            u64 GetDirectorySize(const std::string &path);
 
             inline void SetShouldWarnOnWriteAccess(bool should_warn) {
                 this->warn_write = should_warn;
@@ -137,31 +137,31 @@ namespace fs {
                 return this->warn_write;
             }
 
-            virtual std::vector<String> GetDirectories(String path) = 0;
-            virtual std::vector<String> GetFiles(String path) = 0;
-            virtual bool Exists(String path) = 0;
-            virtual bool IsFile(String path) = 0;
-            virtual bool IsDirectory(String path) = 0;
-            virtual void CreateFile(String path) = 0;
-            virtual void CreateDirectory(String path) = 0;
-            virtual void RenameFile(String path, String new_name) = 0;
-            virtual void RenameDirectory(String path, String new_name) = 0;
-            virtual void DeleteFile(String path) = 0;
-            virtual void DeleteDirectory(String path) = 0;
+            virtual std::vector<std::string> GetDirectories(const std::string &path) = 0;
+            virtual std::vector<std::string> GetFiles(const std::string &path) = 0;
+            virtual bool Exists(const std::string &path) = 0;
+            virtual bool IsFile(const std::string &path) = 0;
+            virtual bool IsDirectory(const std::string &path) = 0;
+            virtual void CreateFile(const std::string &path) = 0;
+            virtual void CreateDirectory(const std::string &path) = 0;
+            virtual void RenameFile(const std::string &path, const std::string &new_name) = 0;
+            virtual void RenameDirectory(const std::string &path, const std::string &new_name) = 0;
+            virtual void DeleteFile(const std::string &path) = 0;
+            virtual void DeleteDirectory(const std::string &path) = 0;
 
-            inline void EmptyDirectory(String path) {
+            inline void EmptyDirectory(const std::string &path) {
                 this->DeleteDirectory(path);
                 this->CreateDirectory(path);
             }
 
-            virtual void StartFileImpl(String path, FileMode mode) = 0;
-            virtual void EndFileImpl(FileMode mode) = 0;
+            virtual void StartFileImpl(const std::string &path, const FileMode mode) = 0;
+            virtual void EndFileImpl(const FileMode mode) = 0;
 
             inline bool HasStartedFile() {
                 return this->started_file_mode != FileMode::None;
             }
 
-            void StartFile(String path, FileMode mode) {
+            void StartFile(const std::string &path, FileMode mode) {
                 if(!this->HasStartedFile()) {
                     this->StartFileImpl(path, mode);
                     this->started_file_mode = mode;
@@ -175,13 +175,13 @@ namespace fs {
                 }
             }
 
-            virtual u64 ReadFile(String path, u64 offset, u64 size, void *read_buf) = 0;
-            virtual u64 WriteFile(String path, const void *write_buf, u64 size) = 0;
-            virtual u64 GetFileSize(String path) = 0;
+            virtual u64 ReadFile(const std::string &path, u64 offset, u64 size, void *read_buf) = 0;
+            virtual u64 WriteFile(const std::string &path, const void *write_buf, u64 size) = 0;
+            virtual u64 GetFileSize(const std::string &path) = 0;
 
             virtual u64 GetTotalSpace() = 0;
             virtual u64 GetFreeSpace() = 0;
-            virtual void SetArchiveBit(String path) = 0;
+            virtual void SetArchiveBit(const std::string &path) = 0;
     };
 
 }

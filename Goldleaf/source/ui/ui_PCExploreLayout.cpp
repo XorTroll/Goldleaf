@@ -28,8 +28,7 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     PCExploreLayout::PCExploreLayout() : pu::ui::Layout() {
-        this->paths_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->paths_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        this->paths_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->paths_menu);
         this->Add(this->paths_menu);
     }
@@ -39,14 +38,15 @@ namespace ui {
         this->paths.clear();
         this->paths_menu->ClearItems();
         u32 drive_count = 0;
-        auto rc = usb::ProcessCommand<usb::CommandId::GetDriveCount>(usb::Out32(drive_count));
+        auto rc = usb::ProcessCommand<usb::CommandId::GetDriveCount>(usb::OutValue(drive_count));
         if(R_SUCCEEDED(rc)) {
             for(u32 i = 0; i < drive_count; i++) {
-                String label;
-                String path;
-                u32 tmp_size = 0;
-                // TODO (low priority): make use of drive size?
-                rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::In32(i), usb::OutString(label), usb::OutString(path), usb::Out32(tmp_size), usb::Out32(tmp_size));
+                std::string label;
+                std::string path;
+                u32 tmp_total_size = 0;
+                u32 tmp_free_size = 0;
+                // TODO (low priority): make use of drive sizes?
+                rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::InValue(i), usb::OutString(label), usb::OutString(path), usb::OutValue(tmp_total_size), usb::OutValue(tmp_free_size));
                 if(R_SUCCEEDED(rc)) {
                     this->names.push_back(label + " (" + path + ":\\)");
                     this->paths.push_back(path);
@@ -54,12 +54,12 @@ namespace ui {
             }
         }
         u32 path_count = 0;
-        rc = usb::ProcessCommand<usb::CommandId::GetSpecialPathCount>(usb::Out32(path_count));
+        rc = usb::ProcessCommand<usb::CommandId::GetSpecialPathCount>(usb::OutValue(path_count));
         if(R_SUCCEEDED(rc)) {
             for(u32 i = 0; i < path_count; i++) {
-                String name;
-                String path;
-                rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::In32(i), usb::OutString(name), usb::OutString(path));
+                std::string name;
+                std::string path;
+                rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::InValue(i), usb::OutString(name), usb::OutString(path));
                 if(R_SUCCEEDED(rc)) {
                     this->names.push_back(name);
                     this->paths.push_back(path);    
@@ -68,32 +68,32 @@ namespace ui {
         }
         for(u32 i = 0; i < this->names.size(); i++) {
             auto itm = pu::ui::elm::MenuItem::New(this->names[i]);
-            itm->SetColor(g_Settings.custom_scheme.Text);
+            itm->SetColor(g_Settings.custom_scheme.text);
             if(i < drive_count) {
                 itm->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
             }
             else {
                 itm->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
             }
-            itm->AddOnClick(std::bind(&PCExploreLayout::path_Click, this));
+            itm->AddOnKey(std::bind(&PCExploreLayout::path_DefaultKey, this));
             this->paths_menu->AddItem(itm);
         }
         auto file_select_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
-        file_select_itm->SetColor(g_Settings.custom_scheme.Text);
+        file_select_itm->SetColor(g_Settings.custom_scheme.text);
         file_select_itm->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
-        file_select_itm->AddOnClick(std::bind(&PCExploreLayout::fileSelect_Click, this));
+        file_select_itm->AddOnKey(std::bind(&PCExploreLayout::fileSelect_DefaultKey, this));
         this->paths_menu->AddItem(file_select_itm);
         this->paths_menu->SetSelectedIndex(0);
     }
 
-    void PCExploreLayout::path_Click() {
+    void PCExploreLayout::path_DefaultKey() {
         const auto idx = this->paths_menu->GetSelectedIndex();
         g_MainApplication->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void PCExploreLayout::fileSelect_Click() {
-        String selected_file;
+    void PCExploreLayout::fileSelect_DefaultKey() {
+        std::string selected_file;
         const auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selected_file));
         if(R_SUCCEEDED(rc)) {
             g_MainApplication->GetBrowserLayout()->HandleFileDirectly(selected_file);

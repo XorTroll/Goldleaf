@@ -28,15 +28,16 @@ namespace ui {
         private:
             pu::ui::elm::Menu::Ref options_menu;
             pu::ui::elm::ProgressBar::Ref info_p_bar;
+
         public:
             SettingsLayout();
             PU_SMART_CTOR(SettingsLayout)
 
-            void ExportUpdateToDirectory(String fw_path, const SetSysFirmwareVersion &fw_ver);
-            void HandleUpdate(String fw_path_base, const SetSysFirmwareVersion &fw_ver);
-            void optsConfig_Click();
-            void optsFirmware_Click();
-            void optsMemory_Click();
+            void ExportUpdateToDirectory(const std::string &fw_path, const SetSysFirmwareVersion &fw_ver);
+            void HandleUpdate(const std::string &fw_path_base, const SetSysFirmwareVersion &fw_ver);
+            void optsConfig_DefaultKey();
+            void optsFirmware_DefaultKey();
+            void optsMemory_DefaultKey();
     };
 
 }

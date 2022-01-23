@@ -23,11 +23,13 @@
 
 namespace dump {
 
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, NcmContentId cnt_id, String path, std::function<void(double Done, double Total)> cb_fn);
-    bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, u64 app_id, NcmContentMetaKey *out);
-    NcmStorageId GetApplicationLocation(u64 app_id);
-    void GenerateTicketCert(u64 app_id);
-    String GetContentIdPath(NcmContentStorage *cnt_storage, NcmContentId *cnt_id);
-    bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, u64 app_id, NcmContentType cnt_type, NcmContentId *out);
+    using DecryptCallback = std::function<void(const double, const double)>;
+
+    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptCallback cb_fn);
+    bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, const u64 app_id, NcmContentMetaKey *out);
+    NcmStorageId GetApplicationLocation(const u64 app_id);
+    void GenerateTicketCert(const u64 app_id);
+    std::string GetContentIdPath(NcmContentStorage *cnt_storage, const NcmContentId cnt_id);
+    bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, const u64 app_id, const NcmContentType cnt_type, NcmContentId *out);
 
 }

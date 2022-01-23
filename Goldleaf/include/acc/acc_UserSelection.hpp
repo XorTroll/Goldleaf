@@ -29,7 +29,7 @@ namespace acc {
         u64 nintendo_account_id;  
     };
 
-    NX_CONSTEXPR bool UidCompare(AccountUid *user_id_a, AccountUid *user_id_b) {
+    inline constexpr bool UidCompare(const AccountUid *user_id_a, const AccountUid *user_id_b) {
         return memcmp(user_id_a->uid, user_id_b->uid, sizeof(AccountUid)) == 0;
     }
 

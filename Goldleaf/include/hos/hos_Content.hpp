@@ -31,11 +31,11 @@ namespace hos {
         u32 micro;
     };
 
-    String ContentIdAsString(const NcmContentId &cnt_id);
-    NcmContentId StringAsContentId(String cnt_id_str);
+    std::string ContentIdAsString(const NcmContentId &cnt_id);
+    NcmContentId StringAsContentId(const std::string &cnt_id_str);
 
     bool GetPendingUpdateInfo(PendingUpdateVersion *out);
-    SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver);
+    SetSysFirmwareVersion ConvertPendingUpdateVersion(const PendingUpdateVersion ver);
     void CleanPendingUpdate();
 
 }

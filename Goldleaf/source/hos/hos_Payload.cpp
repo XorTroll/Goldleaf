@@ -26,7 +26,7 @@
 
 namespace hos {
 
-    bool RebootWithPayload(String path) {
+    bool RebootWithPayload(const std::string &path) {
         auto exp = fs::GetExplorerForPath(path);
         if(exp != nullptr) {
             const auto payload_size = exp->GetFileSize(path);
@@ -37,13 +37,15 @@ namespace hos {
                 if(R_SUCCEEDED(bpcams::Initialize())) {
                     const auto rc = bpcams::SetRebootPayload(payload_buf, payload_size);
                     bpcams::Exit();
-                    delete[] payload_buf;
+
                     if(R_SUCCEEDED(rc)) {
                         if(R_SUCCEEDED(Reboot())) {
                             return true;
                         }
                     }
                 }
+
+                delete[] payload_buf;
             }
         }
         return false;

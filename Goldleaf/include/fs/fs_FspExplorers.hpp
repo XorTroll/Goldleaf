@@ -30,7 +30,7 @@ namespace fs {
             bool dispose;
         
         public:
-            FspExplorer(FsFileSystem fs, String display_name, const std::string &mount_name = "");
+            FspExplorer(FsFileSystem fs, const std::string &display_name, const std::string &mount_name = "");
             ~FspExplorer();
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;

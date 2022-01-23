@@ -23,7 +23,7 @@
 
 namespace nsp {
 
-    PFS0::PFS0(fs::Explorer *exp, String path) {
+    PFS0::PFS0(fs::Explorer *exp, const std::string &path) {
         this->path = path;
         this->exp = exp;
         this->ok = false;
@@ -41,7 +41,7 @@ namespace nsp {
                 const auto offset = sizeof(PFS0Header) + (i * sizeof(PFS0FileEntry));
                 PFS0FileEntry ent = {};
                 this->exp->ReadFile(this->path, offset, sizeof(ent), &ent);
-                String name;
+                std::string name;
                 for(u32 j = ent.string_table_offset; j < this->header.string_table_size; j++) {
                     const auto ch = static_cast<char>(this->string_table[j]);
                     if(ch == '\0') {
@@ -62,14 +62,11 @@ namespace nsp {
     PFS0::~PFS0() {
         if(this->string_table != nullptr) {
             delete[] this->string_table;
+            this->string_table = nullptr;
         }
     }
 
-    u32 PFS0::GetCount() {
-        return this->header.file_count;
-    }
-
-    String PFS0::GetFile(u32 idx) {
+    std::string PFS0::GetFile(const u32 idx) {
         if(IsInvalidFileIndex(idx)) {
             return "";
         }
@@ -79,31 +76,19 @@ namespace nsp {
         return this->files[idx].name;
     }
 
-    String PFS0::GetPath() {
-        return this->path;
-    }
-
-    u64 PFS0::ReadFromFile(u32 idx, u64 offset, u64 size, void *read_buf) {
+    u64 PFS0::ReadFromFile(const u32 idx, const u64 offset, const u64 size, void *read_buf) {
         return this->exp->ReadFile(this->path, (this->header_size + this->files[idx].entry.offset + offset), size, read_buf);
     }
 
-    std::vector<String> PFS0::GetFiles() {
-        std::vector<String> pfiles;
+    std::vector<std::string> PFS0::GetFiles() {
+        std::vector<std::string> pfiles;
         for(const auto &file: this->files) {
             pfiles.push_back(file.name);
         }
         return pfiles;
     }
 
-    bool PFS0::IsOk() {
-        return this->ok;
-    }
-
-    fs::Explorer *PFS0::GetExplorer() {
-        return this->exp;
-    }
-
-    u64 PFS0::GetFileSize(u32 idx) {
+    u64 PFS0::GetFileSize(const u32 idx) {
         if(IsInvalidFileIndex(idx)) {
             return 0;
         }
@@ -113,7 +98,7 @@ namespace nsp {
         return this->files[idx].entry.size;
     }
 
-    void PFS0::SaveFile(u32 idx, fs::Explorer *path_exp, String path) {
+    void PFS0::SaveFile(const u32 idx, fs::Explorer *path_exp, const std::string &path) {
         if(IsInvalidFileIndex(idx)) {
             return;
         }
@@ -138,11 +123,11 @@ namespace nsp {
         path_exp->EndFile();
     }
 
-    u32 PFS0::GetFileIndexByName(String file) {
+    u32 PFS0::GetFileIndexByName(const std::string &file_name) {
         auto found = false;
         u32 idx = 0;
         for(auto &pfs0_file: this->files) {
-            if(strcasecmp(pfs0_file.name.AsUTF8().c_str(), file.AsUTF8().c_str()) == 0) {
+            if(strcasecmp(pfs0_file.name.c_str(), file_name.c_str()) == 0) {
                 return idx;
             }
             idx++;

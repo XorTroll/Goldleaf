@@ -28,11 +28,12 @@ namespace ui {
         private:
             pu::ui::elm::TextBlock::Ref info_text;
             pu::ui::elm::ProgressBar::Ref p_bar;
+
         public:
             UpdateInstallLayout();
             PU_SMART_CTOR(UpdateInstallLayout)
 
-            void InstallUpdate(String path, bool with_exfat);
+            void InstallUpdate(const std::string &path, const bool with_exfat);
     };
 
 }

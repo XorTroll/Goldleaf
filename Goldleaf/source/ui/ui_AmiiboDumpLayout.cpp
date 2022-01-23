@@ -30,7 +30,7 @@ namespace ui {
     AmiiboDumpLayout::AmiiboDumpLayout() : pu::ui::Layout() {
         this->info_txt = pu::ui::elm::TextBlock::New(150, 320, "-");
         this->info_txt->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->info_txt->SetColor(g_Settings.custom_scheme.Text);
+        this->info_txt->SetColor(g_Settings.custom_scheme.text);
         this->Add(this->info_txt);
     }
 
@@ -53,7 +53,7 @@ namespace ui {
                 if(option == 0) {
                     this->info_txt->SetText(cfg::strings::Main.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::strings::Main.GetString(297));
                     nfp::DumpToEmuiibo(tag, reg, common, model);
-                    g_MainApplication->ShowNotification("'" + String(reg.amiibo_name) + "' " + cfg::strings::Main.GetString(298));
+                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::strings::Main.GetString(298));
                 }
                 nfp::Close();
             }

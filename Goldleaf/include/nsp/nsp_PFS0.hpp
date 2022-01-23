@@ -27,7 +27,7 @@ namespace nsp {
 
     class PFS0 {
         private:
-            String path;
+            std::string path;
             fs::Explorer *exp;
             u8 *string_table;
             u32 header_size;
@@ -46,18 +46,33 @@ namespace nsp {
                 return idx == InvalidFileIndex;
             }
 
-            PFS0(fs::Explorer *explorer, String path);
+            PFS0(fs::Explorer *explorer, const std::string &path);
             ~PFS0();
-            u32 GetCount();
-            String GetFile(u32 idx);
-            String GetPath();
-            u64 ReadFromFile(u32 idx, u64 offset, u64 size, void *read_buf);
-            std::vector<String> GetFiles();
-            bool IsOk();
-            fs::Explorer *GetExplorer();
-            u64 GetFileSize(u32 idx);
-            void SaveFile(u32 idx, fs::Explorer *path_exp, String path);
-            u32 GetFileIndexByName(String file);
+            
+            inline u32 GetCount() {
+                return this->header.file_count;
+            }
+            
+            std::string GetFile(const u32 idx);
+            
+            inline std::string GetPath() {
+                return this->path;
+            }
+            
+            u64 ReadFromFile(const u32 idx, const u64 offset, const u64 size, void *read_buf);
+            std::vector<std::string> GetFiles();
+            
+            inline bool IsOk() {
+                return this->ok;
+            }
+            
+            inline fs::Explorer *GetExplorer() {
+                return this->exp;
+            }
+
+            u64 GetFileSize(const u32 idx);
+            void SaveFile(const u32 idx, fs::Explorer *path_exp, const std::string &path);
+            u32 GetFileIndexByName(const std::string &file_name);
     };
 
 }

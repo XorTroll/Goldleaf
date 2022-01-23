@@ -30,6 +30,8 @@
 
 namespace hos {
 
+    constexpr size_t IconDataSize = 0x20000;
+
     enum class TicketType {
         Common,
         Personalized,
@@ -45,7 +47,7 @@ namespace hos {
         ECDSA_SHA256 = 0x10005,
     };
 
-    inline constexpr bool IsValidTicketSignature(u32 raw_val) {
+    inline constexpr bool IsValidTicketSignature(const u32 raw_val) {
         return (raw_val >= static_cast<u32>(TicketSignature::RSA_4096_SHA1)) && (raw_val <= static_cast<u32>(TicketSignature::ECDSA_SHA256));
     }
 
@@ -62,8 +64,8 @@ namespace hos {
         bool is_empty;
         u64 size;
 
-        String GetFileName();
-        String GetFullPath();
+        std::string GetFileName();
+        std::string GetFullPath();
     };
 
     struct TitleContents {
@@ -99,7 +101,7 @@ namespace hos {
         bool IsAddOnContent() const;
         bool IsBaseOf(const Title &other) const;
         TitlePlayStats GetGlobalPlayStats() const;
-        TitlePlayStats GetUserPlayStats(AccountUid user_id) const;
+        TitlePlayStats GetUserPlayStats(const AccountUid user_id) const;
     };
 
     struct Ticket {
@@ -108,7 +110,7 @@ namespace hos {
 
         u64 GetApplicationId() const;
         u64 GetKeyGeneration() const;
-        String ToString();
+        std::string ToString();
     };
 
     struct TicketData {
@@ -128,7 +130,7 @@ namespace hos {
 
     constexpr u64 TicketSize = 0x2C0;
 
-    inline constexpr u64 GetTicketSignatureSize(TicketSignature sig) {
+    inline constexpr u64 GetTicketSignatureSize(const TicketSignature sig) {
         switch(sig) {
             case TicketSignature::RSA_4096_SHA1:
             case TicketSignature::RSA_4096_SHA256: {
@@ -152,7 +154,7 @@ namespace hos {
         TicketSignature signature;
         TicketData data;
 
-        String GetTitleKey() const;
+        std::string GetTitleKey() const;
 
         inline constexpr u64 GetFullSize() {
             return GetTicketSignatureSize(this->signature) + sizeof(this->data);
@@ -161,18 +163,18 @@ namespace hos {
 
     constexpr u32 MaxTitleCount = 64000;
 
-    std::string FormatApplicationId(u64 app_id);
-    std::vector<Title> SearchTitles(NcmContentMetaType type, NcmStorageId storage_id);
-    Title Locate(u64 app_id);
-    bool ExistsTitle(NcmContentMetaType type, NcmStorageId storage_id, u64 app_id);
+    std::string FormatApplicationId(const u64 app_id);
+    std::vector<Title> SearchTitles(const NcmContentMetaType type, const NcmStorageId storage_id);
+    Title Locate(const u64 app_id);
+    bool ExistsTitle(const NcmContentMetaType type, const NcmStorageId storage_id, const u64 app_id);
     std::vector<Ticket> GetAllTickets();
     Result RemoveTitle(const Title &title);
     Result RemoveTicket(const Ticket &tik);
     Result UpdateTitleVersion(const Title &title);
-    std::string GetExportedIconPath(u64 app_id);
-    String GetExportedNACPPath(u64 app_id);
+    std::string GetExportedIconPath(const u64 app_id);
+    std::string GetExportedNacpPath(const u64 app_id);
     
-    inline constexpr u64 GetBaseApplicationId(u64 app_id, NcmContentMetaType type) {
+    inline constexpr u64 GetBaseApplicationId(const u64 app_id, const NcmContentMetaType type) {
         switch(type) {
             case NcmContentMetaType_Patch: {
                 return app_id ^ 0x800;
@@ -186,7 +188,7 @@ namespace hos {
         }
     }
 
-    inline constexpr u32 GetIdFromAddOnContentApplicationId(u64 app_id) {
+    inline constexpr u32 GetIdFromAddOnContentApplicationId(const u64 app_id) {
         return app_id & 0xFFF;
     }
 
@@ -194,10 +196,10 @@ namespace hos {
         return strlen(nacp.display_version) == 0;
     }
 
-    String FindNacpName(const NacpStruct &nacp);
-    String FindNacpAuthor(const NacpStruct &nacp);
+    std::string FindNacpName(const NacpStruct &nacp);
+    std::string FindNacpAuthor(const NacpStruct &nacp);
 
-    ApplicationIdMask GetApplicationIdMask(u64 app_id);
-    TicketFile ReadTicket(String path);
+    ApplicationIdMask GetApplicationIdMask(const u64 app_id);
+    TicketFile ReadTicket(const std::string &path);
 
 }

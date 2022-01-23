@@ -24,20 +24,20 @@
 
 namespace fs {
 
-    RemotePCExplorer::RemotePCExplorer(String mount_name) {
+    RemotePCExplorer::RemotePCExplorer(const std::string &mount_name) {
         this->SetNames(mount_name, mount_name);
     }
 
-    std::vector<String> RemotePCExplorer::GetDirectories(String path) {
-        std::vector<String> dirs;
+    std::vector<std::string> RemotePCExplorer::GetDirectories(const std::string &path) {
+        std::vector<std::string> dirs;
         const auto full_path = this->MakeFull(path);
 
         u32 dir_count = 0;
-        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetDirectoryCount>(usb::InString(full_path), usb::Out32(dir_count)))) {
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetDirectoryCount>(usb::InString(full_path), usb::OutValue(dir_count)))) {
             dirs.reserve(dir_count);
             for(u32 i = 0; i < dir_count; i++) {
-                String dir;
-                if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetDirectory>(usb::InString(full_path), usb::In32(i), usb::OutString(dir)))) {
+                std::string dir;
+                if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetDirectory>(usb::InString(full_path), usb::InValue(i), usb::OutString(dir)))) {
                     dirs.push_back(dir);
                 }
             }
@@ -45,16 +45,16 @@ namespace fs {
         return dirs;
     }
 
-    std::vector<String> RemotePCExplorer::GetFiles(String path) {
-        std::vector<String> files;
+    std::vector<std::string> RemotePCExplorer::GetFiles(const std::string &path) {
+        std::vector<std::string> files;
         const auto full_path = this->MakeFull(path);
 
         u32 file_count = 0;
-        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetFileCount>(usb::InString(full_path), usb::Out32(file_count)))) {
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetFileCount>(usb::InString(full_path), usb::OutValue(file_count)))) {
             files.reserve(file_count);
             for(u32 i = 0; i < file_count; i++) {
-                String file;
-                if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetFile>(usb::InString(full_path), usb::In32(i), usb::OutString(file)))) {
+                std::string file;
+                if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::GetFile>(usb::InString(full_path), usb::InValue(i), usb::OutString(file)))) {
                     files.push_back(file);
                 }
             }
@@ -62,97 +62,112 @@ namespace fs {
         return files;
     }
 
-    bool RemotePCExplorer::Exists(String path) {
+    bool RemotePCExplorer::Exists(const std::string &path) {
         const auto full_path = this->MakeFull(path);
+
         u32 type = 0;
-        u64 tmp_file_size = 0;
-        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(type), usb::Out64(tmp_file_size)))) {
+        size_t tmp_file_size = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::OutValue(type), usb::OutValue(tmp_file_size)))) {
             return (type == 1) || (type == 2);
         }
-        return false;
+        else {
+            return false;
+        }
     }
 
-    bool RemotePCExplorer::IsFile(String path) {
+    bool RemotePCExplorer::IsFile(const std::string &path) {
         const auto full_path = this->MakeFull(path);
+
         u32 type = 0;
-        u64 tmp_file_size = 0;
-        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(type), usb::Out64(tmp_file_size)))) {
+        size_t tmp_file_size = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::OutValue(type), usb::OutValue(tmp_file_size)))) {
             return type == 1;
         }
         return false;
     }
 
-    bool RemotePCExplorer::IsDirectory(String path) {
+    bool RemotePCExplorer::IsDirectory(const std::string &path) {
         const auto full_path = this->MakeFull(path);
+
         u32 type = 0;
-        u64 tmp_file_size = 0;
-        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(type), usb::Out64(tmp_file_size)))) {
+        size_t tmp_file_size = 0;
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::OutValue(type), usb::OutValue(tmp_file_size)))) {
             return type == 2;
         }
         return false;
     }
 
-    void RemotePCExplorer::CreateFile(String path) {
+    void RemotePCExplorer::CreateFile(const std::string &path) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(1), usb::InString(full_path));
+
+        usb::ProcessCommand<usb::CommandId::Create>(usb::InValue<u32>(1), usb::InString(full_path));
     }
 
-    void RemotePCExplorer::CreateDirectory(String path) {
+    void RemotePCExplorer::CreateDirectory(const std::string &path) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::Create>(usb::In32(2), usb::InString(full_path));
+
+        usb::ProcessCommand<usb::CommandId::Create>(usb::InValue<u32>(2), usb::InString(full_path));
     }
 
-    void RemotePCExplorer::RenameFile(String path, String new_name) {
+    void RemotePCExplorer::RenameFile(const std::string &path, const std::string &new_name) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(1), usb::InString(full_path), usb::InString(new_name));
+
+        usb::ProcessCommand<usb::CommandId::Rename>(usb::InValue<u32>(1), usb::InString(full_path), usb::InString(new_name));
     }
 
-    void RemotePCExplorer::RenameDirectory(String path, String new_name) {
+    void RemotePCExplorer::RenameDirectory(const std::string &path, const std::string &new_name) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::Rename>(usb::In32(2), usb::InString(full_path), usb::InString(new_name));
+
+        usb::ProcessCommand<usb::CommandId::Rename>(usb::InValue<u32>(2), usb::InString(full_path), usb::InString(new_name));
     }
 
-    void RemotePCExplorer::DeleteFile(String path) {
+    void RemotePCExplorer::DeleteFile(const std::string &path) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(1), usb::InString(full_path));
+
+        usb::ProcessCommand<usb::CommandId::Delete>(usb::InValue<u32>(1), usb::InString(full_path));
     }
 
-    void RemotePCExplorer::DeleteDirectory(String path) {
+    void RemotePCExplorer::DeleteDirectory(const std::string &path) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::Delete>(usb::In32(2), usb::InString(full_path));
+
+        usb::ProcessCommand<usb::CommandId::Delete>(usb::InValue<u32>(2), usb::InString(full_path));
     }
 
-    void RemotePCExplorer::StartFileImpl(String path, FileMode mode) {
+    void RemotePCExplorer::StartFileImpl(const std::string &path, const FileMode mode) {
         const auto full_path = this->MakeFull(path);
-        usb::ProcessCommand<usb::CommandId::StartFile>(usb::InString(full_path), usb::In32((u32)mode));
+
+        usb::ProcessCommand<usb::CommandId::StartFile>(usb::InString(full_path), usb::InValue(mode));
     }
 
-    void RemotePCExplorer::EndFileImpl(FileMode mode) {
-        usb::ProcessCommand<usb::CommandId::EndFile>(usb::In32(static_cast<u32>(mode)));
+    void RemotePCExplorer::EndFileImpl(const FileMode mode) {
+        usb::ProcessCommand<usb::CommandId::EndFile>(usb::InValue(mode));
     }
 
-    u64 RemotePCExplorer::ReadFile(String path, u64 offset, u64 size, void *read_buf) {
+    u64 RemotePCExplorer::ReadFile(const std::string &path, const u64 offset, const u64 size, void *read_buf) {
         u64 read_size = 0;
         const auto full_path = this->MakeFull(path);
 
-        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(full_path), usb::In64(offset), usb::In64(size), usb::Out64(read_size), usb::OutBuffer(read_buf, size));
+        usb::ProcessCommand<usb::CommandId::ReadFile>(usb::InString(full_path), usb::InValue(offset), usb::InValue(size), usb::OutValue(read_size), usb::OutBuffer(read_buf, size));
         return read_size;
     }
 
-    u64 RemotePCExplorer::WriteFile(String path, const void *write_buf, u64 size) {
+    u64 RemotePCExplorer::WriteFile(const std::string &path, const void *write_buf, const u64 size) {
         const auto full_path = this->MakeFull(path);
-        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(full_path), usb::In64(size), usb::InBuffer(write_buf, size)))) {
+
+        if(R_SUCCEEDED(usb::ProcessCommand<usb::CommandId::WriteFile>(usb::InString(full_path), usb::InValue(size), usb::InBuffer(write_buf, size)))) {
             return size;
         }
-        return 0;
+        else {
+            return 0;
+        }
     }
 
-    u64 RemotePCExplorer::GetFileSize(String path) {
+    u64 RemotePCExplorer::GetFileSize(const std::string &path) {
         u32 tmp_type = 0;
-        u64 file_size = 0;
+        size_t file_size = 0;
         const auto full_path = this->MakeFull(path);
 
-        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::Out32(tmp_type), usb::Out64(file_size));
+        usb::ProcessCommand<usb::CommandId::StatPath>(usb::InString(full_path), usb::OutValue(tmp_type), usb::OutValue(file_size));
         return file_size;
     }
 
@@ -166,7 +181,8 @@ namespace fs {
         return 0;
     }
 
-    void RemotePCExplorer::SetArchiveBit(String path) {
-        // Non-HOS operating systems don't handle archive bit for what we want, so this is stubbed.
+    void RemotePCExplorer::SetArchiveBit(const std::string &path) {
+        // Non-HOS operating systems don't handle archive bit for what we want, so this is stubbed
     }
+
 }

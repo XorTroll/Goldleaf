@@ -24,7 +24,7 @@
 
 namespace nsp {
 
-    bool GenerateFrom(String input_path, String output_nsp, std::function<void(u64, u64)> cb_fn) {
+    bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateCallback cb_fn) {
         auto exp = fs::GetExplorerForPath(input_path);
         auto files = exp->GetFiles(input_path);
         PFS0Header header = {
@@ -43,7 +43,7 @@ namespace nsp {
             entry.entry.size = file_size;
             entry.name = file;
             base_offset += file_size;
-            strcpy(&string_table[string_table_size], file.AsUTF8().c_str());
+            strcpy(&string_table[string_table_size], file.c_str());
             string_table_size += file.length() + 1; // NUL terminated!
             file_entries.push_back(entry);
         }

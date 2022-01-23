@@ -37,11 +37,11 @@ namespace ui {
             ContentManagerLayout();
             PU_SMART_CTOR(ContentManagerLayout)
 
-            void sdCardMenuItem_Click();
-            void nandUserMenuItem_Click();
-            void nandSystemMenuItem_Click();
-            void gameCartMenuItem_Click();
-            void unusedTicketsMenuItem_Click();
+            void sdCardMenuItem_DefaultKey();
+            void nandUserMenuItem_DefaultKey();
+            void nandSystemMenuItem_DefaultKey();
+            void gameCartMenuItem_DefaultKey();
+            void unusedTicketsMenuItem_DefaultKey();
     };
 
 }

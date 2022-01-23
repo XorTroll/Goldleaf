@@ -34,7 +34,7 @@ namespace cfg {
         
     }
 
-    String Strings::GetString(u32 idx) {
+    std::string Strings::GetString(u32 idx) {
         if(idx >= this->json.size()) {
             return "???";
         }

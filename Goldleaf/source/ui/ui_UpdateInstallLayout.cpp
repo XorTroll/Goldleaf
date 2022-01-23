@@ -38,7 +38,7 @@ namespace ui {
     UpdateInstallLayout::UpdateInstallLayout() : pu::ui::Layout() {
         this->info_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->info_text->SetColor(g_Settings.custom_scheme.Text);
+        this->info_text->SetColor(g_Settings.custom_scheme.text);
         this->p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         this->p_bar->SetVisible(false);
         g_Settings.ApplyProgressBarColor(this->p_bar);
@@ -46,12 +46,12 @@ namespace ui {
         this->Add(this->p_bar);
     }
 
-    void UpdateInstallLayout::InstallUpdate(String path, bool with_exfat) {
+    void UpdateInstallLayout::InstallUpdate(const std::string &path, const bool with_exfat) {
         this->info_text->SetText(cfg::strings::Main.GetString(426));
         g_MainApplication->CallForRender();
         this->p_bar->SetVisible(true);
         hos::UnlockAutoSleep();
-        auto rc = amssu::SetupUpdate(nullptr, UpdateWorkBufferSize, path.AsUTF8().c_str(), with_exfat);
+        auto rc = amssu::SetupUpdate(nullptr, UpdateWorkBufferSize, path.c_str(), with_exfat);
         if(R_SUCCEEDED(rc)) {
             AsyncResult async_rc;
             rc = amssu::RequestPrepareUpdate(&async_rc);
@@ -77,7 +77,7 @@ namespace ui {
                         rc = amssu::GetPrepareUpdateProgress(&update_progress);
                         if(R_SUCCEEDED(rc)) {
                             this->p_bar->SetProgress(static_cast<double>(update_progress.current_size));
-                            this->p_bar->SetMaxValue(static_cast<double>(update_progress.total_size));
+                            this->p_bar->SetMaxProgress(static_cast<double>(update_progress.total_size));
                             g_MainApplication->CallForRender();
                         }
                     }

@@ -24,8 +24,8 @@
 namespace fs {
 
     DriveExplorer::DriveExplorer(UsbHsFsDevice &drive) : drv(drive) {
-        String drive_name = drive.name;
-        auto drive_name_without_dots = drive_name.substr(0, drive_name.length() - 1);
+        const std::string drive_name = drive.name;
+        const auto drive_name_without_dots = drive_name.substr(0, drive_name.length() - 1);
         this->SetNames(drive_name_without_dots, drive_name_without_dots);
     }
 

@@ -54,7 +54,7 @@ namespace err {
         }
     }
 
-    String GetModuleName(const u32 module_id);
-    String GetResultDescription(const Result rc);
+    std::string GetModuleName(const u32 module_id);
+    std::string GetResultDescription(const Result rc);
 
 }

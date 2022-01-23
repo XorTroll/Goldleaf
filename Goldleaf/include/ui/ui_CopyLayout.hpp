@@ -32,7 +32,7 @@ namespace ui {
             CopyLayout();
             PU_SMART_CTOR(CopyLayout)
 
-            void StartCopy(String path, String new_path);
+            void StartCopy(const std::string &path, const std::string &new_path);
     };
 
 }

@@ -37,7 +37,7 @@ namespace nsp {
         GLEAF_RC_TRY(ncmOpenContentStorage(&this->cnt_storage, this->storage_id));
         GLEAF_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
 
-        String cnmt_nca_file_name;
+        std::string cnmt_nca_file_name;
         auto cnmt_nca_file_idx = PFS0::InvalidFileIndex;
         u64 cnmt_nca_file_size = 0;
         auto tik_file_idx = PFS0::InvalidFileIndex;
@@ -78,7 +78,7 @@ namespace nsp {
         pfs0_file.SaveFile(cnmt_nca_file_idx, nand_sys_explorer, cnmt_nca_temp_path);
 
         char cnmt_nca_content_path[FS_MAX_PATH] = {};
-        sprintf(cnmt_nca_content_path, "@SystemContent://temp/%s", cnmt_nca_file_name.AsUTF8().c_str());
+        sprintf(cnmt_nca_content_path, "@SystemContent://temp/%s", cnmt_nca_file_name.c_str());
         FsRightsId tmp_rid;
         GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, &this->keygen, &tmp_rid));
         const auto system_keygen = hos::ReadSystemKeyGeneration();
@@ -89,7 +89,7 @@ namespace nsp {
         
         {
             fs::FspExplorer cnmt_nca_fs_obj(cnmt_nca_fs, "nsp.ContentMeta");
-            String cnmt_file_name;
+            std::string cnmt_file_name;
             for(auto &cnt: cnmt_nca_fs_obj.GetContents()) {
                 if(fs::GetExtension(cnt) == "cnmt") {
                     cnmt_file_name = cnt;
@@ -139,7 +139,7 @@ namespace nsp {
                     auto control_nca_temp_path = nand_sys_explorer->MakeFull("Contents/temp/" + control_nca_file_name);
                     this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_temp_path);
                     char control_nca_content_path[FS_MAX_PATH] = {};
-                    sprintf(control_nca_content_path, "@SystemContent://temp/%s", control_nca_file_name.AsUTF8().c_str());
+                    sprintf(control_nca_content_path, "@SystemContent://temp/%s", control_nca_file_name.c_str());
                     FsFileSystem control_nca_fs;
                     if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path))) {
                         fs::FspExplorer control_nca_fs_obj(control_nca_fs, "nsp.ControlData");
@@ -200,10 +200,6 @@ namespace nsp {
             GLEAF_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
         }
         return err::result::ResultSuccess;
-    }
-
-    std::string Installer::GetExportedIconPath() {
-        return this->icon.AsUTF8();
     }
 
     Result Installer::WriteContents(OnContentsWriteFunction on_content_write_cb) {

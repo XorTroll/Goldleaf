@@ -26,7 +26,7 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
-    extern String g_Clipboard;
+    extern std::string g_Clipboard;
 
     namespace {
 
@@ -35,7 +35,7 @@ namespace ui {
     }
 
     #define _UI_MAINAPP_MENU_SET_BASE(layout) { \
-        layout->SetBackgroundColor(g_Settings.custom_scheme.Background); \
+        layout->SetBackgroundColor(g_Settings.custom_scheme.bg); \
         layout->Add(this->base_img); \
         layout->Add(this->time_text); \
         layout->Add(this->battery_text); \
@@ -65,10 +65,10 @@ namespace ui {
         this->cur_conn_strength = 0;
         this->base_img = pu::ui::elm::Image::New(0, 0, g_Settings.PathForResource("/Base.png"));
         this->time_text = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
-        this->time_text->SetColor(g_Settings.custom_scheme.Text);
+        this->time_text->SetColor(g_Settings.custom_scheme.text);
         this->battery_text = pu::ui::elm::TextBlock::New(1015, 20, "0%");
         this->battery_text->SetFont("DefaultFont@20");
-        this->battery_text->SetColor(g_Settings.custom_scheme.Text);
+        this->battery_text->SetColor(g_Settings.custom_scheme.text);
         this->battery_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/0.png"));
         this->battery_charge_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/Charge.png"));
         this->menu_banner_img = pu::ui::elm::Image::New(10, 62, g_Settings.PathForResource("/MenuBanner.png"));
@@ -93,12 +93,12 @@ namespace ui {
         this->conn_img->SetVisible(true);
         this->ip_text = pu::ui::elm::TextBlock::New(800, 20, "");
         this->ip_text->SetFont("DefaultFont@20");
-        this->ip_text->SetColor(g_Settings.custom_scheme.Text);
+        this->ip_text->SetColor(g_Settings.custom_scheme.text);
         this->menu_name_text = pu::ui::elm::TextBlock::New(120, 85, "-");
-        this->menu_name_text->SetColor(g_Settings.custom_scheme.Text);
+        this->menu_name_text->SetColor(g_Settings.custom_scheme.text);
         this->menu_head_text = pu::ui::elm::TextBlock::New(120, 120, "-");
         this->menu_head_text->SetFont("DefaultFont@20");
-        this->menu_head_text->SetColor(g_Settings.custom_scheme.Text);
+        this->menu_head_text->SetColor(g_Settings.custom_scheme.text);
         this->UnloadMenuData();
         this->toast = pu::ui::extras::Toast::New(":", "DefaultFont@20", pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
@@ -161,13 +161,13 @@ namespace ui {
         // Special extras
         this->main_menu_lyt->Add(this->menu_banner_img);
 
-        this->AddThread(std::bind(&MainApplication::UpdateValues, this));
+        this->AddRenderCallback(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->LoadLayout(this->main_menu_lyt);
         this->start_time = std::chrono::steady_clock::now();
     }
 
-    void MainApplication::ShowNotification(String text) {
+    void MainApplication::ShowNotification(const std::string &text) {
         this->EndOverlay();
         this->toast->SetText(text);
         this->StartOverlayWithTimeout(this->toast, 1500);
@@ -183,7 +183,7 @@ namespace ui {
             }
         }
 
-        auto cur_time = hos::GetCurrentTime();
+        const auto cur_time = hos::GetCurrentTime();
         const auto battery_val = hos::GetBatteryLevel();
         const auto is_charging = hos::IsCharging();
         if((this->cur_battery_val != battery_val) || !this->read_values_once) {
@@ -258,11 +258,11 @@ namespace ui {
         else {
             this->ip_text->SetText("");
         }
-        auto selected_user = acc::GetSelectedUser();
+        const auto selected_user = acc::GetSelectedUser();
         if(!acc::UidCompare(&selected_user, &this->cur_selected_user)) {
             this->cur_selected_user = selected_user;
             if(acc::HasSelectedUser()) {
-                auto user_icon = acc::GetCachedUserIcon();
+                const auto user_icon = acc::GetCachedUserIcon();
                 auto sd_exp = fs::GetSdCardExplorer();
                 if(sd_exp->Exists(user_icon)) {
                     this->user_img->SetImage(user_icon);
@@ -284,7 +284,7 @@ namespace ui {
         this->LoadLayout(this->main_menu_lyt);
     }
 
-    void MainApplication::LoadMenuData(String name, const std::string &img_name, String temp_head, bool is_common_icon) {
+    void MainApplication::LoadMenuData(const std::string &name, const std::string &img_name, const std::string &temp_head, const bool is_common_icon) {
         if(this->menu_img != nullptr) {
             this->menu_img->SetVisible(true);
             if(is_common_icon) {
@@ -306,7 +306,7 @@ namespace ui {
         }
     }
 
-    void MainApplication::LoadMenuHead(String head) {
+    void MainApplication::LoadMenuHead(const std::string &head) {
         if(this->menu_head_text != nullptr) {
             this->menu_head_text->SetText(head);
         }
@@ -318,7 +318,7 @@ namespace ui {
         this->menu_head_text->SetVisible(false);
     }
 
-    void MainApplication::browser_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::browser_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             if(this->partition_browser_lyt->GoBack()) {
                 this->partition_browser_lyt->UpdateElements(-1);
@@ -363,7 +363,7 @@ namespace ui {
                 }
                 const auto option = this->CreateShowDialog(cfg::strings::Main.GetString(222), cfg::strings::Main.GetString(223) + "\n(" + g_Clipboard + ")", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true, fs_icon);
                 if(option == 0) {
-                    auto item_name = fs::GetFileName(g_Clipboard);
+                    const auto item_name = fs::GetFileName(g_Clipboard);
                     this->LoadLayout(this->GetCopyLayout());
                     this->GetCopyLayout()->StartCopy(g_Clipboard, this->partition_browser_lyt->GetExplorer()->FullPathFor(item_name));
                     g_MainApplication->LoadLayout(this->partition_browser_lyt);
@@ -376,9 +376,9 @@ namespace ui {
             }
         }
         else if(down & HidNpadButton_L) {
-            auto file_name = AskForText(cfg::strings::Main.GetString(225), "");
+            const auto file_name = AskForText(cfg::strings::Main.GetString(225), "");
             if(!file_name.empty()) {
-                auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(file_name);
+                const auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(file_name);
                 if(this->partition_browser_lyt->GetExplorer()->IsFile(full_path) || this->partition_browser_lyt->GetExplorer()->IsDirectory(full_path)) {
                     HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 }
@@ -390,9 +390,9 @@ namespace ui {
             }
         }
         else if(down & HidNpadButton_R) {
-            auto dir_name = AskForText(cfg::strings::Main.GetString(250), "");
+            const auto dir_name = AskForText(cfg::strings::Main.GetString(250), "");
             if(!dir_name.empty()) {
-                auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(dir_name);
+                const auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(dir_name);
                 if(this->partition_browser_lyt->GetExplorer()->IsFile(full_path) || this->partition_browser_lyt->GetExplorer()->IsDirectory(full_path)) {
                     HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 }
@@ -405,13 +405,13 @@ namespace ui {
         }
     }
 
-    void MainApplication::exploreMenu_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::exploreMenu_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::pcExplore_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::pcExplore_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->UnloadMenuData();
             this->LoadMenuData(cfg::strings::Main.GetString(277), "Storage", cfg::strings::Main.GetString(278));
@@ -419,7 +419,7 @@ namespace ui {
         }
     }
 
-    void MainApplication::fileContent_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::fileContent_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->LoadLayout(this->partition_browser_lyt);
         }
@@ -431,51 +431,51 @@ namespace ui {
         }
     }
 
-    void MainApplication::contentInformation_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::contentInformation_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->LoadMenuData(cfg::strings::Main.GetString(187), "Storage", cfg::strings::Main.GetString(189));
             this->LoadLayout(this->storage_cnts_lyt);
         }
     }
 
-    void MainApplication::storageContents_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::storageContents_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->LoadMenuData(cfg::strings::Main.GetString(187), "Storage", cfg::strings::Main.GetString(33));
             this->LoadLayout(this->cnt_manager_lyt);
         }
     }
 
-    void MainApplication::contentManager_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::contentManager_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::unusedTickets_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::unusedTickets_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::account_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::account_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::amiibo_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::amiibo_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::settings_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::settings_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::memory_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::memory_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->UnloadMenuData();
             this->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
@@ -483,13 +483,13 @@ namespace ui {
         }
     }
 
-    void MainApplication::webBrowser_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::webBrowser_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
     }
 
-    void MainApplication::about_Input(u64 down, u64 up, u64 held) {
+    void MainApplication::about_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
         }
@@ -506,7 +506,7 @@ namespace ui {
         this->CreateShowDialog(cfg::strings::Main.GetString(162), cfg::strings::Main.GetString(342) + "\n\n" + cfg::strings::Main.GetString(343) + "\n" + cfg::strings::Main.GetString(344) + "\n" + cfg::strings::Main.GetString(345) + "\n" + cfg::strings::Main.GetString(346) + "\n" + cfg::strings::Main.GetString(347), {cfg::strings::Main.GetString(234)}, false);
     }
 
-    void MainApplication::OnInput(u64 down, u64 up, u64 held) {
+    void MainApplication::OnInput(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_Plus) {
             this->CloseWithFadeOut();
         }
@@ -518,7 +518,7 @@ namespace ui {
         }
     }
 
-    void UpdateClipboard(String path) {
+    void UpdateClipboard(const std::string &path) {
         SetClipboard(path);
         g_MainApplication->ShowNotification(cfg::strings::Main.GetString(g_MainApplication->GetBrowserLayout()->GetExplorer()->IsFile(path) ? 257 : 258));
     }

@@ -24,7 +24,7 @@
 
 namespace hos {
 
-    String ContentIdAsString(const NcmContentId &cnt_id) {
+    std::string ContentIdAsString(const NcmContentId &cnt_id) {
         char cnt_id_str[FS_MAX_PATH] = {0};
         const auto lower = __bswap64(*(u64*)cnt_id.c);
         const auto upper = __bswap64(*(u64*)(cnt_id.c + 0x8));
@@ -32,12 +32,12 @@ namespace hos {
         return cnt_id_str;
     }
 
-    NcmContentId StringAsContentId(String cnt_id_str) {
+    NcmContentId StringAsContentId(const std::string &cnt_id_str) {
         NcmContentId cnt_id = {};
         char lower[0x20] = {0};
         char upper[0x20] = {0};
-        memcpy(lower, cnt_id_str.AsUTF8().c_str(), 0x10);
-        memcpy(upper, cnt_id_str.AsUTF8().c_str() + 0x10, 0x10);
+        memcpy(lower, cnt_id_str.c_str(), 0x10);
+        memcpy(upper, cnt_id_str.c_str() + 0x10, 0x10);
         *(u64*)cnt_id.c = __bswap64(strtoul(lower, nullptr, 0x10));
         *(u64*)(cnt_id.c + 0x8) = __bswap64(strtoul(upper, nullptr, 0x10));
         return cnt_id;
@@ -45,14 +45,14 @@ namespace hos {
 
     bool GetPendingUpdateInfo(PendingUpdateVersion *out) {
         auto sys = fs::GetNANDSystemExplorer();
-        auto ncas = sys->GetFiles("Contents/placehld");
-        bool found = false;
-        for(auto &nca: ncas) {
-            auto path = "@SystemContent://placehld/" + nca.AsUTF8();
-            path.reserve(FS_MAX_PATH);
+        const auto ncas = sys->GetFiles("Contents/placehld");
+        auto found = false;
+        for(const auto &nca: ncas) {
+            char path[FS_MAX_PATH] = {};
+            sprintf(path, "@SystemContent://placehld/%s", nca.c_str());
             FsFileSystem cnt_fs;
             // Just read the first CNMT NCA we succeed mounting
-            if(R_SUCCEEDED(fsOpenFileSystemWithId(&cnt_fs, 0, FsFileSystemType_ContentMeta, path.c_str()))) {
+            if(R_SUCCEEDED(fsOpenFileSystemWithId(&cnt_fs, 0, FsFileSystemType_ContentMeta, path))) {
                 fs::FspExplorer fwfs(cnt_fs, "hos.SystemContentAny");
                 const auto fs = fwfs.GetContents();
                 for(const auto &f: fs) {
@@ -72,13 +72,14 @@ namespace hos {
         return found;
     }
 
-    SetSysFirmwareVersion ConvertPendingUpdateVersion(PendingUpdateVersion ver) {
-        SetSysFirmwareVersion fwver = {};
-        fwver.major = ver.major;
-        fwver.minor = ver.minor;
-        fwver.micro = ver.micro;
-        sprintf(fwver.display_version, "%d.%d.%d", ver.major, ver.minor, ver.micro);
-        return fwver;
+    SetSysFirmwareVersion ConvertPendingUpdateVersion(const PendingUpdateVersion ver) {
+        SetSysFirmwareVersion fw_ver = {
+            .major = static_cast<u8>(ver.major),
+            .minor = static_cast<u8>(ver.minor),
+            .micro = static_cast<u8>(ver.micro)
+        };
+        sprintf(fw_ver.display_version, "%d.%d.%d", ver.major, ver.minor, ver.micro);
+        return fw_ver;
     }
 
     void CleanPendingUpdate() {

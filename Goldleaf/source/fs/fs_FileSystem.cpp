@@ -54,7 +54,7 @@ namespace fs {
         }
 
         template<typename T>
-        inline bool IsExplorer(T *&exp, String mount_name) {
+        inline bool IsExplorer(T *&exp, const std::string &mount_name) {
             return (exp != nullptr) && (exp->GetMountName() == mount_name);
         }
 
@@ -84,7 +84,7 @@ namespace fs {
         return EnsureExplorer(g_NANDSystemExplorer, Partition::NANDSystem);
     }
 
-    RemotePCExplorer *GetRemotePCExplorer(String mount_name) {
+    RemotePCExplorer *GetRemotePCExplorer(const std::string &mount_name) {
         if((g_RemotePCExplorer != nullptr) && (g_RemotePCExplorer->GetMountName() != mount_name)) {
             DeleteExplorer(g_RemotePCExplorer);
         }
@@ -108,7 +108,7 @@ namespace fs {
         return EnsureExplorer(g_DriveExplorer, drive);
     }
 
-    Explorer *GetExplorerForMountName(String mount_name) {
+    Explorer *GetExplorerForMountName(const std::string &mount_name) {
         if(IsExplorer(g_SdCardExplorer, mount_name)) {
             return g_SdCardExplorer;
         }
@@ -143,7 +143,7 @@ namespace fs {
         return nullptr;
     }
 
-    Explorer *GetExplorerForPath(String path) {
+    Explorer *GetExplorerForPath(const std::string &path) {
         return GetExplorerForMountName(GetPathRoot(path));
     }
 

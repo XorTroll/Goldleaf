@@ -29,21 +29,22 @@ namespace ui {
             fs::Explorer *cur_exp;
             pu::ui::elm::Menu::Ref browse_menu;
             pu::ui::elm::TextBlock::Ref empty_dir_text;
+
         public:
             PartitionBrowserLayout();
             PU_SMART_CTOR(PartitionBrowserLayout)
 
-            void ChangePartitionExplorer(fs::Explorer *exp, bool update_contents = true);
-            void ChangePartitionSdCard(bool update_contents = true);
-            void ChangePartitionNAND(fs::Partition partition, bool update_contents = true);
-            void ChangePartitionPCDrive(String mount_name, bool update_contents = true);
-            void ChangePartitionDrive(UsbHsFsDevice &drv, bool update_contents = true);
-            void UpdateElements(int idx = 0);
-            void HandleFileDirectly(String path);
+            void ChangePartitionExplorer(fs::Explorer *exp, const bool update_contents = true);
+            void ChangePartitionSdCard(const bool update_contents = true);
+            void ChangePartitionNAND(const fs::Partition partition, const bool update_contents = true);
+            void ChangePartitionPCDrive(const std::string &mount_name, const bool update_contents = true);
+            void ChangePartitionDrive(UsbHsFsDevice &drv, const bool update_contents = true);
+            void UpdateElements(const int idx = 0);
+            void HandleFileDirectly(const std::string &path);
             bool GoBack();
             bool WarnWriteAccess();
-            void fsItems_Click(String item);
-            void fsItems_Click_Y(String item);
+            void fsItems_DefaultKey(const std::string &item);
+            void fsItems_Y(const std::string &item);
             
             inline fs::Explorer *GetExplorer() {
                 return this->cur_exp;

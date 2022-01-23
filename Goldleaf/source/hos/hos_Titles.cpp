@@ -27,22 +27,23 @@ namespace hos {
 
     namespace {
 
-        TitlePlayStats ConvertPlayStats(PdmPlayStatistics play_stats) {
-            TitlePlayStats stats = {};
-            stats.total_play_secs = play_stats.playtimeMinutes * 60;
+        inline TitlePlayStats ConvertPlayStats(const PdmPlayStatistics play_stats) {
             const auto posix_time = time(nullptr);
-            stats.secs_from_first_launched = posix_time - pdmPlayTimestampToPosix(play_stats.first_timestampUser);
-            stats.secs_from_last_launched = posix_time - pdmPlayTimestampToPosix(play_stats.last_timestampUser);
-            return stats;
+
+            return {
+                .total_play_secs = play_stats.playtimeMinutes * 60,
+                .secs_from_last_launched = posix_time - pdmPlayTimestampToPosix(play_stats.last_timestampUser),
+                .secs_from_first_launched = posix_time - pdmPlayTimestampToPosix(play_stats.first_timestampUser)
+            };
         }
 
     }
 
-    String ContentId::GetFileName() {
+    std::string ContentId::GetFileName() {
         return hos::ContentIdAsString(this->id) + ".nca";
     }
 
-    String ContentId::GetFullPath() {
+    std::string ContentId::GetFullPath() {
         NcmContentStorage cnt_storage;
         if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, this->storage_id))) {
             char out_path[FS_MAX_PATH] = {};
@@ -76,12 +77,12 @@ namespace hos {
         NsApplicationControlData control_data = {};
         size_t tmp = 0;
         if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, this->app_id, &control_data, sizeof(control_data), &tmp))) {
-            icon_data = new u8[0x20000]();
-            memcpy(icon_data, control_data.icon, 0x20000);
+            icon_data = new u8[IconDataSize]();
+            memcpy(icon_data, control_data.icon, IconDataSize);
         }
         else if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->app_id, this->type), &control_data, sizeof(control_data), &tmp))) {
-            icon_data = new u8[0x20000]();
-            memcpy(icon_data, control_data.icon, 0x20000);
+            icon_data = new u8[IconDataSize]();
+            memcpy(icon_data, control_data.icon, IconDataSize);
         }
         return icon_data;
     }
@@ -91,7 +92,7 @@ namespace hos {
         const auto nacp = this->TryGetNACP();
         auto sd_exp = fs::GetSdCardExplorer();
         if(!hos::IsNacpEmpty(nacp)) {
-            const auto &nacp_file = GetExportedNACPPath(this->app_id);
+            const auto &nacp_file = GetExportedNacpPath(this->app_id);
             sd_exp->DeleteFile(nacp_file);
             sd_exp->WriteFile(nacp_file, &nacp, sizeof(nacp));
         }
@@ -99,7 +100,7 @@ namespace hos {
         if(icon_data != nullptr) {
             const auto &icon_file = GetExportedIconPath(this->app_id);
             sd_exp->DeleteFile(icon_file);
-            sd_exp->WriteFile(icon_file, icon_data, 0x20000);
+            sd_exp->WriteFile(icon_file, icon_data, IconDataSize);
             delete[] icon_data;
             has_icon = true;
         }
@@ -177,7 +178,7 @@ namespace hos {
         return ConvertPlayStats(pdm_stats);
     }
     
-    TitlePlayStats Title::GetUserPlayStats(AccountUid user_id) const {
+    TitlePlayStats Title::GetUserPlayStats(const AccountUid user_id) const {
         PdmPlayStatistics pdm_stats = {};
         pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(this->app_id, user_id, false, &pdm_stats);
         return ConvertPlayStats(pdm_stats);
@@ -191,13 +192,13 @@ namespace hos {
         return __builtin_bswap64(this->rights_id.key_gen);
     }
 
-    String Ticket::ToString() {
+    std::string Ticket::ToString() {
         const auto app_id = this->GetApplicationId();
         const auto key_gen = this->GetKeyGeneration();
         return FormatApplicationId(app_id) + FormatApplicationId(key_gen);
     }
 
-    String TicketFile::GetTitleKey() const {
+    std::string TicketFile::GetTitleKey() const {
         std::stringstream strm;
         strm << std::uppercase << std::setfill('0') << std::hex;
         for(u32 i = 0; i < 0x10; i++) {
@@ -206,13 +207,13 @@ namespace hos {
         return strm.str();
     }
 
-    std::string FormatApplicationId(u64 app_id) {
+    std::string FormatApplicationId(const u64 app_id) {
         std::stringstream strm;
         strm << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << app_id;
         return strm.str();
     }
 
-    std::vector<Title> SearchTitles(NcmContentMetaType type, NcmStorageId storage_id) {
+    std::vector<Title> SearchTitles(const NcmContentMetaType type, const NcmStorageId storage_id) {
         std::vector<Title> titles;
         NcmContentMetaDatabase cnt_meta_db = {};
         if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, storage_id))) {
@@ -238,7 +239,7 @@ namespace hos {
         return titles;
     }
 
-    Title Locate(u64 app_id) {
+    Title Locate(const u64 app_id) {
         #define _TMP_FIND_LOCATE { \
             const auto it = std::find_if(titles.begin(), titles.end(), [&](Title &t) -> bool { \
                 return (t.app_id == app_id); \
@@ -267,7 +268,7 @@ namespace hos {
         return title;
     }
 
-    bool ExistsTitle(NcmContentMetaType type, NcmStorageId storage_id, u64 app_id) {
+    bool ExistsTitle(const NcmContentMetaType type, const NcmStorageId storage_id, const u64 app_id) {
         const auto ts = SearchTitles(type, storage_id);
 
         const auto it = std::find_if(ts.begin(), ts.end(), [&](const Title &title) -> bool {
@@ -378,29 +379,31 @@ namespace hos {
         return tickets;
     }
 
-    std::string GetExportedIconPath(u64 app_id) {
+    std::string GetExportedIconPath(const u64 app_id) {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->MakeAbsolute(GLEAF_PATH_TITLE_DIR "/" + FormatApplicationId(app_id) + ".jpg").AsUTF8();
+        return sd_exp->MakeAbsolute(GLEAF_PATH_TITLE_DIR "/" + FormatApplicationId(app_id) + ".jpg");
     }
 
-    String GetExportedNACPPath(u64 app_id) {
+    std::string GetExportedNacpPath(const u64 app_id) {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->MakeAbsolute(GLEAF_PATH_TITLE_DIR "/" + FormatApplicationId(app_id) + ".nacp").AsUTF8();
+        return sd_exp->MakeAbsolute(GLEAF_PATH_TITLE_DIR "/" + FormatApplicationId(app_id) + ".nacp");
     }
 
-    ApplicationIdMask GetApplicationIdMask(u64 app_id) {
-        auto format_app_id = FormatApplicationId(app_id);
-        auto id_start = format_app_id.substr(0, 2);
+    ApplicationIdMask GetApplicationIdMask(const u64 app_id) {
+        const auto format_app_id = FormatApplicationId(app_id);
+        const auto id_start = format_app_id.substr(0, 2);
         if(id_start == "01") {
             return ApplicationIdMask::Official;
         }
         else if(id_start == "05") {
             return ApplicationIdMask::Homebrew;
         }
-        return ApplicationIdMask::Invalid;
+        else {
+            return ApplicationIdMask::Invalid;
+        }
     }
 
-    TicketFile ReadTicket(String path) {
+    TicketFile ReadTicket(const std::string &path) {
         TicketFile tik = {};
 
         auto exp = fs::GetExplorerForPath(path);
@@ -414,22 +417,26 @@ namespace hos {
         return tik;
     }
 
-    String FindNacpName(const NacpStruct &nacp) {
+    std::string FindNacpName(const NacpStruct &nacp) {
         NacpLanguageEntry *lang_entry;
         nacpGetLanguageEntry(const_cast<NacpStruct*>(std::addressof(nacp)), &lang_entry);
         if(lang_entry != nullptr) {
             return lang_entry->name;
         }
-        return "";
+        else {
+            return "";
+        }
     }
 
-    String FindNacpAuthor(const NacpStruct &nacp) {
+    std::string FindNacpAuthor(const NacpStruct &nacp) {
         NacpLanguageEntry *lang_entry;
         nacpGetLanguageEntry(const_cast<NacpStruct*>(std::addressof(nacp)), &lang_entry);
         if(lang_entry != nullptr) {
             return lang_entry->author;
         }
-        return "";
+        else {
+            return "";
+        }
     }
 
 }

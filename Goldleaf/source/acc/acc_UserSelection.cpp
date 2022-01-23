@@ -153,7 +153,7 @@ namespace acc {
 
     std::string GetCachedUserIcon() {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->MakeAbsolute(GLEAF_PATH_USER_DATA_DIR "/" + hos::FormatHex128(g_SelectedUser) + ".jpg").AsUTF8();
+        return sd_exp->MakeAbsolute(GLEAF_PATH_USER_DATA_DIR "/" + hos::FormatHex128(g_SelectedUser) + ".jpg");
     }
 
     bool IsLinked() {

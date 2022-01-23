@@ -26,26 +26,26 @@ namespace fs {
 
     class RemotePCExplorer final : public Explorer {
         public:
-            RemotePCExplorer(String mount_name);
-            virtual std::vector<String> GetDirectories(String path) override;
-            virtual std::vector<String> GetFiles(String path) override;
-            virtual bool Exists(String path) override;
-            virtual bool IsFile(String path) override;
-            virtual bool IsDirectory(String path) override;
-            virtual void CreateFile(String path) override;
-            virtual void CreateDirectory(String path) override;
-            virtual void RenameFile(String path, String new_name) override;
-            virtual void RenameDirectory(String path, String new_name) override;
-            virtual void DeleteFile(String path) override;
-            virtual void DeleteDirectory(String path) override;
-            virtual void StartFileImpl(String path, FileMode mode) override;
-            virtual void EndFileImpl(FileMode mode) override;
-            virtual u64 ReadFile(String path, u64 offset, u64 size, void *read_buf) override;
-            virtual u64 WriteFile(String path, const void *write_buf, u64 size) override;
-            virtual u64 GetFileSize(String path) override;
+            RemotePCExplorer(const std::string &mount_name);
+            virtual std::vector<std::string> GetDirectories(const std::string &path) override;
+            virtual std::vector<std::string> GetFiles(const std::string &path) override;
+            virtual bool Exists(const std::string &path) override;
+            virtual bool IsFile(const std::string &path) override;
+            virtual bool IsDirectory(const std::string &path) override;
+            virtual void CreateFile(const std::string &path) override;
+            virtual void CreateDirectory(const std::string &path) override;
+            virtual void RenameFile(const std::string &path, const std::string &new_name) override;
+            virtual void RenameDirectory(const std::string &path, const std::string &new_name) override;
+            virtual void DeleteFile(const std::string &path) override;
+            virtual void DeleteDirectory(const std::string &path) override;
+            virtual void StartFileImpl(const std::string &path, const FileMode mode) override;
+            virtual void EndFileImpl(const FileMode mode) override;
+            virtual u64 ReadFile(const std::string &path, u64 offset, u64 size, void *read_buf) override;
+            virtual u64 WriteFile(const std::string &path, const void *write_buf, u64 size) override;
+            virtual u64 GetFileSize(const std::string &path) override;
             virtual u64 GetTotalSpace() override;
             virtual u64 GetFreeSpace() override;
-            virtual void SetArchiveBit(String path) override;
+            virtual void SetArchiveBit(const std::string &path) override;
     };
 
 }

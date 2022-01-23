@@ -30,11 +30,10 @@ extern ui::MainApplication::Ref g_MainApplication;
 extern char **__system_argv;
 extern bool g_UpdatedNeedsRename;
 
-String LowerCaseString(String str) {
-    String ret;
-    auto u8_str = str.AsUTF8();
-    std::transform(u8_str.begin(), u8_str.end(), u8_str.begin(), tolower);
-    return u8_str;
+std::string LowerCaseString(const std::string &str) {
+    auto copy = str;
+    std::transform(copy.begin(), copy.end(), copy.begin(), tolower);
+    return copy;
 }
 
 std::string LanguageToString(const Language lang) {
@@ -106,7 +105,7 @@ Language StringToLanguage(const std::string &str) {
     }
 }
 
-String Version::AsString() {
+std::string Version::AsString() {
     auto as_str = std::to_string(this->major) + "." + std::to_string(this->minor);
     if(this->micro > 0) {
         as_str += "." + std::to_string(this->micro);
@@ -114,14 +113,14 @@ String Version::AsString() {
     return as_str;
 }
 
-Version Version::FromString(String ver_str) {
+Version Version::FromString(const std::string &ver_str) {
     auto ver_str_cpy = ver_str;
     Version v = {};
     size_t pos = 0;
-    String token;
+    std::string token;
     u32 c = 0;
-    String delimiter = ".";
-    while((pos = ver_str_cpy.find(delimiter)) != String::npos) {
+    std::string delimiter = ".";
+    while((pos = ver_str_cpy.find(delimiter)) != std::string::npos) {
         token = ver_str_cpy.substr(0, pos);
         if(c == 0) {
             v.major = std::stoi(token);

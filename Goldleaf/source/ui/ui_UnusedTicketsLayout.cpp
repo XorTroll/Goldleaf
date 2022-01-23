@@ -28,13 +28,12 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     UnusedTicketsLayout::UnusedTicketsLayout() : pu::ui::Layout() {
-        this->tiks_menu = pu::ui::elm::Menu::New(0, 160, 1280, g_Settings.custom_scheme.Base, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->tiks_menu->SetOnFocusColor(g_Settings.custom_scheme.BaseFocus);
+        this->tiks_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->tiks_menu);
         this->no_unused_tiks_text = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(199));
         this->no_unused_tiks_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->no_unused_tiks_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->no_unused_tiks_text->SetColor(g_Settings.custom_scheme.Text);
+        this->no_unused_tiks_text->SetColor(g_Settings.custom_scheme.text);
         this->Add(this->no_unused_tiks_text);
         this->Add(this->tiks_menu);
     }
@@ -54,9 +53,9 @@ namespace ui {
                 // TODO: maybe show whether it's common or personalized?
                 auto tik_name = hos::FormatApplicationId(tik_app_id);
                 auto itm = pu::ui::elm::MenuItem::New(tik_name);
-                itm->SetColor(g_Settings.custom_scheme.Text);
+                itm->SetColor(g_Settings.custom_scheme.text);
                 itm->SetIcon(g_Settings.PathForResource("/Common/Ticket.png"));
-                itm->AddOnClick(std::bind(&UnusedTicketsLayout::tickets_Click, this, tik));
+                itm->AddOnKey(std::bind(&UnusedTicketsLayout::tickets_DefaultKey, this, tik));
                 this->tiks_menu->AddItem(itm);
                 has_any = true;
             }
@@ -69,7 +68,7 @@ namespace ui {
         }
     }
 
-    void UnusedTicketsLayout::tickets_Click(const hos::Ticket tik) {
+    void UnusedTicketsLayout::tickets_DefaultKey(const hos::Ticket tik) {
         auto info = cfg::strings::Main.GetString(201) + "\n\n\n";
         const auto tik_app_id = tik.GetApplicationId();
         info += cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(tik_app_id);

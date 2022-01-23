@@ -33,7 +33,7 @@ namespace ui {
             StorageContentsLayout();
             PU_SMART_CTOR(StorageContentsLayout)
 
-            void contents_Click();
+            void contents_DefaultKey();
             void LoadFromStorage(NcmStorageId storage_id);
 
             inline std::vector<hos::Title> &GetContents() {

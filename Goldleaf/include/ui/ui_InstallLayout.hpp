@@ -29,11 +29,12 @@ namespace ui {
             pu::ui::elm::TextBlock::Ref install_top_text;
             pu::ui::elm::TextBlock::Ref install_bottom_text;
             pu::ui::elm::ProgressBar::Ref install_p_bar;
+
         public:
             InstallLayout();
             PU_SMART_CTOR(InstallLayout)
 
-            void StartInstall(String path, fs::Explorer *exp, NcmStorageId storage_id, bool omit_confirmation = false);
+            void StartInstall(const std::string &path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation = false);
     };
 
 }

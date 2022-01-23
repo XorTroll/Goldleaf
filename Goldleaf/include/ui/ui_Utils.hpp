@@ -24,17 +24,11 @@
 
 namespace ui {
 
-    void SetClipboard(String path);
-    void ClearClipboard();
-    bool ClipboardEmpty();
+    void SetClipboard(const std::string &path);
 
-    inline bool ClipboardNotEmpty() {
-        return !ClipboardEmpty();
-    }
-
-    void ShowPowerTasksDialog(String title, String msg);
-    String AskForText(String guide_text = "", String initial_text = "", int max_len = -1);
-    void HandleResult(Result rc, String context);
+    void ShowPowerTasksDialog(const std::string &title, const std::string &msg);
+    std::string AskForText(const std::string &guide_text = "", const std::string &initial_text = "", const int max_len = -1);
+    void HandleResult(const Result rc, const std::string &context);
 
     ColorScheme GenerateRandomScheme();
 

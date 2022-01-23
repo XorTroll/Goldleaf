@@ -31,7 +31,7 @@ namespace ui {
     UpdateLayout::UpdateLayout() {
         this->info_text = pu::ui::elm::TextBlock::New(150, 320, "(...)");
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->info_text->SetColor(g_Settings.custom_scheme.Text);
+        this->info_text->SetColor(g_Settings.custom_scheme.text);
         this->download_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->download_p_bar);
         this->Add(this->info_text);
@@ -43,19 +43,19 @@ namespace ui {
         this->info_text->SetText(cfg::strings::Main.GetString(305));
         g_MainApplication->CallForRender();
 
-        const auto &json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
+        const auto json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
         if(json_data.empty()) {
             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
             g_MainApplication->ReturnToMainMenu();
             return;
         }
-        const auto &json = JSON::parse(json_data);
+        const auto json = JSON::parse(json_data);
         if(json.size() <= 0) {
             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
             g_MainApplication->ReturnToMainMenu();
             return;
         }
-        const auto &last_id = json[0].value("tag_name", "");
+        const auto last_id = json[0].value("tag_name", "");
         if(last_id.empty()) {
             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
             g_MainApplication->ReturnToMainMenu();
@@ -65,7 +65,7 @@ namespace ui {
         g_MainApplication->CallForRender();
 
         const auto last_ver = Version::FromString(last_id);
-        const auto cur_ver = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO); // Defined in Makefile
+        const auto cur_ver = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO);
         if(last_ver.IsEqual(cur_ver)) {
             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(307), { cfg::strings::Main.GetString(234) }, true);
         }
@@ -81,11 +81,10 @@ namespace ui {
                 
                 hos::LockAutoSleep();
                 this->download_p_bar->SetVisible(true);
-                auto download_url = "https://github.com/XorTroll/Goldleaf/releases/download/" + last_id + "/Goldleaf.nro";
+                const auto download_url = "https://github.com/XorTroll/Goldleaf/releases/download/" + last_id + "/Goldleaf.nro";
                 sd_exp->DeleteFile(GLEAF_PATH_TEMP_UPDATE_NRO);
-                net::RetrieveToFile(download_url, sd_exp->AbsolutePathFor(GLEAF_PATH_TEMP_UPDATE_NRO).AsUTF8(), [&](double done, double total)
-                {
-                    this->download_p_bar->SetMaxValue(total);
+                net::RetrieveToFile(download_url, sd_exp->AbsolutePathFor(GLEAF_PATH_TEMP_UPDATE_NRO), [&](const double done, const double total) {
+                    this->download_p_bar->SetMaxProgress(total);
                     this->download_p_bar->SetProgress(done);
                     g_MainApplication->CallForRender();
                 });
