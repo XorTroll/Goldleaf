@@ -28,13 +28,16 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     CopyLayout::CopyLayout() {
-        this->info_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
+        this->info_text = pu::ui::elm::TextBlock::New(0, 360, cfg::strings::Main.GetString(151));
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->info_text->SetColor(g_Settings.custom_scheme.text);
-        this->copy_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->copy_p_bar);
+        this->copy_total_p_bar = pu::ui::elm::ProgressBar::New(340, 320, 600, 30, 100.0f);
+        g_Settings.ApplyProgressBarColor(this->copy_total_p_bar);
+        this->copy_file_p_bar = pu::ui::elm::ProgressBar::New(340, 400, 600, 30, 100.0f);
+        g_Settings.ApplyProgressBarColor(this->copy_file_p_bar);
         this->Add(this->info_text);
-        this->Add(this->copy_p_bar);
+        this->Add(this->copy_total_p_bar);
+        this->Add(this->copy_file_p_bar);
     }
 
     void CopyLayout::StartCopy(const std::string &path, const std::string &new_path) {
@@ -50,10 +53,16 @@ namespace ui {
                     return;
                 }
             }
+
+            const auto dir_name = fs::GetFileName(path);
             hos::LockAutoSleep();
-            exp->CopyDirectoryProgress(path, new_path, [&](const double done, const double total) {
-                this->copy_p_bar->SetMaxProgress(total);
-                this->copy_p_bar->SetProgress(done);
+            this->copy_file_p_bar->SetVisible(true);
+            exp->CopyDirectoryProgress(path, new_path, [&](const size_t cur_size, const size_t total_size, const std::string &cur_file_name, const size_t cur_file_size, const size_t total_file_size) {
+                this->info_text->SetText(cur_file_name);
+                this->copy_total_p_bar->SetMaxProgress(total_size);
+                this->copy_total_p_bar->SetProgress(cur_size);
+                this->copy_file_p_bar->SetMaxProgress(total_file_size);
+                this->copy_file_p_bar->SetProgress(cur_file_size);
                 g_MainApplication->CallForRender();
             });
             hos::UnlockAutoSleep();
@@ -67,10 +76,14 @@ namespace ui {
                 }
             }
             new_exp->DeleteFile(new_path);
+
+            const auto file_name = fs::GetFileName(path);
             hos::LockAutoSleep();
-            exp->CopyFileProgress(path, new_path, [&](const double done, const double total) {
-                this->copy_p_bar->SetMaxProgress(total);
-                this->copy_p_bar->SetProgress(done);
+            this->copy_file_p_bar->SetVisible(false);
+            this->info_text->SetText(file_name);
+            exp->CopyFileProgress(path, new_path, [&](const size_t cur_size, const size_t total_size) {
+                this->copy_total_p_bar->SetMaxProgress(total_size);
+                this->copy_total_p_bar->SetProgress(cur_size);
                 g_MainApplication->CallForRender();
             });
             hos::UnlockAutoSleep();

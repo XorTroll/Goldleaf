@@ -26,8 +26,10 @@ namespace ui {
 
     class CopyLayout : public pu::ui::Layout {
         private:
+            pu::ui::elm::ProgressBar::Ref copy_total_p_bar;
             pu::ui::elm::TextBlock::Ref info_text;
-            pu::ui::elm::ProgressBar::Ref copy_p_bar;
+            pu::ui::elm::ProgressBar::Ref copy_file_p_bar;
+
         public:
             CopyLayout();
             PU_SMART_CTOR(CopyLayout)

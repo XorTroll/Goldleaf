@@ -33,15 +33,15 @@ namespace fs {
         SdCard = 5,
     };
 
-    constexpr size_t Size4GB = 0x100000000;
-    constexpr size_t WorkBufferSize = 0x800000; // 8MB
+    constexpr size_t WorkBufferSize = 8_MB;
 
     void CreateConcatenationFile(const std::string &path);
 
-    using CopyCallback = std::function<void(const double, const double)>;
+    using CopyFileCallback = std::function<void(const size_t, const size_t)>;
+    using CopyDirectoryCallback = std::function<void(const size_t, const size_t, const std::string&, const size_t, const size_t)>;
     
-    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyCallback cb_fn);
-    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyCallback cb_fn);
+    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn);
+    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn);
     
     inline std::string GetFileName(const std::string &path) {
         return path.substr(path.find_last_of("/") + 1);
@@ -68,5 +68,15 @@ namespace fs {
     std::string FormatSize(const u64 bytes);
 
     u8 *GetWorkBuffer();
+
+    inline Result MountTitleSaveData(const u64 app_id, const AccountUid user_id, FsFileSystem &out_fs) {
+        const FsSaveDataAttribute attr = {
+            .application_id = app_id,
+            .uid = user_id,
+            .save_data_type = FsSaveDataType_Account
+        };
+
+        return fsOpenSaveDataFileSystem(std::addressof(out_fs), FsSaveDataSpaceId_User, &attr);
+    }
 
 }

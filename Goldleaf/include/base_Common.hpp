@@ -42,6 +42,18 @@
 
 using JSON = nlohmann::json;
 
+inline constexpr size_t operator ""_KB(unsigned long long n) {
+    return n * 0x400;
+}
+
+inline constexpr size_t operator ""_MB(unsigned long long n) {
+    return operator ""_KB(n) * 0x400;
+}
+
+inline constexpr size_t operator ""_GB(unsigned long long n) {
+    return operator ""_MB(n) * 0x400;
+}
+
 #define GLEAF_LOG_WARN_PREFIX "[WARN] "
 #define GLEAF_LOG_ERR_PREFIX "[ERROR] "
 
@@ -76,8 +88,6 @@ using JSON = nlohmann::json;
         diagAbortWithResult(_tmp_rc); \
     } \
 })
-
-// TODO: switch to LogManager for logging?
 
 #define GLEAF_PATH_ROOT_DIR "switch/Goldleaf"
 
@@ -203,4 +213,7 @@ Language StringToLanguage(const std::string &str);
 std::string LowerCaseString(const std::string &str);
 u32 RandomFromRange(const u32 min, const u32 max);
 void EnsureDirectories();
+
+// TODO: switch to LogManager for logging?
+
 void LogImpl(const char *log_buf, const size_t log_buf_len);

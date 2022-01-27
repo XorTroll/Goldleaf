@@ -48,7 +48,7 @@ namespace ui {
         this->sd_free_text = pu::ui::elm::TextBlock::New(125, 385, "...");
         this->sd_free_text->SetColor(g_Settings.custom_scheme.text);
     
-        this->nand_text = pu::ui::elm::TextBlock::New(615, 300, cfg::strings::Main.GetString(79));
+        this->nand_text = pu::ui::elm::TextBlock::New(620, 300, cfg::strings::Main.GetString(79));
         this->nand_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Large));
         this->nand_text->SetColor(g_Settings.custom_scheme.text);
         this->nand_space_bar = pu::ui::elm::ProgressBar::New(620, 345, 450, 30, 100.0f);

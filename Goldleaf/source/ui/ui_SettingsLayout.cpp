@@ -69,9 +69,9 @@ namespace ui {
         g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + fw_display_version + "...");
         const auto out_dir = sd_exp->FullPathFor(GLEAF_PATH_DUMP_UPDATE_DIR "/" + fw_display_version);
         sd_exp->DeleteDirectory(out_dir);
-        exp->CopyDirectoryProgress(fw_path, out_dir, [&](const double done, const double total) {
-            this->info_p_bar->SetMaxProgress(total);
-            this->info_p_bar->SetProgress(done);
+        exp->CopyDirectoryProgress(fw_path, out_dir, [&](const size_t cur_size, const size_t total_size, const std::string &cur_file_name, const size_t cur_file_size, const size_t total_file_size) {
+            this->info_p_bar->SetMaxProgress(total_size);
+            this->info_p_bar->SetProgress(cur_size);
             g_MainApplication->CallForRender();
         });
         // Rename meta NCAs to .cnmt.nca so that this update is valid for Daybreak

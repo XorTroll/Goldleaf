@@ -56,14 +56,4 @@ namespace fs {
             static std::string GetNANDPartitionName(const Partition part);
     };
 
-    inline Result MountTitleSaveData(const u64 app_id, const AccountUid user_id, FsFileSystem &out_fs) {
-        const FsSaveDataAttribute attr = {
-            .application_id = app_id,
-            .uid = user_id,
-            .save_data_type = FsSaveDataType_Account
-        };
-
-        return fsOpenSaveDataFileSystem(std::addressof(out_fs), FsSaveDataSpaceId_User, &attr);
-    }
-
 }

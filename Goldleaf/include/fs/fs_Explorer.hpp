@@ -28,7 +28,7 @@ namespace fs {
         None,
         Read,
         Write,
-        Append,
+        Append
     };
 
     class Explorer {
@@ -47,8 +47,15 @@ namespace fs {
             bool NavigateBack();
             bool NavigateForward(const std::string &path);
             std::vector<std::string> GetContents();
-            std::string GetMountName();
-            std::string GetCwd();
+            
+            inline std::string GetMountName() {
+                return this->mnt_name;
+            }
+
+            inline std::string GetCwd() {
+                return this->cwd;
+            }
+
             std::string GetPresentableCwd();
         
             inline std::string FullPathFor(const std::string &path) {
@@ -113,23 +120,23 @@ namespace fs {
             }
 
             void CopyFile(const std::string &path, const std::string &new_path);
-            void CopyFileProgress(const std::string &path, const std::string &new_path, std::function<void(double Done, double Total)> cb_fn);
+            void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn);
             void CopyDirectory(const std::string &dir, const std::string &new_dir);
-            void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, std::function<void(double Done, double Total)> cb_fn);
+            void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn);
             bool IsFileBinary(const std::string &path);
             std::vector<u8> ReadFile(const std::string &path);
             JSON ReadJSON(const std::string &path);
 
-            inline void WriteJSON(const JSON &json, const std::string &path) {
+            inline void WriteJSON(const std::string &path, const JSON &json) {
                 const auto json_str = json.dump(4);
                 this->WriteFile(path, json_str.c_str(), json_str.length());
             }
 
-            std::vector<std::string> ReadFileLines(const std::string &path, u32 line_offset, u32 line_count);
-            std::vector<std::string> ReadFileFormatHex(const std::string &path, u32 line_offset, u32 line_count);
+            std::vector<std::string> ReadFileLines(const std::string &path, const u32 line_offset, const u32 line_count);
+            std::vector<std::string> ReadFileFormatHex(const std::string &path, const u32 line_offset, const u32 line_count);
             u64 GetDirectorySize(const std::string &path);
 
-            inline void SetShouldWarnOnWriteAccess(bool should_warn) {
+            inline void SetShouldWarnOnWriteAccess(const bool should_warn) {
                 this->warn_write = should_warn;
             }
 
@@ -161,7 +168,7 @@ namespace fs {
                 return this->started_file_mode != FileMode::None;
             }
 
-            void StartFile(const std::string &path, FileMode mode) {
+            void StartFile(const std::string &path, const FileMode mode) {
                 if(!this->HasStartedFile()) {
                     this->StartFileImpl(path, mode);
                     this->started_file_mode = mode;

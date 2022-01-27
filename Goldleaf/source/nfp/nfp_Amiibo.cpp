@@ -131,8 +131,7 @@ namespace nfp {
         amiibo["id"]["model_number"] = __builtin_bswap16(static_cast<u16>(id_ref->model_number));
         amiibo["id"]["figure_type"] = id_ref->figure_type;
 
-        const auto amiibo_json = amiibo.dump(4);
-        sd_exp->WriteFile(amiibo_path + "/amiibo.json", amiibo_json.c_str(), amiibo_json.length());
+        sd_exp->WriteJSON(amiibo_path + "/amiibo.json", amiibo);
     }
 
     void Close() {

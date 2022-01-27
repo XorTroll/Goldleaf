@@ -34,17 +34,19 @@ namespace fs {
         fsdevCreateFile(path.c_str(), 0, FsCreateOption_BigFile);
     }
 
-    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyCallback cb_fn) {
+    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn) {
         auto exp = GetExplorerForPath(path);
         auto new_exp = GetExplorerForPath(new_path);
+
+        auto sd_exp = GetSdCardExplorer();
         const auto file_size = exp->GetFileSize(path);
-        if((file_size >= Size4GB) && (new_exp == GetSdCardExplorer())) {
+        if((file_size >= 4_GB) && (new_exp == sd_exp)) {
             CreateConcatenationFile(new_path);
         }
         exp->CopyFileProgress(path, new_path, cb_fn);
     }
 
-    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyCallback cb_fn) {
+    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn) {
         auto exp = GetExplorerForPath(dir);
         exp->CopyDirectoryProgress(dir, new_dir, cb_fn);
     }
