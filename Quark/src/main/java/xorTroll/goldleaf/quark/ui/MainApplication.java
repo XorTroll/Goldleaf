@@ -54,8 +54,8 @@ import xorTroll.goldleaf.quark.usb.Command;
 import xorTroll.goldleaf.quark.usb.USBInterface;
 
 public class MainApplication extends Application {
-    public static final Version QuarkVersion = new Version(0, 4, 0);
-    public static final Version MinimumGoldleafVersion = new Version(0, 8, 0);
+    public static final Version QuarkVersion = new Version(0, 5, 0);
+    public static final Version MinimumGoldleafVersion = new Version(0, 10, 0);
 
     private static final int WIDTH = 900;
     private static final int HEIGHT = 400;

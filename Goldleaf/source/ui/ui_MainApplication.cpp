@@ -64,10 +64,10 @@ namespace ui {
         this->read_values_once = false;
         this->cur_conn_strength = 0;
         this->base_img = pu::ui::elm::Image::New(0, 0, g_Settings.PathForResource("/Base.png"));
-        this->time_text = pu::ui::elm::TextBlock::New(1124, 15, "00:00:00");
+        this->time_text = pu::ui::elm::TextBlock::New(1124, 18, "...");
         this->time_text->SetColor(g_Settings.custom_scheme.text);
-        this->battery_text = pu::ui::elm::TextBlock::New(1015, 20, "0%");
-        this->battery_text->SetFont("DefaultFont@20");
+        this->battery_text = pu::ui::elm::TextBlock::New(1015, 22, "...");
+        this->battery_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->battery_text->SetColor(g_Settings.custom_scheme.text);
         this->battery_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/0.png"));
         this->battery_charge_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/Charge.png"));
@@ -91,16 +91,16 @@ namespace ui {
         this->conn_img->SetWidth(40);
         this->conn_img->SetHeight(40);
         this->conn_img->SetVisible(true);
-        this->ip_text = pu::ui::elm::TextBlock::New(800, 20, "");
-        this->ip_text->SetFont("DefaultFont@20");
+        this->ip_text = pu::ui::elm::TextBlock::New(800, 22, "");
+        this->ip_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->ip_text->SetColor(g_Settings.custom_scheme.text);
-        this->menu_name_text = pu::ui::elm::TextBlock::New(120, 85, "-");
+        this->menu_name_text = pu::ui::elm::TextBlock::New(120, 85, "...");
         this->menu_name_text->SetColor(g_Settings.custom_scheme.text);
-        this->menu_head_text = pu::ui::elm::TextBlock::New(120, 120, "-");
-        this->menu_head_text->SetFont("DefaultFont@20");
+        this->menu_head_text = pu::ui::elm::TextBlock::New(120, 120, "...");
+        this->menu_head_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->menu_head_text->SetColor(g_Settings.custom_scheme.text);
         this->UnloadMenuData();
-        this->toast = pu::ui::extras::Toast::New(":", "DefaultFont@20", pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
+        this->toast = pu::ui::extras::Toast::New("...", pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium), pu::ui::Color(225, 225, 225, 255), pu::ui::Color(40, 40, 40, 255));
         this->UpdateValues();
         this->main_menu_lyt = MainMenuLayout::New();
         this->partition_browser_lyt = PartitionBrowserLayout::New();
@@ -239,11 +239,11 @@ namespace ui {
         this->usb_img->SetVisible(this->usb_ok);
         u32 conn_strength = 0;
         nifmGetInternetConnectionStatus(nullptr, &conn_strength, nullptr);
-        std::string conn_img_name = "None";
-        if(conn_strength > 0) {
-            conn_img_name = std::to_string(conn_strength);
-        }
         if(conn_strength != this->cur_conn_strength) {
+            std::string conn_img_name = "None";
+            if(conn_strength > 0) {
+                conn_img_name = std::to_string(conn_strength);
+            }
             this->conn_img->SetImage(g_Settings.PathForResource("/Connection/" + conn_img_name + ".png"));
             this->conn_img->SetWidth(40);
             this->conn_img->SetHeight(40);

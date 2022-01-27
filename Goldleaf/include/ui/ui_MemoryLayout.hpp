@@ -28,16 +28,23 @@ namespace ui {
         private:
             pu::ui::elm::TextBlock::Ref sd_text;
             pu::ui::elm::ProgressBar::Ref sd_space_bar;
-            pu::ui::elm::TextBlock::Ref sd_free_space_text;
+            pu::ui::elm::TextBlock::Ref sd_free_text;
+            
             pu::ui::elm::TextBlock::Ref nand_text;
             pu::ui::elm::ProgressBar::Ref nand_space_bar;
             pu::ui::elm::TextBlock::Ref nand_free_text;
+
             pu::ui::elm::TextBlock::Ref nand_safe_text;
             pu::ui::elm::ProgressBar::Ref nand_safe_space_bar;
+            pu::ui::elm::TextBlock::Ref nand_safe_free_text;
+
             pu::ui::elm::TextBlock::Ref nand_system_text;
             pu::ui::elm::ProgressBar::Ref nand_system_space_bar;
+            pu::ui::elm::TextBlock::Ref nand_system_free_text;
+            
             pu::ui::elm::TextBlock::Ref nand_user_text;
             pu::ui::elm::ProgressBar::Ref nand_user_space_bar;
+            pu::ui::elm::TextBlock::Ref nand_user_free_text;
         public:
             MemoryLayout();
             PU_SMART_CTOR(MemoryLayout)
