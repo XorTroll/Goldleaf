@@ -50,16 +50,6 @@ namespace ui {
                 const auto common = nfp::GetCommonInfo();
                 const auto reg = nfp::GetRegisterInfo();
 
-                const auto admin = nfp::GetAdminInfo();
-
-                char msg[0x100] = {};
-                sprintf(msg, "progid: 0x%llX\naccessid: 0x%X\ncrc32cnt: %d\nflags_c: %d\nunk_8: %d\nunk_8_2: %d", admin.program_id, admin.access_id, admin.crc32_change_counter, admin.flags_c, admin.unk_8, admin.unk_8_2);
-
-                g_MainApplication->CreateShowDialog("AdminInfo", msg, { "Ok" }, true);
-                nfp::Close();
-                nfp::Exit();
-                return;
-
                 const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(283), cfg::strings::Main.GetString(317) + " '" + reg.amiibo_name + "'?", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
                 if(option == 0) {
                     this->info_txt->SetText(cfg::strings::Main.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::strings::Main.GetString(297));

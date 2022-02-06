@@ -88,15 +88,6 @@ namespace nfp {
         return model_info;
     }
 
-    AdminInfo GetAdminInfo() {
-        AdminInfo admin_info = {};
-        serviceDispatchIn(nfpGetServiceSession_Interface(), 101, g_DeviceHandle,
-            .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
-            .buffers = { { &admin_info, sizeof(admin_info) } },
-        );
-        return admin_info;
-    }
-
     void DumpToEmuiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model) {
         auto sd_exp = fs::GetSdCardExplorer();
 
