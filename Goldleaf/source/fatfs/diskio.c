@@ -54,7 +54,9 @@ DRESULT disk_read (
     if(R_SUCCEEDED(fsStorageRead(&g_FatFsDumpBisStorage, FF_MAX_SS * sector, buff, FF_MAX_SS * count))) {
         return RES_OK;
     }
-    return RES_ERROR;
+    else {
+        return RES_ERROR;
+    }
 }
 
 

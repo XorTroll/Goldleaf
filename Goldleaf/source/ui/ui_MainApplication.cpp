@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 */
 
 #include <ui/ui_MainApplication.hpp>
+#include <usb/usb_Base.hpp>
 
 extern ui::MainApplication::Ref g_MainApplication;
 extern cfg::Settings g_Settings;
@@ -235,7 +236,7 @@ namespace ui {
             this->read_values_once = true;
         }
 
-        this->usb_ok = usb::detail::IsStateOk();
+        this->usb_ok = usb::IsStateOk();
         this->usb_img->SetVisible(this->usb_ok);
         u32 conn_strength = 0;
         nifmGetInternetConnectionStatus(nullptr, &conn_strength, nullptr);

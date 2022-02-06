@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ int main() {
     // Create the UI renderer and the application - it will initialize romfs
     auto renderer_opts = pu::ui::render::RendererInitOptions(SDL_INIT_EVERYTHING, pu::ui::render::RendererHardwareFlags);
     renderer_opts.UseImage(pu::ui::render::IMGAllFlags);
-    renderer_opts.UseAudio(pu::ui::render::MixerAllFlags);
     renderer_opts.UseTTF();
     renderer_opts.SetExtraDefaultFontSize(35);
     renderer_opts.UseRomfs();

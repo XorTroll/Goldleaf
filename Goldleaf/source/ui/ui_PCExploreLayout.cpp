@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
+#include <usb/cf/cf_CommandFramework.hpp>
 
 extern ui::MainApplication::Ref g_MainApplication;
 extern cfg::Settings g_Settings;
@@ -37,52 +38,52 @@ namespace ui {
         this->names.clear();
         this->paths.clear();
         this->paths_menu->ClearItems();
-        u32 drive_count = 0;
-        auto rc = usb::ProcessCommand<usb::CommandId::GetDriveCount>(usb::OutValue(drive_count));
-        if(R_SUCCEEDED(rc)) {
+
+        u32 drive_count;
+        if(R_SUCCEEDED(usb::cf::GetDriveCount(drive_count))) {
             for(u32 i = 0; i < drive_count; i++) {
                 std::string label;
                 std::string path;
-                u32 tmp_total_size = 0;
-                u32 tmp_free_size = 0;
+                size_t tmp_total_size;
+                size_t tmp_free_size;
                 // TODO (low priority): make use of drive sizes?
-                rc = usb::ProcessCommand<usb::CommandId::GetDriveInfo>(usb::InValue(i), usb::OutString(label), usb::OutString(path), usb::OutValue(tmp_total_size), usb::OutValue(tmp_free_size));
-                if(R_SUCCEEDED(rc)) {
+                if(R_SUCCEEDED(usb::cf::GetDriveInfo(i, label, path, tmp_total_size, tmp_free_size))) {
                     this->names.push_back(label + " (" + path + ":\\)");
                     this->paths.push_back(path);
                 }
             }
         }
-        u32 path_count = 0;
-        rc = usb::ProcessCommand<usb::CommandId::GetSpecialPathCount>(usb::OutValue(path_count));
-        if(R_SUCCEEDED(rc)) {
+
+        u32 path_count;
+        if(R_SUCCEEDED(usb::cf::GetSpecialPathCount(path_count))) {
             for(u32 i = 0; i < path_count; i++) {
                 std::string name;
                 std::string path;
-                rc = usb::ProcessCommand<usb::CommandId::GetSpecialPath>(usb::InValue(i), usb::OutString(name), usb::OutString(path));
-                if(R_SUCCEEDED(rc)) {
+                if(R_SUCCEEDED(usb::cf::GetSpecialPath(i, name, path))) {
                     this->names.push_back(name);
                     this->paths.push_back(path);    
                 }
             }
         }
+
         for(u32 i = 0; i < this->names.size(); i++) {
-            auto itm = pu::ui::elm::MenuItem::New(this->names[i]);
-            itm->SetColor(g_Settings.custom_scheme.text);
+            auto item = pu::ui::elm::MenuItem::New(this->names[i]);
+            item->SetColor(g_Settings.custom_scheme.text);
             if(i < drive_count) {
-                itm->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
+                item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
             }
             else {
-                itm->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
+                item->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
             }
-            itm->AddOnKey(std::bind(&PCExploreLayout::path_DefaultKey, this));
-            this->paths_menu->AddItem(itm);
+            item->AddOnKey(std::bind(&PCExploreLayout::path_DefaultKey, this));
+            this->paths_menu->AddItem(item);
         }
-        auto file_select_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
-        file_select_itm->SetColor(g_Settings.custom_scheme.text);
-        file_select_itm->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
-        file_select_itm->AddOnKey(std::bind(&PCExploreLayout::fileSelect_DefaultKey, this));
-        this->paths_menu->AddItem(file_select_itm);
+
+        auto file_select_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
+        file_select_item->SetColor(g_Settings.custom_scheme.text);
+        file_select_item->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
+        file_select_item->AddOnKey(std::bind(&PCExploreLayout::fileSelect_DefaultKey, this));
+        this->paths_menu->AddItem(file_select_item);
         this->paths_menu->SetSelectedIndex(0);
     }
 
@@ -94,8 +95,7 @@ namespace ui {
 
     void PCExploreLayout::fileSelect_DefaultKey() {
         std::string selected_file;
-        const auto rc = usb::ProcessCommand<usb::CommandId::SelectFile>(usb::OutString(selected_file));
-        if(R_SUCCEEDED(rc)) {
+        if(R_SUCCEEDED(usb::cf::SelectFile(selected_file))) {
             g_MainApplication->GetBrowserLayout()->HandleFileDirectly(selected_file);
         }
     }

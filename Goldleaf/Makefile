@@ -39,7 +39,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source/fatfs source/acc source/sm source/amssu source/bpcams source/dump source/err source/es source/fs source/drive source/hos source/ncm source/net source/ns source/nsp source/cfg source/nfp source/ui source/usb source
+SOURCES		:=	source/fatfs source/acc source/sm source/amssu source/bpcams source/dump source/err source/es source/fs source/drive source/hos source/ncm source/net source/ns source/nsp source/cfg source/nfp source/ui source/usb source/usb/cmd source
 INCLUDES	:=	include
 DATA		:=	data
 ROMFS		:=	romfs
@@ -51,7 +51,7 @@ VER_MICRO	:= 0
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
-# "-dev" prefix is manually appended when a new version is under development.
+# "-dev" prefix is manually appended when a new version is under development
 APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
 
 #---------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lusbhsfs -lntfs-3g -l
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium/out $(CURDIR)/../libusbhsfs
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium $(CURDIR)/../libusbhsfs
 
 
 #---------------------------------------------------------------------------------

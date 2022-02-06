@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
+#include <usb/usb_Base.hpp>
 
 extern ui::MainApplication::Ref g_MainApplication;
 extern cfg::Settings g_Settings;
@@ -90,7 +91,7 @@ namespace ui {
     }
 
     void ExploreMenuLayout::pcDrive_DefaultKey() {
-        if(usb::detail::IsStateOk()) {
+        if(usb::IsStateOk()) {
             g_MainApplication->GetPCExploreLayout()->UpdatePaths();
             g_MainApplication->LoadLayout(g_MainApplication->GetPCExploreLayout());
         }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
-#include <usb/usb_Detail.hpp>
+#include <usb/usb_Base.hpp>
 #include <es/es_Service.hpp>
 #include <amssu/amssu_Service.hpp>
 #include <ui/ui_MainApplication.hpp>
@@ -200,7 +200,7 @@ Result Initialize() {
     GLEAF_RC_TRY(psmInitialize());
     GLEAF_RC_TRY(setInitialize());
     GLEAF_RC_TRY(setsysInitialize());
-    GLEAF_RC_TRY(usb::detail::Initialize());
+    GLEAF_RC_TRY(usb::Initialize());
     GLEAF_RC_TRY(nifmInitialize(NifmServiceType_Admin));
     GLEAF_RC_TRY(pdmqryInitialize());
     GLEAF_RC_TRY(amssu::Initialize());
@@ -225,7 +225,7 @@ void NORETURN Exit(const Result rc) {
     fs::Finalize();
     drive::Exit();
     amssu::Exit();
-    usb::detail::Exit();
+    usb::Exit();
     setsysExit();
     setExit();
     psmExit();

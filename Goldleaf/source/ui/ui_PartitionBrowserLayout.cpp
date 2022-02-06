@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,45 +99,45 @@ namespace ui {
         this->browse_menu->SetVisible(!contents.empty());
         this->empty_dir_text->SetVisible(contents.empty());
         if(!contents.empty()) {
-            for(const auto &itm: contents) {
-                auto menu_itm = pu::ui::elm::MenuItem::New(itm);
-                menu_itm->SetColor(g_Settings.custom_scheme.text);
-                if(this->cur_exp->IsDirectory(itm)) {
-                    menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
+            for(const auto &item: contents) {
+                auto menu_item = pu::ui::elm::MenuItem::New(item);
+                menu_item->SetColor(g_Settings.custom_scheme.text);
+                if(this->cur_exp->IsDirectory(item)) {
+                    menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
                 }
                 else {
-                    const auto ext = LowerCaseString(fs::GetExtension(itm));
+                    const auto ext = LowerCaseString(fs::GetExtension(item));
                     if(ext == "nsp") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NSP.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NSP.png"));
                     }
                     else if(ext == "nro") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NRO.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NRO.png"));
                     }
                     else if(ext == "tik") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/TIK.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/TIK.png"));
                     }
                     else if(ext == "cert") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/CERT.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/CERT.png"));
                     }
                     else if(ext == "nxtheme") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NXTheme.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NXTheme.png"));
                     }
                     else if(ext == "nca") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NCA.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NCA.png"));
                     }
                     else if(ext == "nacp") {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/NACP.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NACP.png"));
                     }
                     else if((ext == "jpg") || (ext == "jpeg")) {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/JPEG.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/JPEG.png"));
                     }
                     else {
-                        menu_itm->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
+                        menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
                     }
                 }
-                menu_itm->AddOnKey(std::bind(&PartitionBrowserLayout::fsItems_DefaultKey, this, itm));
-                menu_itm->AddOnKey(std::bind(&PartitionBrowserLayout::fsItems_Y, this, itm), HidNpadButton_Y);
-                this->browse_menu->AddItem(menu_itm);
+                menu_item->AddOnKey(std::bind(&PartitionBrowserLayout::fsItems_DefaultKey, this, item));
+                menu_item->AddOnKey(std::bind(&PartitionBrowserLayout::fsItems_Y, this, item), HidNpadButton_Y);
+                this->browse_menu->AddItem(menu_item);
             }
             u32 tmp_idx = 0;
             if(idx < 0) {
@@ -171,7 +171,7 @@ namespace ui {
 
         const auto idx = std::distance(items.begin(), it);
         this->browse_menu->SetSelectedIndex(idx);
-        fsItems_DefaultKey(file_name);
+        this->fsItems_DefaultKey(file_name);
     }
 
     bool PartitionBrowserLayout::GoBack() {
@@ -195,6 +195,7 @@ namespace ui {
         }
         else {
             const auto ext = LowerCaseString(fs::GetExtension(item));
+            std::string icon_path = "";
             auto msg = cfg::strings::Main.GetString(52) + " ";
             if(ext == "nsp") {
                 msg += cfg::strings::Main.GetString(53);
@@ -216,6 +217,7 @@ namespace ui {
             }
             else if((ext == "jpg") || (ext == "jpeg")) {
                 msg += cfg::strings::Main.GetString(59);
+                icon_path = full_item;
             }
             else {
                 msg += cfg::strings::Main.GetString(270);
@@ -261,7 +263,7 @@ namespace ui {
             dialog_opts.push_back(cfg::strings::Main.GetString(74));
             dialog_opts.push_back(cfg::strings::Main.GetString(75));
             dialog_opts.push_back(cfg::strings::Main.GetString(18));
-            const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(76), msg, dialog_opts, true);
+            const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(76), msg, dialog_opts, true, icon_path);
             if(option_1 < 0) {
                 return;
             }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,9 @@ namespace fs {
 
     constexpr size_t WorkBufferSize = 8_MB;
 
-    void CreateConcatenationFile(const std::string &path);
+    inline void CreateConcatenationFile(const std::string &path) {
+        fsdevCreateFile(path.c_str(), 0, FsCreateOption_BigFile);
+    }
 
     using CopyFileCallback = std::function<void(const size_t, const size_t)>;
     using CopyDirectoryCallback = std::function<void(const size_t, const size_t, const std::string&, const size_t, const size_t)>;

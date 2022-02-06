@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2021 XorTroll
+    Copyright (C) 2018-2022 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,10 +30,8 @@
 #include <hos/hos_Common.hpp>
 #include <ncm/ncm_Types.hpp>
 #include <net/net_Network.hpp>
-#include <nfp/nfp_Amiibo.hpp>
 #include <ns/ns_Service.hpp>
 #include <nsp/nsp_Installer.hpp>
 #include <nsp/nsp_Builder.hpp>
 #include <cfg/cfg_Strings.hpp>
 #include <ui/ui_Utils.hpp>
-#include <usb/usb_Commands.hpp>

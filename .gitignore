@@ -1,6 +1,6 @@
 build/
 Build/
-Output/
+lib/
 *.nso
 *.nro
 *.nacp
