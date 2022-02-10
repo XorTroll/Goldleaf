@@ -219,6 +219,9 @@ namespace ui {
                 msg += cfg::strings::Main.GetString(59);
                 icon_path = full_item;
             }
+            else if(ext == "png") {
+                icon_path = full_item;
+            }
             else {
                 msg += cfg::strings::Main.GetString(270);
             }

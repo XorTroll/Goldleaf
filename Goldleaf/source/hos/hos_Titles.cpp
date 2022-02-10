@@ -333,24 +333,10 @@ namespace hos {
             }
         }
 
-        AvmVersionListImporter importer;
-        auto rc = avmGetVersionListImporter(&importer);
-        if(R_SUCCEEDED(rc)) {
-            const AvmVersionListEntry entry = { title.app_id, cur_max_version, cur_max_version };
-            rc = avmVersionListImporterSetData(&importer, &entry, 1);
-            if(R_SUCCEEDED(rc)) {
-                rc = avmVersionListImporterFlush(&importer);
-            }
-            avmVersionListImporterClose(&importer);
-        }
-
-        /*
         const auto rc = avmPushLaunchVersion(title.app_id, cur_max_version);
         if(R_SUCCEEDED(rc)) {
             return avmUpgradeLaunchRequiredVersion(title.app_id, cur_max_version);
         }
-        */
-
         return rc;
     }
 
