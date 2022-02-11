@@ -53,4 +53,6 @@ namespace cfg {
         _CFG_PROCESS_STRINGS(Results, str_json)
         _CFG_PROCESS_STRINGS(Modules, str_json)
     }
+
+    #undef _CFG_PROCESS_STRINGS
 }

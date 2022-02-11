@@ -29,17 +29,17 @@ namespace cfg {
         std::string url;
     };
 
-    #define CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(type, name) \
+    #define _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(type, name) \
     type name; \
     bool has_##name;
 
     struct Settings {
-        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(Language, custom_lang)
-        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(std::string, external_romfs)
-        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
-        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
-        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
-        CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(u32, menu_item_size)
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(Language, custom_lang)
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(std::string, external_romfs)
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(u32, menu_item_size)
         bool ignore_required_fw_ver;
         std::vector<WebBookmark> bookmarks;
 
@@ -49,6 +49,8 @@ namespace cfg {
         void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu);
         void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &p_bar);
     };
+
+    #undef _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE
 
     Settings ProcessSettings();
     bool Exists();

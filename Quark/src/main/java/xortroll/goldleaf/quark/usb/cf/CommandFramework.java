@@ -46,18 +46,6 @@ public class CommandFramework {
     
     private static List<String> drives;
 
-    private static String cached_get_path;
-    private static List<String> cached_get_path_files;
-    private static List<String> cached_get_path_dirs;
-
-    private static void ensureCachedPath(String path) {
-        if(!path.equals(cached_get_path)) {
-            cached_get_path = path;
-            cached_get_path_files = FileSystem.getFilesIn(path);
-            cached_get_path_dirs = FileSystem.getDirectoriesIn(path);
-        }
-    }
-
     private static RandomAccessFile started_read_file;
     private static RandomAccessFile started_write_file;
 
@@ -170,9 +158,9 @@ public class CommandFramework {
     public static Command GetFileCount = new Command(4, new CommandHandler() {
         public void handle(CommandBlock block) {
             String path = FileSystem.denormalizePath(block.readString());
-            ensureCachedPath(path);
 
-            int file_count = cached_get_path_files.size();
+            List<String> files = FileSystem.getFilesIn(path);
+            int file_count = files.size();
             Logging.log("[cf] GetFileCount(path: '" + path + "') -> count: " + file_count);
 
             block.responseStart();
@@ -185,10 +173,10 @@ public class CommandFramework {
         public void handle(CommandBlock block) {
             String path = FileSystem.denormalizePath(block.readString());
             int file_idx = block.read32();
-            ensureCachedPath(path);
 
-            if(file_idx < cached_get_path_files.size()) {
-                String file = cached_get_path_files.get(file_idx);
+            List<String> files = FileSystem.getFilesIn(path);
+            if(file_idx < files.size()) {
+                String file = files.get(file_idx);
                 Logging.log("[cf] GetFile(path: '" + path + "', idx: " + file_idx + ") -> file: '" + file + "'");
 
                 block.responseStart();
@@ -204,9 +192,9 @@ public class CommandFramework {
     public static Command GetDirectoryCount = new Command(6, new CommandHandler() {
         public void handle(CommandBlock block) {
             String path = FileSystem.denormalizePath(block.readString());
-            ensureCachedPath(path);
 
-            int dir_count = cached_get_path_dirs.size();
+            List<String> dirs = FileSystem.getDirectoriesIn(path);
+            int dir_count = dirs.size();
             Logging.log("[cf] GetDirectoryCount(path: '" + path + "') -> count: " + dir_count);
 
             block.responseStart();
@@ -219,10 +207,10 @@ public class CommandFramework {
         public void handle(CommandBlock block) {
             String path = FileSystem.denormalizePath(block.readString());
             int subdir_idx = block.read32();
-            ensureCachedPath(path);
 
-            if(subdir_idx < cached_get_path_dirs.size()) {
-                String dir = cached_get_path_dirs.get(subdir_idx);
+            List<String> dirs = FileSystem.getDirectoriesIn(path);
+            if(subdir_idx < dirs.size()) {
+                String dir = dirs.get(subdir_idx);
                 Logging.log("[cf] GetDirectory(path: '" + path + "', idx: " + subdir_idx + ") -> dir: '" + dir + "'");
 
                 block.responseStart();

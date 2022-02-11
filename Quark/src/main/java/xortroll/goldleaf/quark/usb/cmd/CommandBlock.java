@@ -78,7 +78,7 @@ public class CommandBlock {
 
     public void writeString(String val) {
         byte[] raw = val.getBytes(StandardCharsets.UTF_8);
-        this.write32(val.length());
+        this.write32(raw.length);
         this.resp_buf.writeBytes(raw);
     }
 
