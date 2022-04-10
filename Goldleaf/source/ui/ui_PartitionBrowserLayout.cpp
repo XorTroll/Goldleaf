@@ -679,7 +679,7 @@ namespace ui {
                             if(option_3 < 0) {
                                 return;
                             }
-                            const auto dst = (option_2 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
+                            const auto dst = (option_3 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
                             for(auto &nsp_name: nsps) {
                                 const auto nsp_path = full_item + "/" + nsp_name;
                                 const auto pres_nsp_path = pres_full_item + "/" + nsp_name;
