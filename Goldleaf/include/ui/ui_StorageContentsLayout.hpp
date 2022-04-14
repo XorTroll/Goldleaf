@@ -26,6 +26,7 @@ namespace ui {
 
     class StorageContentsLayout : public pu::ui::Layout {
         private:
+            NcmStorageId cur_storage_id;
             std::vector<hos::Title> contents;
             pu::ui::elm::TextBlock::Ref no_contents_text;
             pu::ui::elm::Menu::Ref contents_menu;
@@ -34,7 +35,11 @@ namespace ui {
             PU_SMART_CTOR(StorageContentsLayout)
 
             void contents_DefaultKey();
-            void LoadFromStorage(NcmStorageId storage_id);
+            void LoadFromStorage(const NcmStorageId storage_id);
+
+            inline void Reload() {
+                this->LoadFromStorage(this->cur_storage_id);
+            }
 
             inline std::vector<hos::Title> &GetContents() {
                 return this->contents;

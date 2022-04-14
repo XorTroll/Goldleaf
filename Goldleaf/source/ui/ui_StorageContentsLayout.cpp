@@ -71,12 +71,12 @@ namespace ui {
     }
 
     void StorageContentsLayout::contents_DefaultKey() {
-        const auto &selected_cnt = this->contents[this->contents_menu->GetSelectedIndex()];
+        const auto &selected_cnt = this->contents.at(this->contents_menu->GetSelectedIndex());
         g_MainApplication->GetContentInformationLayout()->LoadContent(selected_cnt);
         g_MainApplication->LoadLayout(g_MainApplication->GetContentInformationLayout());
     }
 
-    void StorageContentsLayout::LoadFromStorage(NcmStorageId storage_id) {
+    void StorageContentsLayout::LoadFromStorage(const NcmStorageId storage_id) {
         if(!this->contents.empty()) {
             this->contents_menu->ClearItems();
             this->contents.clear();
@@ -123,6 +123,7 @@ namespace ui {
             this->contents_menu->SetSelectedIndex(0);
         }
         g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(189));
+        this->cur_storage_id = storage_id;
     }
 
 }

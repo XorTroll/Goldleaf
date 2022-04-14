@@ -69,7 +69,7 @@ namespace ui {
         msg += cfg::strings::Main.GetString(170) + " ";
         std::vector<std::string> options = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(414) };
         std::string icon;
-        const auto &sub_cnt = this->cnt_subcontents[idx];
+        const auto &sub_cnt = this->cnt_subcontents.at(idx);
         auto sd_exp = fs::GetSdCardExplorer();
         if(sd_exp->IsFile(hos::GetExportedIconPath(sub_cnt.app_id))) {
             icon = hos::GetExportedIconPath(sub_cnt.app_id);
@@ -166,7 +166,15 @@ namespace ui {
                 }
                 if(R_SUCCEEDED(rc)) {
                     g_MainApplication->ShowNotification(cfg::strings::Main.GetString(246));
-                    g_MainApplication->ReturnToMainMenu();
+                    this->cnt_subcontents.erase(this->cnt_subcontents.begin() + idx);
+                    if(this->cnt_subcontents.empty()) {
+                        g_MainApplication->GetStorageContentsLayout()->Reload();
+                        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
+                        g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
+                    }
+                    else {
+                        this->UpdateElements();
+                    }
                 }
             }
             if(R_FAILED(rc)) {
@@ -222,7 +230,7 @@ namespace ui {
         }
         else if(((option_1 == 3) && !has_tik) || ((option_1 == 4) && has_tik)) {
             // TODO: confirmation dialog
-            const auto rc = hos::UpdateTitleVersion(sub_cnt); // ns::PushLaunchVersion(sub_cnt.app_id, 0);
+            const auto rc = hos::UpdateTitleVersion(sub_cnt);
             if(R_SUCCEEDED(rc)) {
                 g_MainApplication->ShowNotification(cfg::strings::Main.GetString(322));
                 this->UpdateElements();
