@@ -128,6 +128,7 @@ enum class Language {
     Japanese,
     Portuguese,
     ChineseSimplified,
+    ChineseTraditional,
     Korean
 };
 

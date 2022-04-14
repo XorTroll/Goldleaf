@@ -165,6 +165,10 @@ namespace cfg {
                 settings.custom_lang = Language::ChineseSimplified;
                 break;
             }
+            case SetLanguage_ZHHANT: {
+                settings.custom_lang = Language::ChineseTraditional;
+                break;
+            }
             case SetLanguage_KO: {
                 settings.custom_lang = Language::Korean;
                 break;

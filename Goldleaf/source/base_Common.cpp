@@ -62,6 +62,9 @@ std::string LanguageToString(const Language lang) {
         case Language::ChineseSimplified: {
             return "zh-hans";
         }
+        case Language::ChineseTraditional: {
+            return "zh-hant";
+        }
         case Language::Korean: {
             return "ko";
         }
@@ -96,6 +99,9 @@ Language StringToLanguage(const std::string &str) {
     }
     else if(str == "zh-hans") {
         return Language::ChineseSimplified;
+    }
+    else if(str == "zh-hant") {
+        return Language::ChineseTraditional;
     }
     else if(str == "ko") {
         return Language::Korean;
