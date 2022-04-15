@@ -1,15 +1,15 @@
 [
-    "Unknown or undocumented error",
-    "Invalid path",
-    "Invalid NCA (might mean missing sigpatches or a too low firmware)",
-    "Invalid PFS0 (NSP)",
-    "Standard C/C++ error",
-    "There is not enough space to complete the task",
-    "The metadata NCA could not be located in the NSP",
-    "Metadata could not be located in the NCA",
-    "The title is already installed on this console",
-    "Another file or directory with the same name already exists",
-    "Could not locate title contents",
-    "Could not build the PFS0 (NSP)",
-    "Key generation mismatch (console's firmware is too low)"
+    "發生了未知與沒有相關說明的錯誤",
+    "無效的路徑",
+    "無效的NCA (可能是驗證簽名失敗，或系統韌體版本並非最新)",
+    "無效的PFS0 (NSP)",
+    "發生C/C++常規錯誤",
+    "沒有足夠的儲存空間可供目前執行的操作來正確完成",
+    "在NSP內找不到原始的NCA相關數據",
+    "在NCA內找不到原始的元數據",
+    "主機已安裝與此title的內容",
+    "已經有其他相同名稱的檔案或資料夾",
+    "沒有找到與title相關的內容",
+    "無法建立封裝PFS0 (NSP)",
+    "系統金鑰加密版本不符 (系統韌體版本並非最新)"
 ]
