@@ -199,11 +199,23 @@ namespace ui {
                     break;
                 }
                 case 9: {
-                    info += "(9.0.0 - 9.2.0)";
+                    info += "(9.0.0 - 9.0.1)";
                     break;
                 }
                 case 10: {
-                    info += "(10.0.0 -)";
+                    info += "(9.1.0 - 12.0.3)";
+                    break;
+                }
+                case 11: {
+                    info += "(12.1.0)";
+                    break;
+                }
+                case 12: {
+                    info += "(13.0.0 - 13.2.1)";
+                    break;
+                }
+                case 13: {
+                    info += "(14.0.0 -)";
                     break;
                 }
                 // TODO (high priority): more keys?
