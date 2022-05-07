@@ -4,10 +4,12 @@ name: Build Goldleaf
 on: [push]
 jobs:
   Goldleaf:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
+
     container:
       image: devkitpro/devkita64
       options: --user 1001
+
     steps:
     - uses: actions/checkout@v1
     - name: Update repo
