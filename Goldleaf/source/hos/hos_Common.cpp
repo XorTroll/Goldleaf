@@ -39,7 +39,7 @@ namespace hos {
 
     std::string GetCurrentTime() {
         const auto posix_time = time(nullptr);
-        const auto local_time = localtime((const time_t*)&posix_time);
+        const auto local_time = localtime(&posix_time);
         char time_str[0x10] = {0};
         sprintf(time_str, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
         return time_str;

@@ -5,7 +5,7 @@ on: [push]
 jobs:
   Goldleaf:
     runs-on: ubuntu-latest
-    container: devkitpro/devkita64_devkitarm
+    container: devkitpro/devkita64
     steps:
     - uses: actions/checkout@v1
     - name: Update repo
