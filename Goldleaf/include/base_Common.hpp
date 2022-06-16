@@ -129,7 +129,9 @@ enum class Language {
     Portuguese,
     ChineseSimplified,
     ChineseTraditional,
-    Korean
+    Korean,
+
+    Count
 };
 
 struct ColorScheme {

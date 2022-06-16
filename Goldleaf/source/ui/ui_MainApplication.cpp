@@ -129,6 +129,8 @@ namespace ui {
         this->amiibo_dump_lyt->SetOnInput(std::bind(&MainApplication::amiibo_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->settings_lyt = SettingsLayout::New();
         this->settings_lyt->SetOnInput(std::bind(&MainApplication::settings_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->own_settings_lyt = OwnSettingsLayout::New();
+        this->own_settings_lyt->SetOnInput(std::bind(&MainApplication::ownSettings_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->memory_lyt = MemoryLayout::New();
         this->memory_lyt->SetOnInput(std::bind(&MainApplication::memory_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->update_lyt = UpdateLayout::New();
@@ -153,6 +155,7 @@ namespace ui {
         _UI_MAINAPP_MENU_SET_BASE(this->account_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->amiibo_dump_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->settings_lyt);
+        _UI_MAINAPP_MENU_SET_BASE(this->own_settings_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->memory_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->update_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->update_install_lyt);
@@ -473,6 +476,14 @@ namespace ui {
     void MainApplication::settings_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
             this->ReturnToMainMenu();
+        }
+    }
+
+    void MainApplication::ownSettings_Input(const u64 down, const u64 up, const u64 held) {
+        if(down & HidNpadButton_B) {
+            this->UnloadMenuData();
+            this->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
+            this->LoadLayout(this->settings_lyt);
         }
     }
 

@@ -33,6 +33,7 @@
 #include <ui/ui_InstallLayout.hpp>
 #include <ui/ui_MainMenuLayout.hpp>
 #include <ui/ui_MemoryLayout.hpp>
+#include <ui/ui_OwnSettingsLayout.hpp>
 #include <ui/ui_PartitionBrowserLayout.hpp>
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_SettingsLayout.hpp>
@@ -68,6 +69,7 @@ namespace ui {
             AccountLayout::Ref account_lyt;
             AmiiboDumpLayout::Ref amiibo_dump_lyt;
             SettingsLayout::Ref settings_lyt;
+            OwnSettingsLayout::Ref own_settings_lyt;
             MemoryLayout::Ref memory_lyt;
             UpdateLayout::Ref update_lyt;
             UpdateInstallLayout::Ref update_install_lyt;
@@ -113,6 +115,7 @@ namespace ui {
             void account_Input(const u64 down, const u64 up, const u64 held);
             void amiibo_Input(const u64 down, const u64 up, const u64 held);
             void settings_Input(const u64 down, const u64 up, const u64 held);
+            void ownSettings_Input(const u64 down, const u64 up, const u64 held);
             void memory_Input(const u64 down, const u64 up, const u64 held);
             void webBrowser_Input(const u64 down, const u64 up, const u64 held);
             void about_Input(const u64 down, const u64 up, u64 const held);
@@ -178,6 +181,10 @@ namespace ui {
 
             inline SettingsLayout::Ref &GetSettingsLayout() {
                 return this->settings_lyt;
+            }
+
+            inline OwnSettingsLayout::Ref &GetOwnSettingsLayout() {
+                return this->own_settings_lyt;
             }
 
             inline MemoryLayout::Ref &GetMemoryLayout() {

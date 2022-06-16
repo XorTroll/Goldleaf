@@ -50,14 +50,8 @@ namespace ui {
     }
 
     void SettingsLayout::optsConfig_DefaultKey() {
-        // TODO: extend config viewing/editing
-        auto msg = cfg::strings::Main.GetString(354) + ":\n\n" + cfg::strings::Main.GetString(355) + ": " + cfg::strings::Main.GetString(g_Settings.ignore_required_fw_ver ? 111 : 112);
-        if(!g_Settings.external_romfs.empty()) {
-            auto sd_exp = fs::GetSdCardExplorer();
-            auto pres_ext_romfs = sd_exp->MakeAbsolutePresentable(g_Settings.external_romfs);
-            msg += "\n" + cfg::strings::Main.GetString(356) + ": \'" + pres_ext_romfs + "\'";
-        }
-        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(357), msg, { cfg::strings::Main.GetString(234) }, true);
+        g_MainApplication->GetOwnSettingsLayout()->UpdateSettings();
+        g_MainApplication->LoadLayout(g_MainApplication->GetOwnSettingsLayout());
     }
 
     void SettingsLayout::ExportUpdateToDirectory(const std::string &fw_path, const SetSysFirmwareVersion &fw_ver) {

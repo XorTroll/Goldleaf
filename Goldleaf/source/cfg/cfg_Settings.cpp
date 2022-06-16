@@ -37,7 +37,7 @@ namespace cfg {
 
     void Settings::Save() {
         auto json = JSON::object();
-        
+
         if(this->has_custom_lang) {
             json["general"]["customLanguage"] = LanguageToString(this->custom_lang);
         }
@@ -71,10 +71,10 @@ namespace cfg {
             json["web"]["bookmarks"][i]["name"] = bmk.name;
             json["web"]["bookmarks"][i]["url"] = bmk.url;
         }
-        
+
         auto sd_exp = fs::GetSdCardExplorer();
         sd_exp->DeleteFile(GLEAF_PATH_SETTINGS_FILE);
-        sd_exp->WriteJSON(json, GLEAF_PATH_SETTINGS_FILE);
+        sd_exp->WriteJSON(GLEAF_PATH_SETTINGS_FILE, json);
     }
 
     std::string Settings::PathForResource(const std::string &res_path) {
