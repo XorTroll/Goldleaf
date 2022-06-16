@@ -169,10 +169,10 @@ void EnsureDirectories() {
     sd_exp->CreateDirectory(GLEAF_PATH_ROOT_DIR);
     sd_exp->CreateDirectory(GLEAF_PATH_METADATA_DIR);
     sd_exp->CreateDirectory(GLEAF_PATH_TITLE_DIR);
-    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_DIR);
-    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_TEMP_DIR);
-    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_UPDATE_DIR);
-    sd_exp->CreateDirectory(GLEAF_PATH_DUMP_TITLE_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_EXPORT_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_EXPORT_TEMP_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_EXPORT_UPDATE_DIR);
+    sd_exp->CreateDirectory(GLEAF_PATH_EXPORT_TITLE_DIR);
     sd_exp->CreateDirectory(GLEAF_PATH_REPORTS_DIR);
     sd_exp->CreateDirectory(GLEAF_PATH_USER_DATA_DIR);
 }

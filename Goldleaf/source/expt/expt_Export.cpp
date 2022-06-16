@@ -19,14 +19,14 @@
 
 */
 
-#include <dump/dump_Export.hpp>
+#include <expt/expt_Export.hpp>
 #include <hos/hos_Titles.hpp>
 #include <fatfs/fatfs.hpp>
 #include <es/es_Service.hpp>
 
 FsStorage g_FatFsDumpBisStorage;
 
-namespace dump {
+namespace expt {
 
     void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, std::function<void(double Done, double Total)> cb_fn) {
         s64 cnt_size = 0;
@@ -99,7 +99,7 @@ namespace dump {
             std::string title_key;
             std::string out_rights_id;
             const auto &format_app_id = hos::FormatApplicationId(app_id);
-            const auto &outdir = GLEAF_PATH_DUMP_TITLE_DIR "/" + format_app_id;
+            const auto &outdir = GLEAF_PATH_EXPORT_TITLE_DIR "/" + format_app_id;
             u32 tmp_size = 0;
             while(true) {
                 if(!title_key.empty()) {

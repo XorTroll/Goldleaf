@@ -24,15 +24,15 @@
 
 namespace ui {
 
-    class TitleDumperLayout : public pu::ui::Layout {
+    class ContentExportLayout : public pu::ui::Layout {
         private:
-            pu::ui::elm::TextBlock::Ref dump_text;
+            pu::ui::elm::TextBlock::Ref exp_text;
             pu::ui::elm::ProgressBar::Ref cnt_p_bar;
         public:
-            TitleDumperLayout();
-            PU_SMART_CTOR(TitleDumperLayout)
+            ContentExportLayout();
+            PU_SMART_CTOR(ContentExportLayout)
 
-            void StartDump(const hos::Title &cnt, bool has_tik);
+            void StartExport(const hos::Title &cnt, bool has_tik);
     };
 
 }

@@ -208,8 +208,8 @@ namespace ui {
         else if(option_1 == export_opt) {
             const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(182), cfg::strings::Main.GetString(184), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(option_2 == 0) {
-                g_MainApplication->LoadLayout(g_MainApplication->GetTitleDumperLayout());
-                g_MainApplication->GetTitleDumperLayout()->StartDump(sub_cnt, has_tik);
+                g_MainApplication->LoadLayout(g_MainApplication->GetContentExportLayout());
+                g_MainApplication->GetContentExportLayout()->StartExport(sub_cnt, has_tik);
                 g_MainApplication->LoadLayout(g_MainApplication->GetContentInformationLayout());
             }
         }

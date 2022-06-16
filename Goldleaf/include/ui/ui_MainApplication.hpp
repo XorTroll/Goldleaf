@@ -24,6 +24,7 @@
 #include <ui/ui_AccountLayout.hpp>
 #include <ui/ui_AmiiboDumpLayout.hpp>
 #include <ui/ui_ClickableImage.hpp>
+#include <ui/ui_ContentExportLayout.hpp>
 #include <ui/ui_ContentInformationLayout.hpp>
 #include <ui/ui_ContentManagerLayout.hpp>
 #include <ui/ui_CopyLayout.hpp>
@@ -36,7 +37,6 @@
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_StorageContentsLayout.hpp>
-#include <ui/ui_TitleDumperLayout.hpp>
 #include <ui/ui_UnusedTicketsLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
 #include <ui/ui_UpdateInstallLayout.hpp>
@@ -63,7 +63,7 @@ namespace ui {
             ContentInformationLayout::Ref cnt_information_lyt;
             StorageContentsLayout::Ref storage_cnts_lyt;
             ContentManagerLayout::Ref cnt_manager_lyt;
-            TitleDumperLayout::Ref title_dumper_lyt;
+            ContentExportLayout::Ref cnt_expt_lyt;
             UnusedTicketsLayout::Ref unused_tiks_lyt;
             AccountLayout::Ref account_lyt;
             AmiiboDumpLayout::Ref amiibo_dump_lyt;
@@ -160,8 +160,8 @@ namespace ui {
                 return this->cnt_manager_lyt;
             }
 
-            inline TitleDumperLayout::Ref &GetTitleDumperLayout() {
-                return this->title_dumper_lyt;
+            inline ContentExportLayout::Ref &GetContentExportLayout() {
+                return this->cnt_expt_lyt;
             }
 
             inline UnusedTicketsLayout::Ref &GetUnusedTicketsLayout() {
