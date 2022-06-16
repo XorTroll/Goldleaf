@@ -67,7 +67,6 @@ namespace ui {
         const auto idx = this->options_menu->GetSelectedIndex();
         auto msg = cfg::strings::Main.GetString(169) + "\n\n";
         msg += cfg::strings::Main.GetString(170) + " ";
-        std::vector<std::string> options = { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(414) };
         std::string icon;
         const auto &sub_cnt = this->cnt_subcontents.at(idx);
         auto sd_exp = fs::GetSdCardExplorer();
@@ -134,54 +133,79 @@ namespace ui {
             tik = *it;
         }
 
-        if(sub_cnt.storage_id == NcmStorageId_GameCard) {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), msg, { cfg::strings::Main.GetString(234) }, true, icon);
-            return;
+        std::vector<std::string> options;
+        int remove_title_opt = -10;
+        int export_opt = -10;
+        int mount_save_data_opt = -10;
+        int remove_tik_opt = -10;
+        int reset_launch_ver_opt = -10;
+        u32 cur_last_opt = 0;
+
+        if(sub_cnt.storage_id != NcmStorageId_GameCard) {
+            if(sub_cnt.storage_id != NcmStorageId_BuiltInSystem) {
+                options.push_back(cfg::strings::Main.GetString(245));
+                remove_title_opt = cur_last_opt;
+                cur_last_opt++;
+            }
+
+            options.push_back(cfg::strings::Main.GetString(244));
+            export_opt = cur_last_opt;
+            cur_last_opt++;
         }
 
-        if(has_tik) {
-            options.push_back(cfg::strings::Main.GetString(293));
-        }
         if(sub_cnt.storage_id != NcmStorageId_BuiltInSystem) {
+            if(sub_cnt.IsBaseTitle()) {
+                options.push_back(cfg::strings::Main.GetString(414));
+                mount_save_data_opt = cur_last_opt;
+                cur_last_opt++;
+            }
+
+            if(has_tik) {
+                options.push_back(cfg::strings::Main.GetString(293));
+                remove_tik_opt = cur_last_opt;
+                cur_last_opt++;
+            }
+
             options.push_back(cfg::strings::Main.GetString(319));
+            reset_launch_ver_opt = cur_last_opt;
+            cur_last_opt++;
         }
+
         options.push_back(cfg::strings::Main.GetString(18));
 
         const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), msg, options, true, icon);
-        if(option_1 == 0) {
-            if(sub_cnt.storage_id == NcmStorageId_BuiltInSystem) {
-                g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(185), { cfg::strings::Main.GetString(234) }, true);
-                return;
-            }
+        if(option_1 == remove_title_opt) {
             const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(186), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
-            auto remove_tik = false;
-            if(has_tik) {
-                const auto option_3 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112), cfg::strings::Main.GetString(18) }, true);
-                remove_tik = option_3 == 0;
-            }
-            auto rc = hos::RemoveTitle(sub_cnt);
-            if(R_SUCCEEDED(rc)) {
-                if(remove_tik) {
-                    rc = hos::RemoveTicket(tik);
+            if(option_2 == 0) {
+                auto remove_tik = false;
+                if(has_tik) {
+                    const auto option_3 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112), cfg::strings::Main.GetString(18) }, true);
+                    remove_tik = option_3 == 0;
                 }
+                auto rc = hos::RemoveTitle(sub_cnt);
                 if(R_SUCCEEDED(rc)) {
-                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(246));
-                    this->cnt_subcontents.erase(this->cnt_subcontents.begin() + idx);
-                    if(this->cnt_subcontents.empty()) {
-                        g_MainApplication->GetStorageContentsLayout()->Reload();
-                        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
-                        g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
+                    if(remove_tik) {
+                        rc = hos::RemoveTicket(tik);
                     }
-                    else {
-                        this->UpdateElements();
+                    if(R_SUCCEEDED(rc)) {
+                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(246));
+                        this->cnt_subcontents.erase(this->cnt_subcontents.begin() + idx);
+                        if(this->cnt_subcontents.empty()) {
+                            g_MainApplication->GetStorageContentsLayout()->Reload();
+                            g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
+                            g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
+                        }
+                        else {
+                            this->UpdateElements();
+                        }
                     }
                 }
-            }
-            if(R_FAILED(rc)) {
-                HandleResult(rc, cfg::strings::Main.GetString(247));
+                if(R_FAILED(rc)) {
+                    HandleResult(rc, cfg::strings::Main.GetString(247));
+                }
             }
         }
-        else if(option_1 == 1) {
+        else if(option_1 == export_opt) {
             const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(182), cfg::strings::Main.GetString(184), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(option_2 == 0) {
                 g_MainApplication->LoadLayout(g_MainApplication->GetTitleDumperLayout());
@@ -189,15 +213,7 @@ namespace ui {
                 g_MainApplication->LoadLayout(g_MainApplication->GetContentInformationLayout());
             }
         }
-        else if(option_1 == 2) {
-            if(!sub_cnt.IsBaseTitle()) {
-                g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(409), { cfg::strings::Main.GetString(234) }, true);
-                return;
-            }
-            if(sub_cnt.storage_id == NcmStorageId_BuiltInSystem) {
-                g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(410), { cfg::strings::Main.GetString(234) }, true);
-                return;
-            }
+        else if(option_1 == mount_save_data_opt) {
             if(!acc::HasSelectedUser()) {
                 g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(408), cfg::strings::Main.GetString(411), { cfg::strings::Main.GetString(234) }, true);
                 return;
@@ -215,7 +231,7 @@ namespace ui {
                 HandleResult(rc, cfg::strings::Main.GetString(413));
             }
         }
-        else if((option_1 == 3) && has_tik) {
+        else if(option_1 == remove_tik_opt) {
             const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(205), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(option_2 == 0) {
                 const auto rc = es::DeleteTicket(tik.rights_id);
@@ -228,15 +244,17 @@ namespace ui {
                 }
             }
         }
-        else if(((option_1 == 3) && !has_tik) || ((option_1 == 4) && has_tik)) {
-            // TODO: confirmation dialog
-            const auto rc = hos::UpdateTitleVersion(sub_cnt);
-            if(R_SUCCEEDED(rc)) {
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(322));
-                this->UpdateElements();
-            }
-            else {
-                HandleResult(rc, cfg::strings::Main.GetString(234));
+        else if(option_1 == reset_launch_ver_opt) {
+            const auto option_2 = g_MainApplication->CreateShowDialog("Reset launch version", "Would you really like to reset this content's launch version?\nDon't do this unless you know what you're doing...", { "Yes", "Cancel" }, true);
+            if(option_2 == 0) {
+                const auto rc = hos::UpdateTitleVersion(sub_cnt);
+                if(R_SUCCEEDED(rc)) {
+                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(322));
+                    this->UpdateElements();
+                }
+                else {
+                    HandleResult(rc, cfg::strings::Main.GetString(234));
+                }
             }
         }
     }
