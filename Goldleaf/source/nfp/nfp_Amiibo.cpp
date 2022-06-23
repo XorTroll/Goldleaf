@@ -21,6 +21,7 @@
 
 #include <nfp/nfp_Amiibo.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <hos/hos_Common.hpp>
 
 namespace nfp {
 
@@ -40,7 +41,9 @@ namespace nfp {
             rc = nfpListDevices(nullptr, &g_DeviceHandle, 1);
             if(R_SUCCEEDED(rc)) {
                 rc = nfpStartDetection(&g_DeviceHandle);
-                g_Initialized = true;
+                if(R_SUCCEEDED(rc)) {
+                    g_Initialized = true;
+                }
             }
         }
         return rc;
@@ -88,7 +91,16 @@ namespace nfp {
         return model_info;
     }
 
-    void DumpToEmuiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model) {
+    NfpData GetAll() {
+        NfpData data = {};
+        serviceDispatchIn(nfpGetServiceSession_Interface(), 200, g_DeviceHandle,
+            .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+            .buffers = { { &data, sizeof(data) } },
+        );
+        return data;
+    }
+
+    std::string ExportAsVirtualAmiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model, const NfpData &all) {
         auto sd_exp = fs::GetSdCardExplorer();
 
         std::string emuiibo_path = "emuiibo";
@@ -96,23 +108,32 @@ namespace nfp {
         emuiibo_path += "/amiibo";
         sd_exp->CreateDirectory(emuiibo_path);
 
-        const auto amiibo_path = emuiibo_path + "/" + reg.amiibo_name;
-        sd_exp->EmptyDirectory(amiibo_path);
-        
+        std::string amiibo_folder = reg.amiibo_name;
+        auto amiibo_path = emuiibo_path + "/" + amiibo_folder;
+        auto i = 1;
+        while(sd_exp->IsDirectory(amiibo_path)) {
+            amiibo_folder = std::string(reg.amiibo_name) + "_" + std::to_string(i);
+            amiibo_path = emuiibo_path + "/" + amiibo_folder;
+            i++;
+        }
+        sd_exp->CreateDirectory(amiibo_path);
         sd_exp->CreateFile(amiibo_path + "/amiibo.flag");
 
         auto amiibo = JSON::object();
-        amiibo["first_write_date"]["d"] = static_cast<u8>(reg.first_write_day);
-        amiibo["first_write_date"]["m"] = static_cast<u8>(reg.first_write_month);
-        amiibo["first_write_date"]["y"] = static_cast<u16>(reg.first_write_year);
+        amiibo["first_write_date"]["d"] = reg.first_write_day;
+        amiibo["first_write_date"]["m"] = reg.first_write_month;
+        amiibo["first_write_date"]["y"] = reg.first_write_year;
 
-        amiibo["last_write_date"]["d"] = static_cast<u8>(common.last_write_day);
-        amiibo["last_write_date"]["m"] = static_cast<u8>(common.last_write_month);
-        amiibo["last_write_date"]["y"] = static_cast<u16>(common.last_write_year);
+        amiibo["last_write_date"]["d"] = common.last_write_day;
+        amiibo["last_write_date"]["m"] = common.last_write_month;
+        amiibo["last_write_date"]["y"] = common.last_write_year;
 
         const auto mii_charinfo = "mii-charinfo.bin";
         amiibo["mii_charinfo_file"] = mii_charinfo;
         sd_exp->WriteFile(amiibo_path + "/" + mii_charinfo, &reg.mii, sizeof(reg.mii));
+
+        const auto legacy_mii = "legacy-mii.bin";
+        sd_exp->WriteFile(amiibo_path + "/" + legacy_mii, all.legacy_mii, sizeof(all.legacy_mii));
 
         for(u32 i = 0; i < sizeof(tag.uuid); i++) {
             amiibo["uuid"][i] = tag.uuid[i];
@@ -120,18 +141,36 @@ namespace nfp {
 
         amiibo["name"] = reg.amiibo_name;
 
-        amiibo["version"] = static_cast<u16>(common.version);
+        amiibo["version"] = common.version;
 
-        amiibo["write_counter"] = static_cast<u16>(common.write_counter);
+        amiibo["write_counter"] = common.write_counter;
 
         const auto id_ref = reinterpret_cast<const AmiiboId*>(model.amiibo_id);
         amiibo["id"]["character_variant"] = id_ref->character_id.character_variant;
-        amiibo["id"]["game_character_id"] = static_cast<u16>(id_ref->character_id.game_character_id);
+        amiibo["id"]["game_character_id"] = id_ref->character_id.game_character_id;
         amiibo["id"]["series"] = id_ref->series;
-        amiibo["id"]["model_number"] = __builtin_bswap16(static_cast<u16>(id_ref->model_number));
+        amiibo["id"]["model_number"] = __builtin_bswap16(id_ref->model_number);
         amiibo["id"]["figure_type"] = id_ref->figure_type;
 
         sd_exp->WriteJSON(amiibo_path + "/amiibo.json", amiibo);
+
+        // If the amiibo has application area...
+        if(all.admin_info.flags & BIT(1)) {
+            auto area_info = JSON::object();
+            area_info["current_area_access_id"] = all.admin_info.access_id;
+            area_info["areas"][0]["program_id"] = all.admin_info.program_id;
+            area_info["areas"][0]["access_id"] = all.admin_info.access_id;
+
+            sd_exp->WriteJSON(amiibo_path + "/areas.json", area_info);
+
+            const auto areas_dir = amiibo_path + "/areas";
+            sd_exp->CreateDirectory(areas_dir);
+
+            const auto area_path = areas_dir + "/" + hos::FormatHex(all.admin_info.access_id) + ".bin";
+            sd_exp->WriteFile(area_path, all.app_area, sizeof(all.app_area));
+        }
+
+        return amiibo_folder;
     }
 
     void Close() {

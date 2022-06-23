@@ -49,18 +49,22 @@ namespace ui {
                 const auto model = nfp::GetModelInfo();
                 const auto common = nfp::GetCommonInfo();
                 const auto reg = nfp::GetRegisterInfo();
+                const auto data = nfp::GetAll();
 
                 const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(283), cfg::strings::Main.GetString(317) + " '" + reg.amiibo_name + "'?", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
                 if(option == 0) {
                     this->info_txt->SetText(cfg::strings::Main.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::strings::Main.GetString(297));
-                    nfp::DumpToEmuiibo(tag, reg, common, model);
-                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::strings::Main.GetString(298));
+                    const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(tag, reg, common, model, data);
+                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::strings::Main.GetString(298) + " (" + virtual_amiibo_folder + ")");
                 }
                 nfp::Close();
             }
             nfp::Exit();
         }
-        // TODO: if(R_FAILED(rc)) HandleResult(rc, "Amiibo:");
+
+        if(R_FAILED(rc)) {
+            HandleResult(rc, "Amiibo:");
+        }
     }
 
 }
