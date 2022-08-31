@@ -436,5 +436,8 @@
     "이 USB 드라이브로 무엇을 하겠습니까?",
     "안전 제거",
     "USB 드라이브가 성공적으로 제거되었습니다.",
-    "USB 드라이브를 안전 제거할 수 없습니다..."
+    "USB 드라이브를 안전 제거할 수 없습니다...",
+    "Export with certificate",
+    "The ticket was successfully exported:",
+    "In order to avoid risks, removing used tickets is not allowed"
 ]

@@ -124,7 +124,7 @@ namespace ui {
         }
         const auto tiks = hos::GetAllTickets();
         const auto it = std::find_if(tiks.begin(), tiks.end(), [&](const hos::Ticket &tik) {
-            return tik.GetApplicationId() == sub_cnt.app_id;
+            return tik.rights_id.GetApplicationId() == sub_cnt.app_id;
         });
 
         const bool has_tik = it != tiks.end();

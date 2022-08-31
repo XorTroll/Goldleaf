@@ -46,15 +46,15 @@ namespace ui {
         this->gamecart_menu_item->SetIcon(g_Settings.PathForResource("/Common/GameCart.png"));
         this->gamecart_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->gamecart_menu_item->AddOnKey(std::bind(&ContentManagerLayout::gameCartMenuItem_DefaultKey, this));
-        this->unused_tickets_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(287));
-        this->unused_tickets_menu_item->SetIcon(g_Settings.PathForResource("/Common/Ticket.png"));
-        this->unused_tickets_menu_item->SetColor(g_Settings.custom_scheme.text);
-        this->unused_tickets_menu_item->AddOnKey(std::bind(&ContentManagerLayout::unusedTicketsMenuItem_DefaultKey, this));
+        this->tickets_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(34));
+        this->tickets_menu_item->SetIcon(g_Settings.PathForResource("/Common/Ticket.png"));
+        this->tickets_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->tickets_menu_item->AddOnKey(std::bind(&ContentManagerLayout::ticketsMenuItem_DefaultKey, this));
         this->types_menu->AddItem(this->sd_card_menu_item);
         this->types_menu->AddItem(this->nand_user_menu_item);
         this->types_menu->AddItem(this->nand_system_menu_item);
         this->types_menu->AddItem(this->gamecart_menu_item);
-        this->types_menu->AddItem(this->unused_tickets_menu_item);
+        this->types_menu->AddItem(this->tickets_menu_item);
         this->Add(this->types_menu);
     }
 
@@ -78,10 +78,10 @@ namespace ui {
         g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
     }
 
-    void ContentManagerLayout::unusedTicketsMenuItem_DefaultKey() {
+    void ContentManagerLayout::ticketsMenuItem_DefaultKey() {
         g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(34), "Ticket", cfg::strings::Main.GetString(35));
-        g_MainApplication->GetUnusedTicketsLayout()->UpdateElements(true);
-        g_MainApplication->LoadLayout(g_MainApplication->GetUnusedTicketsLayout());
+        g_MainApplication->GetTicketsLayout()->UpdateElements(true);
+        g_MainApplication->LoadLayout(g_MainApplication->GetTicketsLayout());
     }
 
 }

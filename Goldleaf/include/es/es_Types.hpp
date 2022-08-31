@@ -26,10 +26,18 @@ namespace es {
 
     union RightsId {
         struct {
-            u64 app_id;
-            u64 key_gen;
+            u64 app_id_be;
+            u64 key_gen_be;
         };
         u8 id[0x10];
+
+        inline u64 GetApplicationId() const {
+            return __builtin_bswap64(this->app_id_be);
+        }
+        
+        inline u8 GetKeyGeneration() const {
+            return static_cast<u8>(__builtin_bswap64(this->key_gen_be));
+        }
     };
     static_assert(sizeof(RightsId) == 0x10);
 

@@ -56,10 +56,6 @@ namespace hos {
         return "";
     }
 
-    u64 TitleContents::GetTotalSize() {
-        return this->meta.size + this->program.size + this->data.size + this->control.size + this->html_document.size + this->legal_info.size;
-    }
-
     NacpStruct Title::TryGetNACP() const {
         NsApplicationControlData control_data = {};
         size_t tmp = 0;
@@ -156,22 +152,6 @@ namespace hos {
         return cnts;
     }
 
-    bool Title::IsBaseTitle() const {
-        return (!this->IsUpdate()) && (!this->IsAddOnContent()) && (this->type != NcmContentMetaType_SystemUpdate) && (this->type != NcmContentMetaType_Delta);
-    }
-
-    bool Title::IsUpdate() const {
-        return this->type == NcmContentMetaType_Patch;
-    }
-
-    bool Title::IsAddOnContent() const {
-        return this->type == NcmContentMetaType_AddOnContent;
-    }
-
-    bool Title::IsBaseOf(const Title &other) const {
-        return (this->app_id != other.app_id) && ((GetBaseApplicationId(this->app_id, this->type) == GetBaseApplicationId(other.app_id, other.type)));
-    }
-
     TitlePlayStats Title::GetGlobalPlayStats() const {
         PdmPlayStatistics pdm_stats = {};
         pdmqryQueryPlayStatisticsByApplicationId(this->app_id, false, &pdm_stats);
@@ -184,25 +164,19 @@ namespace hos {
         return ConvertPlayStats(pdm_stats);
     }
 
-    u64 Ticket::GetApplicationId() const {
-        return __builtin_bswap64(this->rights_id.app_id);
+    bool Ticket::IsUsed() const {
+        return hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->rights_id.GetApplicationId()) || hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->rights_id.GetApplicationId());
     }
 
-    u64 Ticket::GetKeyGeneration() const {
-        return __builtin_bswap64(this->rights_id.key_gen);
+    std::string Ticket::ToString() const {
+        return FormatApplicationId(this->rights_id.GetApplicationId()) + FormatApplicationId(this->rights_id.GetKeyGeneration());
     }
 
-    std::string Ticket::ToString() {
-        const auto app_id = this->GetApplicationId();
-        const auto key_gen = this->GetKeyGeneration();
-        return FormatApplicationId(app_id) + FormatApplicationId(key_gen);
-    }
-
-    std::string TicketFile::GetTitleKey() const {
+    std::string TicketData::GetTitleKey() const {
         std::stringstream strm;
         strm << std::uppercase << std::setfill('0') << std::hex;
         for(u32 i = 0; i < 0x10; i++) {
-            strm << static_cast<u32>(this->data.title_key_block[i]);
+            strm << static_cast<u32>(this->title_key_block[i]);
         }
         return strm.str();
     }
@@ -405,17 +379,30 @@ namespace hos {
     }
 
     TicketFile ReadTicket(const std::string &path) {
-        TicketFile tik = {};
+        TicketFile tik_file = {};
 
         auto exp = fs::GetExplorerForPath(path);
         exp->StartFile(path, fs::FileMode::Read);
-        exp->ReadFile(path, 0, sizeof(tik.signature), &tik.signature);
+        exp->ReadFile(path, 0, sizeof(tik_file.signature), &tik_file.signature);
 
-        const auto ticket_data_offset = GetTicketSignatureSize(tik.signature);
-        exp->ReadFile(path, ticket_data_offset, sizeof(tik.data), &tik.data);
+        const auto tik_sig_data_size = GetTicketSignatureDataSize(tik_file.signature);
+        exp->ReadFile(path, sizeof(tik_file.signature), tik_sig_data_size, tik_file.signature_data);
+
+        const auto tik_data_offset = GetTicketSignatureSize(tik_file.signature);
+        exp->ReadFile(path, tik_data_offset, sizeof(tik_file.data), &tik_file.data);
 
         exp->EndFile();
-        return tik;
+        return tik_file;
+    }
+
+    void SaveTicket(fs::Explorer *exp, const std::string &path, const TicketFile tik_file) {
+        exp->DeleteFile(path);
+
+        exp->StartFile(path, fs::FileMode::Append);
+        exp->WriteFile(path, &tik_file.signature, sizeof(tik_file.signature));
+        exp->WriteFile(path, tik_file.signature_data, GetTicketSignatureDataSize(tik_file.signature));
+        exp->WriteFile(path, &tik_file.data, sizeof(tik_file.data));
+        exp->EndFile();
     }
 
     std::string FindNacpName(const NacpStruct &nacp) {

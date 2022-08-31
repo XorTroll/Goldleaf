@@ -20,6 +20,7 @@
 */
 
 #include <fs/fs_FileSystem.hpp>
+#include <hos/hos_Titles.hpp>
 
 namespace expt {
 
@@ -28,7 +29,8 @@ namespace expt {
     void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptCallback cb_fn);
     bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, const u64 app_id, NcmContentMetaKey *out);
     NcmStorageId GetApplicationLocation(const u64 app_id);
-    void GenerateTicketCert(const u64 app_id);
+    hos::TicketFile ReadTicket(const u64 app_id);
+    std::string ExportTicketCert(const u64 app_id, const bool export_cert);
     std::string GetContentIdPath(NcmContentStorage *cnt_storage, const NcmContentId cnt_id);
     bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, const u64 app_id, const NcmContentType cnt_type, NcmContentId *out);
 

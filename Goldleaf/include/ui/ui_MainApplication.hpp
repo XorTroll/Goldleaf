@@ -38,7 +38,7 @@
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_StorageContentsLayout.hpp>
-#include <ui/ui_UnusedTicketsLayout.hpp>
+#include <ui/ui_TicketsLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
 #include <ui/ui_UpdateInstallLayout.hpp>
 #include <ui/ui_WebBrowserLayout.hpp>
@@ -65,7 +65,7 @@ namespace ui {
             StorageContentsLayout::Ref storage_cnts_lyt;
             ContentManagerLayout::Ref cnt_manager_lyt;
             ContentExportLayout::Ref cnt_expt_lyt;
-            UnusedTicketsLayout::Ref unused_tiks_lyt;
+            TicketsLayout::Ref tiks_lyt;
             AccountLayout::Ref account_lyt;
             AmiiboDumpLayout::Ref amiibo_dump_lyt;
             SettingsLayout::Ref settings_lyt;
@@ -167,8 +167,8 @@ namespace ui {
                 return this->cnt_expt_lyt;
             }
 
-            inline UnusedTicketsLayout::Ref &GetUnusedTicketsLayout() {
-                return this->unused_tiks_lyt;
+            inline TicketsLayout::Ref &GetTicketsLayout() {
+                return this->tiks_lyt;
             }
 
             inline AccountLayout::Ref &GetAccountLayout() {

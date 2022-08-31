@@ -436,5 +436,8 @@
     "¿Qué le gustaría hacer con este dispositivo USB?",
     "Expulsar de forma segura",
     "El dispositivo USB fue expulsado con éxito.",
-    "No se pudo expulsar de forma segura el dispositivo USB..."
+    "No se pudo expulsar de forma segura el dispositivo USB...",
+    "Exportar con certificado",
+    "El ticket fue exportado con éxito:",
+    "Para evitar riesgos, no está permitido eliminar tickets utilizados"
 ]

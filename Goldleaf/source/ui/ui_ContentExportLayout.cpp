@@ -51,7 +51,7 @@ namespace ui {
         this->exp_text->SetText(cfg::strings::Main.GetString(192));
         g_MainApplication->CallForRender();
         if(has_tik) {
-            expt::GenerateTicketCert(cnt.app_id);
+            expt::ExportTicketCert(cnt.app_id, true);
         }
         this->exp_text->SetText(cfg::strings::Main.GetString(193));
         g_MainApplication->CallForRender();

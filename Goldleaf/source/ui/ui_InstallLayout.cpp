@@ -228,7 +228,7 @@ namespace ui {
             if(nsp_installer.HasTicket()) {
                 const auto ticket = nsp_installer.GetTicketFile();
                 info += "\n\n" + cfg::strings::Main.GetString(94) + "\n\n";
-                info += cfg::strings::Main.GetString(235) + " " + ticket.GetTitleKey();
+                info += cfg::strings::Main.GetString(235) + " " + ticket.data.GetTitleKey();
                 info += "\n" + cfg::strings::Main.GetString(236) + " ";
                 switch(ticket.signature) {
                     case hos::TicketSignature::RSA_4096_SHA1: {

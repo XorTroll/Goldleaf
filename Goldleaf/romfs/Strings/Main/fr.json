@@ -436,5 +436,8 @@
     "Que voulez-vous faire avec ce disque USB?",
     "Ejecter en toute sécurité",
     "Le disque USB a été éjecté avec succès.",
-    "Impossible d’éjecter le disque USB en toute sécurité..."
+    "Impossible d’éjecter le disque USB en toute sécurité...",
+    "Exportation avec certificat",
+    "Le ticket a été exporté avec succès :",
+    "Afin d'éviter les risques, la suppression des tickets utilisés n'est pas autorisée"
 ]

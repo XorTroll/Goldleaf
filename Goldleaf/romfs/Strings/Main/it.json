@@ -436,5 +436,8 @@
     "Cosa vorresti fare con questo driver USB?",
     "Rimuovi in modo sicuro",
     "Il driver usb è stato rimosso con successo",
-    "Impossibile rimuovere in modo sicuro il driver USB..."
+    "Impossibile rimuovere in modo sicuro il driver USB...",
+    "Esportazione con certificato",
+    "Il ticket è stato esportato con successo:",
+    "Per evitare rischi, non è consentito cancellare i ticket usati"
 ]

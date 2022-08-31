@@ -24,13 +24,13 @@
 
 namespace ui {
 
-    class UnusedTicketsLayout : public pu::ui::Layout {
+    class TicketsLayout : public pu::ui::Layout {
         private:
             pu::ui::elm::TextBlock::Ref no_unused_tiks_text;
             pu::ui::elm::Menu::Ref tiks_menu;
         public:
-            UnusedTicketsLayout();
-            PU_SMART_CTOR(UnusedTicketsLayout)
+            TicketsLayout();
+            PU_SMART_CTOR(TicketsLayout)
             
             void UpdateElements(bool cooldown);
             void tickets_DefaultKey(const hos::Ticket tik);

@@ -89,72 +89,72 @@ namespace expt {
         return NcmStorageId_None;
     }
 
-    void GenerateTicketCert(const u64 app_id) {
+    hos::TicketFile ReadTicket(const u64 app_id) {
+        hos::TicketFile read_tik_file = {};
+
         if(R_SUCCEEDED(fsOpenBisStorage(&g_FatFsDumpBisStorage, FsBisPartitionId_System))) {
-            auto exp = fs::GetSdCardExplorer();
             FATFS fs;
             f_mount(&fs, "0", 1);
             FIL save;
-            f_open(&save, "0:save/80000000000000e1", FA_READ | FA_OPEN_EXISTING);
-            std::string title_key;
-            std::string out_rights_id;
-            const auto &format_app_id = hos::FormatApplicationId(app_id);
-            const auto &outdir = GLEAF_PATH_EXPORT_TITLE_DIR "/" + format_app_id;
+            f_open(&save, "0:/save/80000000000000E1", FA_READ | FA_OPEN_EXISTING);
+
             u32 tmp_size = 0;
+            auto data_buf = fs::GetWorkBuffer();
             while(true) {
-                if(!title_key.empty()) {
-                    break;
-                }
-                auto data_buf = fs::GetWorkBuffer();
-                const auto fr = f_read(&save, data_buf, 0x40000, &tmp_size);
-                if(fr) {
+                const auto fr = f_read(&save, data_buf, 0x400, &tmp_size);
+                if(fr != FR_OK) {
                     break;
                 }
                 if(tmp_size == 0) {
                     break;
                 }
-                for(u32 i = 0; i < tmp_size; i += 0x4000) {
-                    if(!title_key.empty()) break;
-                    for(u32 j = 0; j < (i + 0x4000); j += 0x400) {
-                        if(!title_key.empty()) break;
-                        if(hos::IsValidTicketSignature(*reinterpret_cast<u32*>(&data_buf[j]))) {
-                            std::stringstream rights_id_strm;
-                            for(u32 k = 0; k < 0x10; k++) {
-                                const u32 off = j + 0x2a0 + k;
-                                rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << (int)data_buf[off];
-                            }
-                            std::stringstream storage_id_strm;
-                            for(u32 k = 0; k < 0x8; k++) {
-                                u32 off = j + 0x2a0 + k;
-                                storage_id_strm << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)data_buf[off];
-                            }
-                            std::stringstream title_key_strm;
-                            for(u32 k = 0; k < 0x10; k++) {
-                                u32 off = j + 0x180 + k;
-                                title_key_strm << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (int)data_buf[off];
-                            }
-                            const auto &read_app_id = storage_id_strm.str();
-                            const auto &rights_id = rights_id_strm.str();
-                            const auto &read_title_key = title_key_strm.str();
-                            if(format_app_id == read_app_id) {
-                                out_rights_id = rights_id;
-                                const auto &tik_file = outdir + "/" + rights_id + ".tik";
-                                exp->WriteFile(tik_file, &data_buf[j], 0x400);
-                                title_key = read_title_key;
-                                break;
-                            }
-                        }
+
+                const auto tik_sig = *reinterpret_cast<hos::TicketSignature*>(data_buf);
+                if(hos::IsValidTicketSignature(tik_sig)) {
+                    hos::TicketFile tik_file = { .signature = tik_sig };
+                    const auto tik_sig_size = hos::GetTicketSignatureSize(tik_file.signature);
+                    memcpy(tik_file.signature_data, data_buf + sizeof(tik_file.signature), hos::GetTicketSignatureDataSize(tik_file.signature));
+                    memcpy(&tik_file.data, data_buf + tik_sig_size, sizeof(tik_file.data));
+
+                    if(app_id == tik_file.data.rights_id.GetApplicationId()) {
+                        read_tik_file = tik_file;
+                        break;
                     }
                 }
             }
+
             f_close(&save);
             f_mount(nullptr, "0", 1);
             fsStorageClose(&g_FatFsDumpBisStorage);
-            if(!title_key.empty()) {
-                const auto &cert_file = outdir + "/" + out_rights_id + ".cert";
-                exp->WriteFile(cert_file, const_cast<u8*>(es::CommonCertificateData), es::CommonCertificateSize);
-            }
         }
+
+        return read_tik_file;
+    }
+
+    std::string ExportTicketCert(const u64 app_id, const bool export_cert) {
+        const auto tik_file = ReadTicket(app_id);
+
+        std::stringstream rights_id_strm;
+        for(u32 i = 0; i < 0x10; i++) {
+            rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<u32>(tik_file.data.rights_id.id[i]);
+        }
+        const auto fmt_rights_id = rights_id_strm.str();
+
+        const auto fmt_app_id = hos::FormatApplicationId(tik_file.data.rights_id.GetApplicationId());
+
+        auto exp = fs::GetSdCardExplorer();
+        const auto &out_dir = GLEAF_PATH_EXPORT_TITLE_DIR "/" + fmt_app_id;
+        exp->CreateDirectory(out_dir);
+
+        const auto &tik_path = out_dir + "/" + fmt_rights_id + ".tik";
+        hos::SaveTicket(exp, tik_path, tik_file);
+
+        if(export_cert) {
+            const auto &cert_path = out_dir + "/" + fmt_rights_id + ".cert";
+            exp->WriteFile(cert_path, const_cast<u8*>(es::CommonCertificateData), es::CommonCertificateSize);
+        }
+
+        return tik_path;
     }
 
     std::string GetContentIdPath(NcmContentStorage *cnt_storage, const NcmContentId cnt_id) {

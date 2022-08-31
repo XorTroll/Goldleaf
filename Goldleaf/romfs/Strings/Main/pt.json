@@ -436,5 +436,8 @@
     "O que gostaria de fazer com esta unidade USB?",
     "Remover com segurança",
     "A unidade USB foi removida com sucesso.",
-    "Não foi possível remover a unidade USB com segurança..."
+    "Não foi possível remover a unidade USB com segurança...",
+    "Exportação com certificado",
+    "O ticket foi exportado com sucesso:",
+    "A fim de evitar riscos, não é permitida a eliminação de tickets usados"
 ]

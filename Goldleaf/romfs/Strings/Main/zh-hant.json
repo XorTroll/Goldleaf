@@ -436,5 +436,8 @@
     "要對此USB裝置執行哪一項操作?",
     "安全移除",
     "此USB裝置已移除完成",
-    "無法安全移除此USB裝置..."
+    "無法安全移除此USB裝置...",
+    "Export with certificate",
+    "The ticket was successfully exported:",
+    "In order to avoid risks, removing used tickets is not allowed"
 ]

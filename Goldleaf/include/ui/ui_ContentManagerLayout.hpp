@@ -31,7 +31,7 @@ namespace ui {
             pu::ui::elm::MenuItem::Ref nand_user_menu_item;
             pu::ui::elm::MenuItem::Ref nand_system_menu_item;
             pu::ui::elm::MenuItem::Ref gamecart_menu_item;
-            pu::ui::elm::MenuItem::Ref unused_tickets_menu_item;
+            pu::ui::elm::MenuItem::Ref tickets_menu_item;
             pu::ui::elm::Menu::Ref types_menu;
         public:
             ContentManagerLayout();
@@ -41,7 +41,7 @@ namespace ui {
             void nandUserMenuItem_DefaultKey();
             void nandSystemMenuItem_DefaultKey();
             void gameCartMenuItem_DefaultKey();
-            void unusedTicketsMenuItem_DefaultKey();
+            void ticketsMenuItem_DefaultKey();
     };
 
 }

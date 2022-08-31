@@ -27,6 +27,7 @@
 #include <ncm/ncm_Types.hpp> 
 #include <ns/ns_Service.hpp>
 #include <es/es_Service.hpp>
+#include <fs/fs_FileSystem.hpp>
 
 namespace hos {
 
@@ -47,8 +48,22 @@ namespace hos {
         ECDSA_SHA256 = 0x10005,
     };
 
-    inline constexpr bool IsValidTicketSignature(const u32 raw_val) {
-        return (raw_val >= static_cast<u32>(TicketSignature::RSA_4096_SHA1)) && (raw_val <= static_cast<u32>(TicketSignature::ECDSA_SHA256));
+    inline constexpr bool IsValidTicketSignature(const TicketSignature sig) {
+        return (sig >= TicketSignature::RSA_4096_SHA1) && (sig <= TicketSignature::ECDSA_SHA256);
+    }
+
+    inline constexpr u64 GetBaseApplicationId(const u64 app_id, const NcmContentMetaType type) {
+        switch(type) {
+            case NcmContentMetaType_Patch: {
+                return app_id ^ 0x800;
+            }
+            case NcmContentMetaType_AddOnContent: {
+                return (app_id ^ 0x1000) & ~0xFFF;
+            }
+            default: {
+                return app_id;
+            }
+        }
     }
 
     enum class ApplicationIdMask {
@@ -76,7 +91,9 @@ namespace hos {
         ContentId html_document;
         ContentId legal_info;
 
-        u64 GetTotalSize();
+        inline u64 GetTotalSize() const {
+            return this->meta.size + this->program.size + this->data.size + this->control.size + this->html_document.size + this->legal_info.size;
+        }
     };
 
     struct TitlePlayStats {
@@ -96,10 +113,23 @@ namespace hos {
         u8 *TryGetIcon() const;
         bool DumpControlData() const;
         TitleContents GetContents() const;
-        bool IsBaseTitle() const;
-        bool IsUpdate() const;
-        bool IsAddOnContent() const;
-        bool IsBaseOf(const Title &other) const;
+
+        inline bool IsBaseTitle() const {
+            return (!this->IsUpdate()) && (!this->IsAddOnContent()) && (this->type != NcmContentMetaType_SystemUpdate) && (this->type != NcmContentMetaType_Delta);
+        }
+
+        inline bool IsUpdate() const {
+            return this->type == NcmContentMetaType_Patch;
+        }
+
+        inline bool IsAddOnContent() const {
+            return this->type == NcmContentMetaType_AddOnContent;
+        }
+
+        inline bool IsBaseOf(const Title &other) const {
+            return (this->app_id != other.app_id) && ((GetBaseApplicationId(this->app_id, this->type) == GetBaseApplicationId(other.app_id, other.type)));
+        }
+
         TitlePlayStats GetGlobalPlayStats() const;
         TitlePlayStats GetUserPlayStats(const AccountUid user_id) const;
     };
@@ -108,9 +138,8 @@ namespace hos {
         es::RightsId rights_id;
         TicketType type;
 
-        u64 GetApplicationId() const;
-        u64 GetKeyGeneration() const;
-        std::string ToString();
+        bool IsUsed() const;
+        std::string ToString() const;
     };
 
     struct TicketData {
@@ -125,36 +154,39 @@ namespace hos {
         es::RightsId rights_id;
         u8 account_id[0x4];
         u8 unk_4[0xC];
+
+        std::string GetTitleKey() const;
     };
     static_assert(sizeof(TicketData) == 0x180);
 
-    constexpr u64 TicketSize = 0x2C0;
-
-    inline constexpr u64 GetTicketSignatureSize(const TicketSignature sig) {
+    inline constexpr u64 GetTicketSignatureDataSize(const TicketSignature sig) {
         switch(sig) {
             case TicketSignature::RSA_4096_SHA1:
             case TicketSignature::RSA_4096_SHA256: {
-                return sizeof(sig) + 0x200 + 0x3C;
+                return 0x200 + 0x3C;
             }
             case TicketSignature::RSA_2048_SHA1:
             case TicketSignature::RSA_2048_SHA256: {
-                return sizeof(sig) + 0x100 + 0x3C;
+                return 0x100 + 0x3C;
             }
             case TicketSignature::ECDSA_SHA1:
             case TicketSignature::ECDSA_SHA256: {
-                return sizeof(sig) + 0x3C + 0x40;
+                return 0x3C + 0x40;
             }
             default: {
                 return 0;
             }
         }
     }
+    
+    inline constexpr u64 GetTicketSignatureSize(const TicketSignature sig) {
+        return sizeof(sig) + GetTicketSignatureDataSize(sig);
+    }
 
     struct TicketFile {
         TicketSignature signature;
+        u8 signature_data[0x300];
         TicketData data;
-
-        std::string GetTitleKey() const;
 
         inline constexpr u64 GetFullSize() {
             return GetTicketSignatureSize(this->signature) + sizeof(this->data);
@@ -173,20 +205,6 @@ namespace hos {
     Result UpdateTitleVersion(const Title &title);
     std::string GetExportedIconPath(const u64 app_id);
     std::string GetExportedNacpPath(const u64 app_id);
-    
-    inline constexpr u64 GetBaseApplicationId(const u64 app_id, const NcmContentMetaType type) {
-        switch(type) {
-            case NcmContentMetaType_Patch: {
-                return app_id ^ 0x800;
-            }
-            case NcmContentMetaType_AddOnContent: {
-                return (app_id ^ 0x1000) & ~0xFFF;
-            }
-            default: {
-                return app_id;
-            }
-        }
-    }
 
     inline constexpr u32 GetIdFromAddOnContentApplicationId(const u64 app_id) {
         return app_id & 0xFFF;
@@ -201,5 +219,6 @@ namespace hos {
 
     ApplicationIdMask GetApplicationIdMask(const u64 app_id);
     TicketFile ReadTicket(const std::string &path);
+    void SaveTicket(fs::Explorer *exp, const std::string &path, const TicketFile tik_file);
 
 }

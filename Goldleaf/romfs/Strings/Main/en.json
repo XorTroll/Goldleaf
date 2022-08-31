@@ -436,5 +436,8 @@
     "What would you like to do with this USB drive?",
     "Safely remove",
     "The USB drive was removed successfully.",
-    "Unable to safely remove the USB drive..."
+    "Unable to safely remove the USB drive...",
+    "Export with certificate",
+    "The ticket was successfully exported:",
+    "In order to avoid risks, removing used tickets is not allowed"
 ]

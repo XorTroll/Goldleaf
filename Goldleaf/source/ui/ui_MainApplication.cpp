@@ -121,8 +121,8 @@ namespace ui {
         this->cnt_manager_lyt = ContentManagerLayout::New();
         this->cnt_manager_lyt->SetOnInput(std::bind(&MainApplication::contentManager_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->cnt_expt_lyt = ContentExportLayout::New();
-        this->unused_tiks_lyt = UnusedTicketsLayout::New();
-        this->unused_tiks_lyt->SetOnInput(std::bind(&MainApplication::unusedTickets_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        this->tiks_lyt = TicketsLayout::New();
+        this->tiks_lyt->SetOnInput(std::bind(&MainApplication::unusedTickets_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->account_lyt = AccountLayout::New();
         this->account_lyt->SetOnInput(std::bind(&MainApplication::account_Input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         this->amiibo_dump_lyt = AmiiboDumpLayout::New();
@@ -151,7 +151,7 @@ namespace ui {
         _UI_MAINAPP_MENU_SET_BASE(this->storage_cnts_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->cnt_manager_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->cnt_expt_lyt);
-        _UI_MAINAPP_MENU_SET_BASE(this->unused_tiks_lyt);
+        _UI_MAINAPP_MENU_SET_BASE(this->tiks_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->account_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->amiibo_dump_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->settings_lyt);

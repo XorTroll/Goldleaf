@@ -436,5 +436,8 @@
     "Was möchtest du mit dem USB Laufwerk machen?",
     "Sicher entfernen",
     "Das USB Laufwerk wurde erfolgreich getrennt.",
-    "USB Laufwerk konnte nicht getrennt werden..."
+    "USB Laufwerk konnte nicht getrennt werden...",
+    "Export mit Zertifikat",
+    "Ticket wurde erfolgreich exportiert:",
+    "Um Risiken zu vermeiden, ist das Löschen von benutzten Tickets nicht erlaubt"
 ]
