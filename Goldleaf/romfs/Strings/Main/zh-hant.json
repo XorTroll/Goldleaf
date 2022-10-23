@@ -437,7 +437,7 @@
     "安全移除",
     "此USB裝置已移除完成",
     "無法安全移除此USB裝置...",
-    "Export with certificate",
-    "The ticket was successfully exported:",
-    "In order to avoid risks, removing used tickets is not allowed"
+    "匯出憑證",
+    "指定的ticket已匯出完成:",
+    "為了避免影響系統穩定，已安裝內容的相關tickets恕無法進行刪除"
 ]
