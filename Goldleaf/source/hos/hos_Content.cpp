@@ -52,7 +52,7 @@ namespace hos {
             sprintf(path, "@SystemContent://placehld/%s", nca.c_str());
             FsFileSystem cnt_fs;
             // Just read the first CNMT NCA we succeed mounting
-            if(R_SUCCEEDED(fsOpenFileSystemWithId(&cnt_fs, 0, FsFileSystemType_ContentMeta, path))) {
+            if(R_SUCCEEDED(fsOpenFileSystemWithId(&cnt_fs, 0, FsFileSystemType_ContentMeta, path, FsContentAttributes_All))) {
                 fs::FspExplorer fwfs(cnt_fs, "hos.SystemContentAny");
                 const auto fs = fwfs.GetContents();
                 for(const auto &f: fs) {

@@ -3,17 +3,20 @@
 .PHONY: all allclean clean libclean initial
 
 all:
-	@$(MAKE) -C Plutonium/
-	@$(MAKE) -C Goldleaf/
+	@$(MAKE) -C libnx/
+	@$(MAKE) -C Plutonium/ LIBNX=$(CURDIR)/libnx/nx
+	@$(MAKE) -C Goldleaf/ LIBNX=$(CURDIR)/libnx/nx
 
 initial:
-	@$(MAKE) -C Plutonium/
-	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
-	@$(MAKE) -C Goldleaf/
+	@$(MAKE) -C libnx/
+	@$(MAKE) -C Plutonium/ LIBNX=$(CURDIR)/libnx/nx
+	@$(MAKE) -C libusbhsfs/ LIBNX=$(CURDIR)/libnx/nx BUILD_TYPE=GPL install
+	@$(MAKE) -C Goldleaf/ LIBNX=$(CURDIR)/libnx/nx
 
 allclean: libclean clean
 
 libclean:
+	@$(MAKE) -C libnx/ clean
 	@$(MAKE) -C Plutonium/ clean
 	@$(MAKE) -C libusbhsfs/ clean
 

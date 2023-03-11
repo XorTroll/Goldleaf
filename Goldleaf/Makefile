@@ -46,13 +46,13 @@ ROMFS		:=	romfs
 
 VER_MAJOR	:= 0
 VER_MINOR	:= 10
-VER_MICRO	:= 0
+VER_MICRO	:= 1
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
 # "-dev" prefix is manually appended when a new version is under development
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
 
 #---------------------------------------------------------------------------------
 # options for code generation

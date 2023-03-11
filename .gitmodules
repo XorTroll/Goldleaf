@@ -4,3 +4,6 @@
 [submodule "libusbhsfs"]
 	path = libusbhsfs
 	url = https://github.com/DarkMatterCore/libusbhsfs
+[submodule "libnx"]
+	path = libnx
+	url = https://github.com/switchbrew/libnx

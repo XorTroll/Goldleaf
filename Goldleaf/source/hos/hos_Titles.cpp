@@ -31,9 +31,9 @@ namespace hos {
             const auto posix_time = time(nullptr);
 
             return {
-                .total_play_secs = play_stats.playtimeMinutes * 60,
-                .secs_from_last_launched = posix_time - pdmPlayTimestampToPosix(play_stats.last_timestampUser),
-                .secs_from_first_launched = posix_time - pdmPlayTimestampToPosix(play_stats.first_timestampUser)
+                .total_play_secs = play_stats.playtime / 1e9,
+                .secs_from_last_launched = posix_time - pdmPlayTimestampToPosix(play_stats.last_timestamp_user),
+                .secs_from_first_launched = posix_time - pdmPlayTimestampToPosix(play_stats.first_timestamp_user)
             };
         }
 

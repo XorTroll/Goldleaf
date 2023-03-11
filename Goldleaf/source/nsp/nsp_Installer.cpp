@@ -80,12 +80,12 @@ namespace nsp {
         char cnmt_nca_content_path[FS_MAX_PATH] = {};
         sprintf(cnmt_nca_content_path, "@SystemContent://temp/%s", cnmt_nca_file_name.c_str());
         FsRightsId tmp_rid;
-        GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, &this->keygen, &tmp_rid));
+        GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, FsContentAttributes_All, &this->keygen, &tmp_rid));
         const auto system_keygen = hos::ReadSystemKeyGeneration();
         GLEAF_RC_UNLESS(system_keygen >= this->keygen, err::result::ResultKeyGenMismatch);
 
         FsFileSystem cnmt_nca_fs;
-        GLEAF_RC_TRY(fsOpenFileSystemWithId(&cnmt_nca_fs, 0, FsFileSystemType_ContentMeta, cnmt_nca_content_path));
+        GLEAF_RC_TRY(fsOpenFileSystemWithId(&cnmt_nca_fs, 0, FsFileSystemType_ContentMeta, cnmt_nca_content_path, FsContentAttributes_All));
         
         {
             fs::FspExplorer cnmt_nca_fs_obj(cnmt_nca_fs, "nsp.ContentMeta");
@@ -108,7 +108,7 @@ namespace nsp {
             .content_id = hos::StringAsContentId(cnmt_nca_content_id),
             .content_type = NcmContentType_Meta,
         };
-        *reinterpret_cast<u64*>(this->meta_cnt_info.size) = cnmt_nca_file_size;
+        ncmU64ToContentInfoSize(cnmt_nca_file_size, &this->meta_cnt_info);
 
         const NcmContentMetaKey meta_key = {
             .id = this->packaged_cnt_meta.header.app_id,
@@ -141,7 +141,7 @@ namespace nsp {
                     char control_nca_content_path[FS_MAX_PATH] = {};
                     sprintf(control_nca_content_path, "@SystemContent://temp/%s", control_nca_file_name.c_str());
                     FsFileSystem control_nca_fs;
-                    if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path))) {
+                    if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path, FsContentAttributes_All))) {
                         fs::FspExplorer control_nca_fs_obj(control_nca_fs, "nsp.ControlData");
                         for(auto &cnt: control_nca_fs_obj.GetContents()) {
                             if(fs::GetExtension(cnt) == "dat") {
