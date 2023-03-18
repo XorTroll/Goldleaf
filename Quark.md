@@ -52,7 +52,7 @@ Install OpenJDK 11 (or higher) in the terminal:
 
 - Run ```brew tap AdoptOpenJDK/openjdk```
 
-- Run ```brew cask install adoptopenjdk11```
+- Run ```brew install adoptopenjdk11 --cask```
 
 - Finally, run ```java -version``` to check the JDK version
 
