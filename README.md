@@ -12,15 +12,26 @@
 
 # Table of contents
 
-1. [Features](#features)
-2. [Disclaimer](#disclaimer)
-3. [Quark and remote browsing](#quark-and-remote-browsing)
-4. [Settings](#settings)
-5. [Known bugs](#known-bugs)
-6. [Building](#building)
-7. [Contributing](#contributing)
-8. [TODO](#todo)
-9. [Credits and support](#credits-and-support)
+- [Goldleaf](#goldleaf)
+- [Table of contents](#table-of-contents)
+  - [**Download it from here!**](#download-it-from-here)
+  - [Features](#features)
+    - [Controls](#controls)
+  - [Disclaimer](#disclaimer)
+    - [NSP installs](#nsp-installs)
+    - [Tickets](#tickets)
+  - [Quark and remote browsing](#quark-and-remote-browsing)
+  - [Settings](#settings)
+    - [Sample](#sample)
+    - [Notes](#notes)
+  - [Known bugs](#known-bugs)
+  - [Building](#building)
+  - [Contributing](#contributing)
+    - [Translations](#translations)
+  - [TODO](#todo)
+  - [Credits and support](#credits-and-support)
+    - [Credits](#credits)
+    - [Discord and beta testing](#discord-and-beta-testing)
 
 > Having any issues? Check [our FAQ](docs/FAQ.md) for help!
 
@@ -231,7 +242,7 @@ You will also need to install the following packages with devkitPro's pacman:
 
 Remember to clone this repository recursively (`git clone --recurse-submodules`) since Goldleaf makes use of submodules.
 
-In order to build Goldleaf, just type `make` and wait for it to finish building.
+In order to build Goldleaf, just type `make initial` the first time (and plain `make` for following builds) and wait for it to finish building.
 
 In order to build Quark, just execute the `build.sh` scripts depending on the version you'd like to build (Java 8 and Java 9 versions are separately built)
 
