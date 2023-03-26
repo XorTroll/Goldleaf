@@ -53,7 +53,7 @@ namespace ui {
     void OwnSettingsLayout::UpdateSettings() {
         this->settings_menu->ClearItems();
 
-        auto custom_lang_item_name = "Custom language: " + (g_Settings.has_custom_lang ? LanguageToString(g_Settings.custom_lang) : "none");
+        auto custom_lang_item_name = "Custom language: " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : "none");
         this->custom_lang_item = pu::ui::elm::MenuItem::New(custom_lang_item_name);
         this->custom_lang_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->custom_lang_item->SetColor(g_Settings.custom_scheme.text);
@@ -74,7 +74,7 @@ namespace ui {
     void OwnSettingsLayout::custom_lang_DefaultKey() {
         std::vector<std::string> lang_opts = { "None" };
         for(u32 i = 0; i < static_cast<u32>(Language::Count); i++) {
-            lang_opts.push_back(LanguageToString(static_cast<Language>(i)));
+            lang_opts.push_back(GetLanguageCode(static_cast<Language>(i)));
         }
         lang_opts.push_back("Cancel");
 

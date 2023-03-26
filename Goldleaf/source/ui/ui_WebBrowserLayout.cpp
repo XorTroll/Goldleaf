@@ -65,18 +65,20 @@ namespace ui {
     }
 
     void WebBrowserLayout::input_DefaultKey() {
-        auto url = AskForText(cfg::strings::Main.GetString(38), "https://");
-        LaunchWebAppletImpl(url);
+        const auto url = AskForText(cfg::strings::Main.GetString(38), "https://");
+        if(!url.empty()) {
+            LaunchWebAppletImpl(url);
 
-        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(379), cfg::strings::Main.GetString(380), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
-        if(option == 0) {
-            const auto name = AskForText(cfg::strings::Main.GetString(381));
-            if(!name.empty()) {
-                const cfg::WebBookmark bmk = { name, url };
-                g_Settings.bookmarks.push_back(bmk);
-                g_Settings.Save();
-                this->Refresh();
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(382));
+            const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(379), cfg::strings::Main.GetString(380), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
+            if(option == 0) {
+                const auto name = AskForText(cfg::strings::Main.GetString(381));
+                if(!name.empty()) {
+                    const cfg::WebBookmark bmk = { name, url };
+                    g_Settings.bookmarks.push_back(bmk);
+                    g_Settings.Save();
+                    this->Refresh();
+                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(382));
+                }
             }
         }
     }

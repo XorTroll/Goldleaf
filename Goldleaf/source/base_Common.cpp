@@ -30,85 +30,114 @@ extern ui::MainApplication::Ref g_MainApplication;
 extern char **__system_argv;
 extern bool g_UpdatedNeedsRename;
 
+namespace {
+
+    constexpr Language DefaultLanguage = Language::English;
+
+    std::map<Language, std::vector<std::string>> g_LanguageNamesMap = {
+        { Language::English, { "AmericanEnglish", "BritishEnglish" } },
+        { Language::Spanish, { "Spanish", "LatinAmericanSpanish" } },
+        { Language::German, { "German" } },
+        { Language::French, { "French", "CanadianFrench" } },
+        { Language::Italian, { "Italian" } },
+        { Language::Dutch, { "Dutch" } },
+        { Language::Japanese, { "Japanese" } },
+        { Language::Portuguese, { "Portuguese", "BrazilianPortuguese" } },
+        { Language::ChineseSimplified, { "SimplifiedChinese" } },
+        { Language::ChineseTraditional, { "TraditionalChinese" } },
+        { Language::Korean, { "Korean" } },
+    };
+
+    std::map<Language, std::vector<std::string>> g_LanguageCodesMap = {
+        { Language::English, { "en-US", "en-GB" } },
+        { Language::Spanish, { "es", "es-419" } },
+        { Language::German, { "de" } },
+        { Language::French, { "fr", "fr-CA" } },
+        { Language::Italian, { "it" } },
+        { Language::Dutch, { "nl" } },
+        { Language::Japanese, { "ja" } },
+        { Language::Portuguese, { "pt", "pt-BR" } },
+        { Language::ChineseSimplified, { "zh-Hans" } },
+        { Language::ChineseTraditional, { "zh-Hant" } },
+        { Language::Korean, { "ko" } },
+    };
+
+    std::map<Language, std::vector<SetLanguage>> g_SystemLanguagesMap = {
+        { Language::English, { SetLanguage_ENUS, SetLanguage_ENGB } },
+        { Language::Spanish, { SetLanguage_ES, SetLanguage_ES419 } },
+        { Language::German, { SetLanguage_DE } },
+        { Language::French, { SetLanguage_FR, SetLanguage_FRCA } },
+        { Language::Italian, { SetLanguage_IT } },
+        { Language::Dutch, { SetLanguage_NL } },
+        { Language::Japanese, { SetLanguage_JA } },
+        { Language::Portuguese, { SetLanguage_PT, SetLanguage_PTBR } },
+        { Language::ChineseSimplified, { SetLanguage_ZHHANS } },
+        { Language::ChineseTraditional, { SetLanguage_ZHHANT } },
+        { Language::Korean, { SetLanguage_KO } },
+    };
+
+}
+
 std::string LowerCaseString(const std::string &str) {
     auto copy = str;
     std::transform(copy.begin(), copy.end(), copy.begin(), tolower);
     return copy;
 }
 
-std::string LanguageToString(const Language lang) {
-    switch(lang) {
-        case Language::Spanish: {
-            return "es";
+Language GetLanguageBySystemLanguage(const SetLanguage sys_lang) {
+    for(const auto &[lang, sys_langs] : g_SystemLanguagesMap) {
+        for(const auto &s_sys_lang: sys_langs) {
+            if(sys_lang == s_sys_lang) {
+                return lang;
+            }
         }
-        case Language::German: {
-            return "de";
-        }
-        case Language::French: {
-            return "fr";
-        }
-        case Language::Italian: {
-            return "it";
-        }
-        case Language::Dutch: {
-            return "nl";
-        }
-        case Language::Japanese: {
-            return "ja";
-        }
-        case Language::Portuguese: {
-            return "pt";
-        }
-        case Language::ChineseSimplified: {
-            return "zh-hans";
-        }
-        case Language::ChineseTraditional: {
-            return "zh-hant";
-        }
-        case Language::Korean: {
-            return "ko";
-        }
-        case Language::English:
-        default: {
-            return "en";
-        }
+    }
+
+    return DefaultLanguage;
+}
+
+std::string GetLanguageCode(const Language lang) {
+    const auto lang_code_it = g_LanguageCodesMap.find(lang);
+    if(lang_code_it != g_LanguageCodesMap.end()) {
+        return lang_code_it->second.front();
+    }
+    else {
+        return g_LanguageCodesMap.at(DefaultLanguage).front();
     }
 }
 
-Language StringToLanguage(const std::string &str) {
-    if(str == "es") {
-        return Language::Spanish;
+Language GetLanguageByCode(const std::string &lang_code) {
+    for(const auto &[lang, codes] : g_LanguageCodesMap) {
+        for(const auto &code: codes) {
+            if(lang_code == code) {
+                return lang;
+            }
+        }
     }
-    else if(str == "de") {
-        return Language::German;
-    }
-    else if(str == "fr") {
-        return Language::French;
-    }
-    else if(str == "it") {
-        return Language::Italian;
-    }
-    else if(str == "nl") {
-        return Language::Dutch;
-    }
-    else if(str == "ja") {
-        return Language::Japanese;
-    }
-    else if(str == "pt") {
-        return Language::Portuguese;
-    }
-    else if(str == "zh-hans") {
-        return Language::ChineseSimplified;
-    }
-    else if(str == "zh-hant") {
-        return Language::ChineseTraditional;
-    }
-    else if(str == "ko") {
-        return Language::Korean;
+
+    return DefaultLanguage;
+}
+
+std::string GetLanguageName(const Language lang) {
+    const auto lang_name_it = g_LanguageNamesMap.find(lang);
+    if(lang_name_it != g_LanguageNamesMap.end()) {
+        return lang_name_it->second.front();
     }
     else {
-        return Language::English;
+        return g_LanguageNamesMap.at(DefaultLanguage).front();
     }
+}
+
+Language GetLanguageByName(const std::string &lang_name) {
+    for(const auto &[lang, names] : g_LanguageNamesMap) {
+        for(const auto &name: names) {
+            if(name == lang_name) {
+                return lang;
+            }
+        }
+    }
+
+    return DefaultLanguage;
 }
 
 std::string Version::AsString() {

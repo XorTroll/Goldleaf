@@ -39,7 +39,7 @@ namespace cfg {
         auto json = JSON::object();
 
         if(this->has_custom_lang) {
-            json["general"]["customLanguage"] = LanguageToString(this->custom_lang);
+            json["general"]["customLanguage"] = GetLanguageCode(this->custom_lang);
         }
 
         if(this->has_external_romfs) {
@@ -119,65 +119,11 @@ namespace cfg {
     Settings ProcessSettings() {
         Settings settings = {};
 
-        u64 lang_code = 0;
-        auto lang = SetLanguage_ENUS;
-        setGetSystemLanguage(&lang_code);
-        setMakeLanguage(lang_code, &lang);
-        
-        switch(lang) {
-            case SetLanguage_ENUS:
-            case SetLanguage_ENGB: {
-                settings.custom_lang = Language::English;
-                break;
-            }
-            case SetLanguage_FR:
-            case SetLanguage_FRCA: {
-                settings.custom_lang = Language::French;
-                break;
-            }
-            case SetLanguage_DE: {
-                settings.custom_lang = Language::German;
-                break;
-            }
-            case SetLanguage_IT: {
-                settings.custom_lang = Language::Italian;
-                break;
-            }
-            case SetLanguage_ES:
-            case SetLanguage_ES419: {
-                settings.custom_lang = Language::Spanish;
-                break;
-            }
-            case SetLanguage_NL: {
-                settings.custom_lang = Language::Dutch;
-                break;
-            }
-            case SetLanguage_JA: {
-                settings.custom_lang = Language::Japanese;
-                break;
-            }
-            case SetLanguage_PT:
-            case SetLanguage_PTBR: {
-                settings.custom_lang = Language::Portuguese;
-                break;
-            }
-            case SetLanguage_ZHHANS: {
-                settings.custom_lang = Language::ChineseSimplified;
-                break;
-            }
-            case SetLanguage_ZHHANT: {
-                settings.custom_lang = Language::ChineseTraditional;
-                break;
-            }
-            case SetLanguage_KO: {
-                settings.custom_lang = Language::Korean;
-                break;
-            }
-            default: {
-                settings.custom_lang = Language::English;
-                break;
-            }
-        }
+        u64 tmp_lang_code = 0;
+        auto sys_lang = SetLanguage_ENUS;
+        setGetSystemLanguage(&tmp_lang_code);
+        setMakeLanguage(tmp_lang_code, &sys_lang);
+        settings.custom_lang = GetLanguageBySystemLanguage(sys_lang);
 
         settings.has_custom_lang = false;
         settings.has_external_romfs = false;
@@ -196,23 +142,23 @@ namespace cfg {
         if(settings_json.count("general")) {
             const auto &lang = settings_json["general"].value("customLanguage", "");
             if(!lang.empty()) {
-                auto clang = StringToLanguage(lang);
+                const auto custom_lang = GetLanguageByCode(lang);
                 settings.has_custom_lang = true;
-                settings.custom_lang = clang;
+                settings.custom_lang = custom_lang;
             }
 
-            const auto &extrom = settings_json["general"].value("externalRomFs", "");
-            if(!extrom.empty()) {
+            const auto &ext_romfs = settings_json["general"].value("externalRomFs", "");
+            if(!ext_romfs.empty()) {
                 settings.has_external_romfs = true;
-                if(extrom.substr(0, 6) == "sdmc:/") {
-                    settings.external_romfs = extrom;
+                if(ext_romfs.substr(0, 6) == "sdmc:/") {
+                    settings.external_romfs = ext_romfs;
                 }
                 else {
                     settings.external_romfs = "sdmc:";
-                    if(extrom[0] != '/') {
+                    if(ext_romfs[0] != '/') {
                         settings.external_romfs += "/";
                     }
-                    settings.external_romfs += extrom;
+                    settings.external_romfs += ext_romfs;
                 }
             }
         }

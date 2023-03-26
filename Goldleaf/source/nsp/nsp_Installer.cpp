@@ -62,7 +62,7 @@ namespace nsp {
         }
         GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), err::result::ResultMetaNotFound);
         GLEAF_RC_UNLESS(cnmt_nca_file_size > 0, err::result::ResultMetaNotFound);
-        auto cnmt_nca_content_id = fs::GetFileName(cnmt_nca_file_name);
+        auto cnmt_nca_content_id = fs::GetBaseName(cnmt_nca_file_name);
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
         nand_sys_explorer->CreateDirectory("Contents/temp");
@@ -143,15 +143,28 @@ namespace nsp {
                     FsFileSystem control_nca_fs;
                     if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, this->cnt_meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path, FsContentAttributes_All))) {
                         fs::FspExplorer control_nca_fs_obj(control_nca_fs, "nsp.ControlData");
+                        
+                        const auto cur_lang_name = GetLanguageName(g_Settings.custom_lang);
+                        std::string icon_dat_cnt;
                         for(auto &cnt: control_nca_fs_obj.GetContents()) {
                             if(fs::GetExtension(cnt) == "dat") {
-                                auto sd_exp = fs::GetSdCardExplorer();
-                                // TODO: select .dat icon by system language?
-                                this->icon = sd_exp->MakeAbsolute(GLEAF_PATH_METADATA_DIR "/" + control_nca_content_id + ".jpg");
-                                control_nca_fs_obj.CopyFile(cnt, this->icon);
-                                break;
+                                if(icon_dat_cnt.empty()) {
+                                    // Use the first icon if the correct one isn't found
+                                    icon_dat_cnt = cnt;
+                                }
+
+                                // Remove the "icon_" prefix
+                                const auto icon_dat_lang = fs::GetFileName(cnt).substr(5);
+                                if(cur_lang_name == icon_dat_lang) {
+                                    icon_dat_cnt = cnt;
+                                    break;
+                                }
                             }
                         }
+
+                        auto sd_exp = fs::GetSdCardExplorer();
+                        this->icon = sd_exp->MakeAbsolute(GLEAF_PATH_METADATA_DIR "/" + control_nca_content_id + ".jpg");
+                        control_nca_fs_obj.CopyFile(icon_dat_cnt, this->icon);
                         control_nca_fs_obj.ReadFile("control.nacp", 0, sizeof(nacp_data), &nacp_data);
                     }
                 }

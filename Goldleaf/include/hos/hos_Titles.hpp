@@ -79,7 +79,7 @@ namespace hos {
         bool is_empty;
         u64 size;
 
-        std::string GetFileName();
+        std::string GetBaseName();
         std::string GetFullPath();
     };
 

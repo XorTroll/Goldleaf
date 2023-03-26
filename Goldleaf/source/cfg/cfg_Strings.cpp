@@ -47,7 +47,7 @@ namespace cfg {
     }
 
     void LoadStrings() {
-        const auto &str_json = LanguageToString(g_Settings.custom_lang) + ".json";
+        const auto &str_json = GetLanguageCode(g_Settings.custom_lang) + ".json";
 
         _CFG_PROCESS_STRINGS(Main, str_json)
         _CFG_PROCESS_STRINGS(Results, str_json)

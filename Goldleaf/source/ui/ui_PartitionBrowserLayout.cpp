@@ -158,7 +158,7 @@ namespace ui {
 
     void PartitionBrowserLayout::HandleFileDirectly(const std::string &path) {
         const auto dir = fs::GetBaseDirectory(path);
-        const auto file_name = fs::GetFileName(path);
+        const auto file_name = fs::GetBaseName(path);
         this->ChangePartitionPCDrive(dir);
 
         auto &items = this->browse_menu->GetItems();

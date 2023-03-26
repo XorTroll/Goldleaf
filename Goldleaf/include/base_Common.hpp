@@ -210,8 +210,11 @@ inline u64 GetCurrentApplicationId() {
     return app_id;
 }
 
-std::string LanguageToString(const Language lang);
-Language StringToLanguage(const std::string &str);
+Language GetLanguageBySystemLanguage(const SetLanguage lang);
+std::string GetLanguageCode(const Language lang);
+Language GetLanguageByCode(const std::string &lang_code);
+std::string GetLanguageName(const Language lang);
+Language GetLanguageByName(const std::string &lang_name);
 
 std::string LowerCaseString(const std::string &str);
 u32 RandomFromRange(const u32 min, const u32 max);

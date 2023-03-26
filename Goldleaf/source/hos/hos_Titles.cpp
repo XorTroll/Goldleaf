@@ -31,15 +31,15 @@ namespace hos {
             const auto posix_time = time(nullptr);
 
             return {
-                .total_play_secs = play_stats.playtime / 1e9,
-                .secs_from_last_launched = posix_time - pdmPlayTimestampToPosix(play_stats.last_timestamp_user),
-                .secs_from_first_launched = posix_time - pdmPlayTimestampToPosix(play_stats.first_timestamp_user)
+                .total_play_secs = (u64)(((double)play_stats.playtime) / 1.0e9),
+                .secs_from_last_launched = posix_time - play_stats.last_timestamp_user,
+                .secs_from_first_launched = posix_time - play_stats.first_timestamp_user
             };
         }
 
     }
 
-    std::string ContentId::GetFileName() {
+    std::string ContentId::GetBaseName() {
         return hos::ContentIdAsString(this->id) + ".nca";
     }
 

@@ -54,7 +54,7 @@ namespace ui {
                 }
             }
 
-            const auto dir_name = fs::GetFileName(path);
+            const auto dir_name = fs::GetBaseName(path);
             hos::LockAutoSleep();
             this->copy_file_p_bar->SetVisible(true);
             exp->CopyDirectoryProgress(path, new_path, [&](const size_t cur_size, const size_t total_size, const std::string &cur_file_name, const size_t cur_file_size, const size_t total_file_size) {
@@ -77,7 +77,7 @@ namespace ui {
             }
             new_exp->DeleteFile(new_path);
 
-            const auto file_name = fs::GetFileName(path);
+            const auto file_name = fs::GetBaseName(path);
             hos::LockAutoSleep();
             this->copy_file_p_bar->SetVisible(false);
             this->info_text->SetText(file_name);

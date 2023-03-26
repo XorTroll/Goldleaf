@@ -45,12 +45,16 @@ namespace fs {
     void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn);
     void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn);
     
-    inline std::string GetFileName(const std::string &path) {
+    inline std::string GetBaseName(const std::string &path) {
         return path.substr(path.find_last_of("/") + 1);
     }
 
     inline std::string GetBaseDirectory(const std::string &path) {
         return path.substr(0, path.find_last_of("/"));
+    }
+
+    inline std::string GetFileName(const std::string &path) {
+        return path.substr(0, path.find_last_of("."));
     }
 
     inline std::string GetExtension(const std::string &path) {

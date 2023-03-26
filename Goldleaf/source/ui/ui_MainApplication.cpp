@@ -367,7 +367,7 @@ namespace ui {
                 }
                 const auto option = this->CreateShowDialog(cfg::strings::Main.GetString(222), cfg::strings::Main.GetString(223) + "\n(" + g_Clipboard + ")", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true, fs_icon);
                 if(option == 0) {
-                    const auto item_name = fs::GetFileName(g_Clipboard);
+                    const auto item_name = fs::GetBaseName(g_Clipboard);
                     this->LoadLayout(this->GetCopyLayout());
                     this->GetCopyLayout()->StartCopy(g_Clipboard, this->partition_browser_lyt->GetExplorer()->FullPathFor(item_name));
                     g_MainApplication->LoadLayout(this->partition_browser_lyt);

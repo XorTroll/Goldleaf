@@ -75,21 +75,20 @@ namespace ui {
             if(max_len > 0) {
                 swkbdConfigSetStringLenMax(&kbd, static_cast<u32>(max_len));
             }
-
             if(!guide_text.empty()) {
                 swkbdConfigSetGuideText(&kbd, guide_text.c_str());
             }
-
             if(!initial_text.empty()) {
                 swkbdConfigSetInitialText(&kbd, initial_text.c_str());
             }
 
             char out_text[FS_MAX_PATH] = {};
             rc = swkbdShow(&kbd, out_text, sizeof(out_text));
+            swkbdClose(&kbd);
+
             if(R_SUCCEEDED(rc)) {
                 return out_text;
             }
-            swkbdClose(&kbd);
         }
 
         return "";
