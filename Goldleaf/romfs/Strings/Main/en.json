@@ -439,5 +439,16 @@
     "Unable to safely remove the USB drive...",
     "Export with certificate",
     "The ticket was successfully exported:",
-    "In order to avoid risks, removing used tickets is not allowed"
+    "In order to avoid risks, removing used tickets is not allowed",
+    "Custom language",
+    "None",
+    "Select the custom language",
+    "Ignore required firmware version on installs",
+    "Settings were successfully changed and saved",
+    "changes require a reboot to show",
+    "Ticket type:",
+    "common",
+    "personalized",
+    "used",
+    "unused"
 ]

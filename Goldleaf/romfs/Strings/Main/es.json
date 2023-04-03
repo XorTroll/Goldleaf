@@ -439,5 +439,16 @@
     "No se pudo expulsar de forma segura el dispositivo USB...",
     "Exportar con certificado",
     "El ticket fue exportado con éxito:",
-    "Para evitar riesgos, no está permitido eliminar tickets utilizados"
+    "Para evitar riesgos, no está permitido eliminar tickets utilizados",
+    "Idioma personalizado",
+    "Ninguno",
+    "Escoja un idioma personalizado",
+    "Ignorar versión requerida de firmware en instalaciones",
+    "Los ajustes fueron modificados y guardados con éxito.",
+    "los cambios requieren un reinicio para apreciarse",
+    "Tipo de ticket:",
+    "común",
+    "personalizado",
+    "utilizado",
+    "no utilizado"
 ]

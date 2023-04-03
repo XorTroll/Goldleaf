@@ -32,9 +32,9 @@ namespace ui {
         inline void SaveChanges(const bool requires_reboot) {
             g_Settings.Save();
 
-            std::string notif_text = "Settings were successfully changed and saved";
+            auto notif_text = cfg::strings::Main.GetString(445);
             if(requires_reboot) {
-                notif_text += " (changes require a reboot to show).";
+                notif_text += " (" + cfg::strings::Main.GetString(446) + ").";
             }
             g_MainApplication->ShowNotification(notif_text);
 
@@ -53,13 +53,13 @@ namespace ui {
     void OwnSettingsLayout::UpdateSettings() {
         this->settings_menu->ClearItems();
 
-        auto custom_lang_item_name = "Custom language: " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : "none");
+        auto custom_lang_item_name = cfg::strings::Main.GetString(441) + ": " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : cfg::strings::Main.GetString(442));
         this->custom_lang_item = pu::ui::elm::MenuItem::New(custom_lang_item_name);
         this->custom_lang_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->custom_lang_item->SetColor(g_Settings.custom_scheme.text);
         this->custom_lang_item->AddOnKey(std::bind(&OwnSettingsLayout::custom_lang_DefaultKey, this));
 
-        auto ignore_required_fw_version_item_name = std::string("Ignore required firmware version on installs: ") + (g_Settings.ignore_required_fw_ver ? "true" : "false");
+        auto ignore_required_fw_version_item_name = cfg::strings::Main.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
         this->ignore_required_fw_version_item = pu::ui::elm::MenuItem::New(ignore_required_fw_version_item_name);
         this->ignore_required_fw_version_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->ignore_required_fw_version_item->SetColor(g_Settings.custom_scheme.text);
@@ -78,7 +78,7 @@ namespace ui {
         }
         lang_opts.push_back("Cancel");
 
-        const auto option = g_MainApplication->CreateShowDialog("Custom language", "Select the custom language", lang_opts, true);
+        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(441), cfg::strings::Main.GetString(443), lang_opts, true);
         if(option >= 0) {
             if(option == 0) {
                 g_Settings.has_custom_lang = false;

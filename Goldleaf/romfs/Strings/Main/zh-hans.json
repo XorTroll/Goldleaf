@@ -439,5 +439,16 @@
     "无法安全移除此 USB 设备...",
     "带证书的出口",
     "票据已成功导出:",
-    "为了避免风险，不允许删除已使用的票据"
+    "为了避免风险，不允许删除已使用的票据",
+    "Custom language",
+    "None",
+    "Select the custom language",
+    "Ignore required firmware version on installs",
+    "Settings were successfully changed and saved",
+    "changes require a reboot to show",
+    "Ticket type:",
+    "common",
+    "personalized",
+    "used",
+    "unused"
 ]

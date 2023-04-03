@@ -439,5 +439,16 @@
     "Não foi possível remover a unidade USB com segurança...",
     "Exportação com certificado",
     "O ticket foi exportado com sucesso:",
-    "A fim de evitar riscos, não é permitida a eliminação de tickets usados"
+    "A fim de evitar riscos, não é permitida a eliminação de tickets usados",
+    "Custom language",
+    "None",
+    "Select the custom language",
+    "Ignore required firmware version on installs",
+    "Settings were successfully changed and saved",
+    "changes require a reboot to show",
+    "Ticket type:",
+    "common",
+    "personalized",
+    "used",
+    "unused"
 ]

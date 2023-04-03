@@ -439,5 +439,16 @@
     "USBドライブを安全に取り外すことができません...",
     "証明書付き輸出",
     "チケットは正常にエクスポートされました:",
-    "リスク回避のため、使用済みチケットの削除はできません"
+    "リスク回避のため、使用済みチケットの削除はできません",
+    "Custom language",
+    "None",
+    "Select the custom language",
+    "Ignore required firmware version on installs",
+    "Settings were successfully changed and saved",
+    "changes require a reboot to show",
+    "Ticket type:",
+    "common",
+    "personalized",
+    "used",
+    "unused"
 ]

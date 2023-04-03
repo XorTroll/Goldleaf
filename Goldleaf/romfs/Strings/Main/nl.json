@@ -439,5 +439,16 @@
     "Kon de usb schijf niet veilig verwijderen...",
     "Uitvoer met certificaat",
     "Ticket is succesvol geëxporteerd:",
-    "Om risico's te vermijden, is het niet toegestaan gebruikte tickets te verwijderen"
+    "Om risico's te vermijden, is het niet toegestaan gebruikte tickets te verwijderen",
+    "Custom language",
+    "None",
+    "Select the custom language",
+    "Ignore required firmware version on installs",
+    "Settings were successfully changed and saved",
+    "changes require a reboot to show",
+    "Ticket type:",
+    "common",
+    "personalized",
+    "used",
+    "unused"
 ]

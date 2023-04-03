@@ -439,5 +439,16 @@
     "Impossible d’éjecter le disque USB en toute sécurité...",
     "Exportation avec certificat",
     "Le ticket a été exporté avec succès :",
-    "Afin d'éviter les risques, la suppression des tickets utilisés n'est pas autorisée"
+    "Afin d'éviter les risques, la suppression des tickets utilisés n'est pas autorisée",
+    "Custom language",
+    "None",
+    "Select the custom language",
+    "Ignore required firmware version on installs",
+    "Settings were successfully changed and saved",
+    "changes require a reboot to show",
+    "Ticket type:",
+    "common",
+    "personalized",
+    "used",
+    "unused"
 ]

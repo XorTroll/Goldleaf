@@ -33,13 +33,13 @@ namespace ui {
         inline std::string FormatTicketType(const hos::TicketType type) {
             switch(type) {
                 case hos::TicketType::Common: {
-                    return "common";
+                    return cfg::strings::Main.GetString(448);
                 }
                 case hos::TicketType::Personalized: {
-                    return "personalized";
+                    return cfg::strings::Main.GetString(449);
                 }
             }
-            return "<invalid>";
+            return cfg::strings::Main.GetString(442);
         }
 
     }
@@ -66,7 +66,7 @@ namespace ui {
         auto has_any = false;
         for(const auto &tik: hos::GetAllTickets()) {
             const auto tik_name = hos::FormatApplicationId(tik.rights_id.GetApplicationId());
-            const auto tik_opts = "(" + FormatTicketType(tik.type) + ", " + (tik.IsUsed() ? "used" : "unused") + ")";
+            const auto tik_opts = "(" + FormatTicketType(tik.type) + ", " + (tik.IsUsed() ? cfg::strings::Main.GetString(450) : cfg::strings::Main.GetString(451)) + ")";
 
             auto itm = pu::ui::elm::MenuItem::New(tik_name + " " + tik_opts);
             itm->SetColor(g_Settings.custom_scheme.text);
@@ -91,11 +91,9 @@ namespace ui {
         
         info += cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(tik_app_id);
         info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(tik.rights_id.GetKeyGeneration() + 1);
-        info += "\nType: " + FormatTicketType(tik.type);
-        info += "\n";
-        info += tik_used ? "This ticket is used" : "This ticket is not used";
+        info += "\n" + cfg::strings::Main.GetString(447) + " " + FormatTicketType(tik.type);
         info += "\n\n";
-        info += cfg::strings::Main.GetString(203);
+        info += tik_used ? cfg::strings::Main.GetString(202) : cfg::strings::Main.GetString(203);
 
         const auto opt_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), info, { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(438), cfg::strings::Main.GetString(18) }, true);
         if(opt_1 == 0) {

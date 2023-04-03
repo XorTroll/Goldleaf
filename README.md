@@ -28,7 +28,6 @@
   - [Building](#building)
   - [Contributing](#contributing)
     - [Translations](#translations)
-  - [TODO](#todo)
   - [Credits and support](#credits-and-support)
     - [Credits](#credits)
     - [Discord and beta testing](#discord-and-beta-testing)
@@ -256,17 +255,11 @@ You can always contact me on my Discord server (invite link below) as an easier 
 
 ### Translations
 
-Read this before making any new translations:
+Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
 
-- Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
+Note that some languages may contain untranslated (English) content. I prioritize relevant releases/updates over correct and fully up-to-date translations, thus releases may not contain complete translations.
 
-## TODO
-
-This is the list of features planned (or at least considered) to be implemented in Goldleaf:
-
-- More work into settings, settings for 12/24h time and/or overwriting already installed content, etc.
-
-- Menus back forward reset index
+Anyone with enough knowledge of a certain language is absolutely welcome to make a PR with translation suggestions and/or fixes.
 
 ## Credits and support
 
