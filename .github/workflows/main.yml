@@ -1,27 +1,52 @@
-
 name: Build Goldleaf
 
 on: [push]
+
 jobs:
   Goldleaf:
-    runs-on: ubuntu-18.04
-
-    container:
-      image: devkitpro/devkita64
-      options: --user 1001
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Update repo
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Update packages
       run: |
-        git submodule update --init --recursive
-        
+        sudo -n apt-get update
+        sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2
+        sudo -n dkp-pacman --noconfirm -U \
+          "https://wii.leseratte10.de/devkitPro/other-stuff/dkp-toolchain-vars-1.0.2-1-any.pkg.tar.xz"
+
+    - name: Silence all git safe directory warnings
+      run: git config --system --add safe.directory '*'
+
+    - name: Checkout latest libnx commit
+      run: |
+        git clone --recurse-submodules https://github.com/switchbrew/libnx.git
+
+    - name: Set workspace permissions
+      run: chmod 777 -R "$GITHUB_WORKSPACE"
+
+    - name: Build and install libnx
+      run: |
+        cd libnx
+        make install -j$(nproc)
+
+    - name: Build libusbhsfs dependencies
+      run: |
+        cd libusbhsfs
+        cd libntfs-3g; su -s /bin/bash nobody -c "dkp-makepkg -c -C -f" > /dev/null; sudo -n dkp-pacman -U --needed --noconfirm *.pkg.tar.* > /dev/null; cd ..
+        cd liblwext4; su -s /bin/bash nobody -c "dkp-makepkg -c -C -f" > /dev/null; sudo -n dkp-pacman -U --needed --noconfirm *.pkg.tar.* > /dev/null; cd ..
+        make BUILD_TYPE=GPL release
+
     - name: Build Goldleaf
       run: |
-        apt-get install -y fakeroot
-        make initial -j$(nproc)
-        
-    - uses: actions/upload-artifact@master
+        make -j$(nproc)
+
+    - uses: actions/upload-artifact@v3
       with:
         name: Goldleaf
         path: Goldleaf/Goldleaf.nro
+        if-no-files-found: error
