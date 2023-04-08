@@ -48,8 +48,7 @@ import xortroll.goldleaf.quark.usb.cf.CommandFramework;
 import xortroll.goldleaf.quark.usb.cmd.CommandBlock;
 
 public class MainApplication extends Application {
-    public static final Version QuarkVersion = new Version(0, 5, 0);
-    public static final Version MinimumGoldleafVersion = new Version(0, 10, 0);
+    public static final Version CurrentVersion = new Version(0, 10, 1);
 
     private static Config special_path_cfg;
     private static Object special_path_cfg_lock;
@@ -155,8 +154,8 @@ public class MainApplication extends Application {
                 if(product_version == null) {
                     show_message = "The connection found doesn't seem to be Goldleaf";
                 }
-                else if(product_version.olderThan(MinimumGoldleafVersion)) {
-                    show_message = "The Goldleaf Quark connected to is outdated.\nPlease update to v" + MinimumGoldleafVersion.toString() + " or higher.";
+                else if(product_version.olderThan(CurrentVersion)) {
+                    show_message = "The Goldleaf Quark connected to is outdated.\nPlease update to v" + CurrentVersion.toString() + " or higher.";
                 }
                 else {
                     if(is_dev_version) {
@@ -193,7 +192,7 @@ public class MainApplication extends Application {
         
         stage = primaryStage;
         stage.getIcons().add(new Image(this_loader.getResource("Icon.png").toExternalForm()));
-        stage.setTitle("Quark v" + QuarkVersion.toString() + " - Goldleaf's USB client");
+        stage.setTitle("Quark v" + CurrentVersion.toString() + " - Goldleaf's USB client");
         stage.setScene(this.scene);
         stage.setMinWidth(width);
         stage.setMinHeight(height);

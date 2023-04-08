@@ -6,7 +6,7 @@
   <groupId>xortroll.goldleaf.quark</groupId>
   <artifactId>Quark</artifactId>
 
-  <version>0.5</version>
+  <version>0.10.1</version>
   <name>Quark</name>
 
   <properties>
