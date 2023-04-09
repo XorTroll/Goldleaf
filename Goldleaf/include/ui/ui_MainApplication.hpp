@@ -81,6 +81,7 @@ namespace ui {
             pu::ui::elm::Image::Ref battery_img;
             pu::ui::elm::Image::Ref battery_charge_img;
             pu::ui::elm::Image::Ref menu_banner_img;
+            pu::ui::elm::TextBlock::Ref menu_version_text;
             pu::ui::elm::Image::Ref menu_img;
             pu::ui::elm::Image::Ref usb_img;
             pu::ui::elm::Image::Ref conn_img;

@@ -73,6 +73,8 @@ namespace ui {
         this->battery_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/0.png"));
         this->battery_charge_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/Charge.png"));
         this->menu_banner_img = pu::ui::elm::Image::New(10, 62, g_Settings.PathForResource("/MenuBanner.png"));
+        this->menu_version_text = pu::ui::elm::TextBlock::New(260, 108, "v" GOLDLEAF_VERSION);
+        this->menu_version_text->SetColor(g_Settings.custom_scheme.text);
         this->menu_img = pu::ui::elm::Image::New(15, 69, g_Settings.PathForResource("/Common/SdCard.png"));
         this->menu_img->SetWidth(85);
         this->menu_img->SetHeight(85);
@@ -164,6 +166,7 @@ namespace ui {
 
         // Special extras
         this->main_menu_lyt->Add(this->menu_banner_img);
+        this->main_menu_lyt->Add(this->menu_version_text);
 
         this->AddRenderCallback(std::bind(&MainApplication::UpdateValues, this));
         this->SetOnInput(std::bind(&MainApplication::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
