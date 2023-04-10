@@ -138,7 +138,7 @@ namespace amssu {
         *async = {};
 
         auto event_h = INVALID_HANDLE;
-        auto rc = serviceDispatch(&g_AmsSuService, 4,
+        const auto rc = serviceDispatch(&g_AmsSuService, 4,
             .out_num_objects = 1,
             .out_objects = &async->s,
             .out_handle_attrs = { SfOutHandleAttr_HipcCopy },

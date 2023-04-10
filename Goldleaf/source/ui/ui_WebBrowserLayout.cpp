@@ -65,13 +65,13 @@ namespace ui {
     }
 
     void WebBrowserLayout::input_DefaultKey() {
-        const auto url = AskForText(cfg::strings::Main.GetString(38), "https://");
+        const auto url = ShowKeyboard(cfg::strings::Main.GetString(38), "https://");
         if(!url.empty()) {
             LaunchWebAppletImpl(url);
 
             const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(379), cfg::strings::Main.GetString(380), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
             if(option == 0) {
-                const auto name = AskForText(cfg::strings::Main.GetString(381));
+                const auto name = ShowKeyboard(cfg::strings::Main.GetString(381));
                 if(!name.empty()) {
                     const cfg::WebBookmark bmk = { name, url };
                     g_Settings.bookmarks.push_back(bmk);
@@ -94,7 +94,7 @@ namespace ui {
                 const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(387), cfg::strings::Main.GetString(388), { cfg::strings::Main.GetString(389), cfg::strings::Main.GetString(390), cfg::strings::Main.GetString(18) }, true);
                 switch(option_2) {
                     case 0: {
-                        const auto name = AskForText(cfg::strings::Main.GetString(391));
+                        const auto name = ShowKeyboard(cfg::strings::Main.GetString(391));
                         if(!name.empty()) {
                             for(auto &saved_bmk: g_Settings.bookmarks) {
                                 if(saved_bmk.name == bmk.name) {
@@ -108,7 +108,7 @@ namespace ui {
                         break;
                     }
                     case 1: {
-                        const auto url = AskForText(cfg::strings::Main.GetString(392), "https://");
+                        const auto url = ShowKeyboard(cfg::strings::Main.GetString(392), "https://");
                         if(!url.empty()) {
                             for(auto &saved_bmk: g_Settings.bookmarks) {
                                 if(saved_bmk.name == bmk.name) {

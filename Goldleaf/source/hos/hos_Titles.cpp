@@ -56,7 +56,7 @@ namespace hos {
         return "";
     }
 
-    NacpStruct Title::TryGetNACP() const {
+    NacpStruct Title::TryGetNacp() const {
         NsApplicationControlData control_data = {};
         size_t tmp = 0;
         if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, this->app_id, &control_data, sizeof(control_data), &tmp))) {
@@ -85,7 +85,7 @@ namespace hos {
 
     bool Title::DumpControlData() const {
         bool has_icon = false;
-        const auto nacp = this->TryGetNACP();
+        const auto nacp = this->TryGetNacp();
         auto sd_exp = fs::GetSdCardExplorer();
         if(!hos::IsNacpEmpty(nacp)) {
             const auto &nacp_file = GetExportedNacpPath(this->app_id);

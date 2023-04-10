@@ -27,7 +27,7 @@ namespace ui {
     void SetClipboard(const std::string &path);
 
     void ShowPowerTasksDialog(const std::string &title, const std::string &msg);
-    std::string AskForText(const std::string &guide_text = "", const std::string &initial_text = "", const int max_len = -1);
+    std::string ShowKeyboard(const std::string &guide_text = "", const std::string &initial_text = "", const u32 max_len = 500);
     void HandleResult(const Result rc, const std::string &context);
 
     ColorScheme GenerateRandomScheme();

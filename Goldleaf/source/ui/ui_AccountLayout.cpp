@@ -81,7 +81,7 @@ namespace ui {
     }
 
     void AccountLayout::optsRename_DefaultKey() {
-        const auto name = AskForText(cfg::strings::Main.GetString(213), "", 10);
+        const auto name = ShowKeyboard(cfg::strings::Main.GetString(213), "", 10);
         if(!name.empty()) {
             const auto rc = acc::EditUser([&](AccountProfileBase *prof_base, AccountUserData *_user_data) {
                 strcpy(prof_base->nickname, name.c_str());

@@ -35,7 +35,7 @@ namespace bpcams {
         }
 
         Handle tmp_port_h;
-        auto rc = svcConnectToNamedPort(&tmp_port_h, "bpc:ams");
+        const auto rc = svcConnectToNamedPort(&tmp_port_h, "bpc:ams");
         if(R_SUCCEEDED(rc)) {
             serviceCreate(&g_BpcAmsService, tmp_port_h);
         }

@@ -45,22 +45,21 @@ DATA		:=	data
 ROMFS		:=	romfs
 
 VER_MAJOR	:= 0
-VER_MINOR	:= 10
-VER_MICRO	:= 1
+VER_MINOR	:= 11
+VER_MICRO	:= 0
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
 # "-dev" prefix is manually appended when a new version is under development
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -O2 -ffunction-sections \
-			$(ARCH) $(DEFINES)
+CFLAGS	:=	-g -O2 -ffunction-sections $(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags`
 CFLAGS	+=	-DGOLDLEAF_MAJOR=$(VER_MAJOR) -DGOLDLEAF_MINOR=$(VER_MINOR) -DGOLDLEAF_MICRO=$(VER_MICRO) -DGOLDLEAF_VERSION=\"$(APP_VERSION)\"

@@ -540,7 +540,7 @@ namespace ui {
                 }
             }
             else if(option_1 == rename_option) {
-                const auto new_name = AskForText(cfg::strings::Main.GetString(130), item);
+                const auto new_name = ShowKeyboard(cfg::strings::Main.GetString(130), item);
                 if(!new_name.empty()) {
                     if(new_name == item) {
                         return;
@@ -647,7 +647,7 @@ namespace ui {
                     break;
                 }
                 case 3: {
-                    const auto new_name = AskForText(cfg::strings::Main.GetString(238), item);
+                    const auto new_name = ShowKeyboard(cfg::strings::Main.GetString(238), item);
                     if(!new_name.empty()) {
                         if(new_name == item) {
                             // TODO: special handling?

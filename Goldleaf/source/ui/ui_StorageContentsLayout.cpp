@@ -30,13 +30,13 @@ namespace ui {
     namespace {
 
         bool SortContentsImpl(const hos::Title &cnt_a, const hos::Title &cnt_b) {
-            const auto cnt_a_nacp = cnt_a.TryGetNACP();
+            const auto cnt_a_nacp = cnt_a.TryGetNacp();
             std::string cnt_a_name = "";
             if(!hos::IsNacpEmpty(cnt_a_nacp)) {
                 cnt_a_name = hos::FindNacpName(cnt_a_nacp);
             }
 
-            const auto cnt_b_nacp = cnt_b.TryGetNACP();
+            const auto cnt_b_nacp = cnt_b.TryGetNacp();
             std::string cnt_b_name = "";
             if(!hos::IsNacpEmpty(cnt_b_nacp)) {
                 cnt_b_name = hos::FindNacpName(cnt_b_nacp);
@@ -107,7 +107,7 @@ namespace ui {
             this->contents_menu->SetCooldownEnabled(true);
             std::sort(this->contents.begin(), this->contents.end(), SortContentsImpl);
             for(const auto &cur_cnt: this->contents) {
-                const auto nacp = cur_cnt.TryGetNACP();
+                const auto nacp = cur_cnt.TryGetNacp();
                 auto name = hos::FormatApplicationId(cur_cnt.app_id);
                 if(!hos::IsNacpEmpty(nacp)) {
                     name = hos::FindNacpName(nacp);

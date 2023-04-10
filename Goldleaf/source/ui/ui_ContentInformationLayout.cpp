@@ -269,7 +269,7 @@ namespace ui {
             }
         }
         auto head = hos::FormatApplicationId(content.app_id);
-        const auto nacp = content.TryGetNACP();
+        const auto nacp = content.TryGetNacp();
         if(!hos::IsNacpEmpty(nacp)) {
             head = hos::FindNacpName(nacp) + " (" + nacp.display_version + ")";
         }

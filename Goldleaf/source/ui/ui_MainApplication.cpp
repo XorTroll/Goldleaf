@@ -383,7 +383,7 @@ namespace ui {
             }
         }
         else if(down & HidNpadButton_L) {
-            const auto file_name = AskForText(cfg::strings::Main.GetString(225), "");
+            const auto file_name = ShowKeyboard(cfg::strings::Main.GetString(225), "");
             if(!file_name.empty()) {
                 const auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(file_name);
                 if(this->partition_browser_lyt->GetExplorer()->IsFile(full_path) || this->partition_browser_lyt->GetExplorer()->IsDirectory(full_path)) {
@@ -397,7 +397,7 @@ namespace ui {
             }
         }
         else if(down & HidNpadButton_R) {
-            const auto dir_name = AskForText(cfg::strings::Main.GetString(250), "");
+            const auto dir_name = ShowKeyboard(cfg::strings::Main.GetString(250), "");
             if(!dir_name.empty()) {
                 const auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(dir_name);
                 if(this->partition_browser_lyt->GetExplorer()->IsFile(full_path) || this->partition_browser_lyt->GetExplorer()->IsDirectory(full_path)) {
