@@ -67,13 +67,13 @@ namespace ui {
         }
     }
 
-    std::string ShowKeyboard(const std::string &guide_text, const std::string &initial_text, const u32 max_len) {
+    std::string ShowKeyboard(const std::string &guide_text, const std::string &initial_text, const u32 max_len, const size_t out_str_len) {
         SwkbdConfig kbd;
         auto rc = swkbdCreate(&kbd, 0);
         if(R_SUCCEEDED(rc)) {
             swkbdConfigMakePresetDefault(&kbd);
             swkbdConfigSetType(&kbd, SwkbdType_All);
-            swkbdConfigSetStringLenMax(&kbd, static_cast<u32>(max_len));
+            swkbdConfigSetStringLenMax(&kbd, max_len);
             if(!guide_text.empty()) {
                 swkbdConfigSetGuideText(&kbd, guide_text.c_str());
             }
@@ -81,9 +81,9 @@ namespace ui {
                 swkbdConfigSetInitialText(&kbd, initial_text.c_str());
             }
 
-            auto out_text = new char[max_len + 1]();
-            rc = swkbdShow(&kbd, out_text, max_len + 1);
-            std::string out(out_text, max_len);
+            auto out_text = new char[out_str_len + 1]();
+            rc = swkbdShow(&kbd, out_text, out_str_len + 1);
+            std::string out(out_text);
             delete[] out_text;
             swkbdClose(&kbd);
 

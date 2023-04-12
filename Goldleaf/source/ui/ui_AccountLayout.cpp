@@ -60,8 +60,7 @@ namespace ui {
     }
 
     void AccountLayout::Load() {
-        AccountProfileBase prof_base = {};
-        const auto rc = acc::ReadSelectedUser(&prof_base, nullptr);
+        const auto rc = acc::ReadSelectedUser(&this->cur_prof_base, nullptr);
         if(R_FAILED(rc)) {
             HandleResult(rc, cfg::strings::Main.GetString(211));
             g_MainApplication->ReturnToMainMenu();
@@ -76,15 +75,16 @@ namespace ui {
             user_icon = "Accounts";
         }
         
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(41), user_icon, cfg::strings::Main.GetString(212) + " " + prof_base.nickname, default_icon);
+        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(41), user_icon, cfg::strings::Main.GetString(212) + " " + this->cur_prof_base.nickname, default_icon);
         this->ReloadItems();
     }
 
     void AccountLayout::optsRename_DefaultKey() {
-        const auto name = ShowKeyboard(cfg::strings::Main.GetString(213), "", 10);
+        const auto name = ShowKeyboard(cfg::strings::Main.GetString(213), this->cur_prof_base.nickname, 10, sizeof(this->cur_prof_base.nickname) - 1);
         if(!name.empty()) {
+            strcpy(this->cur_prof_base.nickname, name.c_str());
             const auto rc = acc::EditUser([&](AccountProfileBase *prof_base, AccountUserData *_user_data) {
-                strcpy(prof_base->nickname, name.c_str());
+                memcpy(prof_base, &this->cur_prof_base, sizeof(this->cur_prof_base));
             });
             if(R_SUCCEEDED(rc)) {
                 g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(212) + " " + name);

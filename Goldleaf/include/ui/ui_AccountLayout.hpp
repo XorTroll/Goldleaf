@@ -27,6 +27,8 @@ namespace ui {
     class AccountLayout : public pu::ui::Layout {
         private:
             pu::ui::elm::Menu::Ref options_menu;
+            AccountProfileBase cur_prof_base;
+
         public:
             AccountLayout();
             PU_SMART_CTOR(AccountLayout)

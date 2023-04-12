@@ -7,7 +7,6 @@ all:
 	@$(MAKE) -C Goldleaf/
 
 initial:
-	@$(MAKE) -C libnx/
 	@$(MAKE) -C Plutonium/
 	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
 	@$(MAKE) -C Goldleaf/
@@ -15,7 +14,6 @@ initial:
 allclean: libclean clean
 
 libclean:
-	@$(MAKE) -C libnx/ clean
 	@$(MAKE) -C Plutonium/ clean
 	@$(MAKE) -C libusbhsfs/ clean
 
