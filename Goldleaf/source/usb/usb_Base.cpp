@@ -20,6 +20,7 @@
 */
 
 #include <usb/usb_Base.hpp>
+#include <err/err_Result.hpp>
 
 // TODO (low priority): deeper rewrite?
 
@@ -27,72 +28,40 @@ namespace usb {
 
     namespace {
 
-        struct InnerInterface {
-            RwLock lock;
-            RwLock lock_in;
-            RwLock lock_out;
-            bool initialized;
+        constexpr u32 DefaultInterfaceNumber = 0;
+        constexpr u32 HighSpeedMaxPacketLength = 0x200;
+        constexpr u32 SuperSpeedMaxPacketLength = 0x400;
 
-            UsbDsInterface *interface;
-            UsbDsEndpoint *endpoint_in;
-            UsbDsEndpoint *endpoint_out;
+        constexpr UsbCommsInterfaceInfo InterfaceInfo = {
+            .bInterfaceClass = USB_CLASS_VENDOR_SPEC,
+            .bInterfaceSubClass = USB_CLASS_VENDOR_SPEC,
+            .bInterfaceProtocol = USB_CLASS_VENDOR_SPEC,
         };
 
         bool g_Initialized = false;
-        InnerInterface g_Interfaces[TotalInterfaces];
-        RwLock g_Lock;
+        UsbDsInterface *g_Interface;
+        UsbDsEndpoint *g_EndpointIn;
+        UsbDsEndpoint *g_EndpointOut;
 
-        void _usbCommsUpdateInterfaceDescriptor(struct usb_interface_descriptor *desc, const UsbCommsInterfaceInfo *info) {
-            if(info != nullptr) {
-                desc->bInterfaceClass = info->bInterfaceClass;
-                desc->bInterfaceSubClass = info->bInterfaceSubClass;
-                desc->bInterfaceProtocol = info->bInterfaceProtocol;
-            }
-        }
-
-        void _usbCommsInterfaceFree(InnerInterface *interface) {
-            rwlockWriteLock(&interface->lock);
-            if (!interface->initialized) {
-                rwlockWriteUnlock(&interface->lock);
-                return;
-            }
-
-            rwlockWriteLock(&interface->lock_in);
-            rwlockWriteLock(&interface->lock_out);
-
-            interface->initialized = 0;
-
-            interface->endpoint_in = nullptr;
-            interface->endpoint_out = nullptr;
-            interface->interface = nullptr;
-
-            rwlockWriteUnlock(&interface->lock_out);
-            rwlockWriteUnlock(&interface->lock_in);
-
-            rwlockWriteUnlock(&interface->lock);
-        }
-
-        Result _usbCommsInterfaceInit5x(u32 intf_ind, const UsbCommsInterfaceInfo *info) {
-            Result rc = 0;
-            InnerInterface *interface = &g_Interfaces[intf_ind];
-            
+        Result InitializeInterface5x() {
+            auto rc = err::result::ResultSuccess;
+    
             struct usb_interface_descriptor interface_descriptor = {
                 .bLength = USB_DT_INTERFACE_SIZE,
                 .bDescriptorType = USB_DT_INTERFACE,
-                .bInterfaceNumber = 4,
+                .bInterfaceNumber = DefaultInterfaceNumber,
                 .bNumEndpoints = 2,
-                .bInterfaceClass = USB_CLASS_VENDOR_SPEC,
-                .bInterfaceSubClass = USB_CLASS_VENDOR_SPEC,
-                .bInterfaceProtocol = USB_CLASS_VENDOR_SPEC,
+                .bInterfaceClass = InterfaceInfo.bInterfaceClass,
+                .bInterfaceSubClass = InterfaceInfo.bInterfaceSubClass,
+                .bInterfaceProtocol = InterfaceInfo.bInterfaceProtocol,
             };
-            _usbCommsUpdateInterfaceDescriptor(&interface_descriptor, info);
 
             struct usb_endpoint_descriptor endpoint_descriptor_in = {
                 .bLength = USB_DT_ENDPOINT_SIZE,
                 .bDescriptorType = USB_DT_ENDPOINT,
                 .bEndpointAddress = USB_ENDPOINT_IN,
                 .bmAttributes = USB_TRANSFER_TYPE_BULK,
-                .wMaxPacketSize = 0x40,
+                .wMaxPacketSize = HighSpeedMaxPacketLength,
             };
 
             struct usb_endpoint_descriptor endpoint_descriptor_out = {
@@ -100,7 +69,7 @@ namespace usb {
                 .bDescriptorType = USB_DT_ENDPOINT,
                 .bEndpointAddress = USB_ENDPOINT_OUT,
                 .bmAttributes = USB_TRANSFER_TYPE_BULK,
-                .wMaxPacketSize = 0x40,
+                .wMaxPacketSize = HighSpeedMaxPacketLength,
             };
             
             struct usb_ss_endpoint_companion_descriptor endpoint_companion = {
@@ -110,82 +79,110 @@ namespace usb {
                 .bmAttributes = 0x00,
                 .wBytesPerInterval = 0x00,
             };
-
-            interface->initialized = 1;
             
-            rc = usbDsRegisterInterface(&interface->interface);
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsRegisterInterface(&g_Interface);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             
-            interface_descriptor.bInterfaceNumber = interface->interface->interface_index;
+            interface_descriptor.bInterfaceNumber = g_Interface->interface_index;
             endpoint_descriptor_in.bEndpointAddress += interface_descriptor.bInterfaceNumber + 1;
             endpoint_descriptor_out.bEndpointAddress += interface_descriptor.bInterfaceNumber + 1;
-            
+
+            /*
             // Full Speed Config
             rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Full, &interface_descriptor, USB_DT_INTERFACE_SIZE);
-            if (R_FAILED(rc)) return rc;
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Full, &endpoint_descriptor_in, USB_DT_ENDPOINT_SIZE);
-            if (R_FAILED(rc)) return rc;
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Full, &endpoint_descriptor_out, USB_DT_ENDPOINT_SIZE);
-            if (R_FAILED(rc)) return rc;
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            */
             
             // High Speed Config
-            endpoint_descriptor_in.wMaxPacketSize = 0x200;
-            endpoint_descriptor_out.wMaxPacketSize = 0x200;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_High, &interface_descriptor, USB_DT_INTERFACE_SIZE);
-            if (R_FAILED(rc)) return rc;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_High, &endpoint_descriptor_in, USB_DT_ENDPOINT_SIZE);
-            if (R_FAILED(rc)) return rc;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_High, &endpoint_descriptor_out, USB_DT_ENDPOINT_SIZE);
-            if (R_FAILED(rc)) return rc;
+            endpoint_descriptor_in.wMaxPacketSize = HighSpeedMaxPacketLength;
+            endpoint_descriptor_out.wMaxPacketSize = HighSpeedMaxPacketLength;
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_High, &interface_descriptor, USB_DT_INTERFACE_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_High, &endpoint_descriptor_in, USB_DT_ENDPOINT_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_High, &endpoint_descriptor_out, USB_DT_ENDPOINT_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             
             // Super Speed Config
-            endpoint_descriptor_in.wMaxPacketSize = 0x400;
-            endpoint_descriptor_out.wMaxPacketSize = 0x400;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Super, &interface_descriptor, USB_DT_INTERFACE_SIZE);
-            if (R_FAILED(rc)) return rc;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Super, &endpoint_descriptor_in, USB_DT_ENDPOINT_SIZE);
-            if (R_FAILED(rc)) return rc;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Super, &endpoint_companion, USB_DT_SS_ENDPOINT_COMPANION_SIZE);
-            if (R_FAILED(rc)) return rc;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Super, &endpoint_descriptor_out, USB_DT_ENDPOINT_SIZE);
-            if (R_FAILED(rc)) return rc;
-            rc = usbDsInterface_AppendConfigurationData(interface->interface, UsbDeviceSpeed_Super, &endpoint_companion, USB_DT_SS_ENDPOINT_COMPANION_SIZE);
-            if (R_FAILED(rc)) return rc;
+            endpoint_descriptor_in.wMaxPacketSize = SuperSpeedMaxPacketLength;
+            endpoint_descriptor_out.wMaxPacketSize = SuperSpeedMaxPacketLength;
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_Super, &interface_descriptor, USB_DT_INTERFACE_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_Super, &endpoint_descriptor_in, USB_DT_ENDPOINT_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_Super, &endpoint_companion, USB_DT_SS_ENDPOINT_COMPANION_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_Super, &endpoint_descriptor_out, USB_DT_ENDPOINT_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
+            rc = usbDsInterface_AppendConfigurationData(g_Interface, UsbDeviceSpeed_Super, &endpoint_companion, USB_DT_SS_ENDPOINT_COMPANION_SIZE);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             
             //Setup endpoints.    
-            rc = usbDsInterface_RegisterEndpoint(interface->interface, &interface->endpoint_in, endpoint_descriptor_in.bEndpointAddress);
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsInterface_RegisterEndpoint(g_Interface, &g_EndpointIn, endpoint_descriptor_in.bEndpointAddress);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             
-            rc = usbDsInterface_RegisterEndpoint(interface->interface, &interface->endpoint_out, endpoint_descriptor_out.bEndpointAddress);
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsInterface_RegisterEndpoint(g_Interface, &g_EndpointOut, endpoint_descriptor_out.bEndpointAddress);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
 
-            rc = usbDsInterface_EnableInterface(interface->interface);
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsInterface_EnableInterface(g_Interface);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
             
             return rc;
         }
 
 
-        Result _usbCommsInterfaceInit1x(u32 intf_ind, const UsbCommsInterfaceInfo *info) {
-            Result rc = 0;
-            InnerInterface *interface = &g_Interfaces[intf_ind];
+        Result InitializeInterface1x() {
+            auto rc = err::result::ResultSuccess;
 
             struct usb_interface_descriptor interface_descriptor = {
                 .bLength = USB_DT_INTERFACE_SIZE,
                 .bDescriptorType = USB_DT_INTERFACE,
-                .bInterfaceNumber = (u8)intf_ind,
-                .bInterfaceClass = USB_CLASS_VENDOR_SPEC,
-                .bInterfaceSubClass = USB_CLASS_VENDOR_SPEC,
-                .bInterfaceProtocol = USB_CLASS_VENDOR_SPEC,
+                .bInterfaceNumber = DefaultInterfaceNumber,
+                .bInterfaceClass = InterfaceInfo.bInterfaceClass,
+                .bInterfaceSubClass = InterfaceInfo.bInterfaceSubClass,
+                .bInterfaceProtocol = InterfaceInfo.bInterfaceProtocol,
             };
-            _usbCommsUpdateInterfaceDescriptor(&interface_descriptor, info);
 
             struct usb_endpoint_descriptor endpoint_descriptor_in = {
                 .bLength = USB_DT_ENDPOINT_SIZE,
                 .bDescriptorType = USB_DT_ENDPOINT,
                 .bEndpointAddress = USB_ENDPOINT_IN,
                 .bmAttributes = USB_TRANSFER_TYPE_BULK,
-                .wMaxPacketSize = 0x200,
+                .wMaxPacketSize = HighSpeedMaxPacketLength,
             };
 
             struct usb_endpoint_descriptor endpoint_descriptor_out = {
@@ -193,58 +190,64 @@ namespace usb {
                 .bDescriptorType = USB_DT_ENDPOINT,
                 .bEndpointAddress = USB_ENDPOINT_OUT,
                 .bmAttributes = USB_TRANSFER_TYPE_BULK,
-                .wMaxPacketSize = 0x200,
+                .wMaxPacketSize = HighSpeedMaxPacketLength,
             };
 
-            interface->initialized = 1;
-
             //Setup interface.
-            rc = usbDsGetDsInterface(&interface->interface, &interface_descriptor, "usb");
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsGetDsInterface(&g_Interface, &interface_descriptor, "usb");
+            if(R_FAILED(rc)) {
+                return rc;
+            }
 
             //Setup endpoints.
-            rc = usbDsInterface_GetDsEndpoint(interface->interface, &interface->endpoint_in, &endpoint_descriptor_in);//device->host
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsInterface_GetDsEndpoint(g_Interface, &g_EndpointIn, &endpoint_descriptor_in);//device->host
+            if(R_FAILED(rc)) {
+                return rc;
+            }
 
-            rc = usbDsInterface_GetDsEndpoint(interface->interface, &interface->endpoint_out, &endpoint_descriptor_out);//host->device
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsInterface_GetDsEndpoint(g_Interface, &g_EndpointOut, &endpoint_descriptor_out);//host->device
+            if(R_FAILED(rc)) {
+                return rc;
+            }
 
-            rc = usbDsInterface_EnableInterface(interface->interface);
-            if (R_FAILED(rc)) return rc;
+            rc = usbDsInterface_EnableInterface(g_Interface);
+            if(R_FAILED(rc)) {
+                return rc;
+            }
 
             return rc;
         }
 
-        Result _usbCommsInterfaceInit(u32 intf_ind, const UsbCommsInterfaceInfo *info) {
+        inline Result InitializeInterface() {
             if(hosversionAtLeast(5,0,0)) {
-                return _usbCommsInterfaceInit5x(intf_ind, info);
+                return InitializeInterface5x();
             }
             else {
-                return _usbCommsInterfaceInit1x(intf_ind, info);
+                return InitializeInterface1x();
             }
         }
 
-        Result TransferImpl(void *buf, size_t size, UsbDsEndpoint *ep) {
+        Result TransferImpl(void *buf, const size_t size, UsbDsEndpoint *ep) {
             auto state = UsbState_Detached;
             usbDsGetState(&state);
             if(state != UsbState_Configured) {
                 return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
             }
 
-            u32 urbid = 0;
-            auto rc = usbDsEndpoint_PostBufferAsync(ep, buf, size, &urbid);
+            u32 urb_id = 0;
+            auto rc = usbDsEndpoint_PostBufferAsync(ep, buf, size, &urb_id);
             if(R_SUCCEEDED(rc)) {
                 rc = eventWait(&ep->CompletionEvent, UINT64_MAX);
                 eventClear(&ep->CompletionEvent);
                 
                 if(R_SUCCEEDED(rc)) {
-                    UsbDsReportData reportdata;
-                    rc = usbDsEndpoint_GetReportData(ep, &reportdata);
-                    u32 gotsize = 0;
+                    UsbDsReportData report_data;
+                    rc = usbDsEndpoint_GetReportData(ep, &report_data);
+                    u32 report_size = 0;
                     if(R_SUCCEEDED(rc)) {
-                        rc = usbDsParseReportData(&reportdata, urbid, nullptr, &gotsize);
+                        rc = usbDsParseReportData(&report_data, urb_id, nullptr, &report_size);
                     }
-                    if(gotsize != size) {
+                    if(report_size != size) {
                         return MAKERESULT(Module_Libnx, LibnxError_BadUsbCommsRead);
                     }
                 }
@@ -252,25 +255,18 @@ namespace usb {
             return rc;
         }
 
-        Result InitializeImpl(u32 num_interfaces, const UsbCommsInterfaceInfo *infos) {
-            Result rc = 0;
-            rwlockWriteLock(&g_Lock);
-            
-            if(g_Initialized) {
-                rc = MAKERESULT(Module_Libnx, LibnxError_AlreadyInitialized); 
-            }
-            else if(num_interfaces > TotalInterfaces) {
-                rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
-            }
-            else {
+        Result InitializeImpl() {
+            auto rc = err::result::ResultSuccess;
+
+            if(!g_Initialized) {
                 rc = usbDsInitialize();
                 
                 if(R_SUCCEEDED(rc)) {
                     if(hosversionAtLeast(5,0,0)) {
                         u8 iManufacturer, iProduct, iSerialNumber;
-                        static const u16 supported_langs[1] = { 0x0409 };
+                        const u16 supported_langs[1] = { 0x0409 };
                         // Send language descriptor
-                        rc = usbDsAddUsbLanguageStringDescriptor(nullptr, supported_langs, sizeof(supported_langs)/sizeof(u16));
+                        rc = usbDsAddUsbLanguageStringDescriptor(nullptr, supported_langs, sizeof(supported_langs) / sizeof(u16));
                         // Send manufacturer
                         if(R_SUCCEEDED(rc)) {
                             rc = usbDsAddUsbStringDescriptor(&iManufacturer, "XorTroll");
@@ -288,12 +284,12 @@ namespace usb {
                         struct usb_device_descriptor device_descriptor = {
                             .bLength = USB_DT_DEVICE_SIZE,
                             .bDescriptorType = USB_DT_DEVICE,
-                            .bcdUSB = 0x0110,
+                            .bcdUSB = 0x0200,
                             .bDeviceClass = 0x00,
                             .bDeviceSubClass = 0x00,
                             .bDeviceProtocol = 0x00,
                             .bMaxPacketSize0 = 0x40,
-                            .idVendor = 0x057e,
+                            .idVendor = 0x057E,
                             .idProduct = 0x3000,
                             .bcdDevice = 0x0100,
                             .iManufacturer = iManufacturer,
@@ -301,10 +297,13 @@ namespace usb {
                             .iSerialNumber = iSerialNumber,
                             .bNumConfigurations = 0x01,
                         };
+
+                        /*
                         // Full Speed is USB 1.1
                         if(R_SUCCEEDED(rc)) {
                             rc = usbDsSetUsbDeviceDescriptor(UsbDeviceSpeed_Full, &device_descriptor);
                         }
+                        */
                         
                         // High Speed is USB 2.0
                         device_descriptor.bcdUSB = 0x0200;
@@ -337,7 +336,7 @@ namespace usb {
                             0x0A, // .bLength
                             USB_DT_DEVICE_CAPABILITY, // .bDescriptorType
                             0x03, // .bDevCapabilityType
-                            0x00, 0x0E, 0x00, 0x03, 0x00, 0x00, 0x00
+                            0x00, 0x0C, 0x00, 0x03, 0x00, 0x00, 0x00
                         };
                         if(R_SUCCEEDED(rc)) {
                             rc = usbDsSetBinaryObjectStore(bos, sizeof(bos));
@@ -345,28 +344,16 @@ namespace usb {
                     }
                     
                     if(R_SUCCEEDED(rc)) {
-                        for(u32 i = 0; i < num_interfaces; i++) {
-                            InnerInterface *intf = &g_Interfaces[i];
-                            rwlockWriteLock(&intf->lock);
-                            rwlockWriteLock(&intf->lock_in);
-                            rwlockWriteLock(&intf->lock_out);
-                            rc = _usbCommsInterfaceInit(i, infos == nullptr ? nullptr : infos + i);
-                            rwlockWriteUnlock(&intf->lock_out);
-                            rwlockWriteUnlock(&intf->lock_in);
-                            rwlockWriteUnlock(&intf->lock);
-                            if(R_FAILED(rc)) {
-                                break;
-                            }
-                        }
+                        rc = InitializeInterface();
                     }
                 }
                 
-                if (R_SUCCEEDED(rc) && hosversionAtLeast(5,0,0)) {
+                if(R_SUCCEEDED(rc) && hosversionAtLeast(5,0,0)) {
                     rc = usbDsEnable();
                 }
-                
-                if (R_FAILED(rc)) {
-                    Exit();
+
+                if(R_FAILED(rc)) {
+                    diagAbortWithResult(rc);
                 }
             }
             
@@ -374,27 +361,24 @@ namespace usb {
                 g_Initialized = true;
             }
 
-            rwlockWriteUnlock(&g_Lock);
             return rc;
         }
 
     }
 
-    Result Initialize(void) {
-        return InitializeImpl(1, nullptr);
+    Result Initialize() {
+        return InitializeImpl();
     }
 
-    void Exit(void) {
-        rwlockWriteLock(&g_Lock);
+    void Exit() {
+        if(g_Initialized) {
+            usbDsExit();
 
-        usbDsExit();
+            g_EndpointIn = nullptr;
+            g_EndpointOut = nullptr;
+            g_Interface = nullptr;
 
-        g_Initialized = false;
-
-        rwlockWriteUnlock(&g_Lock);
-
-        for(u32 i = 0; i < TotalInterfaces; i++) {
-            _usbCommsInterfaceFree(&g_Interfaces[i]);
+            g_Initialized = false;
         }
     }
 
@@ -404,20 +388,12 @@ namespace usb {
         return state == UsbState_Configured;
     }
 
-    Result Read(void *buf, size_t size)
-    {
-        // rwlockWriteLock(&g_Interfaces[0].lock_out);
-        auto rc = TransferImpl(buf, size, g_Interfaces[0].endpoint_out);
-        // rwlockWriteUnlock(&g_Interfaces[0].lock_out);
-        return rc;
+    Result Read(void *buf, const size_t size) {
+        return TransferImpl(buf, size, g_EndpointOut);
     }
 
-    Result Write(const void *buf, size_t size)
-    {
-        // rwlockWriteLock(&g_Interfaces[0].lock_in);
-        auto rc = TransferImpl(const_cast<void*>(buf), size, g_Interfaces[0].endpoint_in);
-        // rwlockWriteUnlock(&g_Interfaces[0].lock_in);
-        return rc;
+    Result Write(const void *buf, const size_t size) {
+        return TransferImpl(const_cast<void*>(buf), size, g_EndpointIn);
     }
 
 }

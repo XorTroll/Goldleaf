@@ -26,14 +26,12 @@
 
 namespace usb {
 
-    constexpr size_t TotalInterfaces = 4;
-
     Result Initialize();
     void Exit();
 
     bool IsStateOk();
 
-    Result Read(void *buf, size_t size);
-    Result Write(const void *buf, size_t size);
+    Result Read(void *buf, const size_t size);
+    Result Write(const void *buf, const size_t size);
 
 }
