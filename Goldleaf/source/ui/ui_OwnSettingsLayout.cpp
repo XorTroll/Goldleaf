@@ -38,7 +38,7 @@ namespace ui {
             }
             g_MainApplication->ShowNotification(notif_text);
 
-            g_MainApplication->GetOwnSettingsLayout()->UpdateSettings();
+            g_MainApplication->GetOwnSettingsLayout()->UpdateSettings(false);
         }
 
     }
@@ -46,11 +46,12 @@ namespace ui {
     OwnSettingsLayout::OwnSettingsLayout() : pu::ui::Layout() {
         this->settings_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->settings_menu);
-        this->UpdateSettings();
+        this->UpdateSettings(true);
         this->Add(this->settings_menu);
     }
 
-    void OwnSettingsLayout::UpdateSettings() {
+    void OwnSettingsLayout::UpdateSettings(const bool reset_selected_idx) {
+        const auto old_idx = this->settings_menu->GetSelectedIndex();
         this->settings_menu->ClearItems();
 
         auto custom_lang_item_name = cfg::strings::Main.GetString(441) + ": " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : cfg::strings::Main.GetString(442));
@@ -64,19 +65,28 @@ namespace ui {
         this->ignore_required_fw_version_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->ignore_required_fw_version_item->SetColor(g_Settings.custom_scheme.text);
         this->ignore_required_fw_version_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_required_fw_version_DefaultKey, this));
+
+        auto use_12h_time_name = cfg::strings::Main.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
+        this->use_12h_time_item = pu::ui::elm::MenuItem::New(use_12h_time_name);
+        this->use_12h_time_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
+        this->use_12h_time_item->SetColor(g_Settings.custom_scheme.text);
+        this->use_12h_time_item->AddOnKey(std::bind(&OwnSettingsLayout::use_12h_time_DefaultKey, this));
         
         this->settings_menu->AddItem(this->custom_lang_item);
         this->settings_menu->AddItem(this->ignore_required_fw_version_item);
+        this->settings_menu->AddItem(this->use_12h_time_item);
 
-        this->settings_menu->SetSelectedIndex(0);
+        if(!reset_selected_idx) {
+            this->settings_menu->SetSelectedIndex(old_idx);
+        }
     }
 
     void OwnSettingsLayout::custom_lang_DefaultKey() {
-        std::vector<std::string> lang_opts = { "None" };
+        std::vector<std::string> lang_opts = { cfg::strings::Main.GetString(442) };
         for(u32 i = 0; i < static_cast<u32>(Language::Count); i++) {
             lang_opts.push_back(GetLanguageCode(static_cast<Language>(i)));
         }
-        lang_opts.push_back("Cancel");
+        lang_opts.push_back(cfg::strings::Main.GetString(18));
 
         const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(441), cfg::strings::Main.GetString(443), lang_opts, true);
         if(option >= 0) {
@@ -93,6 +103,11 @@ namespace ui {
 
     void OwnSettingsLayout::ignore_required_fw_version_DefaultKey() {
         g_Settings.ignore_required_fw_ver = !g_Settings.ignore_required_fw_ver;
+        SaveChanges(false);
+    }
+
+    void OwnSettingsLayout::use_12h_time_DefaultKey() {
+        g_Settings.use_12h_time = !g_Settings.use_12h_time;
         SaveChanges(false);
     }
 

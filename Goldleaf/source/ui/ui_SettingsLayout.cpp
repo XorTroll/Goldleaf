@@ -50,7 +50,7 @@ namespace ui {
     }
 
     void SettingsLayout::optsConfig_DefaultKey() {
-        g_MainApplication->GetOwnSettingsLayout()->UpdateSettings();
+        g_MainApplication->GetOwnSettingsLayout()->UpdateSettings(true);
         g_MainApplication->LoadLayout(g_MainApplication->GetOwnSettingsLayout());
     }
 

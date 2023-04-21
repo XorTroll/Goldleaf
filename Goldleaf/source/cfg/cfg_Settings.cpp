@@ -134,6 +134,7 @@ namespace cfg {
 
         settings.menu_item_size = 80;
         settings.ignore_required_fw_ver = true;
+        settings.use_12h_time = false;
 
         settings.custom_scheme = ui::GenerateRandomScheme();
 
@@ -161,6 +162,8 @@ namespace cfg {
                     settings.external_romfs += ext_romfs;
                 }
             }
+
+            settings.use_12h_time = settings_json["general"].value("use12hTime", settings.use_12h_time);
         }
 
         if(settings_json.count("ui")) {
@@ -201,14 +204,15 @@ namespace cfg {
             }
         }
         if(settings_json.count("installs")) {
-            settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", true);
+            settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", settings.ignore_required_fw_ver);
         }
         if(settings_json.count("web")) {
             if(settings_json["web"].count("bookmarks")) {
                 for(u32 i = 0; i < settings_json["web"]["bookmarks"].size(); i++) {
-                    WebBookmark bmk = {};
-                    bmk.name = settings_json["web"]["bookmarks"][i].value("name", "");
-                    bmk.url = settings_json["web"]["bookmarks"][i].value("url", "");
+                    const WebBookmark bmk = {
+                        .name = settings_json["web"]["bookmarks"][i].value("name", ""),
+                        .url = settings_json["web"]["bookmarks"][i].value("url", "")
+                    };
                     if(!bmk.url.empty() && !bmk.name.empty()) {
                         settings.bookmarks.push_back(bmk);
                     }

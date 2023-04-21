@@ -27,7 +27,7 @@ namespace hos {
     u32 GetBatteryLevel();
     bool IsCharging();
 
-    std::string GetCurrentTime();
+    std::string GetCurrentTime(const bool use_12h_time);
     
     template<typename N>
     inline std::string FormatHex(const N num) {

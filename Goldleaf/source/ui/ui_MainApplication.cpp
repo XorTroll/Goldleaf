@@ -65,13 +65,13 @@ namespace ui {
         this->read_values_once = false;
         this->cur_conn_strength = 0;
         this->base_img = pu::ui::elm::Image::New(0, 0, g_Settings.PathForResource("/Base.png"));
-        this->time_text = pu::ui::elm::TextBlock::New(1124, 18, "...");
+        this->time_text = pu::ui::elm::TextBlock::New(1100, 18, "...");
         this->time_text->SetColor(g_Settings.custom_scheme.text);
-        this->battery_text = pu::ui::elm::TextBlock::New(1015, 22, "...");
+        this->battery_text = pu::ui::elm::TextBlock::New(990, 22, "...");
         this->battery_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->battery_text->SetColor(g_Settings.custom_scheme.text);
-        this->battery_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/0.png"));
-        this->battery_charge_img = pu::ui::elm::Image::New(960, 8, g_Settings.PathForResource("/Battery/Charge.png"));
+        this->battery_img = pu::ui::elm::Image::New(935, 8, g_Settings.PathForResource("/Battery/0.png"));
+        this->battery_charge_img = pu::ui::elm::Image::New(935, 8, g_Settings.PathForResource("/Battery/Charge.png"));
         this->menu_banner_img = pu::ui::elm::Image::New(10, 62, g_Settings.PathForResource("/MenuBanner.png"));
         this->menu_version_text = pu::ui::elm::TextBlock::New(260, 108, "v" GOLDLEAF_VERSION);
         this->menu_version_text->SetColor(g_Settings.custom_scheme.text);
@@ -86,15 +86,15 @@ namespace ui {
         this->help_img->SetWidth(60);
         this->help_img->SetHeight(60);
         this->help_img->SetOnClick(std::bind(&MainApplication::helpImage_OnClick, this));
-        this->usb_img = pu::ui::elm::Image::New(695, 12, g_Settings.PathForResource("/Common/USB.png"));
+        this->usb_img = pu::ui::elm::Image::New(650, 12, g_Settings.PathForResource("/Common/USB.png"));
         this->usb_img->SetWidth(40);
         this->usb_img->SetHeight(40);
         this->usb_img->SetVisible(false);
-        this->conn_img = pu::ui::elm::Image::New(755, 12, g_Settings.PathForResource("/Connection/None.png"));
+        this->conn_img = pu::ui::elm::Image::New(720, 12, g_Settings.PathForResource("/Connection/None.png"));
         this->conn_img->SetWidth(40);
         this->conn_img->SetHeight(40);
         this->conn_img->SetVisible(true);
-        this->ip_text = pu::ui::elm::TextBlock::New(800, 22, "");
+        this->ip_text = pu::ui::elm::TextBlock::New(765, 22, "");
         this->ip_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->ip_text->SetColor(g_Settings.custom_scheme.text);
         this->menu_name_text = pu::ui::elm::TextBlock::New(120, 85, "...");
@@ -190,7 +190,7 @@ namespace ui {
             }
         }
 
-        const auto cur_time = hos::GetCurrentTime();
+        const auto cur_time = hos::GetCurrentTime(g_Settings.use_12h_time);
         const auto battery_val = hos::GetBatteryLevel();
         const auto is_charging = hos::IsCharging();
         if((this->cur_battery_val != battery_val) || !this->read_values_once) {

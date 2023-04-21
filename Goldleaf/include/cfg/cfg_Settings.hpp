@@ -42,6 +42,7 @@ namespace cfg {
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(u32, menu_item_size)
         bool ignore_required_fw_ver;
         std::vector<WebBookmark> bookmarks;
+        bool use_12h_time;
 
         void Save();
         std::string PathForResource(const std::string &res_path);

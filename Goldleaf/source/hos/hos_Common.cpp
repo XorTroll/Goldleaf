@@ -37,11 +37,27 @@ namespace hos {
         return charger != PsmChargerType_Unconnected;
     }
 
-    std::string GetCurrentTime() {
+    std::string GetCurrentTime(const bool use_12h_time) {
         const auto posix_time = time(nullptr);
         const auto local_time = localtime(&posix_time);
-        char time_str[0x10] = {0};
-        sprintf(time_str, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+
+        char time_str[0x20] = {};
+        if(use_12h_time) {
+            auto hour = local_time->tm_hour;
+            if(hour > 12) {
+                hour -= 12;
+            }
+            else if(hour == 0) {
+                hour = 12;
+            }
+
+            const auto ampm_str = (local_time->tm_hour >= 12) ? "PM" : "AM";
+            snprintf(time_str, 0x20, "%02d:%02d:%02d %s", hour, local_time->tm_min, local_time->tm_sec, ampm_str);
+        }
+        else {
+            snprintf(time_str, 0x20, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+        }
+
         return time_str;
     }
 

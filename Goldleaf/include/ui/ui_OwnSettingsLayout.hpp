@@ -29,15 +29,16 @@ namespace ui {
             pu::ui::elm::Menu::Ref settings_menu;
             pu::ui::elm::MenuItem::Ref custom_lang_item;
             pu::ui::elm::MenuItem::Ref ignore_required_fw_version_item;
-            // TODO: more
+            pu::ui::elm::MenuItem::Ref use_12h_time_item;
 
         public:
             OwnSettingsLayout();
             PU_SMART_CTOR(OwnSettingsLayout)
 
-            void UpdateSettings();
+            void UpdateSettings(const bool reset_selected_idx);
             void custom_lang_DefaultKey();
             void ignore_required_fw_version_DefaultKey();
+            void use_12h_time_DefaultKey();
     };
 
 }
