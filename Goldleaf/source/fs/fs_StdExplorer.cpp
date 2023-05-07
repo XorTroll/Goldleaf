@@ -43,8 +43,11 @@ namespace fs {
                 if(dt == nullptr) {
                     break;
                 }
-                if(dt->d_type & DT_DIR) {
-                    dirs.push_back(dt->d_name);
+                const std::string name = dt->d_name;
+                if((name != ".") && (name != "..")) {
+                    if(dt->d_type & DT_DIR) {
+                        dirs.push_back(name);
+                    }
                 }
             }
             closedir(dp);

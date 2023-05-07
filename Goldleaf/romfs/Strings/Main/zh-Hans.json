@@ -451,5 +451,8 @@
     "私人的",
     "已使用",
     "未使用",
-    "使用 12 小时制"
+    "使用 12 小时制",
+    "Mount RomFs",
+    "RomFs was mounted. Check it in the contents browsing section.",
+    "The RomFs of the selected NRO file could not be mounted..."
 ]

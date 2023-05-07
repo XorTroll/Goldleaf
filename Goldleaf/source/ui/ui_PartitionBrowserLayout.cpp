@@ -236,6 +236,8 @@ namespace ui {
             else if(ext == "nro") {
                 dialog_opts.push_back(cfg::strings::Main.GetString(66));
                 option_count++;
+                dialog_opts.push_back(cfg::strings::Main.GetString(453));
+                option_count++;
             }
             else if(ext == "tik") {
                 dialog_opts.push_back(cfg::strings::Main.GetString(67));
@@ -309,6 +311,44 @@ namespace ui {
                         else {
                             g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(98), cfg::strings::Main.GetString(100), { cfg::strings::Main.GetString(234) }, false);
                             return;
+                        }
+                        break;
+                    }
+                    case 1: {
+                        NroHeader nro_h = {};
+                        size_t romfs_offset = 0;
+                        this->cur_exp->StartFile(full_item, fs::FileMode::Read);
+                        if(this->cur_exp->ReadFile(full_item, sizeof(NroStart), sizeof(nro_h), &nro_h) == sizeof(nro_h)) {
+                            if(nro_h.magic == NROHEADER_MAGIC) {
+                                NroAssetHeader nro_asset_h = {};
+                                if(this->cur_exp->ReadFile(full_item, nro_h.size, sizeof(nro_asset_h), &nro_asset_h) == sizeof(nro_asset_h)) {
+                                    if(nro_asset_h.magic == NROASSETHEADER_MAGIC) {
+                                        if(nro_asset_h.romfs.size > 0) {
+                                            romfs_offset = nro_h.size + nro_asset_h.romfs.offset;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        this->cur_exp->EndFile();
+
+                        if(romfs_offset > 0) {
+                            const auto romfs_id = std::to_string(randomGet64());
+                            const auto mnt_name = "nroromfs-" + romfs_id;
+                            const auto rc = romfsMountFromFsdev(full_item.c_str(), romfs_offset, mnt_name.c_str());
+                            if(R_SUCCEEDED(rc)) {
+                                auto romfs_exp = new fs::RomFsExplorer("NroRomFs-" + romfs_id, mnt_name, true);
+                                romfs_exp->SetShouldWarnOnWriteAccess(true);
+                                g_MainApplication->GetExploreMenuLayout()->AddMountedExplorer(romfs_exp, "RomFs (" + fs::GetBaseName(full_item) + ")", g_Settings.PathForResource("/Common/NAND.png"));
+                                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(454));
+                            }
+                            else {
+                                romfs_offset = 0;
+                            }
+                        }
+                        
+                        if(romfs_offset == 0) {
+                            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(455));
                         }
                         break;
                     }

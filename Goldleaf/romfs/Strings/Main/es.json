@@ -411,7 +411,7 @@
     "Esto sólo se puede realizar con títulos. (no con actualizaciones o DLC)",
     "Esto no se puede realizar con títulos del sistema.",
     "Seleccione un usuario antes de montar datos de guardado.",
-    "Los datos de guardado han sido montados. Explóralos en el menú de explorar contenido.",
+    "Los datos de guardado han sido montados. Explórelos en el menú de explorar contenido.",
     "Se ha producido un error al intentar montar los datos de guardado:",
     "Montar datos de guardado",
     "Ver actualización",
@@ -451,5 +451,8 @@
     "personalizado",
     "utilizado",
     "no utilizado",
-    "Usar horario de 12h"
+    "Usar horario de 12h",
+    "Montar RomFs",
+    "El sistema RomFs ha sido montado. Explórelo en el menú de explorar contenido.",
+    "El sistema RomFs del archivo NRO seleccionado no se pudo montar..."
 ]

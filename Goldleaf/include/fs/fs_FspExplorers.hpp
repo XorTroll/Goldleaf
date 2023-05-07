@@ -42,8 +42,17 @@ namespace fs {
     };
 
     class RomFsExplorer final : public FspExplorer {
+        private:
+            bool unmount;
+
         public:
-            RomFsExplorer() : FspExplorer({}, "RomFs", "romfs") {}
+            RomFsExplorer(const std::string &display_name = "RomFs", const std::string &mount_name = "romfs", const bool unmount = false) : FspExplorer({}, display_name, mount_name) {}
+
+            ~RomFsExplorer() {
+                if(this->unmount) {
+                    fsdevUnmountDevice(this->mnt_name.c_str());
+                }   
+            }
     };
 
     class NANDExplorer final : public FspExplorer {

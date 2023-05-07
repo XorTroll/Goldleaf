@@ -192,6 +192,7 @@ namespace ui {
         mounted_exp_item->AddOnKey(std::bind(&ExploreMenuLayout::explorer_X, this, exp), HidNpadButton_X);
         this->mounted_explorer_items.push_back(mounted_exp_item);
         this->mounted_explorers.push_back(exp);
+        this->UpdateMenu();
     }
 
     std::vector<fs::Explorer*> &ExploreMenuLayout::GetMountedExplorers() {
