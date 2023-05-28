@@ -28,6 +28,138 @@ extern cfg::Settings g_Settings;
 
 namespace nsp {
 
+    namespace {
+
+        struct ContentWriteBuffer {
+            NcmContentType type;
+            const u8 *buf;
+            size_t size;
+
+            ContentWriteBuffer() {}
+            
+            ContentWriteBuffer(const NcmContentType type, const u8 *buf, const size_t size) {
+                this->type = type;
+                this->buf = buf;
+                this->size = size;
+            }
+        };
+
+        class ContentWriteContext {
+            private:
+                OnContentWriteFunction on_content_write_cb;
+                NcmContentStorage cnt_storage;
+                std::queue<ContentWriteBuffer> buffer_queue;
+                Lock buffer_queue_lock;
+                ContentWriteProgress write_progress;
+                Lock write_progress_lock;
+                Result last_rc;
+                Lock last_rc_lock;
+                std::atomic_bool done;
+
+            public:
+                enum class Status {
+                    Done,
+                    BufferQueueAvailable,
+                    BufferQueueEmpty
+                };
+
+                ContentWriteContext(OnContentWriteFunction on_content_write_cb, NcmContentStorage cnt_storage) : on_content_write_cb(on_content_write_cb), cnt_storage(cnt_storage), buffer_queue(), buffer_queue_lock(), write_progress(), write_progress_lock(), last_rc(err::result::ResultSuccess), last_rc_lock(), done(false) {}
+
+                void EmplaceBuffer(const NcmContentType type, const u8 *buf, const size_t size) {
+                    ScopedLock queue_lock(this->buffer_queue_lock);
+                    this->buffer_queue.emplace(type, buf, size);
+                }
+
+                Status GetStatus() {
+                    ScopedLock queue_lock(this->buffer_queue_lock);
+                    if(this->buffer_queue.empty()) {
+                        if(this->done) {
+                            return Status::Done;
+                        }
+                        else {
+                            return Status::BufferQueueEmpty;
+                        }
+                    }
+                    else {
+                        return Status::BufferQueueAvailable;
+                    }
+                }
+
+                void RegisterContent(const NcmContentType type, const NcmPlaceHolderId placehld_id, const size_t total_size) {
+                    ScopedLock progress_lock(this->write_progress_lock);
+
+                    this->write_progress.entries[type] = {
+                        .placehld_id = placehld_id,
+                        .cur_offset = 0,
+                        .size = total_size
+                    };
+                }
+
+                Result PopHandleNextBuffer() {
+                    ContentWriteBuffer buf;
+                    {
+                        ScopedLock queue_lock(this->buffer_queue_lock);
+                        buf = this->buffer_queue.front();
+                        this->buffer_queue.pop();
+                    }
+
+                    NcmPlaceHolderId placehld_id;
+                    size_t offset;
+                    {
+                        ScopedLock progress_lock(this->write_progress_lock);
+                        auto cnt_entry = this->write_progress.entries.find(buf.type);
+                        placehld_id = cnt_entry->second.placehld_id;
+                        offset = cnt_entry->second.cur_offset;
+                        cnt_entry->second.cur_offset += buf.size;
+                        this->write_progress.written_size += buf.size;
+                    }
+                    const auto rc = ncmContentStorageWritePlaceHolder(&this->cnt_storage, &placehld_id, offset, buf.buf, buf.size);
+                    delete[] buf.buf;
+
+                    {
+                        ScopedLock rc_lock(this->last_rc_lock);
+                        this->last_rc = rc;
+                    }
+
+                    return rc;
+                }
+
+                void SignalDone() {
+                    this->done = true;
+                }
+
+                Result GetLastResult() {
+                    ScopedLock rc_lock(this->last_rc_lock);
+                    return this->last_rc;
+                }
+
+                void NotifyUpdateProgress() {
+                    ScopedLock progress_lock(this->write_progress_lock);
+                    this->on_content_write_cb(this->write_progress);
+                    this->write_progress.written_size = 0;
+                }
+        };
+
+        void ContentWriteThread(void *ctx_raw) {
+            auto ctx = reinterpret_cast<ContentWriteContext*>(ctx_raw);
+
+            while(true) {
+                const auto status = ctx->GetStatus();
+                if(status == ContentWriteContext::Status::Done) {
+                    break;
+                }
+                else if(status == ContentWriteContext::Status::BufferQueueAvailable) {
+                    const auto rc = ctx->PopHandleNextBuffer();
+                    if(R_FAILED(rc)) {
+                        ctx->SignalDone();
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
+
     Installer::~Installer() {
         FinalizeInstallation();
     }
@@ -215,12 +347,12 @@ namespace nsp {
         return err::result::ResultSuccess;
     }
 
-    Result Installer::WriteContents(OnContentsWriteFunction on_content_write_cb) {
+    Result Installer::WriteContents(OnContentWriteFunction on_content_write_cb) {
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        auto tmp_buf = fs::GetWorkBuffer();
         u64 total_size = 0;
         u64 total_written_size = 0;
         std::vector<u32> content_file_idxs;
+        std::vector<NcmPlaceHolderId> content_placehld_ids;
         for(const auto &cnt: this->contents) {
             auto content_file_name = hos::ContentIdAsString(cnt.content_id);
             if(cnt.content_type == NcmContentType_Meta) {
@@ -233,20 +365,34 @@ namespace nsp {
             content_file_idxs.push_back(content_file_idx);
         }
 
+        ContentWriteContext write_ctx(on_content_write_cb, this->cnt_storage);
         for(u32 i = 0; i < this->contents.size(); i++) {
-            const auto &cnt = this->contents[i];
-            auto content_file_idx = content_file_idxs[i];
-            auto content_file_name = this->pfs0_file.GetFile(content_file_idx);
-            auto content_file_size = this->pfs0_file.GetFileSize(content_file_idx);
+            const auto &cnt = this->contents.at(i);
+            const auto content_file_idx = content_file_idxs.at(i);
+            const auto content_file_size = this->pfs0_file.GetFileSize(content_file_idx);
 
             NcmPlaceHolderId placehld_id = {};
-            memcpy(placehld_id.uuid.uuid, cnt.content_id.c, 0x10);
-            
+            memcpy(placehld_id.uuid.uuid, cnt.content_id.c, sizeof(placehld_id.uuid.uuid));
+            content_placehld_ids.push_back(placehld_id);
+            write_ctx.RegisterContent(static_cast<NcmContentType>(cnt.content_type), placehld_id, content_file_size);
             ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &placehld_id);
             GLEAF_RC_TRY(ncmContentStorageCreatePlaceHolder(&this->cnt_storage, &cnt.content_id, &placehld_id, content_file_size));
+        }
+
+        Thread cnt_write_thread;
+        GLEAF_RC_TRY(threadCreate(&cnt_write_thread, ContentWriteThread, reinterpret_cast<void*>(&write_ctx), nullptr, 0x10000, 0x30, -2));
+        GLEAF_RC_TRY(threadStart(&cnt_write_thread));
+
+        for(u32 i = 0; i < this->contents.size(); i++) {
+            const auto &cnt = this->contents.at(i);
+            const auto content_file_idx = content_file_idxs.at(i);
+            const auto content_file_name = this->pfs0_file.GetFile(content_file_idx);
+            const auto content_file_size = this->pfs0_file.GetFileSize(content_file_idx);
+            const auto content_placehld_id = content_placehld_ids.at(i);
+            
             u64 cur_written_size = 0;
             auto rem_size = content_file_size;
-            auto content_path = "Contents/temp/" + content_file_name;
+            const auto content_path = "Contents/temp/" + content_file_name;
             switch(cnt.content_type) {
                 case NcmContentType_Meta:
                 case NcmContentType_Control: {
@@ -258,28 +404,35 @@ namespace nsp {
                     break;
                 }
             }
+
             while(rem_size) {
+                const auto last_rc = write_ctx.GetLastResult();
+                if(R_FAILED(last_rc)) {
+                    GLEAF_RC_TRY(threadWaitForExit(&cnt_write_thread));
+                    GLEAF_RC_TRY(threadClose(&cnt_write_thread));
+                    return last_rc;
+                }
+
+                const auto read_size = std::min(rem_size, 4_MB); // TODO: make max buffer size a setting users can change?
+                auto read_buf = new u8[read_size]();
                 u64 tmp_read_size = 0;
-                const auto read_size = std::min(rem_size, fs::WorkBufferSize);
-                const auto time_pre = std::chrono::steady_clock::now();
                 switch(cnt.content_type) {
                     case NcmContentType_Meta:
                     case NcmContentType_Control: {
-                        tmp_read_size = nand_sys_explorer->ReadFile(content_path, cur_written_size, read_size, tmp_buf);
+                        tmp_read_size = nand_sys_explorer->ReadFile(content_path, cur_written_size, read_size, read_buf);
                         break;
                     }
                     default: {
-                        tmp_read_size = pfs0_file.ReadFromFile(content_file_idx, cur_written_size, read_size, tmp_buf);
+                        tmp_read_size = pfs0_file.ReadFromFile(content_file_idx, cur_written_size, read_size, read_buf);
                         break;
                     }
                 }
-                GLEAF_RC_TRY(ncmContentStorageWritePlaceHolder(&this->cnt_storage, &placehld_id, cur_written_size, tmp_buf, tmp_read_size));
+                write_ctx.EmplaceBuffer(static_cast<NcmContentType>(cnt.content_type), read_buf, read_size);
+
                 cur_written_size += tmp_read_size;
                 rem_size -= tmp_read_size;
-                const auto time_post = std::chrono::steady_clock::now();
-                const auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(time_post - time_pre).count();
-                const auto bytes_per_sec = (1000.0f / (double)(diff)) * (double)(tmp_read_size); // By elapsed time and written bytes, compute how much data has been written in 1 second
-                on_content_write_cb(cnt, i, this->contents.size(), (double)(cur_written_size + total_written_size), (double)total_size, (u64)bytes_per_sec);
+
+                write_ctx.NotifyUpdateProgress();
             }
             switch(cnt.content_type) {
                 case NcmContentType_Meta:
@@ -293,9 +446,21 @@ namespace nsp {
                 }
             }
             total_written_size += cur_written_size;
-            GLEAF_RC_TRY(ncmContentStorageRegister(&this->cnt_storage, &cnt.content_id, &placehld_id));
-            ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &placehld_id);
         }
+
+        write_ctx.SignalDone();
+        GLEAF_RC_TRY(threadWaitForExit(&cnt_write_thread));
+        GLEAF_RC_TRY(threadClose(&cnt_write_thread));
+        write_ctx.NotifyUpdateProgress();
+
+        for(u32 i = 0; i < this->contents.size(); i++) {
+            const auto &cnt = this->contents.at(i);
+            const auto content_placehld_id = content_placehld_ids.at(i);
+
+            GLEAF_RC_TRY(ncmContentStorageRegister(&this->cnt_storage, &cnt.content_id, &content_placehld_id));
+            ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &content_placehld_id);
+        }
+
         return err::result::ResultSuccess;
     }
 

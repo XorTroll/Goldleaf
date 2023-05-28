@@ -90,9 +90,10 @@ namespace hos {
         ContentId control;
         ContentId html_document;
         ContentId legal_info;
+        ContentId delta_fragment;
 
         inline u64 GetTotalSize() const {
-            return this->meta.size + this->program.size + this->data.size + this->control.size + this->html_document.size + this->legal_info.size;
+            return this->meta.size + this->program.size + this->data.size + this->control.size + this->html_document.size + this->legal_info.size + this->delta_fragment.size;
         }
     };
 

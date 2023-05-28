@@ -224,12 +224,8 @@ public class MainApplication extends Application {
                     if(!handled) {
                         usb_intf = showUsbFailReconnectDialogFromTask("An invalid command was received from Goldleaf.", false);
                         updateMessage("Reconnected! Processing USB input from Goldleaf...");
-                        break;
                     }
                 }
-
-                die();
-                return null;
             }
         };
 

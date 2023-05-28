@@ -54,6 +54,24 @@ inline constexpr size_t operator ""_GB(unsigned long long n) {
     return operator ""_MB(n) * 0x400;
 }
 
+class Lock {
+    private:
+        Mutex mutex;
+
+    public:
+        constexpr Lock() : mutex() {}
+
+        void lock() {
+            mutexLock(&this->mutex);
+        }
+
+        void unlock() {
+            mutexUnlock(&this->mutex);
+        }
+};
+
+using ScopedLock = std::scoped_lock<Lock>;
+
 #define GLEAF_LOG_WARN_PREFIX "[WARN] "
 #define GLEAF_LOG_ERR_PREFIX "[ERROR] "
 

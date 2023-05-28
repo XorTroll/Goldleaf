@@ -41,4 +41,6 @@ namespace ncm {
         u8 reserved[4];
     };
 
+    constexpr size_t ContentTypeCount = 7;
+
 }

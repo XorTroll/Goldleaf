@@ -109,7 +109,7 @@ namespace hos {
         NcmContentStorage cnt_storage = {};
         if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, this->storage_id))) {
             if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, this->storage_id))) {
-                for(u32 i = 0; i < 6; i++) {
+                for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
                     ContentId cnt_id = {};
                     cnt_id.type = static_cast<NcmContentType>(i);
                     cnt_id.is_empty = true;
@@ -124,24 +124,27 @@ namespace hos {
                         cnt_id.size = static_cast<u64>(tmpsize);
                     }
 
-                    switch(i) {
-                        case 0: {
+                    switch(cnt_id.type) {
+                        case NcmContentType_Meta: {
                             cnts.meta = cnt_id;
                         }
-                        case 1: {
+                        case NcmContentType_Program: {
                             cnts.program = cnt_id;
                         }
-                        case 2: {
+                        case NcmContentType_Data: {
                             cnts.data = cnt_id;
                         }
-                        case 3: {
+                        case NcmContentType_Control: {
                             cnts.control = cnt_id;
                         }
-                        case 4: {
+                        case NcmContentType_HtmlDocument: {
                             cnts.html_document = cnt_id;
                         }
-                        case 5: {
+                        case NcmContentType_LegalInformation: {
                             cnts.legal_info = cnt_id;
+                        }
+                        case NcmContentType_DeltaFragment: {
+                            cnts.delta_fragment = cnt_id;
                         }
                     }
                 }
@@ -258,36 +261,52 @@ namespace hos {
         auto rc = ncmOpenContentStorage(&cnt_storage, title.storage_id);
         if(R_SUCCEEDED(rc)) {
             if(!cnts.meta.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.meta.id);
+                rc = ncmContentStorageDelete(&cnt_storage, &cnts.meta.id);
             }
-            if(!cnts.program.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.program.id);
-            }
-            if(!cnts.data.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.data.id);
-            }
-            if(!cnts.control.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.control.id);
-            }
-            if(!cnts.html_document.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id);
-            }
-            if(!cnts.legal_info.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id);
+            if(R_SUCCEEDED(rc)) {
+                if(!cnts.program.is_empty) {
+                    rc = ncmContentStorageDelete(&cnt_storage, &cnts.program.id);
+                }
+                if(R_SUCCEEDED(rc)) {
+                    if(!cnts.data.is_empty) {
+                        rc = ncmContentStorageDelete(&cnt_storage, &cnts.data.id);
+                    }
+                    if(R_SUCCEEDED(rc)) {
+                        if(!cnts.control.is_empty) {
+                            rc = ncmContentStorageDelete(&cnt_storage, &cnts.control.id);
+                        }
+                        if(R_SUCCEEDED(rc)) {
+                            if(!cnts.html_document.is_empty) {
+                                rc = ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id);
+                            }
+                            if(R_SUCCEEDED(rc)) {
+                                if(!cnts.legal_info.is_empty) {
+                                    rc = ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id);
+                                }
+                                if(R_SUCCEEDED(rc)) {
+                                    if(!cnts.delta_fragment.is_empty) {
+                                        rc = ncmContentStorageDelete(&cnt_storage, &cnts.delta_fragment.id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             ncmContentStorageClose(&cnt_storage);
         }
+
         NcmContentMetaDatabase cnt_meta_db;
         rc = ncmOpenContentMetaDatabase(&cnt_meta_db, title.storage_id);
         if(R_SUCCEEDED(rc)) {
             rc = ncmContentMetaDatabaseRemove(&cnt_meta_db, &title.meta_key);
             if(R_SUCCEEDED(rc)) {
-                ncmContentMetaDatabaseCommit(&cnt_meta_db);
+                rc = ncmContentMetaDatabaseCommit(&cnt_meta_db);
             }
             ncmContentMetaDatabaseClose(&cnt_meta_db);
         }
         if(R_SUCCEEDED(rc)) {
-            ns::DeleteApplicationRecord(title.app_id);
+            rc = ns::DeleteApplicationRecord(title.app_id);
         }
         return rc;
     }

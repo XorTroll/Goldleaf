@@ -27,18 +27,62 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
+    namespace {
+
+        std::string FormatContentType(const NcmContentType type) {
+            switch(type) {
+                case NcmContentType_Meta: {
+                    return cfg::strings::Main.GetString(163);
+                }
+                case NcmContentType_Program: {
+                    return cfg::strings::Main.GetString(164);
+                }
+                case NcmContentType_Data: {
+                    return cfg::strings::Main.GetString(165);
+                }
+                case NcmContentType_Control: {
+                    return cfg::strings::Main.GetString(166);
+                }
+                case NcmContentType_HtmlDocument: {
+                    return cfg::strings::Main.GetString(167);
+                }
+                case NcmContentType_LegalInformation: {
+                    return cfg::strings::Main.GetString(168);
+                }
+                default: {
+                    return "<unk>";
+                }
+            }
+        }
+
+    }
+
     InstallLayout::InstallLayout() : pu::ui::Layout() {
-        this->install_top_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
-        this->install_top_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->install_top_text->SetColor(g_Settings.custom_scheme.text);
-        this->install_bottom_text = pu::ui::elm::TextBlock::New(150, 350, cfg::strings::Main.GetString(151));
-        this->install_bottom_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->install_bottom_text->SetColor(g_Settings.custom_scheme.text);
-        this->install_p_bar = pu::ui::elm::ProgressBar::New(340, 400, 600, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->install_p_bar);
-        this->Add(this->install_top_text);
-        this->Add(this->install_bottom_text);
-        this->Add(this->install_p_bar);
+        u32 cur_y = 180;
+        this->speed_info_text = pu::ui::elm::TextBlock::New(0, cur_y, "A");
+        this->speed_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->speed_info_text->SetColor(g_Settings.custom_scheme.text);
+        this->Add(this->speed_info_text);
+        cur_y += this->speed_info_text->GetHeight() + 25;
+        this->speed_info_text->SetVisible(false);
+
+        for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
+            auto info_text = pu::ui::elm::TextBlock::New(0, cur_y, "A");
+            info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+            info_text->SetColor(g_Settings.custom_scheme.text);
+            cur_y += info_text->GetHeight() + 10;
+            info_text->SetVisible(false);
+            auto p_bar = pu::ui::elm::ProgressBar::New(0, cur_y, 600, 30, 0.0f);
+            p_bar->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+            g_Settings.ApplyProgressBarColor(p_bar);
+            cur_y += p_bar->GetHeight() + 15;
+            p_bar->SetVisible(false);
+
+            this->content_info_texts.push_back(info_text);
+            this->content_p_bars.push_back(p_bar);
+            this->Add(info_text);
+            this->Add(p_bar);
+        }
     }
 
     void InstallLayout::StartInstall(const std::string &path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
@@ -125,38 +169,10 @@ namespace ui {
             const auto cnts = nsp_installer.GetContents();
             info += cfg::strings::Main.GetString(93) + " ";
             for(const auto &cnt: cnts) {
-                switch(static_cast<NcmContentType>(cnt.content_type)) {
-                    case NcmContentType_Meta: {
-                        info += cfg::strings::Main.GetString(163);
-                        break;
-                    }
-                    case NcmContentType_Program: {
-                        info += cfg::strings::Main.GetString(164);
-                        break;
-                    }
-                    case NcmContentType_Data: {
-                        info += cfg::strings::Main.GetString(165);
-                        break;
-                    }
-                    case NcmContentType_Control: {
-                        info += cfg::strings::Main.GetString(166);
-                        break;
-                    }
-                    case NcmContentType_HtmlDocument: {
-                        info += cfg::strings::Main.GetString(167);
-                        break;
-                    }
-                    case NcmContentType_LegalInformation: {
-                        info += cfg::strings::Main.GetString(168);
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
-                }
-                info += ", ";
+                info += FormatContentType(static_cast<NcmContentType>(cnt.content_type)) + ", ";
             }
-            info = info.substr(0, info.length() - 2);
+            info.pop_back();
+            info.pop_back();
 
             const auto keygen = nsp_installer.GetKeyGeneration();
             const auto m_key = keygen - 1;
@@ -275,32 +291,53 @@ namespace ui {
                 HandleResult(rc, cfg::strings::Main.GetString(251));
                 return;
             }
-            this->install_top_text->SetText(cfg::strings::Main.GetString(146));
-            this->install_bottom_text->SetText("TODO...");
-            g_MainApplication->CallForRender();
-            this->install_p_bar->SetVisible(true);
+
             hos::LockAutoSleep();
-            rc = nsp_installer.WriteContents([&](const NcmContentInfo cnt_info, const u32 cnt, const u32 cnt_count, const double done, const double total, const u64 bytes_per_sec) {
-                this->install_p_bar->SetMaxProgress(total);
+            const auto t1 = std::chrono::steady_clock::now();
 
-                auto top_text_msg = cfg::strings::Main.GetString(148) + " \'"  + hos::ContentIdAsString(cnt_info.content_id);
-                if(cnt_info.content_type == NcmContentType_Meta) {
-                    top_text_msg += ".cnmt";
+            auto last_tp = std::chrono::steady_clock::now();
+            auto first_time = true;
+            this->speed_info_text->SetVisible(true);
+            for(u32 i = 0; i < nsp_installer.GetContents().size(); i++) {
+                this->content_info_texts.at(i)->SetVisible(true);
+                this->content_p_bars.at(i)->SetVisible(true);
+            }
+            rc = nsp_installer.WriteContents([&](const nsp::ContentWriteProgress &write_progress) {
+                const auto cur_tp = std::chrono::steady_clock::now();
+                const auto time_diff = (double)std::chrono::duration_cast<std::chrono::milliseconds>(cur_tp - last_tp).count();
+                last_tp = cur_tp;
+                // By elapsed time and written bytes, compute how much data has been written in 1 second
+                const auto speed_bps = (1000.0f / time_diff) * (double)(write_progress.written_size);
+
+                size_t cur_size = 0;
+                size_t total_size = 0;
+                u32 i = 0;
+                for(const auto &[type, entry] : write_progress.entries) {
+                    const double progress = 100.0f * (((double)entry.cur_offset) / ((double)entry.size));
+                    const auto text = FormatContentType(type) + " (" + fs::FormatSize(entry.size) + ")";
+                    cur_size += entry.cur_offset;
+                    total_size += entry.size;
+
+                    this->content_info_texts.at(i)->SetText(text);
+                    this->content_p_bars.at(i)->SetProgress((double)entry.cur_offset);
+                    this->content_p_bars.at(i)->SetMaxProgress((double)entry.size);
+                    i++;
                 }
-                top_text_msg += ".nca\'... [" + std::to_string(cnt + 1) + "/" + std::to_string(cnt_count) + "]";
-                this->install_top_text->SetText(top_text_msg);
 
-                const u64 size = (u64)(total - done);
-                const auto secs = size / bytes_per_sec;
-                const auto bottom_text_msg = "(" + fs::FormatSize(bytes_per_sec) + "/s  →  " + hos::FormatTime(secs) + ")";
-                this->install_bottom_text->SetText(bottom_text_msg);
-                
-                this->install_p_bar->SetProgress(done);
+                const auto speed_text = "Speed: " + fs::FormatSize(speed_bps) + "/s, ETA: " + hos::FormatTime((u64)((1.0f / speed_bps) * (double)(total_size - cur_size)));
+                this->speed_info_text->SetText(speed_text);
+
                 g_MainApplication->CallForRender();
             });
+            const auto t2 = std::chrono::steady_clock::now();
+            GLEAF_WARN_FMT("Elapsed time: %f s", ((double)(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / 1000.0));
             hos::UnlockAutoSleep();
         }
-        this->install_p_bar->SetVisible(false);
+        this->speed_info_text->SetVisible(false);
+        for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
+            this->content_info_texts.at(i)->SetVisible(false);
+            this->content_p_bars.at(i)->SetVisible(false);
+        }
         g_MainApplication->CallForRender();
 
         if(R_FAILED(rc)) {

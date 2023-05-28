@@ -30,10 +30,22 @@
 
 namespace nsp {
 
-    class Installer {
-        public:
-            using OnContentsWriteFunction = std::function<void(const NcmContentInfo, const u32, const u32, const double, const double, const u64)>;
+    struct ContentWriteProgressEntry {
+        NcmPlaceHolderId placehld_id;
+        size_t cur_offset;
+        size_t size;
+    };
+    
+    struct ContentWriteProgress {
+        std::unordered_map<NcmContentType, ContentWriteProgressEntry> entries;
+        size_t written_size;
 
+        ContentWriteProgress() : entries(), written_size(0) {}
+    };
+
+    using OnContentWriteFunction = std::function<void(const ContentWriteProgress&)>;
+
+    class Installer {
         private:
             PFS0 pfs0_file;
             NacpStruct nacp_data;
@@ -90,7 +102,7 @@ namespace nsp {
                 return this->contents;
             }
 
-            Result WriteContents(OnContentsWriteFunction on_content_write_cb);
+            Result WriteContents(OnContentWriteFunction on_content_write_cb);
             void FinalizeInstallation();
     };
 
