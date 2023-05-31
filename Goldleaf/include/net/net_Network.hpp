@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,8 +24,10 @@
 
 namespace net {
 
+    using RetrieveOnProgressCallback = std::function<void(const double now_downloaded, const double total_to_download)>;
+
     std::string RetrieveContent(const std::string &url, const std::string &mime_type = "");
-    void RetrieveToFile(const std::string &url, const std::string &path, std::function<void(double Done, double Total)> cb_fn);
+    void RetrieveToFile(const std::string &url, const std::string &path, RetrieveOnProgressCallback on_progress_cb);
     bool HasConnection();
 
 }

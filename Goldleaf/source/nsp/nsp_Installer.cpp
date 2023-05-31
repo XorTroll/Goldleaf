@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,14 +30,18 @@ namespace nsp {
 
     namespace {
 
+        // TODO: make max buffer size a setting users can change?
+
+        constexpr size_t CopyBufferMaxSize = 4_MB;
+
         struct ContentWriteBuffer {
             NcmContentType type;
-            const u8 *buf;
+            u8 *buf;
             size_t size;
 
             ContentWriteBuffer() {}
             
-            ContentWriteBuffer(const NcmContentType type, const u8 *buf, const size_t size) {
+            ContentWriteBuffer(const NcmContentType type, u8 *buf, const size_t size) {
                 this->type = type;
                 this->buf = buf;
                 this->size = size;
@@ -65,7 +69,7 @@ namespace nsp {
 
                 ContentWriteContext(OnContentWriteFunction on_content_write_cb, NcmContentStorage cnt_storage) : on_content_write_cb(on_content_write_cb), cnt_storage(cnt_storage), buffer_queue(), buffer_queue_lock(), write_progress(), write_progress_lock(), last_rc(err::result::ResultSuccess), last_rc_lock(), done(false) {}
 
-                void EmplaceBuffer(const NcmContentType type, const u8 *buf, const size_t size) {
+                void EmplaceBuffer(const NcmContentType type, u8 *buf, const size_t size) {
                     ScopedLock queue_lock(this->buffer_queue_lock);
                     this->buffer_queue.emplace(type, buf, size);
                 }
@@ -114,7 +118,7 @@ namespace nsp {
                         this->write_progress.written_size += buf.size;
                     }
                     const auto rc = ncmContentStorageWritePlaceHolder(&this->cnt_storage, &placehld_id, offset, buf.buf, buf.size);
-                    delete[] buf.buf;
+                    fs::DeleteWorkBuffer(buf.buf);
 
                     {
                         ScopedLock rc_lock(this->last_rc_lock);
@@ -174,17 +178,17 @@ namespace nsp {
         u64 cnmt_nca_file_size = 0;
         auto tik_file_idx = PFS0::InvalidFileIndex;
         tik_file_size = 0;
-        auto pfs0_files = pfs0_file.GetFiles();
+        const auto pfs0_files = pfs0_file.GetFiles();
         for(u32 i = 0; i < pfs0_files.size(); i++) {
-            auto file = pfs0_files[i];
+            const auto file = pfs0_files.at(i);
             if(fs::GetExtension(file) == "tik") {
                 tik_file_name = file;
                 tik_file_idx = i;
                 tik_file_size = pfs0_file.GetFileSize(i);
             }
             else {
-                if(file.length() >= 8) {
-                    if(file.substr(file.length() - 8) == "cnmt.nca") {
+                if(file.length() >= __builtin_strlen("cnmt.nca")) {
+                    if(file.substr(file.length() - __builtin_strlen("cnmt.nca")) == "cnmt.nca") {
                         cnmt_nca_file_name = file;
                         cnmt_nca_file_idx = i;
                         cnmt_nca_file_size = pfs0_file.GetFileSize(i);
@@ -194,7 +198,7 @@ namespace nsp {
         }
         GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), err::result::ResultMetaNotFound);
         GLEAF_RC_UNLESS(cnmt_nca_file_size > 0, err::result::ResultMetaNotFound);
-        auto cnmt_nca_content_id = fs::GetBaseName(cnmt_nca_file_name);
+        const auto cnmt_nca_content_id = fs::GetBaseName(cnmt_nca_file_name);
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
         nand_sys_explorer->CreateDirectory("Contents/temp");
@@ -205,7 +209,7 @@ namespace nsp {
             this->tik_file = hos::ReadTicket(tik_path);
         }
 
-        auto cnmt_nca_temp_path = nand_sys_explorer->FullPathFor("Contents/temp/" + cnmt_nca_file_name);
+        const auto cnmt_nca_temp_path = nand_sys_explorer->FullPathFor("Contents/temp/" + cnmt_nca_file_name);
         nand_sys_explorer->DeleteFile(cnmt_nca_temp_path);
         pfs0_file.SaveFile(cnmt_nca_file_idx, nand_sys_explorer, cnmt_nca_temp_path);
 
@@ -231,7 +235,11 @@ namespace nsp {
             GLEAF_RC_UNLESS(!cnmt_file_name.empty(), err::result::ResultMetaNotFound);
 
             const auto cnmt_file_size = cnmt_nca_fs_obj.GetFileSize(cnmt_file_name);
-            auto cnmt_read_buf = fs::GetWorkBuffer();
+            auto cnmt_read_buf = fs::AllocateWorkBuffer(cnmt_file_size);
+            ScopeGuard on_exit([&]() {
+                fs::DeleteWorkBuffer(cnmt_read_buf);
+            });
+
             cnmt_nca_fs_obj.ReadFile(cnmt_file_name, 0, cnmt_file_size, cnmt_read_buf);
             GLEAF_RC_UNLESS(ncm::ReadContentMeta(cnmt_read_buf, cnmt_file_size, this->packaged_cnt_meta), err::result::ResultMetaNotFound);
         }
@@ -264,12 +272,13 @@ namespace nsp {
         for(const auto &cnt: this->packaged_cnt_meta.contents) {
             this->contents.push_back(cnt.info);
             if(cnt.info.content_type == NcmContentType_Control) {
-                auto control_nca_content_id = hos::ContentIdAsString(cnt.info.content_id);
-                auto control_nca_file_name = control_nca_content_id + ".nca";
+                const auto control_nca_content_id = hos::ContentIdAsString(cnt.info.content_id);
+                const auto control_nca_file_name = control_nca_content_id + ".nca";
                 const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
                 if(PFS0::IsValidFileIndex(control_nca_file_idx)) {
-                    auto control_nca_temp_path = nand_sys_explorer->MakeFull("Contents/temp/" + control_nca_file_name);
+                    const auto control_nca_temp_path = nand_sys_explorer->MakeFull("Contents/temp/" + control_nca_file_name);
                     this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_temp_path);
+
                     char control_nca_content_path[FS_MAX_PATH] = {};
                     sprintf(control_nca_content_path, "@SystemContent://temp/%s", control_nca_file_name.c_str());
                     FsFileSystem control_nca_fs;
@@ -286,7 +295,7 @@ namespace nsp {
                                 }
 
                                 // Remove the "icon_" prefix
-                                const auto icon_dat_lang = fs::GetFileName(cnt).substr(5);
+                                const auto icon_dat_lang = fs::GetFileName(cnt).substr(__builtin_strlen("icon_"));
                                 if(cur_lang_name == icon_dat_lang) {
                                     icon_dat_cnt = cnt;
                                     break;
@@ -314,19 +323,18 @@ namespace nsp {
         delete[] meta_data;
 
         s32 content_meta_count = 0;
-        const auto rc = nsCountApplicationContentMeta(this->base_app_id, &content_meta_count);
-        if(rc != 0x410) {
-            GLEAF_RC_TRY(rc);
-        }
+        GLEAF_RC_TRY_EXCEPT(nsCountApplicationContentMeta(this->base_app_id, &content_meta_count), 0x410);
 
         std::vector<ns::ContentStorageMetaKey> content_storage_meta_keys;
         if(content_meta_count > 0) {
-            auto cnt_storage_meta_key_buf = reinterpret_cast<ns::ContentStorageMetaKey*>(fs::GetWorkBuffer());
+            auto cnt_storage_meta_key_buf = new ns::ContentStorageMetaKey[content_meta_count]();
             u32 real_count = 0;
             GLEAF_RC_TRY(ns::ListApplicationRecordContentMeta(0, this->base_app_id, cnt_storage_meta_key_buf, content_meta_count, &real_count));
+            content_storage_meta_keys.reserve(real_count);
             for(u32 i = 0; i < real_count; i++) {
                 content_storage_meta_keys.push_back(cnt_storage_meta_key_buf[i]);
             }
+            delete[] cnt_storage_meta_key_buf;
         }
 
         const ns::ContentStorageMetaKey cnt_storage_meta_key = {
@@ -338,11 +346,15 @@ namespace nsp {
         GLEAF_RC_TRY(ns::PushApplicationRecord(this->base_app_id, 3, content_storage_meta_keys.data(), content_storage_meta_keys.size()));
 
         if(this->tik_file_size > 0) {
-            auto tmp_buf = fs::GetWorkBuffer();
+            auto tik_buf = fs::AllocateWorkBuffer(this->tik_file_size);
+            ScopeGuard on_exit([&]() {
+                fs::DeleteWorkBuffer(tik_buf);
+            });
+
             auto tik_path = "Contents/temp/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-            nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tmp_buf);
-            GLEAF_RC_TRY(es::ImportTicket(tmp_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
+            nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
+            GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
         }
         return err::result::ResultSuccess;
     }
@@ -388,7 +400,6 @@ namespace nsp {
             const auto content_file_idx = content_file_idxs.at(i);
             const auto content_file_name = this->pfs0_file.GetFile(content_file_idx);
             const auto content_file_size = this->pfs0_file.GetFileSize(content_file_idx);
-            const auto content_placehld_id = content_placehld_ids.at(i);
             
             u64 cur_written_size = 0;
             auto rem_size = content_file_size;
@@ -413,8 +424,8 @@ namespace nsp {
                     return last_rc;
                 }
 
-                const auto read_size = std::min(rem_size, 4_MB); // TODO: make max buffer size a setting users can change?
-                auto read_buf = new u8[read_size]();
+                const auto read_size = std::min(rem_size, CopyBufferMaxSize);
+                auto read_buf = fs::AllocateWorkBuffer(read_size);
                 u64 tmp_read_size = 0;
                 switch(cnt.content_type) {
                     case NcmContentType_Meta:

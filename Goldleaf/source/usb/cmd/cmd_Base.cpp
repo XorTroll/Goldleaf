@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ namespace usb::cmd {
     InCommandBlock::InCommandBlock(const u32 cmd_id) {
         this->base.position = 0;
         this->ok = true;
-        this->base.block_buf = new (std::align_val_t(0x1000)) u8[BlockSize]();
+        this->base.block_buf = new (Align) u8[BlockSize]();
         
         if(!this->WriteValue(InputMagic)) {
             this->ok = false;
@@ -64,14 +64,14 @@ namespace usb::cmd {
 
     Result InCommandBlock::Send() {
         const auto rc = Write(this->base.block_buf, BlockSize);
-        operator delete[](this->base.block_buf, std::align_val_t(0x1000));
+        operator delete[](this->base.block_buf, Align);
         this->base.block_buf = nullptr;
         return rc;
     }
 
     OutCommandBlock::OutCommandBlock() {
         this->base.position = 0;
-        this->base.block_buf = new(std::align_val_t(0x1000)) u8[BlockSize]();
+        this->base.block_buf = new (Align) u8[BlockSize]();
         this->res = Read(this->base.block_buf, BlockSize);
         if(R_SUCCEEDED(this->res)) {
             if(!this->ReadValue(this->magic)) {
@@ -85,7 +85,7 @@ namespace usb::cmd {
 
     void OutCommandBlock::Cleanup() {
         if(this->base.block_buf != nullptr) {
-            operator delete[](this->base.block_buf, std::align_val_t(0x1000));
+            operator delete[](this->base.block_buf, Align);
             this->base.block_buf = nullptr;
         }
     }
@@ -118,20 +118,20 @@ namespace usb::cmd {
     }
 
     bool InBuffer::ProcessAfterIn() {
-        auto aligned_buf = new (std::align_val_t(0x1000)) u8[this->size]();
+        auto aligned_buf = new (Align) u8[this->size]();
         memcpy(aligned_buf, this->buf, this->size);
 
         const auto ok = R_SUCCEEDED(Write(aligned_buf, this->size));
-        operator delete[](aligned_buf, std::align_val_t(0x1000));
+        operator delete[](aligned_buf, Align);
         return ok;
     }
 
     bool OutBuffer::ProcessAfterOut() {
-        auto aligned_buf = new (std::align_val_t(0x1000)) u8[this->size]();
+        auto aligned_buf = new (Align) u8[this->size]();
 
         const auto ok = R_SUCCEEDED(Read(aligned_buf, this->size));
         memcpy(this->buf, aligned_buf, this->size);
-        operator delete[](aligned_buf, std::align_val_t(0x1000));
+        operator delete[](aligned_buf, Align);
         return ok;
     }
 

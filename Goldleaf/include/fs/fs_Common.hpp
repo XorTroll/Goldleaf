@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 namespace fs {
 
-    // TODO: just use StorageId?
     enum class Partition {
         PRODINFOF,
         NANDSafe,
@@ -32,8 +31,6 @@ namespace fs {
         NANDSystem = 3,
         SdCard = 5,
     };
-
-    constexpr size_t WorkBufferSize = 8_MB;
 
     inline void CreateConcatenationFile(const std::string &path) {
         fsdevCreateFile(path.c_str(), 0, FsCreateOption_BigFile);
@@ -73,8 +70,6 @@ namespace fs {
     u64 GetFreeSpaceForPartition(const Partition partition);
     std::string FormatSize(const u64 bytes);
 
-    u8 *GetWorkBuffer();
-
     inline Result MountTitleSaveData(const u64 app_id, const AccountUid user_id, FsFileSystem &out_fs) {
         const FsSaveDataAttribute attr = {
             .application_id = app_id,
@@ -83,6 +78,19 @@ namespace fs {
         };
 
         return fsOpenSaveDataFileSystem(std::addressof(out_fs), FsSaveDataSpaceId_User, &attr);
+    }
+
+    constexpr size_t DefaultWorkBufferSize = 8_MB;
+    constexpr std::align_val_t WorkBufferAlign = std::align_val_t(0x1000);
+
+    // Note: buffers used in FS operations must be allocated this way (for instance, USB requires them to be aligned)
+
+    inline u8 *AllocateWorkBuffer(const size_t size = DefaultWorkBufferSize) {
+        return new (WorkBufferAlign) u8[size]();
+    }
+
+    inline void DeleteWorkBuffer(u8 *work_buf) {
+        operator delete[](work_buf, WorkBufferAlign);
     }
 
 }

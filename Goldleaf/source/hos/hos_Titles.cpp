@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include <hos/hos_Titles.hpp>
 #include <hos/hos_Content.hpp>
+#include <err/err_Result.hpp>
 #include <fs/fs_FileSystem.hpp>
 
 namespace hos {
@@ -46,12 +47,14 @@ namespace hos {
     std::string ContentId::GetFullPath() {
         NcmContentStorage cnt_storage;
         if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, this->storage_id))) {
+            ScopeGuard on_exit([&]() {
+                ncmContentStorageClose(&cnt_storage);
+            });
+
             char out_path[FS_MAX_PATH] = {};
             if(R_SUCCEEDED(ncmContentStorageGetPath(&cnt_storage, out_path, FS_MAX_PATH, &this->id))) {
                 return out_path;
             }
-
-            ncmContentStorageClose(&cnt_storage);
         }
         return "";
     }
@@ -110,18 +113,18 @@ namespace hos {
         if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, this->storage_id))) {
             if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, this->storage_id))) {
                 for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
-                    ContentId cnt_id = {};
-                    cnt_id.type = static_cast<NcmContentType>(i);
-                    cnt_id.is_empty = true;
-                    cnt_id.size = 0;
-                    cnt_id.storage_id = this->storage_id;
-                    NcmContentId ipc_cnt_id;
-                    if(R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(&cnt_meta_db, &ipc_cnt_id, &this->meta_key, cnt_id.type))) {
+                    ContentId cnt_id = {
+                        .type = static_cast<NcmContentType>(i),
+                        .storage_id = this->storage_id,
+                        .is_empty = true,
+                        .size = 0
+                    };
+    
+                    if(R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(&cnt_meta_db, &cnt_id.id, &this->meta_key, cnt_id.type))) {
                         cnt_id.is_empty = false;
-                        cnt_id.id = ipc_cnt_id;
-                        s64 tmpsize = 0;
-                        ncmContentStorageGetSizeFromContentId(&cnt_storage, &tmpsize, &ipc_cnt_id);
-                        cnt_id.size = static_cast<u64>(tmpsize);
+                        s64 tmp_size = 0;
+                        ncmContentStorageGetSizeFromContentId(&cnt_storage, &tmp_size, &cnt_id.id);
+                        cnt_id.size = static_cast<u64>(tmp_size);
                     }
 
                     switch(cnt_id.type) {
@@ -148,22 +151,23 @@ namespace hos {
                         }
                     }
                 }
+                ncmContentStorageClose(&cnt_storage);
             }
+            ncmContentMetaDatabaseClose(&cnt_meta_db);
         }
-        ncmContentStorageClose(&cnt_storage);
-        ncmContentMetaDatabaseClose(&cnt_meta_db);
+        
         return cnts;
     }
 
     TitlePlayStats Title::GetGlobalPlayStats() const {
         PdmPlayStatistics pdm_stats = {};
-        pdmqryQueryPlayStatisticsByApplicationId(this->app_id, false, &pdm_stats);
+        pdmqryQueryPlayStatisticsByApplicationId(this->app_id, true, &pdm_stats);
         return ConvertPlayStats(pdm_stats);
     }
     
     TitlePlayStats Title::GetUserPlayStats(const AccountUid user_id) const {
         PdmPlayStatistics pdm_stats = {};
-        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(this->app_id, user_id, false, &pdm_stats);
+        pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(this->app_id, user_id, true, &pdm_stats);
         return ConvertPlayStats(pdm_stats);
     }
 
@@ -246,69 +250,60 @@ namespace hos {
     }
 
     bool ExistsTitle(const NcmContentMetaType type, const NcmStorageId storage_id, const u64 app_id) {
-        const auto ts = SearchTitles(type, storage_id);
+        const auto titles = SearchTitles(type, storage_id);
 
-        const auto it = std::find_if(ts.begin(), ts.end(), [&](const Title &title) -> bool {
+        const auto title_it = std::find_if(titles.begin(), titles.end(), [&](const Title &title) -> bool {
             return (title.app_id == app_id);
         });
-
-        return (it != ts.end());
+        return title_it != titles.end();
     }
 
     Result RemoveTitle(const Title &title) {
         const auto &cnts = title.GetContents();
-        NcmContentStorage cnt_storage = {};
-        auto rc = ncmOpenContentStorage(&cnt_storage, title.storage_id);
-        if(R_SUCCEEDED(rc)) {
+
+        {
+            NcmContentStorage cnt_storage = {};
+            GLEAF_RC_TRY(ncmOpenContentStorage(&cnt_storage, title.storage_id));
+            ScopeGuard on_exit([&]() {
+                ncmContentStorageClose(&cnt_storage);
+            });
+
             if(!cnts.meta.is_empty) {
-                rc = ncmContentStorageDelete(&cnt_storage, &cnts.meta.id);
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.meta.id));
             }
-            if(R_SUCCEEDED(rc)) {
-                if(!cnts.program.is_empty) {
-                    rc = ncmContentStorageDelete(&cnt_storage, &cnts.program.id);
-                }
-                if(R_SUCCEEDED(rc)) {
-                    if(!cnts.data.is_empty) {
-                        rc = ncmContentStorageDelete(&cnt_storage, &cnts.data.id);
-                    }
-                    if(R_SUCCEEDED(rc)) {
-                        if(!cnts.control.is_empty) {
-                            rc = ncmContentStorageDelete(&cnt_storage, &cnts.control.id);
-                        }
-                        if(R_SUCCEEDED(rc)) {
-                            if(!cnts.html_document.is_empty) {
-                                rc = ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id);
-                            }
-                            if(R_SUCCEEDED(rc)) {
-                                if(!cnts.legal_info.is_empty) {
-                                    rc = ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id);
-                                }
-                                if(R_SUCCEEDED(rc)) {
-                                    if(!cnts.delta_fragment.is_empty) {
-                                        rc = ncmContentStorageDelete(&cnt_storage, &cnts.delta_fragment.id);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            if(!cnts.program.is_empty) {
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.program.id));
             }
-            ncmContentStorageClose(&cnt_storage);
+            if(!cnts.data.is_empty) {
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.data.id));
+            }
+            if(!cnts.control.is_empty) {
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.control.id));
+            }
+            if(!cnts.html_document.is_empty) {
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id));
+            }
+            if(!cnts.legal_info.is_empty) {
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id));
+            }
+            if(!cnts.delta_fragment.is_empty) {
+                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.delta_fragment.id));
+            }
         }
 
-        NcmContentMetaDatabase cnt_meta_db;
-        rc = ncmOpenContentMetaDatabase(&cnt_meta_db, title.storage_id);
-        if(R_SUCCEEDED(rc)) {
-            rc = ncmContentMetaDatabaseRemove(&cnt_meta_db, &title.meta_key);
-            if(R_SUCCEEDED(rc)) {
-                rc = ncmContentMetaDatabaseCommit(&cnt_meta_db);
-            }
-            ncmContentMetaDatabaseClose(&cnt_meta_db);
+        {
+            NcmContentMetaDatabase cnt_meta_db;
+            GLEAF_RC_TRY(ncmOpenContentMetaDatabase(&cnt_meta_db, title.storage_id));
+            ScopeGuard on_exit([&]() {
+                ncmContentMetaDatabaseClose(&cnt_meta_db);
+            });
+            GLEAF_RC_TRY(ncmContentMetaDatabaseRemove(&cnt_meta_db, &title.meta_key));
+            GLEAF_RC_TRY(ncmContentMetaDatabaseCommit(&cnt_meta_db));
         }
-        if(R_SUCCEEDED(rc)) {
-            rc = ns::DeleteApplicationRecord(title.app_id);
-        }
-        return rc;
+
+        GLEAF_RC_TRY(ns::DeleteApplicationRecord(title.app_id));
+        
+        return err::result::ResultSuccess;
     }
 
     Result RemoveTicket(const Ticket &tik) {
@@ -326,11 +321,9 @@ namespace hos {
             }
         }
 
-        const auto rc = avmPushLaunchVersion(title.app_id, cur_max_version);
-        if(R_SUCCEEDED(rc)) {
-            return avmUpgradeLaunchRequiredVersion(title.app_id, cur_max_version);
-        }
-        return rc;
+        GLEAF_RC_TRY(avmPushLaunchVersion(title.app_id, cur_max_version));
+        GLEAF_RC_TRY(avmUpgradeLaunchRequiredVersion(title.app_id, cur_max_version));
+        return err::result::ResultSuccess;
     }
 
     std::vector<Ticket> GetAllTickets() {

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,12 +26,14 @@ namespace nsp {
 
     bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateCallback cb_fn) {
         auto exp = fs::GetExplorerForPath(input_path);
-        auto files = exp->GetFiles(input_path);
+        const auto files = exp->GetFiles(input_path);
         PFS0Header header = {
             .magic = Magic,
             .file_count = static_cast<u32>(files.size()),
         };
-        auto string_table = reinterpret_cast<char*>(fs::GetWorkBuffer());
+
+        const size_t string_table_max_size = files.size() * FS_MAX_PATH;
+        auto string_table_buf = fs::AllocateWorkBuffer(string_table_max_size);
         size_t string_table_size = 0;
         std::vector<PFS0File> file_entries;
         size_t base_offset = 0;
@@ -43,33 +45,37 @@ namespace nsp {
             entry.entry.size = file_size;
             entry.name = file;
             base_offset += file_size;
-            strcpy(&string_table[string_table_size], file.c_str());
+            strcpy(reinterpret_cast<char*>(string_table_buf) + string_table_size, file.c_str());
             string_table_size += file.length() + 1; // NUL terminated!
             file_entries.push_back(entry);
         }
         string_table_size = (string_table_size + 0x1F) &~ 0x1F;
         header.string_table_size = string_table_size;
+
         auto out_exp = fs::GetExplorerForPath(output_nsp);
         out_exp->StartFile(output_nsp, fs::FileMode::Write);
         out_exp->WriteFile(output_nsp, &header, sizeof(header));
         for(const auto &entry: file_entries) {
             out_exp->WriteFile(output_nsp, &entry.entry, sizeof(entry.entry));
         }
-        out_exp->WriteFile(output_nsp, string_table, string_table_size);
+        out_exp->WriteFile(output_nsp, string_table_buf, string_table_size);
+        fs::DeleteWorkBuffer(string_table_buf);
+
         for(const auto &entry: file_entries) {
-            auto to_read = entry.entry.size;
-            auto buf = fs::GetWorkBuffer();
+            auto rem_size = entry.entry.size;
+            auto work_buf = fs::AllocateWorkBuffer();
             size_t off = 0;
             const auto entry_path = input_path + "/" + entry.name;
             exp->StartFile(entry_path, fs::FileMode::Read);
-            while(to_read) {
-                auto read = exp->ReadFile(entry_path, off, std::min(to_read, fs::WorkBufferSize), buf);
-                out_exp->WriteFile(output_nsp, buf, read);
-                off += read;
-                to_read -= read;
+            while(rem_size > 0) {
+                const auto read_size = exp->ReadFile(entry_path, off, std::min(rem_size, fs::DefaultWorkBufferSize), work_buf);
+                out_exp->WriteFile(output_nsp, work_buf, read_size);
+                off += read_size;
+                rem_size -= read_size;
                 cb_fn(off, base_offset);
             }
             exp->EndFile();
+            fs::DeleteWorkBuffer(work_buf);
         }
         out_exp->EndFile();
         return true;

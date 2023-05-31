@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ namespace ui {
 
     namespace {
 
-        std::vector<u32> g_EntryIndexStack;
+        std::stack<u32> g_EntryIndexStack;
 
     }
 
@@ -119,9 +119,11 @@ namespace ui {
                     else if(ext == "cert") {
                         menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/CERT.png"));
                     }
+                    /*
                     else if(ext == "nxtheme") {
                         menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NXTheme.png"));
                     }
+                    */
                     else if(ext == "nca") {
                         menu_item->SetIcon(g_Settings.PathForResource("/FileSystem/NCA.png"));
                     }
@@ -142,8 +144,8 @@ namespace ui {
             u32 tmp_idx = 0;
             if(idx < 0) {
                 if(!g_EntryIndexStack.empty()) {
-                    tmp_idx = g_EntryIndexStack.back();
-                    g_EntryIndexStack.pop_back();
+                    tmp_idx = g_EntryIndexStack.top();
+                    g_EntryIndexStack.pop();
                 }
             }
             else {
@@ -190,7 +192,7 @@ namespace ui {
         const auto full_item = this->cur_exp->FullPathFor(item);
         const auto pres_full_item = this->cur_exp->FullPresentablePathFor(item);
         if(this->cur_exp->NavigateForward(full_item)) {
-            g_EntryIndexStack.push_back(this->browse_menu->GetSelectedIndex());
+            g_EntryIndexStack.push(this->browse_menu->GetSelectedIndex());
             this->UpdateElements();
         }
         else {
@@ -206,9 +208,11 @@ namespace ui {
             else if(ext == "tik") {
                 msg += cfg::strings::Main.GetString(55);
             }
+            /*
             else if(ext == "nxtheme") {
                 msg += cfg::strings::Main.GetString(56);
             }
+            */
             else if(ext == "nca") {
                 msg += cfg::strings::Main.GetString(57);
             }
@@ -243,10 +247,12 @@ namespace ui {
                 dialog_opts.push_back(cfg::strings::Main.GetString(67));
                 option_count++;
             }
+            /*
             else if(ext == "nxtheme") {
                 dialog_opts.push_back(cfg::strings::Main.GetString(65));
                 option_count++;
             }
+            */
             else if(ext == "nacp") {
                 dialog_opts.push_back(cfg::strings::Main.GetString(69));
                 option_count++;
@@ -359,10 +365,11 @@ namespace ui {
                     case 0: {
                         const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(101), cfg::strings::Main.GetString(102), { cfg::strings::Main.GetString(234), cfg::strings::Main.GetString(18) }, true);
                         if(option_2 == 0) {
-                            auto read_buf = fs::GetWorkBuffer();
                             const auto tik_file_size = this->cur_exp->GetFileSize(full_item);
-                            this->cur_exp->ReadFile(full_item, 0, tik_file_size, read_buf);
-                            const auto rc = es::ImportTicket(read_buf, tik_file_size, es::CommonCertificateData, es::CommonCertificateSize);
+                            auto tik_read_buf = fs::AllocateWorkBuffer(tik_file_size);
+                            this->cur_exp->ReadFile(full_item, 0, tik_file_size, tik_read_buf);
+                            const auto rc = es::ImportTicket(tik_read_buf, tik_file_size, es::CommonCertificateData, es::CommonCertificateSize);
+                            fs::DeleteWorkBuffer(tik_read_buf);
                             if(R_FAILED(rc)) {
                                 HandleResult(rc, cfg::strings::Main.GetString(103));
                             }
@@ -371,9 +378,8 @@ namespace ui {
                     }
                 }
             }
+            /*
             else if(ext == "nxtheme") {
-                // TODO (to consider): shall we continue supporting this?
-                // This implementation is really shitty, and only works for SD files...
                 switch(option_1) {
                     case 0: {
                         std::string nxthemes_nro_path = "sdmc:/switch/nxthemes_installer/nxthemesinstaller.nro";
@@ -397,6 +403,7 @@ namespace ui {
                     }
                 }
             }
+            */
             else if(ext == "nacp")  {
                 switch(option_1) {
                     case 0: {
@@ -511,16 +518,18 @@ namespace ui {
                         }
 
                         const auto file_size = this->cur_exp->GetFileSize(full_item);
-                        auto icon_buf = fs::GetWorkBuffer();
-                        this->cur_exp->ReadFile(full_item, 0, file_size, icon_buf);
+                        auto icon_read_buf = fs::AllocateWorkBuffer(file_size);
+                        this->cur_exp->ReadFile(full_item, 0, file_size, icon_read_buf);
 
-                        const auto rc = acc::EditUserIcon(icon_buf, file_size);
+                        const auto rc = acc::EditUserIcon(icon_read_buf, file_size);
                         if(R_SUCCEEDED(rc)) {
                             g_MainApplication->ShowNotification(cfg::strings::Main.GetString(123));
                         }
                         else {
                             HandleResult(rc, cfg::strings::Main.GetString(124));
                         }
+
+                        fs::DeleteWorkBuffer(icon_read_buf);
                         break;
                     }
                 }
@@ -556,14 +565,14 @@ namespace ui {
             const auto copy_option = option_count - 4;
             const auto delete_option = option_count - 3;
             const auto rename_option = option_count - 2;
-            if((option_1 == view_option) && (this->cur_exp->GetFileSize(full_item) > 0)) {
+            if((option_1 == static_cast<s32>(view_option)) && (this->cur_exp->GetFileSize(full_item) > 0)) {
                 g_MainApplication->LoadLayout(g_MainApplication->GetFileContentLayout());
                 g_MainApplication->GetFileContentLayout()->LoadFile(full_item, this->cur_exp, true);
             }
-            else if(option_1 == copy_option) {
+            else if(option_1 == static_cast<s32>(copy_option)) {
                 UpdateClipboard(full_item);
             }
-            else if(option_1 == delete_option) {
+            else if(option_1 == static_cast<s32>(delete_option)) {
                 if(this->WarnWriteAccess()) {
                     const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(127), cfg::strings::Main.GetString(128), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                     if(option_2 < 0) {
@@ -579,7 +588,7 @@ namespace ui {
                     this->UpdateElements(tmp_idx);
                 }
             }
-            else if(option_1 == rename_option) {
+            else if(option_1 == static_cast<s32>(rename_option)) {
                 const auto new_name = ShowKeyboard(cfg::strings::Main.GetString(130), item);
                 if(!new_name.empty()) {
                     if(new_name == item) {
@@ -720,7 +729,7 @@ namespace ui {
                                 return;
                             }
                             const auto dst = (option_3 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
-                            for(auto &nsp_name: nsps) {
+                            for(const auto &nsp_name: nsps) {
                                 const auto nsp_path = full_item + "/" + nsp_name;
                                 const auto pres_nsp_path = pres_full_item + "/" + nsp_name;
                                 

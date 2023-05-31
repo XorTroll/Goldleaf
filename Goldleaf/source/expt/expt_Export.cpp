@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,17 +28,23 @@ FsStorage g_FatFsDumpBisStorage;
 
 namespace expt {
 
+    namespace {
+
+        constexpr size_t DecryptBufferSize = 16_MB;
+
+    }
+
     void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, std::function<void(double Done, double Total)> cb_fn) {
         s64 cnt_size = 0;
         ncmContentStorageGetSizeFromContentId(cnt_storage, &cnt_size, &cnt_id);
         auto rem_size = static_cast<u64>(cnt_size);
         auto exp = fs::GetExplorerForPath(path);
 
-        auto data_buf = fs::GetWorkBuffer();
+        auto data_buf = new u8[DecryptBufferSize]();
         s64 off = 0;
         exp->StartFile(path, fs::FileMode::Write);
         while(rem_size) {
-            const auto read_size = std::min(fs::WorkBufferSize, rem_size);
+            const auto read_size = std::min(DecryptBufferSize, rem_size);
             if(R_FAILED(ncmContentStorageReadContentIdFile(cnt_storage, data_buf, read_size, &cnt_id, off))) {
                 break;
             }
@@ -48,30 +54,35 @@ namespace expt {
             cb_fn((double)off, (double)cnt_size);
         }
         exp->EndFile();
+        delete[] data_buf;
     }
 
     bool GetMetaRecord(NcmContentMetaDatabase *cnt_meta_db, const u64 app_id, NcmContentMetaKey *out) {
         auto meta_key_array = new NcmContentMetaKey[hos::MaxTitleCount]();
         s32 total = 0;
         s32 written = 0;
-        auto got = false;
-        auto rc = ncmContentMetaDatabaseList(cnt_meta_db, &total, &written, meta_key_array, hos::MaxTitleCount, NcmContentMetaType_Unknown, app_id, 0, UINT64_MAX, NcmContentInstallType_Full);
+        auto found_record = false;
+        const auto rc = ncmContentMetaDatabaseList(cnt_meta_db, &total, &written, meta_key_array, hos::MaxTitleCount, NcmContentMetaType_Unknown, app_id, 0, UINT64_MAX, NcmContentInstallType_Full);
         if(R_SUCCEEDED(rc) && (written > 0)) {
             for(s32 i = 0; i < written; i++) {
                 if(meta_key_array[i].id == app_id) {
                     *out = meta_key_array[i];
-                    got = true;
+                    found_record = true;
                     break;
                 }
             }
         }
         delete[] meta_key_array;
-        return got;
+        return found_record;
     }
 
     NcmStorageId GetApplicationLocation(const u64 app_id) {
         NcmContentMetaDatabase cnt_meta_db;
         if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, NcmStorageId_SdCard))) {
+            ScopeGuard on_exit([&]() {
+                ncmContentMetaDatabaseClose(&cnt_meta_db);
+            });
+
             NcmContentMetaKey temp_meta_key;
             if(GetMetaRecord(&cnt_meta_db, app_id, &temp_meta_key)) {
                 return NcmStorageId_SdCard;
@@ -84,7 +95,6 @@ namespace expt {
                     }
                 }
             }
-            ncmContentMetaDatabaseClose(&cnt_meta_db);
         }
         return NcmStorageId_None;
     }
@@ -99,9 +109,9 @@ namespace expt {
             f_open(&save, "0:/save/80000000000000E1", FA_READ | FA_OPEN_EXISTING);
 
             u32 tmp_size = 0;
-            auto data_buf = fs::GetWorkBuffer();
+            u8 tmp_tik_buf[0x400];
             while(true) {
-                const auto fr = f_read(&save, data_buf, 0x400, &tmp_size);
+                const auto fr = f_read(&save, tmp_tik_buf, sizeof(tmp_tik_buf), &tmp_size);
                 if(fr != FR_OK) {
                     break;
                 }
@@ -109,12 +119,12 @@ namespace expt {
                     break;
                 }
 
-                const auto tik_sig = *reinterpret_cast<hos::TicketSignature*>(data_buf);
+                const auto tik_sig = *reinterpret_cast<hos::TicketSignature*>(tmp_tik_buf);
                 if(hos::IsValidTicketSignature(tik_sig)) {
                     hos::TicketFile tik_file = { .signature = tik_sig };
                     const auto tik_sig_size = hos::GetTicketSignatureSize(tik_file.signature);
-                    memcpy(tik_file.signature_data, data_buf + sizeof(tik_file.signature), hos::GetTicketSignatureDataSize(tik_file.signature));
-                    memcpy(&tik_file.data, data_buf + tik_sig_size, sizeof(tik_file.data));
+                    memcpy(tik_file.signature_data, tmp_tik_buf + sizeof(tik_file.signature), hos::GetTicketSignatureDataSize(tik_file.signature));
+                    memcpy(&tik_file.data, tmp_tik_buf + tik_sig_size, sizeof(tik_file.data));
 
                     if(app_id == tik_file.data.rights_id.GetApplicationId()) {
                         read_tik_file = tik_file;
@@ -135,7 +145,7 @@ namespace expt {
         const auto tik_file = ReadTicket(app_id);
 
         std::stringstream rights_id_strm;
-        for(u32 i = 0; i < 0x10; i++) {
+        for(u32 i = 0; i < sizeof(tik_file.data.rights_id.id); i++) {
             rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<u32>(tik_file.data.rights_id.id[i]);
         }
         const auto fmt_rights_id = rights_id_strm.str();
@@ -159,10 +169,8 @@ namespace expt {
 
     std::string GetContentIdPath(NcmContentStorage *cnt_storage, const NcmContentId cnt_id) {
         char out[FS_MAX_PATH] = {};
-        if(R_SUCCEEDED(ncmContentStorageGetPath(cnt_storage, out, FS_MAX_PATH, &cnt_id))) {
-            return out;
-        }
-        return "";
+        ncmContentStorageGetPath(cnt_storage, out, FS_MAX_PATH, &cnt_id);
+        return out;
     }
 
     bool GetContentId(NcmContentMetaDatabase *cnt_meta_db, const NcmContentMetaKey *cnt_meta_key, const u64 app_id, const NcmContentType cnt_type, NcmContentId *out) {

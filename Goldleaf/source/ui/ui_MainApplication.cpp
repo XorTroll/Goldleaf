@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -257,17 +257,16 @@ namespace ui {
             this->conn_img->SetHeight(40);
             this->cur_conn_strength = conn_strength;
         }
+
+        char ip_str[0x20] = {};
         if(conn_strength > 0) {
             const auto ip = gethostid();
-            char ip_str[0x20] = {0};
             inet_ntop(AF_INET, &ip, ip_str, sizeof(ip_str));
-            this->ip_text->SetText(ip_str);
         }
-        else {
-            this->ip_text->SetText("");
-        }
+        this->ip_text->SetText(ip_str);
+
         const auto selected_user = acc::GetSelectedUser();
-        if(!acc::UidCompare(&selected_user, &this->cur_selected_user)) {
+        if(!acc::EqualUids(&selected_user, &this->cur_selected_user)) {
             this->cur_selected_user = selected_user;
             if(acc::HasSelectedUser()) {
                 const auto user_icon = acc::GetCachedUserIcon();

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program_cnt_id is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,10 +43,10 @@ namespace ui {
         EnsureDirectories();
         g_MainApplication->CallForRender();
 
-        auto format_app_id = hos::FormatApplicationId(cnt.app_id);
+        const auto format_app_id = hos::FormatApplicationId(cnt.app_id);
         
         auto sd_exp = fs::GetSdCardExplorer();
-        auto out_dir = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/" + format_app_id);
+        const auto out_dir = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/" + format_app_id);
         sd_exp->CreateDirectory(out_dir);
         this->exp_text->SetText(cfg::strings::Main.GetString(192));
         g_MainApplication->CallForRender();
@@ -63,20 +63,24 @@ namespace ui {
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
+        ScopeGuard on_exit_1([&]() {
+            ncmContentStorageClose(&cnt_storage);
+        });
+
         NcmContentMetaDatabase cnt_meta_db;
         rc = ncmOpenContentMetaDatabase(&cnt_meta_db, cnt.storage_id);
         if(R_FAILED(rc)) {
-            ncmContentStorageClose(&cnt_storage);
             HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
+        ScopeGuard on_exit_2([&]() {
+            ncmContentMetaDatabaseClose(&cnt_meta_db);
+        });
 
         NcmContentId meta_cnt_id;
         const auto has_meta_cnt = expt::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_Meta, &meta_cnt_id);
         if(!has_meta_cnt) {
-            ncmContentStorageClose(&cnt_storage);
-            ncmContentMetaDatabaseClose(&cnt_meta_db);
             HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
@@ -196,8 +200,6 @@ namespace ui {
             }
             else {
                 hos::UnlockAutoSleep();
-                ncmContentStorageClose(&cnt_storage);
-                ncmContentMetaDatabaseClose(&cnt_meta_db);
                 HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
                 g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
                 return;
@@ -299,8 +301,6 @@ namespace ui {
             sd_exp->EmptyDirectory(GLEAF_PATH_EXPORT_DIR);
             EnsureDirectories();
         }
-        ncmContentStorageClose(&cnt_storage);
-        ncmContentMetaDatabaseClose(&cnt_meta_db);
     }
 
 }

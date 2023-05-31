@@ -241,7 +241,7 @@ You will also need to install the following packages with devkitPro's pacman:
 
 Remember to clone this repository recursively (`git clone --recurse-submodules`) since Goldleaf makes use of submodules.
 
-In order to build Goldleaf, just type `make initial` the first time (and plain `make` for following builds) and wait for it to finish building.
+In order to build Goldleaf, run `make setup` (for the first time, just `make` for the following builds) and wait for it to finish building.
 
 In order to build Quark, just execute the `build.sh` scripts depending on the version you'd like to build (Java 8 and Java 9 versions are separately built)
 

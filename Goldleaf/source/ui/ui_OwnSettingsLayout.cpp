@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,19 +54,19 @@ namespace ui {
         const auto old_idx = this->settings_menu->GetSelectedIndex();
         this->settings_menu->ClearItems();
 
-        auto custom_lang_item_name = cfg::strings::Main.GetString(441) + ": " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : cfg::strings::Main.GetString(442));
+        const auto custom_lang_item_name = cfg::strings::Main.GetString(441) + ": " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : cfg::strings::Main.GetString(442));
         this->custom_lang_item = pu::ui::elm::MenuItem::New(custom_lang_item_name);
         this->custom_lang_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->custom_lang_item->SetColor(g_Settings.custom_scheme.text);
         this->custom_lang_item->AddOnKey(std::bind(&OwnSettingsLayout::custom_lang_DefaultKey, this));
 
-        auto ignore_required_fw_version_item_name = cfg::strings::Main.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
+        const auto ignore_required_fw_version_item_name = cfg::strings::Main.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
         this->ignore_required_fw_version_item = pu::ui::elm::MenuItem::New(ignore_required_fw_version_item_name);
         this->ignore_required_fw_version_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->ignore_required_fw_version_item->SetColor(g_Settings.custom_scheme.text);
         this->ignore_required_fw_version_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_required_fw_version_DefaultKey, this));
 
-        auto use_12h_time_name = cfg::strings::Main.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
+        const auto use_12h_time_name = cfg::strings::Main.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
         this->use_12h_time_item = pu::ui::elm::MenuItem::New(use_12h_time_name);
         this->use_12h_time_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->use_12h_time_item->SetColor(g_Settings.custom_scheme.text);

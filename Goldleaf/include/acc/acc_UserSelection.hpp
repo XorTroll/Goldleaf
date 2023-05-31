@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@ namespace acc {
 
     struct LinkedAccountInfo {
         u64 account_id;
-        u64 nintendo_account_id;  
+        u64 nintendo_account_id;
     };
 
-    inline constexpr bool UidCompare(const AccountUid *user_id_a, const AccountUid *user_id_b) {
+    inline constexpr bool EqualUids(const AccountUid *user_id_a, const AccountUid *user_id_b) {
         return memcmp(user_id_a->uid, user_id_b->uid, sizeof(AccountUid)) == 0;
     }
 

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,10 +52,10 @@ namespace hos {
             }
 
             const auto ampm_str = (local_time->tm_hour >= 12) ? "PM" : "AM";
-            snprintf(time_str, 0x20, "%02d:%02d:%02d %s", hour, local_time->tm_min, local_time->tm_sec, ampm_str);
+            snprintf(time_str, sizeof(time_str) - 1, "%02d:%02d:%02d %s", hour, local_time->tm_min, local_time->tm_sec, ampm_str);
         }
         else {
-            snprintf(time_str, 0x20, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+            snprintf(time_str, sizeof(time_str) - 1, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
         }
 
         return time_str;
@@ -72,8 +72,8 @@ namespace hos {
     }
 
     std::string FormatResult(const Result rc) {
-        char res_err[0x10] = {};
-        sprintf(res_err, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
+        char res_err[0x20] = {};
+        snprintf(res_err, sizeof(res_err) - 1, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
         return res_err;
     }
 

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -107,10 +107,11 @@ namespace ui {
             options.push_back(drive.name);
         }
         options.push_back(cfg::strings::Main.GetString(18));
+
         const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(402) + " " + std::to_string(drives.size()), options, true);
         if(!drives.empty()) {
-            if(option_1 < drives.size()) {
-                auto &drive = drives[option_1];
+            if(option_1 < static_cast<s64>(drives.size())) {
+                auto &drive = drives.at(option_1);
                 const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(434), { cfg::strings::Main.GetString(136), cfg::strings::Main.GetString(435), cfg::strings::Main.GetString(18) }, true);
                 if(option_2 == 0) {
                     g_MainApplication->GetBrowserLayout()->ChangePartitionDrive(drive);
@@ -193,10 +194,6 @@ namespace ui {
         this->mounted_explorer_items.push_back(mounted_exp_item);
         this->mounted_explorers.push_back(exp);
         this->UpdateMenu();
-    }
-
-    std::vector<fs::Explorer*> &ExploreMenuLayout::GetMountedExplorers() {
-        return this->mounted_explorers;
     }
 
 }

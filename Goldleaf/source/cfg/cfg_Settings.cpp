@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,7 +78,6 @@ namespace cfg {
     }
 
     std::string Settings::PathForResource(const std::string &res_path) {
-        auto sd_exp = fs::GetSdCardExplorer();
         auto romfs_exp = fs::GetRomFsExplorer();
         
         if(this->has_external_romfs) {
@@ -121,8 +120,8 @@ namespace cfg {
 
         u64 tmp_lang_code = 0;
         auto sys_lang = SetLanguage_ENUS;
-        setGetSystemLanguage(&tmp_lang_code);
-        setMakeLanguage(tmp_lang_code, &sys_lang);
+        GLEAF_RC_ASSERT(setGetSystemLanguage(&tmp_lang_code));
+        GLEAF_RC_ASSERT(setMakeLanguage(tmp_lang_code, &sys_lang));
         settings.custom_lang = GetLanguageBySystemLanguage(sys_lang);
 
         settings.has_custom_lang = false;

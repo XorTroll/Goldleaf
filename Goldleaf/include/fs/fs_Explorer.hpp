@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,17 +48,17 @@ namespace fs {
             bool NavigateForward(const std::string &path);
             std::vector<std::string> GetContents();
             
-            inline std::string GetMountName() {
+            inline std::string GetMountName() const {
                 return this->mnt_name;
             }
 
-            inline std::string GetCwd() {
+            inline std::string GetCwd() const {
                 return this->cwd;
             }
 
-            std::string GetPresentableCwd();
+            std::string GetPresentableCwd() const;
         
-            inline std::string FullPathFor(const std::string &path) {
+            inline std::string FullPathFor(const std::string &path) const {
                 auto new_path = this->cwd;
                 if(this->cwd.substr(this->cwd.length() - 1) != "/") {
                     new_path += "/";
@@ -67,7 +67,7 @@ namespace fs {
                 return new_path;
             }
 
-            inline std::string AbsolutePathFor(const std::string &path) {
+            inline std::string AbsolutePathFor(const std::string &path) const {
                 auto new_path = this->mnt_name + ":";
                 if(path.substr(0, 1) != "/") {
                     new_path += "/";
@@ -76,7 +76,7 @@ namespace fs {
                 return new_path;
             }
 
-            inline std::string FullPresentablePathFor(const std::string &path) {
+            inline std::string FullPresentablePathFor(const std::string &path) const {
                 auto pres_cwd = this->GetPresentableCwd();
                 auto new_path = pres_cwd;
                 if(pres_cwd.substr(pres_cwd.length() - 1) != "/") {
@@ -86,7 +86,7 @@ namespace fs {
                 return new_path;
             }
 
-            inline std::string AbsolutePresentablePathFor(const std::string &path) {
+            inline std::string AbsolutePresentablePathFor(const std::string &path) const {
                 auto new_path = this->disp_name + ":";
                 if(path.substr(0, 1) != "/") {
                     new_path += "/";
@@ -95,27 +95,27 @@ namespace fs {
                 return new_path;
             }
 
-            inline std::string MakeFull(const std::string &path) {
+            inline std::string MakeFull(const std::string &path) const {
                 return this->IsFullPath(path) ? path : this->FullPathFor(path);
             }
 
-            inline std::string MakeFullPresentable(const std::string &path) {
+            inline std::string MakeFullPresentable(const std::string &path) const {
                 return this->IsFullPath(path) ? path : this->FullPresentablePathFor(path);
             }
 
-            inline std::string MakeAbsolute(const std::string &path) {
+            inline std::string MakeAbsolute(const std::string &path) const {
                 return this->IsFullPath(path) ? path : this->AbsolutePathFor(path);
             }
 
-            inline std::string MakeAbsolutePresentable(const std::string &path) {
+            inline std::string MakeAbsolutePresentable(const std::string &path) const {
                 return this->IsFullPath(path) ? path : this->AbsolutePresentablePathFor(path);
             }
 
-            inline std::string RemoveMountName(const std::string &path) {
+            inline std::string RemoveMountName(const std::string &path) const {
                 return path.substr(this->mnt_name.length() + 1);
             }
 
-            inline bool IsFullPath(const std::string &path) {
+            inline bool IsFullPath(const std::string &path) const {
                 return path.find(":/") != std::string::npos;
             }
 

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ namespace usb::cmd {
 
     constexpr u32 InputMagic = 0x49434C47; // 'GLCI'
     constexpr u32 OutputMagic = 0x4F434C47; // 'GLCO'
+
+    constexpr std::align_val_t Align = std::align_val_t(0x1000);
 
     constexpr size_t BlockSize = 0x1000;
 

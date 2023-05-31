@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -296,7 +296,6 @@ namespace ui {
             const auto t1 = std::chrono::steady_clock::now();
 
             auto last_tp = std::chrono::steady_clock::now();
-            auto first_time = true;
             this->speed_info_text->SetVisible(true);
             for(u32 i = 0; i < nsp_installer.GetContents().size(); i++) {
                 this->content_info_texts.at(i)->SetVisible(true);
@@ -313,7 +312,6 @@ namespace ui {
                 size_t total_size = 0;
                 u32 i = 0;
                 for(const auto &[type, entry] : write_progress.entries) {
-                    const double progress = 100.0f * (((double)entry.cur_offset) / ((double)entry.size));
                     const auto text = FormatContentType(type) + " (" + fs::FormatSize(entry.size) + ")";
                     cur_size += entry.cur_offset;
                     total_size += entry.size;

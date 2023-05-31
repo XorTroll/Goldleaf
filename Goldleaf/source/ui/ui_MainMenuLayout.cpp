@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -131,8 +131,8 @@ namespace ui {
     }
 
     void MainMenuLayout::about_DefaultKey() {
-        auto exec_mode_str = cfg::strings::Main.GetString((GetExecutableMode() == ExecutableMode::NRO) ? 288 : 289);
-        auto launch_mode_str = cfg::strings::Main.GetString((GetLaunchMode() == LaunchMode::Applet) ? 290 : 291);
+        const auto exec_mode_str = cfg::strings::Main.GetString((GetExecutableMode() == ExecutableMode::NRO) ? 288 : 289);
+        const auto launch_mode_str = cfg::strings::Main.GetString((GetLaunchMode() == LaunchMode::Applet) ? 290 : 291);
         g_MainApplication->LoadMenuData("Goldleaf v" GOLDLEAF_VERSION, "Info", exec_mode_str + ", " + launch_mode_str);
         g_MainApplication->LoadLayout(g_MainApplication->GetAboutLayout());
     }

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 */
 
 #include <nfp/nfp_Amiibo.hpp>
+#include <err/err_Result.hpp>
 #include <fs/fs_FileSystem.hpp>
 #include <hos/hos_Common.hpp>
 
@@ -30,23 +31,24 @@ namespace nfp {
         NfcDeviceHandle g_DeviceHandle;
         bool g_Initialized = false;
 
+        inline Result GetAllImpl(NfpData *out_data) {
+            return serviceDispatchIn(nfpGetServiceSession_Interface(), 200, g_DeviceHandle,
+                .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
+                .buffers = { { out_data, sizeof(NfpData) } },
+            );
+        }
+
     }
 
     Result Initialize() {
-        if(g_Initialized) {
-            return 0;
+        if(!g_Initialized) {
+            // Note: using debug service (for genuine amiibos) since this isn't intercepted by emuiibo
+            GLEAF_RC_TRY(nfpInitialize(NfpServiceType_Debug));
+            GLEAF_RC_TRY(nfpListDevices(nullptr, &g_DeviceHandle, 1));
+            GLEAF_RC_TRY(nfpStartDetection(&g_DeviceHandle));
+            g_Initialized = true;
         }
-        auto rc = nfpInitialize(NfpServiceType_Debug);
-        if(R_SUCCEEDED(rc)) {
-            rc = nfpListDevices(nullptr, &g_DeviceHandle, 1);
-            if(R_SUCCEEDED(rc)) {
-                rc = nfpStartDetection(&g_DeviceHandle);
-                if(R_SUCCEEDED(rc)) {
-                    g_Initialized = true;
-                }
-            }
-        }
-        return rc;
+        return err::result::ResultSuccess;
     }
 
     bool IsReady() {
@@ -65,26 +67,27 @@ namespace nfp {
 
     NfpTagInfo GetTagInfo() {
         NfpTagInfo tag_info = {};
-        nfpGetTagInfo(&g_DeviceHandle, &tag_info);
+        GLEAF_RC_ASSERT(nfpGetTagInfo(&g_DeviceHandle, &tag_info));
         return tag_info;
     }
 
     NfpRegisterInfo GetRegisterInfo() {
         NfpRegisterInfo reg_info = {};
-        nfpGetRegisterInfo(&g_DeviceHandle, &reg_info);
+        GLEAF_RC_ASSERT(nfpGetRegisterInfo(&g_DeviceHandle, &reg_info));
         return reg_info;
     }
 
     NfpCommonInfo GetCommonInfo() {
         NfpCommonInfo common_info = {};
-        nfpGetCommonInfo(&g_DeviceHandle, &common_info);
+        GLEAF_RC_ASSERT(nfpGetCommonInfo(&g_DeviceHandle, &common_info));
         return common_info;
     }
 
     NfpModelInfo GetModelInfo() {
         NfpModelInfo model_info = {};
-        nfpGetModelInfo(&g_DeviceHandle, &model_info);
+        GLEAF_RC_ASSERT(nfpGetModelInfo(&g_DeviceHandle, &model_info));
 
+        // Convert nfp service's amiibo ID format to emuiibo one
         model_info.amiibo_id[5] = model_info.amiibo_id[4];
         model_info.amiibo_id[4] = 0;
         model_info.amiibo_id[7] = 2;
@@ -93,10 +96,7 @@ namespace nfp {
 
     NfpData GetAll() {
         NfpData data = {};
-        serviceDispatchIn(nfpGetServiceSession_Interface(), 200, g_DeviceHandle,
-            .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
-            .buffers = { { &data, sizeof(data) } },
-        );
+        GLEAF_RC_ASSERT(GetAllImpl(&data));
         return data;
     }
 

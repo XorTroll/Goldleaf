@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ namespace nsp {
         this->ok = false;
         this->header_size = 0;
         this->string_table = nullptr;
+
         this->exp->StartFile(this->path, fs::FileMode::Read);
         this->exp->ReadFile(this->path, 0, sizeof(this->header), &this->header);
         if(this->header.magic == Magic) {
@@ -67,13 +68,12 @@ namespace nsp {
     }
 
     std::string PFS0::GetFile(const u32 idx) {
-        if(IsInvalidFileIndex(idx)) {
+        if(IsInvalidFileIndex(idx) || (idx >= this->files.size())) {
             return "";
         }
-        if(idx >= this->files.size()) {
-            return "";
+        else {
+            return this->files[idx].name;
         }
-        return this->files[idx].name;
     }
 
     u64 PFS0::ReadFromFile(const u32 idx, const u64 offset, const u64 size, void *read_buf) {
@@ -81,32 +81,29 @@ namespace nsp {
     }
 
     std::vector<std::string> PFS0::GetFiles() {
-        std::vector<std::string> pfiles;
+        std::vector<std::string> file_names;
         for(const auto &file: this->files) {
-            pfiles.push_back(file.name);
+            file_names.push_back(file.name);
         }
-        return pfiles;
+        return file_names;
     }
 
     u64 PFS0::GetFileSize(const u32 idx) {
-        if(IsInvalidFileIndex(idx)) {
+        if(IsInvalidFileIndex(idx) || (idx >= this->files.size())) {
             return 0;
         }
-        if(idx >= this->files.size()) {
-            return 0;
+        else {
+            return this->files[idx].entry.size;
         }
-        return this->files[idx].entry.size;
     }
 
     void PFS0::SaveFile(const u32 idx, fs::Explorer *path_exp, const std::string &path) {
-        if(IsInvalidFileIndex(idx)) {
+        if(IsInvalidFileIndex(idx) || (idx >= this->files.size())) {
             return;
         }
-        if(idx >= this->files.size()) {
-            return;
-        }
+
         const auto file_size = this->GetFileSize(idx);
-        auto buf = fs::GetWorkBuffer();
+        auto work_buf = fs::AllocateWorkBuffer();
         auto rem_size = file_size;
         u64 off = 0;
         path_exp->DeleteFile(path);
@@ -114,19 +111,19 @@ namespace nsp {
         this->exp->StartFile(this->path, fs::FileMode::Read);
         path_exp->StartFile(path, fs::FileMode::Write);
         while(rem_size) {
-            const auto read_size = this->ReadFromFile(idx, off, std::min(fs::WorkBufferSize, rem_size), buf);
-            path_exp->WriteFile(path, buf, read_size);
+            const auto read_size = this->ReadFromFile(idx, off, std::min(fs::DefaultWorkBufferSize, rem_size), work_buf);
+            path_exp->WriteFile(path, work_buf, read_size);
             off += read_size;
             rem_size -= read_size;
         }
         this->exp->EndFile();
         path_exp->EndFile();
+        fs::DeleteWorkBuffer(work_buf);
     }
 
     u32 PFS0::GetFileIndexByName(const std::string &file_name) {
-        auto found = false;
         u32 idx = 0;
-        for(auto &pfs0_file: this->files) {
+        for(const auto &pfs0_file: this->files) {
             if(strcasecmp(pfs0_file.name.c_str(), file_name.c_str()) == 0) {
                 return idx;
             }

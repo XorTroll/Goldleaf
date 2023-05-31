@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -224,8 +224,11 @@ extern "C" {
 
 Result Initialize() {
     srand(time(nullptr));
+
     fs::Initialize();
     EnsureDirectories();
+    auto sd_exp = fs::GetSdCardExplorer();
+    sd_exp->DeleteFile(GLEAF_PATH_LOG_FILE);
 
     GLEAF_RC_TRY(accountInitialize(AccountServiceType_Administrator));
     GLEAF_RC_TRY(ncmInitialize());

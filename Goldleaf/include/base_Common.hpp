@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,54 +54,45 @@ inline constexpr size_t operator ""_GB(unsigned long long n) {
     return operator ""_MB(n) * 0x400;
 }
 
-class Lock {
-    private:
-        Mutex mutex;
-
-    public:
-        constexpr Lock() : mutex() {}
-
-        void lock() {
-            mutexLock(&this->mutex);
-        }
-
-        void unlock() {
-            mutexUnlock(&this->mutex);
-        }
-};
-
-using ScopedLock = std::scoped_lock<Lock>;
-
 #define GLEAF_LOG_WARN_PREFIX "[WARN] "
 #define GLEAF_LOG_ERR_PREFIX "[ERROR] "
 
 #define GLEAF_LOG_FMT(fmt, ...) ({ \
-    char log_buf[0x400] = {}; \
-    const auto log_buf_len = sprintf(log_buf, fmt "\n", ##__VA_ARGS__); \
-    ::LogImpl(log_buf, log_buf_len); \
+    char _log_buf[0x400] = {}; \
+    const auto _log_buf_len = snprintf(_log_buf, sizeof(_log_buf) - 1, fmt "\n", ##__VA_ARGS__); \
+    ::LogImpl(_log_buf, _log_buf_len); \
 })
 
 #define GLEAF_WARN_FMT(fmt, ...) GLEAF_LOG_FMT(GLEAF_LOG_WARN_PREFIX fmt, ##__VA_ARGS__)
 #define GLEAF_ERR_FMT(fmt, ...) GLEAF_LOG_FMT(GLEAF_LOG_ERR_PREFIX fmt, ##__VA_ARGS__)
 
 #define GLEAF_RC_TRY(res_expr) ({ \
-    const Result _tmp_rc = res_expr; \
-    if (R_FAILED(_tmp_rc)) { \
+    const Result _tmp_rc = (res_expr); \
+    if(R_FAILED(_tmp_rc)) { \
+        GLEAF_WARN_FMT("Expression " #res_expr " returned 0x%X", _tmp_rc); \
+        return _tmp_rc; \
+    } \
+})
+
+#define GLEAF_RC_TRY_EXCEPT(res_expr, special_rc) ({ \
+    const Result _tmp_rc = (res_expr); \
+    if(R_FAILED(_tmp_rc) && (_tmp_rc != special_rc)) { \
         GLEAF_WARN_FMT("Expression " #res_expr " returned 0x%X", _tmp_rc); \
         return _tmp_rc; \
     } \
 })
 
 #define GLEAF_RC_UNLESS(expr, rc) ({ \
-    if(!(expr)) { \
+    const auto _tmp_expr = (expr); \
+    if(!_tmp_expr) { \
         GLEAF_WARN_FMT("Expression " #expr " evaluated to false"); \
         return rc; \
     } \
 })
 
 #define GLEAF_RC_ASSERT(res_expr) ({ \
-    const Result _tmp_rc = res_expr; \
-    if (R_FAILED(_tmp_rc)) { \
+    const Result _tmp_rc = (res_expr); \
+    if(R_FAILED(_tmp_rc)) { \
         GLEAF_ERR_FMT("Assertion failed: " #res_expr " returned 0x%X", _tmp_rc); \
         diagAbortWithResult(_tmp_rc); \
     } \
@@ -150,6 +141,39 @@ enum class Language {
     Korean,
 
     Count
+};
+
+class Lock {
+    private:
+        Mutex mutex;
+
+    public:
+        constexpr Lock() : mutex() {}
+
+        void lock() {
+            mutexLock(&this->mutex);
+        }
+
+        void unlock() {
+            mutexUnlock(&this->mutex);
+        }
+};
+
+using ScopedLock = std::scoped_lock<Lock>;
+
+class ScopeGuard {
+    public:
+        using Fn = std::function<void()>;
+
+    private:
+        Fn exit_fn;
+
+    public:
+        ScopeGuard(Fn fn) : exit_fn(fn) {}
+
+        ~ScopeGuard() {
+            this->exit_fn();
+        }
 };
 
 struct ColorScheme {

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,7 +57,10 @@ namespace ui {
             void explorer_DefaultKey(fs::Explorer *exp, const std::string &name, const std::string &icon);
             void explorer_X(fs::Explorer *exp);
             void AddMountedExplorer(fs::Explorer *exp, const std::string &name, const std::string &icon);
-            std::vector<fs::Explorer*> &GetMountedExplorers();
+
+            inline std::vector<fs::Explorer*> &GetMountedExplorers() {
+                return this->mounted_explorers;
+            }
     };
 
 }

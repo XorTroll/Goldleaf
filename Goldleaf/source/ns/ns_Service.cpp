@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace ns {
             u64 app_id;
         } in = { last_modified_event, {}, app_id };
         
-        auto rc = serviceDispatchIn(use_srv, 16, in,
+        const auto rc = serviceDispatchIn(use_srv, 16, in,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_In },
             .buffers = { { cnt_storage_record_buf, cnt_storage_record_buf_count * sizeof(ContentStorageMetaKey) } },
         );
@@ -70,7 +70,7 @@ namespace ns {
             u64 app_id;
         } in = { offset, app_id };
 
-        auto rc = serviceDispatchInOut(use_srv, 17, in, *out_count,
+        const auto rc = serviceDispatchInOut(use_srv, 17, in, *out_count,
             .buffer_attrs = { SfBufferAttr_HipcMapAlias | SfBufferAttr_Out },
             .buffers = { { out_buf, out_buf_count * sizeof(ContentStorageMetaKey) } },
         );
@@ -82,7 +82,7 @@ namespace ns {
         Service srv;
         auto use_srv = GetApplicationManagerInterfaceService(&srv);
 
-        auto rc = serviceDispatchIn(use_srv, 27, app_id);
+        const auto rc = serviceDispatchIn(use_srv, 27, app_id);
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }
@@ -96,7 +96,8 @@ namespace ns {
             u64 app_id;
             u8 pad[4];
         } in = { launch_version, app_id, {} };
-        auto rc = serviceDispatchIn(use_srv, 36, in);
+
+        const auto rc = serviceDispatchIn(use_srv, 36, in);
         DisposeApplicationManagerInterfaceService(&srv);
         return rc;
     }

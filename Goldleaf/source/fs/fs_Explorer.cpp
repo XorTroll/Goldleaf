@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ namespace fs {
         return dirs;
     }
 
-    std::string Explorer::GetPresentableCwd() {
+    std::string Explorer::GetPresentableCwd() const {
         if(this->cwd == (this->mnt_name + ":/")) {
             return this->disp_name + ":/";
         }
@@ -87,17 +87,18 @@ namespace fs {
         const auto full_path = this->MakeFull(path);
         auto exp = GetExplorerForPath(new_path);
         const auto full_new_path = exp->MakeFull(new_path);
-        auto data = GetWorkBuffer();
+        auto work_buf = AllocateWorkBuffer();
         auto rem_size = this->GetFileSize(full_path);
         u64 offset = 0;
         this->StartFile(full_path, fs::FileMode::Read);
         exp->StartFile(full_new_path, fs::FileMode::Write);
         while(rem_size) {
-            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, WorkBufferSize), data);
+            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, DefaultWorkBufferSize), work_buf);
             rem_size -= read_size;
             offset += read_size;
-            exp->WriteFile(new_path, data, read_size);
+            exp->WriteFile(new_path, work_buf, read_size);
         }
+        DeleteWorkBuffer(work_buf);
         this->EndFile();
         exp->EndFile();
     }
@@ -106,19 +107,20 @@ namespace fs {
         const auto full_path = this->MakeFull(path);
         auto exp = GetExplorerForPath(new_path);
         const auto full_new_path = exp->MakeFull(new_path);
-        auto data = GetWorkBuffer();
+        auto work_buf = AllocateWorkBuffer();
         auto file_size = this->GetFileSize(full_path);
         auto rem_size = file_size;
         u64 offset = 0;
         this->StartFile(full_path, fs::FileMode::Read);
         exp->StartFile(full_new_path, fs::FileMode::Write);
         while(rem_size) {
-            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, WorkBufferSize), data);
+            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, DefaultWorkBufferSize), work_buf);
             rem_size -= read_size;
             offset += read_size;
-            exp->WriteFile(full_new_path, data, read_size);
+            exp->WriteFile(full_new_path, work_buf, read_size);
             cb_fn(offset, file_size);
         }
+        DeleteWorkBuffer(work_buf);
         this->EndFile();
         exp->EndFile();
     }
@@ -184,19 +186,21 @@ namespace fs {
         if(file_size == 0) {
             return true;
         }
-        const auto to_read_size = std::min(file_size, static_cast<u64>(0x200)); // Same size as GodMode9
-        auto data_buf = GetWorkBuffer();
-        const auto read_size = this->ReadFile(full_path, 0, to_read_size, data_buf);
+        u8 work_buf[0x200]; // Same size as GodMode9
+        const auto to_read_size = std::min(file_size, sizeof(work_buf));
+        const auto read_size = this->ReadFile(full_path, 0, to_read_size, work_buf);
         if(read_size == 0) {
             return true;
         }
-        for(u32 i = 0; i < read_size; i++) {
-            const auto cur_ch = static_cast<char>(data_buf[i]);
-            if(!isascii(cur_ch) || (iscntrl(cur_ch) && !isspace(cur_ch))) {
-                return true;
+        else {
+            for(u32 i = 0; i < read_size; i++) {
+                const auto cur_ch = static_cast<char>(work_buf[i]);
+                if(!::isascii(cur_ch) || (::iscntrl(cur_ch) && !::isspace(cur_ch))) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
 
     std::vector<u8> Explorer::ReadFile(const std::string &path) {
@@ -215,17 +219,19 @@ namespace fs {
         const auto full_path = this->MakeFull(path);
         const auto file_size = this->GetFileSize(full_path);
 
-        auto data_buf = GetWorkBuffer();
+        auto work_buf = AllocateWorkBuffer(file_size);
         if(file_size > 0) {
-            this->ReadFile(full_path, 0, file_size, data_buf);
+            this->ReadFile(full_path, 0, file_size, work_buf);
         }
         
+        auto json = JSON::object();
         try {
-            return JSON::parse(std::string(reinterpret_cast<const char*>(data_buf), file_size));
+            json = JSON::parse(std::string(reinterpret_cast<const char*>(work_buf), file_size));
         }
-        catch(std::exception&) {
-            return JSON::object();
-        }
+        catch(std::exception&) {}
+
+        DeleteWorkBuffer(work_buf);
+        return json;
     }
 
     std::vector<std::string> Explorer::ReadFileLines(const std::string &path, const u32 line_offset, const u32 line_count) {
@@ -239,17 +245,17 @@ namespace fs {
         u32 tmp_line_offset = 0;
         auto rem_size = file_size;
         u64 offset = 0;
-        auto data_buf = GetWorkBuffer();
+        auto work_buf = AllocateWorkBuffer();
         auto end = false;
         while(rem_size && !end) {
-            const auto read_size = this->ReadFile(full_path, offset, std::min(WorkBufferSize, rem_size), data_buf);
+            const auto read_size = this->ReadFile(full_path, offset, std::min(DefaultWorkBufferSize, rem_size), work_buf);
             if(read_size == 0) {
                 return data;
             }
             rem_size -= read_size;
             offset += read_size;
             for(u32 i = 0; i < read_size; i++) {
-                const auto ch = static_cast<char>(data_buf[i]);
+                const auto ch = static_cast<char>(work_buf[i]);
                 if(ch == '\n') {
                     const auto prev_tmp_line_offset = tmp_line_offset;
                     tmp_line_offset++;
@@ -277,6 +283,7 @@ namespace fs {
                 }
             }
         }
+        DeleteWorkBuffer(work_buf);
         if(!tmp_line.empty()) {
             data.push_back(tmp_line);
             tmp_line = "";
@@ -297,17 +304,17 @@ namespace fs {
         if((offset + read_size) > file_size) {
             data_read_size = read_size - ((offset + read_size) - file_size);
         }
-        auto data_buf = GetWorkBuffer();
-        this->ReadFile(full_path, offset, data_read_size, data_buf);
+        auto work_buf = AllocateWorkBuffer();
+        this->ReadFile(full_path, offset, data_read_size, work_buf);
         u32 count = 0;
         std::string tmp_line;
         std::string tmp_chr;
         u32 tmp_offset = 0;
         for(u32 i = 0; i < (data_read_size + 1); i++) {
             if(count == 16) {
-                std::stringstream ostrm;
-                ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
-                const auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
+                std::stringstream strm;
+                strm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
+                const auto def = " " + strm.str() + "   " + tmp_line + "  " + tmp_chr;
                 str_data.push_back(def);
                 tmp_offset += 16;
                 count = 0;
@@ -322,13 +329,13 @@ namespace fs {
                         tmp_chr += " ";
                     }
                 }
-                std::stringstream ostrm;
-                ostrm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
-                const auto def = " " + ostrm.str() + "   " + tmp_line + "  " + tmp_chr;
+                std::stringstream strm;
+                strm << std::hex << std::setw(8) << std::uppercase << std::setfill('0') << (offset + tmp_offset);
+                const auto def = " " + strm.str() + "   " + tmp_line + "  " + tmp_chr;
                 str_data.push_back(def);
                 break;
             }
-            const auto cur_byte = data_buf[i];
+            const auto cur_byte = work_buf[i];
             std::stringstream strm;
             strm << std::setw(2) << std::uppercase << std::setfill('0') << std::hex << static_cast<u32>(cur_byte);
             tmp_line += strm.str() + " ";
@@ -340,6 +347,7 @@ namespace fs {
             }
             count++;
         }
+        DeleteWorkBuffer(work_buf);
         return str_data;
     }
 

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,18 +41,16 @@ namespace cfg {
         return this->json[idx].get<std::string>();
     }
 
-    #define _CFG_PROCESS_STRINGS(strs, json_name) { \
+    #define _CFG_PROCESS_STRINGS(strs, json_name) ({ \
         strings::strs.language = g_Settings.custom_lang; \
         strings::strs.json = g_Settings.ReadJSONResource(std::string("/Strings/") + #strs + "/" + json_name); \
-    }
+    })
 
     void LoadStrings() {
         const auto &str_json = GetLanguageCode(g_Settings.custom_lang) + ".json";
 
-        _CFG_PROCESS_STRINGS(Main, str_json)
-        _CFG_PROCESS_STRINGS(Results, str_json)
-        _CFG_PROCESS_STRINGS(Modules, str_json)
+        _CFG_PROCESS_STRINGS(Main, str_json);
+        _CFG_PROCESS_STRINGS(Results, str_json);
+        _CFG_PROCESS_STRINGS(Modules, str_json);
     }
-
-    #undef _CFG_PROCESS_STRINGS
 }

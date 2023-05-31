@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ namespace fs {
     namespace {
 
         constexpr const char *SizeSuffixes[] = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
-        u8 *g_WorkBuffer = nullptr;
 
     }
 
@@ -118,15 +117,6 @@ namespace fs {
         std::stringstream strm;
         strm << rbt;
         return strm.str() + " " + SizeSuffixes[plc];
-    }
-
-    u8 *GetWorkBuffer() {
-        if(g_WorkBuffer == nullptr) {
-            g_WorkBuffer = new (std::align_val_t(0x1000)) u8[WorkBufferSize]();
-        }
-
-        memset(g_WorkBuffer, 0, WorkBufferSize);
-        return g_WorkBuffer;
     }
 
 }

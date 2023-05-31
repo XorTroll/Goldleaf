@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,10 +36,13 @@ namespace net {
             return size * count;
         }
 
-        std::function<void(double, double)> g_CurrentCallback = [](double, double){};
+        void DummyOnProgressCallback(const double now_downloaded, const double total_to_download) {
+        }
+
+        RetrieveOnProgressCallback g_CurrentOnProgressCallback = DummyOnProgressCallback;
 
         int ProgressImpl(void *_ptr, double total_to_download, double now_downloaded, double _total_to_upload, double _now_uploaded) {
-            g_CurrentCallback(now_downloaded, total_to_download);
+            g_CurrentOnProgressCallback(now_downloaded, total_to_download);
             return 0;
         }
 
@@ -54,7 +57,8 @@ namespace net {
         std::string content;
         auto curl = curl_easy_init();
         if(!mime_type.empty()) {
-            curl_slist *header_data = curl_slist_append(header_data, ("Content-Type: " + mime_type).c_str());
+            curl_slist *header_data = nullptr;
+            header_data = curl_slist_append(header_data, ("Content-Type: " + mime_type).c_str());
             header_data = curl_slist_append(header_data, ("Accept: " + mime_type).c_str());
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_data);
         }
@@ -71,7 +75,7 @@ namespace net {
         return content;
     }
 
-    void RetrieveToFile(const std::string &url, const std::string &path, std::function<void(double Done, double Total)> cb_fn) {
+    void RetrieveToFile(const std::string &url, const std::string &path, RetrieveOnProgressCallback on_progress_cb) {
         const auto rc = socketInitializeDefault();
         if(R_FAILED(rc)) {
             return;
@@ -79,7 +83,7 @@ namespace net {
 
         auto f = fopen(path.c_str(), "wb");
         if(f) {
-            g_CurrentCallback = cb_fn;
+            g_CurrentOnProgressCallback = on_progress_cb;
             auto curl = curl_easy_init();
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             curl_easy_setopt(curl, CURLOPT_USERAGENT, "Goldleaf");
@@ -90,10 +94,11 @@ namespace net {
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ProgressImpl);
+
             curl_easy_perform(curl);
             curl_easy_cleanup(curl);
+            fclose(f);
         }
-        fclose(f);
         socketExit();
     }
     

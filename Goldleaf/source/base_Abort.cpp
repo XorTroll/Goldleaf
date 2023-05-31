@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2022 XorTroll
+    Copyright (C) 2018-2023 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ namespace {
 
     inline void SaveReport(const std::string &crash_log_file, const std::string &data) {
         auto sd_exp = fs::GetSdCardExplorer();
-        auto crash_log_path = sd_exp->MakeAbsolute(GLEAF_PATH_REPORTS_DIR "/" + crash_log_file);
+        const auto crash_log_path = sd_exp->MakeAbsolute(GLEAF_PATH_REPORTS_DIR "/" + crash_log_file);
         sd_exp->WriteFile(crash_log_path, data.c_str(), data.length());
     }
 
@@ -37,7 +37,7 @@ extern "C" {
     // This way, any kind of result abort by us or libnx gets saved to a simple report, and Goldleaf simply closes itself
 
     NORETURN void diagAbortWithResult(Result rc) {
-        auto crash_log_file = "fatal_" + hos::FormatHex(rc) + ".log";
+        const auto crash_log_file = "fatal_" + hos::FormatHex(rc) + ".log";
         std::string crash_data = "\nGoldleaf fatal report\n\n";
         crash_data += std::string(" - Goldleaf version: ") + GOLDLEAF_VERSION + "\n - Current time: " + hos::GetCurrentTime(false) + "\n - Fatal result: " + hos::FormatHex(rc);
         
