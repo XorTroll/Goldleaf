@@ -454,5 +454,10 @@
     "使用 12 小时制",
     "Mount RomFs",
     "RomFs was mounted. Check it in the contents browsing section.",
-    "The RomFs of the selected NRO file could not be mounted..."
+    "The RomFs of the selected NRO file could not be mounted...",
+    "An error ocurred attempting to dump the amiibo:",
+    "Would you really like to reset this content's launch version?\nDon't do this unless you know what you're doing...",
+    "Speed",
+    "ETA",
+    "Unable to reboot with the selected payload..."
 ]

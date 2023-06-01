@@ -29,7 +29,7 @@ extern bool g_UpdatedNeedsRename;
 namespace ui {
 
     UpdateLayout::UpdateLayout() {
-        this->info_text = pu::ui::elm::TextBlock::New(150, 320, "(...)");
+        this->info_text = pu::ui::elm::TextBlock::New(150, 320, "...");
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->info_text->SetColor(g_Settings.custom_scheme.text);
         this->download_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);

@@ -454,5 +454,10 @@
     "Usar horario de 12h",
     "Montar RomFs",
     "El sistema RomFs ha sido montado. Explórelo en el menú de explorar contenido.",
-    "El sistema RomFs del archivo NRO seleccionado no se pudo montar..."
+    "El sistema RomFs del archivo NRO seleccionado no se pudo montar...",
+    "Se ha producido un error al intentar volcar el amiibo:",
+    "¿Realmente quiere resetear la versión de lanzamiento de este contenido?\nNo haga esto a menos que realmente sepa lo que está haciendo...",
+    "Velocidad",
+    "ETA",
+    "No se pudo reiniciar con el payload seleccionado..."
 ]

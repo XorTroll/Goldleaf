@@ -29,14 +29,15 @@ namespace ui {
 
     namespace {
 
-        inline void LaunchWebAppletImpl(const std::string &page) {
+        inline Result LaunchWebAppletImpl(const std::string &page) {
             WebCommonConfig web = {};
-            webPageCreate(&web, page.c_str());
-            webConfigSetWhitelist(&web, ".*");
+            GLEAF_RC_TRY(webPageCreate(&web, page.c_str()));
+            GLEAF_RC_TRY(webConfigSetWhitelist(&web, ".*"));
             if(acc::HasSelectedUser()) {
-                webConfigSetUid(&web, acc::GetSelectedUser());
+                GLEAF_RC_TRY(webConfigSetUid(&web, acc::GetSelectedUser()));
             }
-            webConfigShow(&web, nullptr);
+
+            return webConfigShow(&web, nullptr);
         }
 
     }
@@ -87,7 +88,10 @@ namespace ui {
         const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(383), cfg::strings::Main.GetString(384), { cfg::strings::Main.GetString(385), cfg::strings::Main.GetString(386), cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
         switch(option_1) {
             case 0: {
-                LaunchWebAppletImpl(bmk.url);
+                const auto rc = LaunchWebAppletImpl(bmk.url);
+                if(R_FAILED(rc)) {
+                    HandleResult(rc, cfg::strings::Main.GetString(40));
+                }
                 break;
             }
             case 1: {

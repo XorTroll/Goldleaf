@@ -63,7 +63,7 @@ namespace ui {
         }
 
         if(R_FAILED(rc)) {
-            HandleResult(rc, "Amiibo:");
+            HandleResult(rc, cfg::strings::Main.GetString(456));
         }
     }
 

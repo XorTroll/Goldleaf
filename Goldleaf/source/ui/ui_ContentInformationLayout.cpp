@@ -245,7 +245,7 @@ namespace ui {
             }
         }
         else if(option_1 == reset_launch_ver_opt) {
-            const auto option_2 = g_MainApplication->CreateShowDialog("Reset launch version", "Would you really like to reset this content's launch version?\nDon't do this unless you know what you're doing...", { "Yes", "Cancel" }, true);
+            const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(319), cfg::strings::Main.GetString(457), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
             if(option_2 == 0) {
                 const auto rc = hos::UpdateTitleVersion(sub_cnt);
                 if(R_SUCCEEDED(rc)) {

@@ -231,10 +231,17 @@ namespace ui {
                     break;
                 }
                 case 13: {
-                    info += "(14.0.0 -)";
+                    info += "(14.0.0 - 14.1.2)";
                     break;
                 }
-                // TODO (high priority): more keys?
+                case 14: {
+                    info += "(15.0.0 - 15.0.1)";
+                    break;
+                }
+                case 15: {
+                    info += "(16.0.0 -)";
+                    break;
+                }
                 default: {
                     info += cfg::strings::Main.GetString(96);
                     break;
@@ -322,7 +329,7 @@ namespace ui {
                     i++;
                 }
 
-                const auto speed_text = "Speed: " + fs::FormatSize(speed_bps) + "/s, ETA: " + hos::FormatTime((u64)((1.0f / speed_bps) * (double)(total_size - cur_size)));
+                const auto speed_text =  cfg::strings::Main.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::strings::Main.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (double)(total_size - cur_size)));
                 this->speed_info_text->SetText(speed_text);
 
                 g_MainApplication->CallForRender();

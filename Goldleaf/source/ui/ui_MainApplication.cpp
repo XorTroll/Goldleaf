@@ -361,9 +361,11 @@ namespace ui {
                     else if(ext == "nca") {
                         fs_icon = g_Settings.PathForResource("/FileSystem/NCA.png");
                     }
+                    /*
                     else if(ext == "nxtheme") {
                         fs_icon = g_Settings.PathForResource("/FileSystem/NXTheme.png");
                     }
+                    */
                     else {
                         fs_icon = g_Settings.PathForResource("/FileSystem/File.png");
                     }

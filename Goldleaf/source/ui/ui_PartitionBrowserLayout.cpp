@@ -544,8 +544,7 @@ namespace ui {
                         
                         const auto ok = hos::RebootWithPayload(full_item);
                         if(!ok) {
-                            // TODO: translation?
-                            g_MainApplication->ShowNotification("Something failed...");
+                            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(460));
                         }
                         break;
                     }
