@@ -34,7 +34,7 @@
 #include <cctype>
 #include <cstring>
 #include <cerrno>
-
+#include <base_Results.gen.hpp>
 #include <json.hpp>
 #include <usbhsfs.h>
 #include <curl/curl.h>

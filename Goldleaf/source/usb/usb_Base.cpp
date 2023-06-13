@@ -20,7 +20,6 @@
 */
 
 #include <usb/usb_Base.hpp>
-#include <err/err_Result.hpp>
 
 // TODO (low priority): deeper rewrite?
 
@@ -44,7 +43,7 @@ namespace usb {
         UsbDsEndpoint *g_EndpointOut;
 
         Result InitializeInterface5x() {
-            auto rc = err::result::ResultSuccess;
+            auto rc = rc::ResultSuccess;
     
             struct usb_interface_descriptor interface_descriptor = {
                 .bLength = USB_DT_INTERFACE_SIZE,
@@ -166,7 +165,7 @@ namespace usb {
 
 
         Result InitializeInterface1x() {
-            auto rc = err::result::ResultSuccess;
+            auto rc = rc::ResultSuccess;
 
             struct usb_interface_descriptor interface_descriptor = {
                 .bLength = USB_DT_INTERFACE_SIZE,
@@ -256,7 +255,7 @@ namespace usb {
         }
 
         Result InitializeImpl() {
-            auto rc = err::result::ResultSuccess;
+            auto rc = rc::ResultSuccess;
 
             if(!g_Initialized) {
                 rc = usbDsInitialize();

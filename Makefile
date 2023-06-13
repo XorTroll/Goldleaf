@@ -11,6 +11,8 @@ setup:
 	@$(MAKE) -C libusbhsfs/ fs-libs
 	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
 	@$(MAKE) -C Plutonium/
+	@python arc/arc.py gen_db default
+	@python arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
 	@$(MAKE) -C Goldleaf/
 
 allclean: libclean clean

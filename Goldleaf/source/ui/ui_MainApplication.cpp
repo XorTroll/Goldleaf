@@ -389,7 +389,7 @@ namespace ui {
             if(!file_name.empty()) {
                 const auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(file_name);
                 if(this->partition_browser_lyt->GetExplorer()->IsFile(full_path) || this->partition_browser_lyt->GetExplorer()->IsDirectory(full_path)) {
-                    HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
+                    HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 }
                 else {
                     this->partition_browser_lyt->GetExplorer()->CreateFile(full_path);
@@ -403,7 +403,7 @@ namespace ui {
             if(!dir_name.empty()) {
                 const auto full_path = this->partition_browser_lyt->GetExplorer()->FullPathFor(dir_name);
                 if(this->partition_browser_lyt->GetExplorer()->IsFile(full_path) || this->partition_browser_lyt->GetExplorer()->IsDirectory(full_path)) {
-                    HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
+                    HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(255));
                 }
                 else {
                     this->partition_browser_lyt->GetExplorer()->CreateDirectory(full_path);

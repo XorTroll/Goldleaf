@@ -20,9 +20,9 @@
 */
 
 #include <nsp/nsp_Installer.hpp>
-#include <err/err_Result.hpp>
 #include <fs/fs_FileSystem.hpp>
 #include <hos/hos_Common.hpp>
+#include <cfg/cfg_Settings.hpp>
 
 extern cfg::Settings g_Settings;
 
@@ -67,7 +67,7 @@ namespace nsp {
                     BufferQueueEmpty
                 };
 
-                ContentWriteContext(OnContentWriteFunction on_content_write_cb, NcmContentStorage cnt_storage) : on_content_write_cb(on_content_write_cb), cnt_storage(cnt_storage), buffer_queue(), buffer_queue_lock(), write_progress(), write_progress_lock(), last_rc(err::result::ResultSuccess), last_rc_lock(), done(false) {}
+                ContentWriteContext(OnContentWriteFunction on_content_write_cb, NcmContentStorage cnt_storage) : on_content_write_cb(on_content_write_cb), cnt_storage(cnt_storage), buffer_queue(), buffer_queue_lock(), write_progress(), write_progress_lock(), last_rc(rc::ResultSuccess), last_rc_lock(), done(false) {}
 
                 void EmplaceBuffer(const NcmContentType type, u8 *buf, const size_t size) {
                     ScopedLock queue_lock(this->buffer_queue_lock);
@@ -169,7 +169,7 @@ namespace nsp {
     }
 
     Result Installer::PrepareInstallation() {
-        GLEAF_RC_UNLESS(pfs0_file.IsOk(), err::result::ResultInvalidNSP);
+        GLEAF_RC_UNLESS(pfs0_file.IsOk(), rc::goldleaf::ResultInvalidNSP);
         GLEAF_RC_TRY(ncmOpenContentStorage(&this->cnt_storage, this->storage_id));
         GLEAF_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
 
@@ -196,8 +196,8 @@ namespace nsp {
                 }
             }
         }
-        GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), err::result::ResultMetaNotFound);
-        GLEAF_RC_UNLESS(cnmt_nca_file_size > 0, err::result::ResultMetaNotFound);
+        GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), rc::goldleaf::ResultMetaNotFound);
+        GLEAF_RC_UNLESS(cnmt_nca_file_size > 0, rc::goldleaf::ResultMetaNotFound);
         const auto cnmt_nca_content_id = fs::GetBaseName(cnmt_nca_file_name);
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
@@ -218,7 +218,7 @@ namespace nsp {
         FsRightsId tmp_rid;
         GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, FsContentAttributes_All, &this->keygen, &tmp_rid));
         const auto system_keygen = hos::ReadSystemKeyGeneration();
-        GLEAF_RC_UNLESS(system_keygen >= this->keygen, err::result::ResultKeyGenMismatch);
+        GLEAF_RC_UNLESS(system_keygen >= this->keygen, rc::goldleaf::ResultKeyGenMismatch);
 
         FsFileSystem cnmt_nca_fs;
         GLEAF_RC_TRY(fsOpenFileSystemWithId(&cnmt_nca_fs, 0, FsFileSystemType_ContentMeta, cnmt_nca_content_path, FsContentAttributes_All));
@@ -232,7 +232,7 @@ namespace nsp {
                     break;
                 }
             }
-            GLEAF_RC_UNLESS(!cnmt_file_name.empty(), err::result::ResultMetaNotFound);
+            GLEAF_RC_UNLESS(!cnmt_file_name.empty(), rc::goldleaf::ResultMetaNotFound);
 
             const auto cnmt_file_size = cnmt_nca_fs_obj.GetFileSize(cnmt_file_name);
             auto cnmt_read_buf = fs::AllocateWorkBuffer(cnmt_file_size);
@@ -241,7 +241,7 @@ namespace nsp {
             });
 
             cnmt_nca_fs_obj.ReadFile(cnmt_file_name, 0, cnmt_file_size, cnmt_read_buf);
-            GLEAF_RC_UNLESS(ncm::ReadContentMeta(cnmt_read_buf, cnmt_file_size, this->packaged_cnt_meta), err::result::ResultMetaNotFound);
+            GLEAF_RC_UNLESS(ncm::ReadContentMeta(cnmt_read_buf, cnmt_file_size, this->packaged_cnt_meta), rc::goldleaf::ResultMetaNotFound);
         }
 
         this->meta_cnt_info = {
@@ -257,8 +257,8 @@ namespace nsp {
             .install_type = NcmContentInstallType_Full
         };
         this->cnt_meta_key = meta_key;
-        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
-        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->cnt_meta_key.id), err::result::ResultTitleAlreadyInstalled);
+        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->cnt_meta_key.id), rc::goldleaf::ResultTitleAlreadyInstalled);
+        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->cnt_meta_key.id), rc::goldleaf::ResultTitleAlreadyInstalled);
         
         bool has_cnmt_installed = false;
         GLEAF_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &this->meta_cnt_info.content_id));
@@ -311,7 +311,7 @@ namespace nsp {
                 }
             }
         }
-        return err::result::ResultSuccess;
+        GLEAF_RC_SUCCEED;
     }
 
     Result Installer::StartInstallation() {
@@ -356,7 +356,7 @@ namespace nsp {
             nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
             GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
         }
-        return err::result::ResultSuccess;
+        GLEAF_RC_SUCCEED;
     }
 
     Result Installer::WriteContents(OnContentWriteFunction on_content_write_cb) {
@@ -372,7 +372,7 @@ namespace nsp {
             }
             content_file_name += ".nca";
             const auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
-            GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(content_file_idx), err::result::ResultInvalidNSP);
+            GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(content_file_idx), rc::goldleaf::ResultInvalidNSP);
             total_size += pfs0_file.GetFileSize(content_file_idx);
             content_file_idxs.push_back(content_file_idx);
         }
@@ -472,7 +472,7 @@ namespace nsp {
             ncmContentStorageDeletePlaceHolder(&this->cnt_storage, &content_placehld_id);
         }
 
-        return err::result::ResultSuccess;
+        GLEAF_RC_SUCCEED;
     }
 
     void Installer::FinalizeInstallation() {

@@ -59,7 +59,7 @@ namespace ui {
         NcmContentStorage cnt_storage;
         auto rc = ncmOpenContentStorage(&cnt_storage, cnt.storage_id);
         if(R_FAILED(rc)) {
-            HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
+            HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
@@ -70,7 +70,7 @@ namespace ui {
         NcmContentMetaDatabase cnt_meta_db;
         rc = ncmOpenContentMetaDatabase(&cnt_meta_db, cnt.storage_id);
         if(R_FAILED(rc)) {
-            HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
+            HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
@@ -81,7 +81,7 @@ namespace ui {
         NcmContentId meta_cnt_id;
         const auto has_meta_cnt = expt::GetContentId(&cnt_meta_db, &cnt.meta_key, cnt.app_id, NcmContentType_Meta, &meta_cnt_id);
         if(!has_meta_cnt) {
-            HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
+            HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
             g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
             return;
         }
@@ -200,7 +200,7 @@ namespace ui {
             }
             else {
                 hos::UnlockAutoSleep();
-                HandleResult(err::result::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
+                HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::strings::Main.GetString(198));
                 g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
                 return;
             }
@@ -297,7 +297,7 @@ namespace ui {
             g_MainApplication->ShowNotification(cfg::strings::Main.GetString(197) + " '" + out_nsp + "'");
         }
         else {
-            HandleResult(err::result::ResultCouldNotBuildNSP, cfg::strings::Main.GetString(198));
+            HandleResult(rc::goldleaf::ResultCouldNotBuildNSP, cfg::strings::Main.GetString(198));
             sd_exp->EmptyDirectory(GLEAF_PATH_EXPORT_DIR);
             EnsureDirectories();
         }

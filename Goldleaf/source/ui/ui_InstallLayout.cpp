@@ -90,7 +90,7 @@ namespace ui {
 
         auto rc = nsp_installer.PrepareInstallation();
         if(R_FAILED(rc)) {
-            if(rc == err::result::ResultTitleAlreadyInstalled) {
+            if(rc == rc::goldleaf::ResultTitleAlreadyInstalled) {
                 const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(77), cfg::strings::Main.GetString(272) + "\n" + cfg::strings::Main.GetString(273) + "\n" + cfg::strings::Main.GetString(274), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
                 if(option == 0) {
                     const auto title = hos::Locate(nsp_installer.GetApplicationId());

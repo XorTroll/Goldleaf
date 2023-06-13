@@ -97,9 +97,15 @@ namespace ui {
 
     void HandleResult(const Result rc, const std::string &info) {
         if(R_FAILED(rc)) {
-            const auto mod_info = err::GetModuleName(R_MODULE(rc)) + " (" + std::to_string(R_MODULE(rc)) + ")";
-            const auto desc_info = err::GetResultDescription(rc) + " (" + std::to_string(R_DESCRIPTION(rc)) + ")";
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(266), info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")\n" + cfg::strings::Main.GetString(264) + ": " + mod_info + "\n" + cfg::strings::Main.GetString(265) + ": " + desc_info + "", { cfg::strings::Main.GetString(234) }, false);
+            std::string rc_msg = info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")";
+
+            const char *module_name;
+            const char *rc_name;
+            if(rc::GetResultNameAny(rc, module_name, rc_name)) {
+                rc_msg += "\n" + cfg::strings::Main.GetString(264) + ": " + module_name + "\n" + cfg::strings::Main.GetString(265) + ": " + rc_name;
+            }
+
+            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(266), rc_msg, { cfg::strings::Main.GetString(234) }, false);
         }
     }
 

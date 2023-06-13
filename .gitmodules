@@ -4,3 +4,6 @@
 [submodule "libusbhsfs"]
 	path = libusbhsfs
 	url = https://github.com/DarkMatterCore/libusbhsfs
+[submodule "arc"]
+	path = arc
+	url = https://github.com/XorTroll/arc

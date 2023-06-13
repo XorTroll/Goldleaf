@@ -20,7 +20,6 @@
 */
 
 #include <nfp/nfp_Amiibo.hpp>
-#include <err/err_Result.hpp>
 #include <fs/fs_FileSystem.hpp>
 #include <hos/hos_Common.hpp>
 
@@ -48,7 +47,7 @@ namespace nfp {
             GLEAF_RC_TRY(nfpStartDetection(&g_DeviceHandle));
             g_Initialized = true;
         }
-        return err::result::ResultSuccess;
+        GLEAF_RC_SUCCEED;
     }
 
     bool IsReady() {

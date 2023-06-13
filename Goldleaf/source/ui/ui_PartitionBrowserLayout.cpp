@@ -290,7 +290,7 @@ namespace ui {
                         const auto file_size = this->cur_exp->GetFileSize(full_item);
                         const auto free_space = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
                         if(free_space < file_size) {
-                            HandleResult(err::result::ResultNotEnoughSize, cfg::strings::Main.GetString(251));
+                            HandleResult(rc::goldleaf::ResultNotEnoughSize, cfg::strings::Main.GetString(251));
                             return;
                         }
                         g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(145) + " " + pres_full_item);
@@ -595,7 +595,7 @@ namespace ui {
                     }
                     const auto new_path = this->cur_exp->FullPathFor(new_name);
                     if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
-                        HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
+                        HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
                     }
                     else if(this->WarnWriteAccess()) {
                         this->cur_exp->RenameFile(full_item, new_path);
@@ -703,7 +703,7 @@ namespace ui {
                         }
                         const auto new_path = this->cur_exp->FullPathFor(new_name);
                         if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
-                            HandleResult(err::result::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
+                            HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::strings::Main.GetString(254));
                         }
                         else if(this->WarnWriteAccess()) {
                             this->cur_exp->RenameDirectory(full_item, new_path);
@@ -735,7 +735,7 @@ namespace ui {
                                 const auto file_size = this->cur_exp->GetFileSize(nsp_path);
                                 const auto free_space = fs::GetFreeSpaceForPartition(static_cast<fs::Partition>(dst));
                                 if(free_space < file_size) {
-                                    HandleResult(err::result::ResultNotEnoughSize, cfg::strings::Main.GetString(251));
+                                    HandleResult(rc::goldleaf::ResultNotEnoughSize, cfg::strings::Main.GetString(251));
                                     return;
                                 }
                                 g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(145) + " " + pres_nsp_path);

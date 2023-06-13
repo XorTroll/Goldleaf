@@ -4,13 +4,7 @@ lib/
 *.nso
 *.nro
 *.nacp
-*.nsp
 *.elf
-keys.dat
-hacbrewpack_backup/
-hacbrewpack_nca/
-hacbrewpack_nsp/
-hacbrewpack_temp/
 .vscode/
 .vs/
 bin/
@@ -19,3 +13,4 @@ target/
 .settings/
 .classpath
 .project
+*.gen.hpp

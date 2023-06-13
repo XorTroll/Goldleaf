@@ -21,7 +21,6 @@
 
 #include <hos/hos_Titles.hpp>
 #include <hos/hos_Content.hpp>
-#include <err/err_Result.hpp>
 #include <fs/fs_FileSystem.hpp>
 
 namespace hos {
@@ -303,7 +302,7 @@ namespace hos {
 
         GLEAF_RC_TRY(ns::DeleteApplicationRecord(title.app_id));
         
-        return err::result::ResultSuccess;
+        GLEAF_RC_SUCCEED;
     }
 
     Result RemoveTicket(const Ticket &tik) {
@@ -323,7 +322,7 @@ namespace hos {
 
         GLEAF_RC_TRY(avmPushLaunchVersion(title.app_id, cur_max_version));
         GLEAF_RC_TRY(avmUpgradeLaunchRequiredVersion(title.app_id, cur_max_version));
-        return err::result::ResultSuccess;
+        GLEAF_RC_SUCCEED;
     }
 
     std::vector<Ticket> GetAllTickets() {
