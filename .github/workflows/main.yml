@@ -14,7 +14,7 @@ jobs:
 
     - name: Update packages
       run: |
-        sudo add-apt-repository ppa:deadsnakes/ppa
+        sudo -n add-apt-repository ppa:deadsnakes/ppa
         sudo -n apt-get update
         sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd software-properties-common python3.9
         python3 -m pip install requests
