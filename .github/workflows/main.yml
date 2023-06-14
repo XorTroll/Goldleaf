@@ -14,11 +14,9 @@ jobs:
 
     - name: Update packages
       run: |
-        sudo -n apt-get install -y software-properties-common
-        sudo -n apt-add-repository universe
         sudo -n apt-get update
-        sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd python3.9
-        python3 -m pip install requests
+        sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd python3.8
+        python3.8 -m pip install requests
         sudo -n dkp-pacman --noconfirm -U \
           "https://wii.leseratte10.de/devkitPro/other-stuff/dkp-toolchain-vars-1.0.2-1-any.pkg.tar.xz"
 
@@ -46,8 +44,8 @@ jobs:
 
     - name: Build Goldleaf
       run: |
-        python3 arc/arc.py gen_db default
-        python3 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
+        python3.8 arc/arc.py gen_db default
+        python3.8 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
         make -j$(nproc)
 
     - uses: actions/upload-artifact@v3
