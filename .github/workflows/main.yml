@@ -15,7 +15,7 @@ jobs:
     - name: Update packages
       run: |
         sudo -n apt-get install -y software-properties-common
-        sudo -n apt-add-repository ppa:deadsnakes/ppa
+        sudo -n apt-add-repository universe
         sudo -n apt-get update
         sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd python3.9
         python3 -m pip install requests
