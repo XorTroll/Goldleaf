@@ -257,52 +257,45 @@ namespace hos {
         return title_it != titles.end();
     }
 
-    Result RemoveTitle(const Title &title) {
+    void RemoveTitle(const Title &title) {
         const auto &cnts = title.GetContents();
 
-        {
-            NcmContentStorage cnt_storage = {};
-            GLEAF_RC_TRY(ncmOpenContentStorage(&cnt_storage, title.storage_id));
-            ScopeGuard on_exit([&]() {
-                ncmContentStorageClose(&cnt_storage);
-            });
-
+        NcmContentStorage cnt_storage = {};
+        if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, title.storage_id))) {
             if(!cnts.meta.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.meta.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.meta.id);
             }
             if(!cnts.program.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.program.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.program.id);
             }
             if(!cnts.data.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.data.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.data.id);
             }
             if(!cnts.control.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.control.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.control.id);
             }
             if(!cnts.html_document.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id);
             }
             if(!cnts.legal_info.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id);
             }
             if(!cnts.delta_fragment.is_empty) {
-                GLEAF_RC_TRY(ncmContentStorageDelete(&cnt_storage, &cnts.delta_fragment.id));
+                ncmContentStorageDelete(&cnt_storage, &cnts.delta_fragment.id);
             }
+
+            ncmContentStorageClose(&cnt_storage);
         }
 
-        {
-            NcmContentMetaDatabase cnt_meta_db;
-            GLEAF_RC_TRY(ncmOpenContentMetaDatabase(&cnt_meta_db, title.storage_id));
-            ScopeGuard on_exit([&]() {
-                ncmContentMetaDatabaseClose(&cnt_meta_db);
-            });
-            GLEAF_RC_TRY(ncmContentMetaDatabaseRemove(&cnt_meta_db, &title.meta_key));
-            GLEAF_RC_TRY(ncmContentMetaDatabaseCommit(&cnt_meta_db));
+        NcmContentMetaDatabase cnt_meta_db;
+        if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, title.storage_id))) {
+            ncmContentMetaDatabaseRemove(&cnt_meta_db, &title.meta_key);
+            ncmContentMetaDatabaseCommit(&cnt_meta_db);
+            
+            ncmContentMetaDatabaseClose(&cnt_meta_db);
         }
 
-        GLEAF_RC_TRY(ns::DeleteApplicationRecord(title.app_id));
-        
-        GLEAF_RC_SUCCEED;
+        ns::DeleteApplicationRecord(title.app_id);
     }
 
     Result RemoveTicket(const Ticket &tik) {

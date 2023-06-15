@@ -182,27 +182,27 @@ namespace ui {
                     const auto option_3 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(243), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112), cfg::strings::Main.GetString(18) }, true);
                     remove_tik = option_3 == 0;
                 }
-                auto rc = hos::RemoveTitle(sub_cnt);
-                if(R_SUCCEEDED(rc)) {
-                    if(remove_tik) {
-                        rc = hos::RemoveTicket(tik);
-                    }
-                    if(R_SUCCEEDED(rc)) {
-                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(246));
-                        this->cnt_subcontents.erase(this->cnt_subcontents.begin() + idx);
-                        if(this->cnt_subcontents.empty()) {
-                            g_MainApplication->GetStorageContentsLayout()->Reload();
-                            g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
-                            g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
-                        }
-                        else {
-                            this->UpdateElements();
-                        }
-                    }
+
+                hos::RemoveTitle(sub_cnt);
+                if(remove_tik) {
+                    hos::RemoveTicket(tik);
                 }
+                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(246));
+                this->cnt_subcontents.erase(this->cnt_subcontents.begin() + idx);
+                if(this->cnt_subcontents.empty()) {
+                    g_MainApplication->GetStorageContentsLayout()->Reload();
+                    g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(32), "Storage", cfg::strings::Main.GetString(33));
+                    g_MainApplication->LoadLayout(g_MainApplication->GetStorageContentsLayout());
+                }
+                else {
+                    this->UpdateElements();
+                }
+                
+                /*
                 if(R_FAILED(rc)) {
                     HandleResult(rc, cfg::strings::Main.GetString(247));
                 }
+                */
             }
         }
         else if(option_1 == export_opt) {

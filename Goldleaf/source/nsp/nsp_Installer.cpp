@@ -100,12 +100,11 @@ namespace nsp {
                 }
 
                 Result PopHandleNextBuffer() {
-                    ContentWriteBuffer buf;
-                    {
-                        ScopedLock queue_lock(this->buffer_queue_lock);
-                        buf = this->buffer_queue.front();
-                        this->buffer_queue.pop();
-                    }
+                    // Ensure two buffers are not written at the same time
+                    // TODO: multi-thread/multiple NCM instances...?
+                    ScopedLock queue_lock(this->buffer_queue_lock);
+                    const auto buf = this->buffer_queue.front();
+                    this->buffer_queue.pop();
 
                     NcmPlaceHolderId placehld_id;
                     size_t offset;
@@ -124,7 +123,6 @@ namespace nsp {
                         ScopedLock rc_lock(this->last_rc_lock);
                         this->last_rc = rc;
                     }
-
                     return rc;
                 }
 
@@ -159,6 +157,8 @@ namespace nsp {
                         break;
                     }
                 }
+
+                svcSleepThread(100'000ul);
             }
         }
 
@@ -392,7 +392,7 @@ namespace nsp {
         }
 
         Thread cnt_write_thread;
-        GLEAF_RC_TRY(threadCreate(&cnt_write_thread, ContentWriteThread, reinterpret_cast<void*>(&write_ctx), nullptr, 0x10000, 0x30, -2));
+        GLEAF_RC_TRY(threadCreate(&cnt_write_thread, ContentWriteThread, reinterpret_cast<void*>(&write_ctx), nullptr, 0x100000, 0x3B, -2));
         GLEAF_RC_TRY(threadStart(&cnt_write_thread));
 
         for(u32 i = 0; i < this->contents.size(); i++) {

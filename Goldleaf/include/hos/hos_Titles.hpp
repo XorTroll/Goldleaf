@@ -201,7 +201,7 @@ namespace hos {
     Title Locate(const u64 app_id);
     bool ExistsTitle(const NcmContentMetaType type, const NcmStorageId storage_id, const u64 app_id);
     std::vector<Ticket> GetAllTickets();
-    Result RemoveTitle(const Title &title);
+    void RemoveTitle(const Title &title);
     Result RemoveTicket(const Ticket &tik);
     Result UpdateTitleVersion(const Title &title);
     std::string GetExportedIconPath(const u64 app_id);
