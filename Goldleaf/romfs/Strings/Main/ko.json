@@ -451,13 +451,13 @@
     "개인화",
     "사용",
     "미사용",
-    "Use 12h time",
-    "Mount RomFs",
-    "RomFs was mounted. Check it in the contents browsing section.",
-    "The RomFs of the selected NRO file could not be mounted...",
-    "An error ocurred attempting to dump the amiibo:",
-    "Would you really like to reset this content's launch version?\nDon't do this unless you know what you're doing...",
-    "Speed",
+    "12시간 사용",
+    "RomFs 마운트",
+    "RomFs가 마운트되었습니다. 콘텐츠 탐색 섹션에서 확인하세요.",
+    "선택한 NRO 파일의 RomFs를 마운트 할 수 없습니다...",
+    "amiibo를 덤프하는 동안 오류가 발생했습니다:",
+    "이 콘텐츠의 시작 버전을 정말 재설정하겠습니까? \n실무자가 아니면 이 작업을 수행하지 마세요...",
+    "속도",
     "ETA",
-    "Unable to reboot with the selected payload..."
+    "선택한 페이로드로 재부팅할 수 없습니다..."
 ]
