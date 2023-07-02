@@ -29,17 +29,15 @@ namespace ui {
 
     namespace {
 
-        bool SortContentsImpl(const hos::Title &cnt_a, const hos::Title &cnt_b) {
-            const auto cnt_a_nacp = cnt_a.TryGetNacp();
+        bool SortContentsImpl(hos::Title &cnt_a, hos::Title &cnt_b) {
             std::string cnt_a_name = "";
-            if(!hos::IsNacpEmpty(cnt_a_nacp)) {
-                cnt_a_name = hos::FindNacpName(cnt_a_nacp);
+            if(cnt_a.TryGetNacp()) {
+                cnt_a_name = hos::FindNacpName(cnt_a.nacp);
             }
 
-            const auto cnt_b_nacp = cnt_b.TryGetNacp();
             std::string cnt_b_name = "";
-            if(!hos::IsNacpEmpty(cnt_b_nacp)) {
-                cnt_b_name = hos::FindNacpName(cnt_b_nacp);
+            if(cnt_b.TryGetNacp()) {
+                cnt_b_name = hos::FindNacpName(cnt_b.nacp);
             }
 
             if(cnt_a_name.empty() && !cnt_b_name.empty()) {
@@ -52,7 +50,6 @@ namespace ui {
                 return cnt_a.app_id < cnt_b.app_id;
             }
 
-            // TODO
             return cnt_a_name[0] < cnt_b_name[0];
         }
 
@@ -61,7 +58,7 @@ namespace ui {
     StorageContentsLayout::StorageContentsLayout() {
         this->contents_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->contents_menu);
-        this->no_contents_text = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(188));
+        this->no_contents_text = pu::ui::elm::TextBlock::New(0, 0, cfg::Strings.GetString(188));
         this->no_contents_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->no_contents_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->no_contents_text->SetColor(g_Settings.custom_scheme.text);
@@ -71,7 +68,7 @@ namespace ui {
     }
 
     void StorageContentsLayout::contents_DefaultKey() {
-        const auto &selected_cnt = this->contents.at(this->contents_menu->GetSelectedIndex());
+        auto &selected_cnt = this->contents.at(this->contents_menu->GetSelectedIndex());
         g_MainApplication->GetContentInformationLayout()->LoadContent(selected_cnt);
         g_MainApplication->LoadLayout(g_MainApplication->GetContentInformationLayout());
     }
@@ -82,8 +79,7 @@ namespace ui {
             this->contents.clear();
         }
 
-        // TODO (low priority): cache system?
-        const auto cnts = hos::SearchTitles(NcmContentMetaType_Unknown, storage_id);
+        const auto &cnts = hos::SearchTitles(storage_id, NcmContentMetaType_Unknown);
         for(const auto &cnt: cnts) {
             bool ok = true;
             for(const auto &cur_cnt: this->contents) {
@@ -106,11 +102,11 @@ namespace ui {
         if(!is_empty) {
             this->contents_menu->SetCooldownEnabled(true);
             std::sort(this->contents.begin(), this->contents.end(), SortContentsImpl);
-            for(const auto &cur_cnt: this->contents) {
-                const auto nacp = cur_cnt.TryGetNacp();
+            for(auto &cur_cnt: this->contents) {
                 auto name = hos::FormatApplicationId(cur_cnt.app_id);
-                if(!hos::IsNacpEmpty(nacp)) {
-                    name = hos::FindNacpName(nacp);
+
+                if(cur_cnt.TryGetNacp()) {
+                    name = hos::FindNacpName(cur_cnt.nacp);
                 }
                 auto itm = pu::ui::elm::MenuItem::New(name);
                 itm->SetColor(g_Settings.custom_scheme.text);
@@ -122,7 +118,7 @@ namespace ui {
             }
             this->contents_menu->SetSelectedIndex(0);
         }
-        g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(189));
+        g_MainApplication->LoadMenuHead(cfg::Strings.GetString(189));
         this->cur_storage_id = storage_id;
     }
 

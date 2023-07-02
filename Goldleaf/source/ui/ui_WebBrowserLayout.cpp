@@ -51,7 +51,7 @@ namespace ui {
     void WebBrowserLayout::Refresh() {
         this->opts_menu->ClearItems();
     
-        auto input_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(378));
+        auto input_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(378));
         input_itm->SetColor(g_Settings.custom_scheme.text);
         input_itm->AddOnKey(std::bind(&WebBrowserLayout::input_DefaultKey, this));
         this->opts_menu->AddItem(input_itm);
@@ -66,60 +66,60 @@ namespace ui {
     }
 
     void WebBrowserLayout::input_DefaultKey() {
-        const auto url = ShowKeyboard(cfg::strings::Main.GetString(38), "https://");
+        const auto url = ShowKeyboard(cfg::Strings.GetString(38), "https://");
         if(!url.empty()) {
             LaunchWebAppletImpl(url);
 
-            const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(379), cfg::strings::Main.GetString(380), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
+            const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(379), cfg::Strings.GetString(380), { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
             if(option == 0) {
-                const auto name = ShowKeyboard(cfg::strings::Main.GetString(381));
+                const auto name = ShowKeyboard(cfg::Strings.GetString(381));
                 if(!name.empty()) {
                     const cfg::WebBookmark bmk = { name, url };
                     g_Settings.bookmarks.push_back(bmk);
                     g_Settings.Save();
                     this->Refresh();
-                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(382));
+                    g_MainApplication->ShowNotification(cfg::Strings.GetString(382));
                 }
             }
         }
     }
     
     void WebBrowserLayout::bookmark_DefaultKey(cfg::WebBookmark &bmk) {
-        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(383), cfg::strings::Main.GetString(384), { cfg::strings::Main.GetString(385), cfg::strings::Main.GetString(386), cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(18) }, true);
+        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(383), cfg::Strings.GetString(384), { cfg::Strings.GetString(385), cfg::Strings.GetString(386), cfg::Strings.GetString(245), cfg::Strings.GetString(18) }, true);
         switch(option_1) {
             case 0: {
                 const auto rc = LaunchWebAppletImpl(bmk.url);
                 if(R_FAILED(rc)) {
-                    HandleResult(rc, cfg::strings::Main.GetString(40));
+                    HandleResult(rc, cfg::Strings.GetString(40));
                 }
                 break;
             }
             case 1: {
-                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(387), cfg::strings::Main.GetString(388), { cfg::strings::Main.GetString(389), cfg::strings::Main.GetString(390), cfg::strings::Main.GetString(18) }, true);
+                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(387), cfg::Strings.GetString(388), { cfg::Strings.GetString(389), cfg::Strings.GetString(390), cfg::Strings.GetString(18) }, true);
                 switch(option_2) {
                     case 0: {
-                        const auto name = ShowKeyboard(cfg::strings::Main.GetString(391));
+                        const auto name = ShowKeyboard(cfg::Strings.GetString(391));
                         if(!name.empty()) {
                             for(auto &saved_bmk: g_Settings.bookmarks) {
                                 if(saved_bmk.name == bmk.name) {
                                     saved_bmk.name = name;
                                     g_Settings.Save();
                                     this->Refresh();
-                                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(393));
+                                    g_MainApplication->ShowNotification(cfg::Strings.GetString(393));
                                 }
                             }
                         }
                         break;
                     }
                     case 1: {
-                        const auto url = ShowKeyboard(cfg::strings::Main.GetString(392), "https://");
+                        const auto url = ShowKeyboard(cfg::Strings.GetString(392), "https://");
                         if(!url.empty()) {
                             for(auto &saved_bmk: g_Settings.bookmarks) {
                                 if(saved_bmk.name == bmk.name) {
                                     saved_bmk.url = url;
                                     g_Settings.Save();
                                     this->Refresh();
-                                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(394));
+                                    g_MainApplication->ShowNotification(cfg::Strings.GetString(394));
                                 }
                             }
                             
@@ -130,7 +130,7 @@ namespace ui {
                 break;
             }
             case 2: {
-                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(395), cfg::strings::Main.GetString(396), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(395), cfg::Strings.GetString(396), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 switch(option_2) {
                     case 0: {
                         for(u32 i = 0; i < g_Settings.bookmarks.size(); i++) {
@@ -140,7 +140,7 @@ namespace ui {
                                 g_Settings.Save();
                                 this->opts_menu->SetSelectedIndex(this->opts_menu->GetSelectedIndex() - 1);
                                 this->Refresh();
-                                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(397));
+                                g_MainApplication->ShowNotification(cfg::Strings.GetString(397));
                                 break;
                             }
                         }

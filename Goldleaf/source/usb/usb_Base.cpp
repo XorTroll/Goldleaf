@@ -21,8 +21,6 @@
 
 #include <usb/usb_Base.hpp>
 
-// TODO (low priority): deeper rewrite?
-
 namespace usb {
 
     namespace {

@@ -41,6 +41,7 @@ namespace ui {
             void ChangePartitionDrive(UsbHsFsDevice &drv, const bool update_contents = true);
             void UpdateElements(const int idx = 0);
             void HandleFileDirectly(const std::string &path);
+            void PromptDeleteFile(const std::string &path);
             bool GoBack();
             bool WarnWriteAccess();
             void fsItems_DefaultKey(const std::string &item);

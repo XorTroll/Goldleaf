@@ -32,7 +32,7 @@ namespace ui {
             ContentExportLayout();
             PU_SMART_CTOR(ContentExportLayout)
 
-            void StartExport(const hos::Title &cnt, bool has_tik);
+            void StartExport(hos::Title &cnt, bool has_tik);
     };
 
 }

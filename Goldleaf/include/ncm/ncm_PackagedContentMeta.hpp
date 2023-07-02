@@ -32,7 +32,8 @@ namespace ncm {
             NcmSystemUpdateMetaExtendedHeader system_update;
             NcmApplicationMetaExtendedHeader application;
             NcmPatchMetaExtendedHeader patch;
-            NcmAddOnContentMetaExtendedHeader aoc;
+            NcmLegacyAddOnContentMetaExtendedHeader aoc_old;
+            NcmAddOnContentMetaExtendedHeader aoc_new;
             DeltaMetaExtendedHeader delta;
         } extended_header;
 

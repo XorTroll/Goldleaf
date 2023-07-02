@@ -74,7 +74,8 @@ namespace ncm {
                 break;
             }
             case NcmContentMetaType_AddOnContent: {
-                *reinterpret_cast<NcmAddOnContentMetaExtendedHeader*>(meta_data_extended_header) = this->extended_header.aoc;
+                // Legacy type is like the new one but with less fields, so this way both will work fine
+                *reinterpret_cast<NcmAddOnContentMetaExtendedHeader*>(meta_data_extended_header) = this->extended_header.aoc_new;
                 break;
             }
             case NcmContentMetaType_Delta: {
@@ -129,10 +130,15 @@ namespace ncm {
                 break;
             }
             case NcmContentMetaType_AddOnContent: {
-                if(header.header.extended_header_size != sizeof(NcmAddOnContentMetaExtendedHeader)) {
+                if(header.header.extended_header_size == sizeof(NcmLegacyAddOnContentMetaExtendedHeader)) {
+                    out_cnmt.extended_header.aoc_old = *reinterpret_cast<const NcmLegacyAddOnContentMetaExtendedHeader*>(extended_header);
+                }
+                else if(header.header.extended_header_size == sizeof(NcmAddOnContentMetaExtendedHeader)) {
+                    out_cnmt.extended_header.aoc_new = *reinterpret_cast<const NcmAddOnContentMetaExtendedHeader*>(extended_header);
+                }
+                else {
                     return false;
                 }
-                out_cnmt.extended_header.aoc = *reinterpret_cast<const NcmAddOnContentMetaExtendedHeader*>(extended_header);
                 break;
             }
             case NcmContentMetaType_Delta: {

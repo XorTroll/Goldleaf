@@ -30,15 +30,15 @@ namespace ui {
     SettingsLayout::SettingsLayout() : pu::ui::Layout() {
         this->options_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->options_menu);
-        auto fw_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(352));
+        auto fw_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(352));
         fw_itm->SetColor(g_Settings.custom_scheme.text);
         fw_itm->AddOnKey(std::bind(&SettingsLayout::optsFirmware_DefaultKey, this));
         this->options_menu->AddItem(fw_itm);
-        auto mem_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(353));
+        auto mem_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(353));
         mem_itm->SetColor(g_Settings.custom_scheme.text);
         mem_itm->AddOnKey(std::bind(&SettingsLayout::optsMemory_DefaultKey, this));
         this->options_menu->AddItem(mem_itm);
-        auto cfg_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(354));
+        auto cfg_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(354));
         cfg_itm->SetColor(g_Settings.custom_scheme.text);
         cfg_itm->AddOnKey(std::bind(&SettingsLayout::optsConfig_DefaultKey, this));
         this->options_menu->AddItem(cfg_itm);
@@ -60,7 +60,7 @@ namespace ui {
         this->options_menu->SetVisible(false);
         this->info_p_bar->SetVisible(true);
         std::string fw_display_version = fw_ver.display_version;
-        g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(359) + " " + fw_display_version + "...");
+        g_MainApplication->LoadMenuHead(cfg::Strings.GetString(359) + " " + fw_display_version + "...");
         const auto out_dir = sd_exp->FullPathFor(GLEAF_PATH_EXPORT_UPDATE_DIR "/" + fw_display_version);
         sd_exp->DeleteDirectory(out_dir);
         exp->CopyDirectoryProgress(fw_path, out_dir, [&](const size_t cur_size, const size_t total_size, const std::string &cur_file_name, const size_t cur_file_size, const size_t total_file_size) {
@@ -82,14 +82,14 @@ namespace ui {
                 sd_exp->RenameFile(out_nca_path, out_cnmt_nca_path);
             }
         }
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(43), "Settings", cfg::strings::Main.GetString(44));
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(43), "Settings", cfg::Strings.GetString(44));
         this->options_menu->SetVisible(true);
         this->info_p_bar->SetVisible(false);
-        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(358) + " '" + out_dir + "'.");
+        g_MainApplication->ShowNotification(cfg::Strings.GetString(358) + " '" + out_dir + "'.");
     }
 
     void SettingsLayout::HandleUpdate(const std::string &fw_path_base, const SetSysFirmwareVersion &fw_ver) {
-        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(360), cfg::strings::Main.GetString(361), { cfg::strings::Main.GetString(377), cfg::strings::Main.GetString(18)}, true);
+        const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(360), cfg::Strings.GetString(361), { cfg::Strings.GetString(377), cfg::Strings.GetString(18)}, true);
         if(option == 0) {
             ExportUpdateToDirectory(fw_path_base, fw_ver);
         }
@@ -98,29 +98,29 @@ namespace ui {
     void SettingsLayout::optsFirmware_DefaultKey() {
         SetSysFirmwareVersion fw_ver = {};
         setsysGetFirmwareVersion(&fw_ver);
-        auto msg = cfg::strings::Main.GetString(362) + ":\n";
-        msg += std::string("\n") + cfg::strings::Main.GetString(363) + ": " + fw_ver.display_version + " (" + fw_ver.display_title + ")";
-        msg += std::string("\n") + cfg::strings::Main.GetString(364) + ": '" + fw_ver.version_hash + "'";
-        msg += std::string("\n") + cfg::strings::Main.GetString(95) + " " + std::to_string(hos::ReadSystemKeyGeneration());
-        msg += "\n\n" + cfg::strings::Main.GetString(365) + ":\n";
+        auto msg = cfg::Strings.GetString(362) + ":\n";
+        msg += std::string("\n") + cfg::Strings.GetString(363) + ": " + fw_ver.display_version + " (" + fw_ver.display_title + ")";
+        msg += std::string("\n") + cfg::Strings.GetString(364) + ": '" + fw_ver.version_hash + "'";
+        msg += std::string("\n") + cfg::Strings.GetString(95) + " " + std::to_string(hos::ReadSystemKeyGeneration());
+        msg += "\n\n" + cfg::Strings.GetString(365) + ":\n";
         hos::PendingUpdateVersion pupd = {};
         const auto is_pending_present = hos::GetPendingUpdateInfo(&pupd);
         const auto is_update_present = hos::ConvertPendingUpdateVersion(pupd);
         if(is_pending_present) {
-            msg += std::string("\n") + cfg::strings::Main.GetString(363) + ": " + std::to_string(pupd.major) + "." + std::to_string(pupd.minor) + "." + std::to_string(pupd.micro);
-            msg += "\n" + cfg::strings::Main.GetString(366);
+            msg += std::string("\n") + cfg::Strings.GetString(363) + ": " + std::to_string(pupd.major) + "." + std::to_string(pupd.minor) + "." + std::to_string(pupd.micro);
+            msg += "\n" + cfg::Strings.GetString(366);
         }
         else {
-            msg += "\n" + cfg::strings::Main.GetString(367);
+            msg += "\n" + cfg::Strings.GetString(367);
         }
 
-        std::vector<std::string> options = { cfg::strings::Main.GetString(234), cfg::strings::Main.GetString(368) };
+        std::vector<std::string> options = { cfg::Strings.GetString(234), cfg::Strings.GetString(368) };
         if(is_pending_present) {
-            options.push_back(cfg::strings::Main.GetString(369));
-            options.push_back(cfg::strings::Main.GetString(370));
+            options.push_back(cfg::Strings.GetString(369));
+            options.push_back(cfg::Strings.GetString(370));
         }
 
-        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(360), msg, options, false);
+        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(360), msg, options, false);
         if(option_1 == 0) {
             return;
         }
@@ -129,10 +129,10 @@ namespace ui {
         }
         else if(option_1 == 2)
         {
-            const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(371), cfg::strings::Main.GetString(372) + "\n" + cfg::strings::Main.GetString(373), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+            const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(371), cfg::Strings.GetString(372) + "\n" + cfg::Strings.GetString(373), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option_2 == 0) {
                 hos::CleanPendingUpdate();
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(374));
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(374));
             }
         }
         else if(option_1 == 3) {

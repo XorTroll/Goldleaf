@@ -35,7 +35,7 @@ namespace ui {
 
             void UpdateElements();
             void options_DefaultKey();
-            void LoadContent(const hos::Title &content);
+            void LoadContent(hos::Title &content);
     };
 
 }

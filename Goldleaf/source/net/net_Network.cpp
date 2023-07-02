@@ -64,9 +64,9 @@ namespace net {
         }
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "Goldleaf");
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0l);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0l);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1l);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, StringWriteImpl);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
         curl_easy_perform(curl);
@@ -87,12 +87,12 @@ namespace net {
             auto curl = curl_easy_init();
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             curl_easy_setopt(curl, CURLOPT_USERAGENT, "Goldleaf");
-            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0l);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0l);
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1l);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, FileWriteImpl);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
-            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0l);
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ProgressImpl);
 
             curl_easy_perform(curl);

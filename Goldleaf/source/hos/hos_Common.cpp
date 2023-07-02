@@ -25,6 +25,13 @@
 
 namespace hos {
 
+    namespace {
+
+        u8 g_SystemKeyGeneration = 0;
+        bool g_SystemKeyGenerationRead = false;
+
+    }
+
     u32 GetBatteryLevel() {
         u32 bat = 0;
         psmGetBatteryChargePercentage(&bat);
@@ -52,10 +59,10 @@ namespace hos {
             }
 
             const auto ampm_str = (local_time->tm_hour >= 12) ? "PM" : "AM";
-            snprintf(time_str, sizeof(time_str) - 1, "%02d:%02d:%02d %s", hour, local_time->tm_min, local_time->tm_sec, ampm_str);
+            snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d %s", hour, local_time->tm_min, local_time->tm_sec, ampm_str);
         }
         else {
-            snprintf(time_str, sizeof(time_str) - 1, "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+            snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
         }
 
         return time_str;
@@ -73,22 +80,46 @@ namespace hos {
 
     std::string FormatResult(const Result rc) {
         char res_err[0x20] = {};
-        snprintf(res_err, sizeof(res_err) - 1, "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
+        snprintf(res_err, sizeof(res_err), "%04d-%04d", 2000 + R_MODULE(rc), R_DESCRIPTION(rc));
         return res_err;
     }
 
     std::string FormatTime(const u64 sec) {
-        if(sec > 60) {
-            const auto mins = sec / 60;
-            const auto secs_rem = sec % 60;
-            if(mins > 60) {
-                const auto hours = mins / 60;
-                const auto mins_rem = mins % 60;
-                return std::to_string(hours) + " h" + ((mins_rem > 0) ? (" " + std::to_string(mins_rem) + " min") : "") + ((secs_rem > 0) ? (" " + std::to_string(secs_rem) + " s") : "");
+        u64 f_day = 0;
+        u64 f_hour = 0;
+        u64 f_min = 0;
+        u64 f_sec = sec;
+
+        if(f_sec > 60) {
+            f_min = f_sec / 60;
+            f_sec = f_sec % 60;
+            if(f_min > 60) {
+                f_hour = f_min / 60;
+                f_min = f_min % 60;
+                if(f_hour > 24) {
+                    f_day = f_hour / 24;
+                    f_hour = f_hour % 24;
+                }
             }
-            return std::to_string(mins) + " min" + ((secs_rem > 0) ? (" " + std::to_string(secs_rem) + " s") : "");
         }
-        return std::to_string(sec) + " s";
+
+        std::string time_fmt;
+        if(f_day > 0) {
+            time_fmt += " " + std::to_string(f_day) + " d";
+        }
+        if(f_hour > 0) {
+            time_fmt += " " + std::to_string(f_hour) + " h";
+        }
+        if(f_min > 0) {
+            time_fmt += " " + std::to_string(f_min) + " min";
+        }
+        if(f_sec > 0) {
+            time_fmt += " " + std::to_string(f_sec) + " s";
+        }
+        if(!time_fmt.empty()) {
+            time_fmt.erase(time_fmt.begin());
+        }
+        return time_fmt;
     }
 
     void LockAutoSleep() {
@@ -106,14 +137,18 @@ namespace hos {
     }
 
     u8 ReadSystemKeyGeneration() {
-        FsStorage boot0;
-        if(R_SUCCEEDED(fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root))) {
-            u32 keygen_ver = 0;
-            fsStorageRead(&boot0, 0x2330, &keygen_ver, sizeof(u32));
-            fsStorageClose(&boot0);
-            return static_cast<u8>(keygen_ver);
+        if(!g_SystemKeyGenerationRead) {
+            FsStorage boot0;
+            if(R_SUCCEEDED(fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root))) {
+                u32 keygen_ver = 0;
+                fsStorageRead(&boot0, 0x2330, &keygen_ver, sizeof(u32));
+                fsStorageClose(&boot0);
+                g_SystemKeyGeneration = static_cast<u8>(keygen_ver);
+                g_SystemKeyGenerationRead = true;
+            }
         }
-        return 0;
+
+        return g_SystemKeyGeneration;
     }
 
     Result PerformShutdown(const bool do_reboot) {

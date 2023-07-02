@@ -44,7 +44,7 @@ int main() {
     // Load language strings, now that romfs is initialized
     cfg::LoadStrings();
 
-    // Try to get a selected user if it was selected, and cache its icon if we succeed
+    // Try to get the selected user if it was selected, and cache its icon if we succeed
     if(acc::SelectFromPreselectedUser()) {
         acc::CacheSelectedUserIcon();
     }
@@ -54,5 +54,4 @@ int main() {
     g_MainApplication->ShowWithFadeIn();
 
     Exit(0);
-    return 0;
 }

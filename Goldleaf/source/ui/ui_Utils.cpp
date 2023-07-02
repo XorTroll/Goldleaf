@@ -54,7 +54,7 @@ namespace ui {
     }
 
     void ShowPowerTasksDialog(const std::string &title, const std::string &msg) {
-        const auto option = g_MainApplication->CreateShowDialog(title, msg, { cfg::strings::Main.GetString(233), cfg::strings::Main.GetString(232), cfg::strings::Main.GetString(18) }, true);
+        const auto option = g_MainApplication->CreateShowDialog(title, msg, { cfg::Strings.GetString(233), cfg::Strings.GetString(232), cfg::Strings.GetString(18) }, true);
         switch(option) {
             case 0: {
                 hos::PowerOff();
@@ -97,31 +97,31 @@ namespace ui {
 
     void HandleResult(const Result rc, const std::string &info) {
         if(R_FAILED(rc)) {
-            std::string rc_msg = info + "\n\n" + cfg::strings::Main.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")";
+            std::string rc_msg = info + "\n\n" + cfg::Strings.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")";
 
             const char *module_name;
             const char *rc_name;
             if(rc::GetResultNameAny(rc, module_name, rc_name)) {
-                rc_msg += "\n" + cfg::strings::Main.GetString(264) + ": " + module_name + "\n" + cfg::strings::Main.GetString(265) + ": " + rc_name;
+                rc_msg += "\n" + cfg::Strings.GetString(264) + ": " + module_name + "\n" + cfg::Strings.GetString(265) + ": " + rc_name;
             }
 
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(266), rc_msg, { cfg::strings::Main.GetString(234) }, false);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(266), rc_msg, { cfg::Strings.GetString(234) }, false);
         }
     }
 
     ColorScheme GenerateRandomScheme() {
         ColorScheme scheme = {};
-        const auto r = static_cast<u8>(RandomFromRange(0, 0xFF));
-        const auto g = static_cast<u8>(RandomFromRange(0, 0xFF));
-        const auto b = static_cast<u8>(RandomFromRange(0, 0xFF));
 
-        const pu::ui::Color clr = { r, g, b, 0xFF };
+        pu::ui::Color clr;
+        randomGet(&clr, sizeof(clr));
+        clr.a = 0xFF;
+
         scheme.base = clr;
         scheme.bg = GenerateColorVariation(clr, 30, 50);
-        scheme.base_focus = GenerateColorVariation(clr, 20, 30);
+        scheme.base_focus = GenerateColorVariation(clr, 20, 40);
 
-        const auto av = (r + g + b) / 3;
-        if((2 * av) < 0xFF) {
+        const auto v = std::max({ clr.r, clr.g, clr.b });
+        if(v < 0x80) {
             scheme.text = TextLight;
         }
         else {

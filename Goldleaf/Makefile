@@ -44,8 +44,8 @@ INCLUDES	:=	include
 DATA		:=	data
 ROMFS		:=	romfs
 
-VER_MAJOR	:= 0
-VER_MINOR	:= 11
+VER_MAJOR	:= 1
+VER_MINOR	:= 0
 VER_MICRO	:= 0
 
 APP_TITLE   := Goldleaf

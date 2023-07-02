@@ -31,29 +31,39 @@
 namespace nsp {
 
     struct ContentWriteProgressEntry {
+        NcmContentType type;
         NcmPlaceHolderId placehld_id;
         size_t cur_offset;
         size_t size;
     };
     
     struct ContentWriteProgress {
-        std::unordered_map<NcmContentType, ContentWriteProgressEntry> entries;
+        std::vector<ContentWriteProgressEntry> entries;
         size_t written_size;
 
         ContentWriteProgress() : entries(), written_size(0) {}
     };
 
+    using OnStartWriteFunction = std::function<void(const ContentWriteProgress&)>;
     using OnContentWriteFunction = std::function<void(const ContentWriteProgress&)>;
+
+    struct InstallableProgram {
+        NcmContentMetaKey meta_key;
+        NacpStruct nacp_data;
+        std::string icon_path;
+
+        inline constexpr NcmContentMetaType GetContentMetaType() const {
+            return static_cast<NcmContentMetaType>(this->meta_key.type);
+        }
+    };
 
     class Installer {
         private:
             PFS0 pfs0_file;
-            NacpStruct nacp_data;
             u8 keygen;
             hos::TicketFile tik_file;
             ncm::PackagedContentMeta packaged_cnt_meta;
             NcmStorageId storage_id;
-            NcmContentMetaKey cnt_meta_key;
             NcmContentStorage cnt_storage;
             NcmContentMetaDatabase cnt_meta_db;
             u64 base_app_id;
@@ -61,31 +71,17 @@ namespace nsp {
             std::string tik_file_name;
             NcmContentInfo meta_cnt_info;
             std::vector<NcmContentInfo> contents;
-            std::string icon;
+            std::vector<InstallableProgram> programs;
+
+            Result StartProgramInstallation(const InstallableProgram &program);
 
         public:
-            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id) {}
+            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id), contents(), programs() {}
             ~Installer();
     
             Result PrepareInstallation();
             Result StartInstallation();
-            
-            inline constexpr NcmContentMetaType GetContentMetaType() {
-                return static_cast<NcmContentMetaType>(this->cnt_meta_key.type);
-            }
-            
-            inline constexpr u64 GetApplicationId() {
-                return this->cnt_meta_key.id;
-            }
 
-            inline std::string GetExportedIconPath() {
-                return this->icon;
-            }
-            
-            inline const NacpStruct &GetNacp() {
-                return this->nacp_data;
-            }
-            
             inline constexpr bool HasTicket() {
                 return this->tik_file_size > 0;
             }
@@ -98,11 +94,15 @@ namespace nsp {
                 return this->keygen;
             }
 
+            inline std::vector<InstallableProgram> &GetPrograms() {
+                return this->programs;
+            }
+
             inline std::vector<NcmContentInfo> &GetContents() {
                 return this->contents;
             }
 
-            Result WriteContents(OnContentWriteFunction on_content_write_cb);
+            Result WriteContents(OnStartWriteFunction on_start_write_fn, OnContentWriteFunction on_content_write_fn);
             void FinalizeInstallation();
     };
 

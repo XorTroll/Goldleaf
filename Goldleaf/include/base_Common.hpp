@@ -59,7 +59,7 @@ inline constexpr size_t operator ""_GB(unsigned long long n) {
 
 #define GLEAF_LOG_FMT(fmt, ...) ({ \
     char _log_buf[0x400] = {}; \
-    const auto _log_buf_len = snprintf(_log_buf, sizeof(_log_buf) - 1, fmt "\n", ##__VA_ARGS__); \
+    const auto _log_buf_len = snprintf(_log_buf, sizeof(_log_buf), fmt "\n", ##__VA_ARGS__); \
     ::LogImpl(_log_buf, _log_buf_len); \
 })
 
@@ -93,8 +93,16 @@ inline constexpr size_t operator ""_GB(unsigned long long n) {
 #define GLEAF_RC_ASSERT(res_expr) ({ \
     const Result _tmp_rc = (res_expr); \
     if(R_FAILED(_tmp_rc)) { \
-        GLEAF_ERR_FMT("Assertion failed: " #res_expr " returned 0x%X", _tmp_rc); \
+        GLEAF_ERR_FMT("Assertion failed: '" #res_expr "' returned 0x%X", _tmp_rc); \
         diagAbortWithResult(_tmp_rc); \
+    } \
+})
+
+#define GLEAF_ASSERT_TRUE(expr) ({ \
+    const auto _tmp_expr = (expr); \
+    if(!_tmp_expr) { \
+        GLEAF_ERR_FMT("Assertion failed: '" #expr "'"); \
+        diagAbortWithResult(::rc::goldleaf::ResultAssertionFailed); \
     } \
 })
 

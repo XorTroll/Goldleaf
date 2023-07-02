@@ -36,10 +36,10 @@ namespace ui {
     }
 
     void AmiiboDumpLayout::StartDump() {
-        this->info_txt->SetText(cfg::strings::Main.GetString(294));
+        this->info_txt->SetText(cfg::Strings.GetString(294));
         auto rc = nfp::Initialize();
         if(R_SUCCEEDED(rc)) {
-            this->info_txt->SetText(cfg::strings::Main.GetString(295));
+            this->info_txt->SetText(cfg::Strings.GetString(295));
             while(!nfp::IsReady()) {
                 g_MainApplication->CallForRender();
             }
@@ -51,11 +51,11 @@ namespace ui {
                 const auto reg = nfp::GetRegisterInfo();
                 const auto data = nfp::GetAll();
 
-                const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(283), cfg::strings::Main.GetString(317) + " '" + reg.amiibo_name + "'?", { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(112) }, true);
+                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + reg.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
                 if(option == 0) {
-                    this->info_txt->SetText(cfg::strings::Main.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::strings::Main.GetString(297));
+                    this->info_txt->SetText(cfg::Strings.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::Strings.GetString(297));
                     const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(tag, reg, common, model, data);
-                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::strings::Main.GetString(298) + " (" + virtual_amiibo_folder + ")");
+                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
                 }
                 nfp::Close();
             }
@@ -63,7 +63,7 @@ namespace ui {
         }
 
         if(R_FAILED(rc)) {
-            HandleResult(rc, cfg::strings::Main.GetString(456));
+            HandleResult(rc, cfg::Strings.GetString(456));
         }
     }
 

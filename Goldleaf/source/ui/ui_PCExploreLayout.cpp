@@ -79,7 +79,7 @@ namespace ui {
             this->paths_menu->AddItem(item);
         }
 
-        auto file_select_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(407));
+        auto file_select_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(407));
         file_select_item->SetColor(g_Settings.custom_scheme.text);
         file_select_item->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
         file_select_item->AddOnKey(std::bind(&PCExploreLayout::fileSelect_DefaultKey, this));

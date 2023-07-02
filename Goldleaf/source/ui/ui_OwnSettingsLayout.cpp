@@ -32,9 +32,9 @@ namespace ui {
         inline void SaveChanges(const bool requires_reboot) {
             g_Settings.Save();
 
-            auto notif_text = cfg::strings::Main.GetString(445);
+            auto notif_text = cfg::Strings.GetString(445);
             if(requires_reboot) {
-                notif_text += " (" + cfg::strings::Main.GetString(446) + ").";
+                notif_text += " (" + cfg::Strings.GetString(446) + ").";
             }
             g_MainApplication->ShowNotification(notif_text);
 
@@ -54,19 +54,19 @@ namespace ui {
         const auto old_idx = this->settings_menu->GetSelectedIndex();
         this->settings_menu->ClearItems();
 
-        const auto custom_lang_item_name = cfg::strings::Main.GetString(441) + ": " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : cfg::strings::Main.GetString(442));
+        const auto custom_lang_item_name = cfg::Strings.GetString(441) + ": " + (g_Settings.has_custom_lang ? GetLanguageCode(g_Settings.custom_lang) : cfg::Strings.GetString(442));
         this->custom_lang_item = pu::ui::elm::MenuItem::New(custom_lang_item_name);
         this->custom_lang_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->custom_lang_item->SetColor(g_Settings.custom_scheme.text);
         this->custom_lang_item->AddOnKey(std::bind(&OwnSettingsLayout::custom_lang_DefaultKey, this));
 
-        const auto ignore_required_fw_version_item_name = cfg::strings::Main.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
+        const auto ignore_required_fw_version_item_name = cfg::Strings.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->ignore_required_fw_version_item = pu::ui::elm::MenuItem::New(ignore_required_fw_version_item_name);
         this->ignore_required_fw_version_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->ignore_required_fw_version_item->SetColor(g_Settings.custom_scheme.text);
         this->ignore_required_fw_version_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_required_fw_version_DefaultKey, this));
 
-        const auto use_12h_time_name = cfg::strings::Main.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::strings::Main.GetString(111) : cfg::strings::Main.GetString(112));
+        const auto use_12h_time_name = cfg::Strings.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->use_12h_time_item = pu::ui::elm::MenuItem::New(use_12h_time_name);
         this->use_12h_time_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->use_12h_time_item->SetColor(g_Settings.custom_scheme.text);
@@ -82,13 +82,13 @@ namespace ui {
     }
 
     void OwnSettingsLayout::custom_lang_DefaultKey() {
-        std::vector<std::string> lang_opts = { cfg::strings::Main.GetString(442) };
+        std::vector<std::string> lang_opts = { cfg::Strings.GetString(442) };
         for(u32 i = 0; i < static_cast<u32>(Language::Count); i++) {
             lang_opts.push_back(GetLanguageCode(static_cast<Language>(i)));
         }
-        lang_opts.push_back(cfg::strings::Main.GetString(18));
+        lang_opts.push_back(cfg::Strings.GetString(18));
 
-        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(441), cfg::strings::Main.GetString(443), lang_opts, true);
+        const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(441), cfg::Strings.GetString(443), lang_opts, true);
         if(option >= 0) {
             if(option == 0) {
                 g_Settings.has_custom_lang = false;

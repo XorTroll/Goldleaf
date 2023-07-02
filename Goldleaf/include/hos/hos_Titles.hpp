@@ -84,16 +84,18 @@ namespace hos {
     };
 
     struct TitleContents {
-        ContentId meta;
-        ContentId program;
-        ContentId data;
-        ContentId control;
-        ContentId html_document;
-        ContentId legal_info;
-        ContentId delta_fragment;
+        ContentId cnts[ncm::ContentTypeCount];
 
-        inline u64 GetTotalSize() const {
-            return this->meta.size + this->program.size + this->data.size + this->control.size + this->html_document.size + this->legal_info.size + this->delta_fragment.size;
+        inline size_t GetTotalSize() const {
+            size_t total_sz = 0;
+            for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
+                total_sz += this->cnts[i].size;
+            }
+            return total_sz;
+        }
+
+        inline ContentId &GetContent(const NcmContentType type) {
+            return this->cnts[static_cast<u32>(type)];
         }
     };
 
@@ -109,11 +111,13 @@ namespace hos {
         u32 version;
         NcmContentMetaKey meta_key;
         NcmStorageId storage_id;
+        NacpStruct nacp;
+        std::vector<TitleContents> title_cnts;
         
-        NacpStruct TryGetNacp() const;
-        u8 *TryGetIcon() const;
-        bool DumpControlData() const;
-        TitleContents GetContents() const;
+        bool TryGetNacp();
+        bool TryGetIcon(u8 *&out_icon) const;
+        bool DumpControlData();
+        bool TryGetContents();
 
         inline bool IsBaseTitle() const {
             return (!this->IsUpdate()) && (!this->IsAddOnContent()) && (this->type != NcmContentMetaType_SystemUpdate) && (this->type != NcmContentMetaType_Delta);
@@ -196,12 +200,14 @@ namespace hos {
 
     constexpr u32 MaxTitleCount = 64000;
 
+    void Initialize();
+    void NotifyTitlesChanged(const NcmStorageId storage_id);
     std::string FormatApplicationId(const u64 app_id);
-    std::vector<Title> SearchTitles(const NcmContentMetaType type, const NcmStorageId storage_id);
+    std::vector<Title> &SearchTitles(const NcmStorageId storage_id, const NcmContentMetaType type);
     Title Locate(const u64 app_id);
-    bool ExistsTitle(const NcmContentMetaType type, const NcmStorageId storage_id, const u64 app_id);
+    bool ExistsTitle(const NcmStorageId storage_id, const NcmContentMetaType type, const u64 app_id);
     std::vector<Ticket> GetAllTickets();
-    void RemoveTitle(const Title &title);
+    void RemoveTitle(Title &title);
     Result RemoveTicket(const Ticket &tik);
     Result UpdateTitleVersion(const Title &title);
     std::string GetExportedIconPath(const u64 app_id);

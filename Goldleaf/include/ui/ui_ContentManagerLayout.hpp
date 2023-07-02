@@ -24,23 +24,21 @@
 
 namespace ui {
 
-    class ContentManagerLayout : public pu::ui::Layout
-    {
+    class ContentManagerLayout : public pu::ui::Layout {
         private:
             pu::ui::elm::MenuItem::Ref sd_card_menu_item;
             pu::ui::elm::MenuItem::Ref nand_user_menu_item;
             pu::ui::elm::MenuItem::Ref nand_system_menu_item;
-            pu::ui::elm::MenuItem::Ref gamecart_menu_item;
+            pu::ui::elm::MenuItem::Ref gamecard_menu_item;
+            pu::ui::elm::MenuItem::Ref other_menu_item;
             pu::ui::elm::MenuItem::Ref tickets_menu_item;
             pu::ui::elm::Menu::Ref types_menu;
+
         public:
             ContentManagerLayout();
             PU_SMART_CTOR(ContentManagerLayout)
 
-            void sdCardMenuItem_DefaultKey();
-            void nandUserMenuItem_DefaultKey();
-            void nandSystemMenuItem_DefaultKey();
-            void gameCartMenuItem_DefaultKey();
+            void storageMenuItem_DefaultKey(const NcmStorageId storage_id);
             void ticketsMenuItem_DefaultKey();
     };
 

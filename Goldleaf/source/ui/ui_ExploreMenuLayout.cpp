@@ -43,31 +43,31 @@ namespace ui {
 
     void ExploreMenuLayout::UpdateMenu() {
         this->mounts_menu->ClearItems();
-        this->sd_card_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(19));
+        this->sd_card_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(19));
         this->sd_card_menu_item->SetIcon(g_Settings.PathForResource("/Common/SdCard.png"));
         this->sd_card_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->sd_card_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::sdCard_DefaultKey, this));
-        this->remote_pc_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(279));
+        this->remote_pc_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(279));
         this->remote_pc_menu_item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
         this->remote_pc_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->remote_pc_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::pcDrive_DefaultKey, this));
-        this->usb_drive_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(398));
+        this->usb_drive_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(398));
         this->usb_drive_menu_item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
         this->usb_drive_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->usb_drive_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::usbDrive_DefaultKey, this));
-        this->nand_prodinfof_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (PRODINFOF)");
+        this->nand_prodinfof_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (PRODINFOF)");
         this->nand_prodinfof_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
         this->nand_prodinfof_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->nand_prodinfof_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandProdInfoF_DefaultKey, this));
-        this->nand_safe_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (SAFE)");
+        this->nand_safe_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (SAFE)");
         this->nand_safe_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
         this->nand_safe_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->nand_safe_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandSafe_DefaultKey, this));
-        this->nand_user_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (USER)");
+        this->nand_user_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (USER)");
         this->nand_user_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
         this->nand_user_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->nand_user_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandUser_DefaultKey, this));
-        this->nand_system_menu_item = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(20) + " (SYSTEM)");
+        this->nand_system_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (SYSTEM)");
         this->nand_system_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
         this->nand_system_menu_item->SetColor(g_Settings.custom_scheme.text);
         this->nand_system_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandSystem_DefaultKey, this));
@@ -86,7 +86,7 @@ namespace ui {
 
     void ExploreMenuLayout::sdCard_DefaultKey() {
         g_MainApplication->GetBrowserLayout()->ChangePartitionSdCard();
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(19), "SdCard", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(19), "SdCard", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
@@ -96,7 +96,7 @@ namespace ui {
             g_MainApplication->LoadLayout(g_MainApplication->GetPCExploreLayout());
         }
         else {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(299), cfg::strings::Main.GetString(300), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(299), cfg::Strings.GetString(300), { cfg::Strings.GetString(234) }, true);
         }
     }
 
@@ -106,24 +106,24 @@ namespace ui {
         for(const auto &drive: drives) {
             options.push_back(drive.name);
         }
-        options.push_back(cfg::strings::Main.GetString(18));
+        options.push_back(cfg::Strings.GetString(18));
 
-        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(402) + " " + std::to_string(drives.size()), options, true);
+        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(401), cfg::Strings.GetString(402) + " " + std::to_string(drives.size()), options, true);
         if(!drives.empty()) {
             if(option_1 < static_cast<s64>(drives.size())) {
                 auto &drive = drives.at(option_1);
-                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(401), cfg::strings::Main.GetString(434), { cfg::strings::Main.GetString(136), cfg::strings::Main.GetString(435), cfg::strings::Main.GetString(18) }, true);
+                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(401), cfg::Strings.GetString(434), { cfg::Strings.GetString(136), cfg::Strings.GetString(435), cfg::Strings.GetString(18) }, true);
                 if(option_2 == 0) {
                     g_MainApplication->GetBrowserLayout()->ChangePartitionDrive(drive);
-                    g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(403), "Drive", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+                    g_MainApplication->LoadMenuData(cfg::Strings.GetString(403), "Drive", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
                     g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
                 }
                 else if(option_2 == 1) {
                     if(drive::UnmountDrive(drive)) {
-                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(436));
+                        g_MainApplication->ShowNotification(cfg::Strings.GetString(436));
                     }
                     else {
-                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(437));
+                        g_MainApplication->ShowNotification(cfg::Strings.GetString(437));
                     }
                 }
             }
@@ -132,25 +132,25 @@ namespace ui {
 
     void ExploreMenuLayout::nandProdInfoF_DefaultKey() {
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::PRODINFOF);
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandSafe_DefaultKey() {
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSafe);
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandUser_DefaultKey() {
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDUser);
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandSystem_DefaultKey() {
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSystem);
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
     }
 
@@ -161,7 +161,7 @@ namespace ui {
     }
 
     void ExploreMenuLayout::explorer_X(fs::Explorer *exp) {
-        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(404), cfg::strings::Main.GetString(405), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(404), cfg::Strings.GetString(405), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
         if(option == 0) {
             u32 mounted_exp_idx = 0;
             auto found = false;
@@ -177,7 +177,7 @@ namespace ui {
                 this->mounted_explorers.erase(this->mounted_explorers.begin() + mounted_exp_idx);
                 this->mounted_explorer_items.erase(this->mounted_explorer_items.begin() + mounted_exp_idx);
                 this->UpdateMenu();
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(406));
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(406));
             }
             else {
                 // TODO (low priority): show anything if not found? (should never happen...)

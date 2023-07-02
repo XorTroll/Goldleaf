@@ -36,7 +36,7 @@ namespace ui {
     }
 
     UpdateInstallLayout::UpdateInstallLayout() : pu::ui::Layout() {
-        this->info_text = pu::ui::elm::TextBlock::New(150, 320, cfg::strings::Main.GetString(151));
+        this->info_text = pu::ui::elm::TextBlock::New(150, 320, cfg::Strings.GetString(151));
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->info_text->SetColor(g_Settings.custom_scheme.text);
         this->p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
@@ -47,7 +47,7 @@ namespace ui {
     }
 
     void UpdateInstallLayout::InstallUpdate(const std::string &path, const bool with_exfat) {
-        this->info_text->SetText(cfg::strings::Main.GetString(426));
+        this->info_text->SetText(cfg::Strings.GetString(426));
         g_MainApplication->CallForRender();
         this->p_bar->SetVisible(true);
         hos::UnlockAutoSleep();
@@ -87,30 +87,30 @@ namespace ui {
                 }
                 if(wait_ok) {
                     this->p_bar->SetVisible(false);
-                    this->info_text->SetText(cfg::strings::Main.GetString(427));
+                    this->info_text->SetText(cfg::Strings.GetString(427));
                     g_MainApplication->CallForRender();
                     rc = amssu::ApplyPreparedUpdate();
                     if(R_SUCCEEDED(rc)) {
-                        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(424), cfg::strings::Main.GetString(431) + "\n" + cfg::strings::Main.GetString(432), { cfg::strings::Main.GetString(234) }, true);
+                        g_MainApplication->CreateShowDialog(cfg::Strings.GetString(424), cfg::Strings.GetString(431) + "\n" + cfg::Strings.GetString(432), { cfg::Strings.GetString(234) }, true);
                         hos::Reboot();
                     }
                     else {
-                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(430));
+                        g_MainApplication->ShowNotification(cfg::Strings.GetString(430));
                     }
                 }
                 else {
-                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(429));
+                    g_MainApplication->ShowNotification(cfg::Strings.GetString(429));
                 }
             }
             else {
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(429));
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(429));
             }
         }
         else {
-            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(428));
+            g_MainApplication->ShowNotification(cfg::Strings.GetString(428));
         }
 
-        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(424), cfg::strings::Main.GetString(432), { cfg::strings::Main.GetString(234) }, true);
+        g_MainApplication->CreateShowDialog(cfg::Strings.GetString(424), cfg::Strings.GetString(432), { cfg::Strings.GetString(234) }, true);
         hos::Reboot();
     }
 

@@ -33,13 +33,13 @@ namespace ui {
         inline std::string FormatTicketType(const hos::TicketType type) {
             switch(type) {
                 case hos::TicketType::Common: {
-                    return cfg::strings::Main.GetString(448);
+                    return cfg::Strings.GetString(448);
                 }
                 case hos::TicketType::Personalized: {
-                    return cfg::strings::Main.GetString(449);
+                    return cfg::Strings.GetString(449);
                 }
             }
-            return cfg::strings::Main.GetString(442);
+            return cfg::Strings.GetString(442);
         }
 
     }
@@ -47,7 +47,7 @@ namespace ui {
     TicketsLayout::TicketsLayout() : pu::ui::Layout() {
         this->tiks_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
         g_Settings.ApplyScrollBarColor(this->tiks_menu);
-        this->no_unused_tiks_text = pu::ui::elm::TextBlock::New(0, 0, cfg::strings::Main.GetString(199));
+        this->no_unused_tiks_text = pu::ui::elm::TextBlock::New(0, 0, cfg::Strings.GetString(199));
         this->no_unused_tiks_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->no_unused_tiks_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->no_unused_tiks_text->SetColor(g_Settings.custom_scheme.text);
@@ -61,12 +61,12 @@ namespace ui {
         this->tiks_menu->SetVisible(false);
         this->tiks_menu->SetCooldownEnabled(cooldown);
 
-        g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(248));
+        g_MainApplication->LoadMenuHead(cfg::Strings.GetString(248));
 
         auto has_any = false;
         for(const auto &tik: hos::GetAllTickets()) {
             const auto tik_name = hos::FormatApplicationId(tik.rights_id.GetApplicationId());
-            const auto tik_opts = "(" + FormatTicketType(tik.type) + ", " + (tik.IsUsed() ? cfg::strings::Main.GetString(450) : cfg::strings::Main.GetString(451)) + ")";
+            const auto tik_opts = "(" + FormatTicketType(tik.type) + ", " + (tik.IsUsed() ? cfg::Strings.GetString(450) : cfg::Strings.GetString(451)) + ")";
 
             auto itm = pu::ui::elm::MenuItem::New(tik_name + " " + tik_opts);
             itm->SetColor(g_Settings.custom_scheme.text);
@@ -87,29 +87,29 @@ namespace ui {
         const auto tik_app_id = tik.rights_id.GetApplicationId();
         const auto tik_used = tik.IsUsed();
         
-        auto info = cfg::strings::Main.GetString(201) + "\n\n\n";
+        auto info = cfg::Strings.GetString(201) + "\n\n\n";
         
-        info += cfg::strings::Main.GetString(90) + " " + hos::FormatApplicationId(tik_app_id);
-        info += "\n" + cfg::strings::Main.GetString(95) + " " + std::to_string(tik.rights_id.GetKeyGeneration() + 1);
-        info += "\n" + cfg::strings::Main.GetString(447) + " " + FormatTicketType(tik.type);
+        info += cfg::Strings.GetString(90) + " " + hos::FormatApplicationId(tik_app_id);
+        info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(tik.rights_id.GetKeyGeneration() + 1);
+        info += "\n" + cfg::Strings.GetString(447) + " " + FormatTicketType(tik.type);
         info += "\n\n";
-        info += tik_used ? cfg::strings::Main.GetString(202) : cfg::strings::Main.GetString(203);
+        info += tik_used ? cfg::Strings.GetString(202) : cfg::Strings.GetString(203);
 
-        const auto opt_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), info, { cfg::strings::Main.GetString(245), cfg::strings::Main.GetString(244), cfg::strings::Main.GetString(438), cfg::strings::Main.GetString(18) }, true);
+        const auto opt_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(200), info, { cfg::Strings.GetString(245), cfg::Strings.GetString(244), cfg::Strings.GetString(438), cfg::Strings.GetString(18) }, true);
         if(opt_1 == 0) {
             if(tik_used) {
-                g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(440), { cfg::strings::Main.GetString(234) }, true);
+                g_MainApplication->CreateShowDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(440), { cfg::Strings.GetString(234) }, true);
             }
             else {
-                const auto opt_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(200), cfg::strings::Main.GetString(204), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+                const auto opt_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(204), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 if(opt_2 == 0) {
                     const auto rc = hos::RemoveTicket(tik);
                     if(R_SUCCEEDED(rc)) {
-                        g_MainApplication->ShowNotification(cfg::strings::Main.GetString(206));
+                        g_MainApplication->ShowNotification(cfg::Strings.GetString(206));
                         this->UpdateElements(false);
                     }
                     else {
-                        HandleResult(rc, cfg::strings::Main.GetString(207));
+                        HandleResult(rc, cfg::Strings.GetString(207));
                     }   
                 }
             }
@@ -118,7 +118,7 @@ namespace ui {
             const auto export_cert = (opt_1 == 2);
 
             const auto expt_tik_path = expt::ExportTicketCert(tik_app_id, export_cert);
-            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(439) + " '" + fs::GetSdCardExplorer()->FullPresentablePathFor(expt_tik_path) + "'");
+            g_MainApplication->ShowNotification(cfg::Strings.GetString(439) + " '" + fs::GetSdCardExplorer()->FullPresentablePathFor(expt_tik_path) + "'");
         }
     }
 

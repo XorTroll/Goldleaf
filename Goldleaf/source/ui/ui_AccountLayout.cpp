@@ -36,23 +36,23 @@ namespace ui {
 
     void AccountLayout::ReloadItems() {
         this->options_menu->ClearItems();
-        auto rename_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(208));
+        auto rename_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(208));
         rename_itm->SetColor(g_Settings.custom_scheme.text);
         rename_itm->AddOnKey(std::bind(&AccountLayout::optsRename_DefaultKey, this));
         this->options_menu->AddItem(rename_itm);
 
-        auto icon_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(209));
+        auto icon_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(209));
         icon_itm->SetColor(g_Settings.custom_scheme.text);
         icon_itm->AddOnKey(std::bind(&AccountLayout::optsIcon_DefaultKey, this));
         this->options_menu->AddItem(icon_itm);
 
-        auto delete_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(210));
+        auto delete_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(210));
         delete_itm->SetColor(g_Settings.custom_scheme.text);
         delete_itm->AddOnKey(std::bind(&AccountLayout::optsDelete_DefaultKey, this));
         this->options_menu->AddItem(delete_itm);
 
         if(acc::IsLinked()) {
-            auto services_itm = pu::ui::elm::MenuItem::New(cfg::strings::Main.GetString(336));
+            auto services_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(336));
             services_itm->SetColor(g_Settings.custom_scheme.text);
             services_itm->AddOnKey(std::bind(&AccountLayout::optsServicesInfo_DefaultKey, this));
             this->options_menu->AddItem(services_itm);
@@ -62,7 +62,7 @@ namespace ui {
     void AccountLayout::Load() {
         const auto rc = acc::ReadSelectedUser(&this->cur_prof_base, nullptr);
         if(R_FAILED(rc)) {
-            HandleResult(rc, cfg::strings::Main.GetString(211));
+            HandleResult(rc, cfg::Strings.GetString(211));
             g_MainApplication->ReturnToMainMenu();
             return;
         }
@@ -75,23 +75,23 @@ namespace ui {
             user_icon = "Accounts";
         }
         
-        g_MainApplication->LoadMenuData(cfg::strings::Main.GetString(41), user_icon, cfg::strings::Main.GetString(212) + " " + this->cur_prof_base.nickname, default_icon);
+        g_MainApplication->LoadMenuData(cfg::Strings.GetString(41), user_icon, cfg::Strings.GetString(212) + " " + this->cur_prof_base.nickname, default_icon);
         this->ReloadItems();
     }
 
     void AccountLayout::optsRename_DefaultKey() {
-        const auto name = ShowKeyboard(cfg::strings::Main.GetString(213), this->cur_prof_base.nickname, 10, sizeof(this->cur_prof_base.nickname) - 1);
+        const auto name = ShowKeyboard(cfg::Strings.GetString(213), this->cur_prof_base.nickname, 10, sizeof(this->cur_prof_base.nickname) - 1);
         if(!name.empty()) {
             strcpy(this->cur_prof_base.nickname, name.c_str());
             const auto rc = acc::EditUser([&](AccountProfileBase *prof_base, AccountUserData *_user_data) {
                 memcpy(prof_base, &this->cur_prof_base, sizeof(this->cur_prof_base));
             });
             if(R_SUCCEEDED(rc)) {
-                g_MainApplication->LoadMenuHead(cfg::strings::Main.GetString(212) + " " + name);
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(214) + " \'" + name + "\'.");
+                g_MainApplication->LoadMenuHead(cfg::Strings.GetString(212) + " " + name);
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(214) + " \'" + name + "\'.");
             }
             else {
-                HandleResult(rc, cfg::strings::Main.GetString(215));
+                HandleResult(rc, cfg::Strings.GetString(215));
             }
         }
     }
@@ -101,40 +101,40 @@ namespace ui {
         auto sd_exp = fs::GetSdCardExplorer();
         const auto icon_path = sd_exp->MakeAbsolute(base_icon_path);
         const auto p_icon_path = sd_exp->MakeAbsolutePresentable(base_icon_path);
-        g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(217) + "\n\'" + p_icon_path + "\'", { cfg::strings::Main.GetString(234) }, false, icon_path);
+        g_MainApplication->CreateShowDialog(cfg::Strings.GetString(216), cfg::Strings.GetString(217) + "\n\'" + p_icon_path + "\'", { cfg::Strings.GetString(234) }, false, icon_path);
     }
 
     void AccountLayout::optsDelete_DefaultKey() {
-        const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(218), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+        const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(216), cfg::Strings.GetString(218), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
         if(option == 0) {
             if(acc::GetUserCount() < 2) {
-                g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(216), cfg::strings::Main.GetString(276), { cfg::strings::Main.GetString(234) }, true);
+                g_MainApplication->CreateShowDialog(cfg::Strings.GetString(216), cfg::Strings.GetString(276), { cfg::Strings.GetString(234) }, true);
                 return;
             }
             const auto rc = acc::DeleteUser(acc::GetSelectedUser());
             if(R_SUCCEEDED(rc)) {
                 acc::ResetSelectedUser();
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(219));
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(219));
                 g_MainApplication->ReturnToMainMenu();
             }
             else {
-                HandleResult(rc, cfg::strings::Main.GetString(220));
+                HandleResult(rc, cfg::Strings.GetString(220));
             }
         }
     }
 
     void AccountLayout::optsServicesInfo_DefaultKey() {
         const auto linked_info = acc::GetUserLinkedInfo();
-        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(330), cfg::strings::Main.GetString(328) + " " + hos::FormatHex(linked_info.account_id) + "\n" + cfg::strings::Main.GetString(329) + " " + hos::FormatHex(linked_info.nintendo_account_id), { cfg::strings::Main.GetString(331), cfg::strings::Main.GetString(18) }, true);
+        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(330), cfg::Strings.GetString(328) + " " + hos::FormatHex(linked_info.account_id) + "\n" + cfg::Strings.GetString(329) + " " + hos::FormatHex(linked_info.nintendo_account_id), { cfg::Strings.GetString(331), cfg::Strings.GetString(18) }, true);
         if(option_1 == 0) {
-            const auto option_2 = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(332), cfg::strings::Main.GetString(333), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+            const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(332), cfg::Strings.GetString(333), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option_2 == 0) {
                 const auto rc = acc::UnlinkLocally();
                 if(R_SUCCEEDED(rc)) {
-                    g_MainApplication->ShowNotification(cfg::strings::Main.GetString(334));
+                    g_MainApplication->ShowNotification(cfg::Strings.GetString(334));
                 }
                 else {
-                    HandleResult(rc, cfg::strings::Main.GetString(335));
+                    HandleResult(rc, cfg::Strings.GetString(335));
                 }
             }
         }

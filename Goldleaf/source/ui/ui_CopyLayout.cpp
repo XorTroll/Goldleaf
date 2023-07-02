@@ -28,7 +28,7 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     CopyLayout::CopyLayout() {
-        this->info_text = pu::ui::elm::TextBlock::New(0, 360, cfg::strings::Main.GetString(151));
+        this->info_text = pu::ui::elm::TextBlock::New(0, 360, cfg::Strings.GetString(151));
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->info_text->SetColor(g_Settings.custom_scheme.text);
         this->copy_total_p_bar = pu::ui::elm::ProgressBar::New(340, 320, 600, 30, 100.0f);
@@ -66,11 +66,11 @@ namespace ui {
                 g_MainApplication->CallForRender();
             });
             hos::UnlockAutoSleep();
-            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(141));
+            g_MainApplication->ShowNotification(cfg::Strings.GetString(141));
         }
         else {
             if(new_exp->IsFile(new_path)) {
-                const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(153), cfg::strings::Main.GetString(143), { cfg::strings::Main.GetString(239), cfg::strings::Main.GetString(18) }, true);
+                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(153), cfg::Strings.GetString(143), { cfg::Strings.GetString(239), cfg::Strings.GetString(18) }, true);
                 if(option != 0) {
                     return;
                 }
@@ -87,7 +87,7 @@ namespace ui {
                 g_MainApplication->CallForRender();
             });
             hos::UnlockAutoSleep();
-            g_MainApplication->ShowNotification(cfg::strings::Main.GetString(240));
+            g_MainApplication->ShowNotification(cfg::Strings.GetString(240));
         }
     }
 

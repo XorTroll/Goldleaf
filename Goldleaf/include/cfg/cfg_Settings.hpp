@@ -36,24 +36,30 @@ namespace cfg {
     struct Settings {
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(Language, custom_lang)
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(std::string, external_romfs)
+        bool use_12h_time;
+        
+        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
+        u32 menu_item_size;
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(u32, menu_item_size)
+        
         bool ignore_required_fw_ver;
+        size_t copy_buffer_max_size;
+
+        size_t decrypt_buffer_max_size;
+
         std::vector<WebBookmark> bookmarks;
-        bool use_12h_time;
 
         void Save();
         std::string PathForResource(const std::string &res_path);
         JSON ReadJSONResource(const std::string &res_path);
         void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu);
         void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &p_bar);
+        Language GetLanguage();
     };
 
     #undef _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE
 
     Settings ProcessSettings();
-    bool Exists();
 
 }

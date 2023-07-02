@@ -105,6 +105,7 @@ namespace ui {
             void LoadMenuData(const std::string &name, const std::string &img_name, const std::string &temp_head, const bool is_common_icon = true);
             void LoadMenuHead(const std::string &head);
             void UnloadMenuData();
+            void ClearLayout(pu::ui::Layout::Ref lyt);
             void browser_Input(const u64 down, const u64 up, const u64 held);
             void exploreMenu_Input(const u64 down, const u64 up, const u64 held);
             void pcExplore_Input(const u64 down, const u64 up, const u64 held);

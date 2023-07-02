@@ -227,8 +227,8 @@ Result Initialize() {
 
     fs::Initialize();
     EnsureDirectories();
-    auto sd_exp = fs::GetSdCardExplorer();
-    sd_exp->DeleteFile(GLEAF_PATH_LOG_FILE);
+    // auto sd_exp = fs::GetSdCardExplorer();
+    // sd_exp->DeleteFile(GLEAF_PATH_LOG_FILE);
 
     GLEAF_RC_TRY(accountInitialize(AccountServiceType_Administrator));
     GLEAF_RC_TRY(ncmInitialize());
@@ -243,6 +243,7 @@ Result Initialize() {
     GLEAF_RC_TRY(pdmqryInitialize());
     GLEAF_RC_TRY(amssu::Initialize());
     GLEAF_RC_TRY(drive::Initialize());
+    hos::Initialize();
     return 0;
 }
 

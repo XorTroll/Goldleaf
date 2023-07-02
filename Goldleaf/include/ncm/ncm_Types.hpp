@@ -26,7 +26,7 @@ namespace ncm {
 
     struct PackagedContentMetaHeader {
         u64 app_id;
-        u32 title_version;
+        u32 version;
         u8 type;
         u8 pad;
         NcmContentMetaHeader header;

@@ -26,31 +26,17 @@ extern cfg::Settings g_Settings;
 
 namespace cfg {
 
-    namespace strings {
+    StringHolder Strings;
 
-        Strings Main;
-        Strings Results;
-        Strings Modules;
-        
-    }
-
-    std::string Strings::GetString(u32 idx) {
+    std::string StringHolder::GetString(u32 idx) {
         if(idx >= this->json.size()) {
             return "???";
         }
         return this->json[idx].get<std::string>();
     }
 
-    #define _CFG_PROCESS_STRINGS(strs, json_name) ({ \
-        strings::strs.language = g_Settings.custom_lang; \
-        strings::strs.json = g_Settings.ReadJSONResource(std::string("/Strings/") + #strs + "/" + json_name); \
-    })
-
     void LoadStrings() {
-        const auto &str_json = GetLanguageCode(g_Settings.custom_lang) + ".json";
-
-        _CFG_PROCESS_STRINGS(Main, str_json);
-        _CFG_PROCESS_STRINGS(Results, str_json);
-        _CFG_PROCESS_STRINGS(Modules, str_json);
+        Strings.language = g_Settings.GetLanguage();
+        Strings.json = g_Settings.ReadJSONResource("/Strings/" + GetLanguageCode(g_Settings.GetLanguage()) + ".json");
     }
 }

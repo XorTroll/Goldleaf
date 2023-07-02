@@ -459,5 +459,11 @@
     "Would you really like to reset this content's launch version?\nDon't do this unless you know what you're doing...",
     "Speed",
     "ETA",
-    "Unable to reboot with the selected payload..."
+    "Unable to reboot with the selected payload...",
+    "The NSP contains various main contents",
+    "The NSP contains the following main content:",
+    "This content has no data\n(it's an archived title, or a gamecard title without the gamecard inserted)",
+    "See previous",
+    "See next",
+    "Other"
 ]

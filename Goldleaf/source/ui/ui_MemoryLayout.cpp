@@ -34,13 +34,13 @@ namespace ui {
         }
 
         inline std::string MakeSizeInformation(const size_t free_space, const size_t total_space) {
-            return fs::FormatSize(free_space) + " " + cfg::strings::Main.GetString(221) + " / " + fs::FormatSize(total_space);
+            return fs::FormatSize(free_space) + " " + cfg::Strings.GetString(221) + " / " + fs::FormatSize(total_space);
         }
 
     }
 
     MemoryLayout::MemoryLayout() : pu::ui::Layout() {
-        this->sd_text = pu::ui::elm::TextBlock::New(125, 300, cfg::strings::Main.GetString(19));
+        this->sd_text = pu::ui::elm::TextBlock::New(125, 300, cfg::Strings.GetString(19));
         this->sd_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Large));
         this->sd_text->SetColor(g_Settings.custom_scheme.text);
         this->sd_space_bar = pu::ui::elm::ProgressBar::New(120, 345, 450, 30, 100.0f);
@@ -48,7 +48,7 @@ namespace ui {
         this->sd_free_text = pu::ui::elm::TextBlock::New(125, 385, "...");
         this->sd_free_text->SetColor(g_Settings.custom_scheme.text);
     
-        this->nand_text = pu::ui::elm::TextBlock::New(620, 300, cfg::strings::Main.GetString(79));
+        this->nand_text = pu::ui::elm::TextBlock::New(620, 300, cfg::Strings.GetString(79));
         this->nand_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Large));
         this->nand_text->SetColor(g_Settings.custom_scheme.text);
         this->nand_space_bar = pu::ui::elm::ProgressBar::New(620, 345, 450, 30, 100.0f);
@@ -56,7 +56,7 @@ namespace ui {
         this->nand_free_text = pu::ui::elm::TextBlock::New(620, 385, "...");
         this->nand_free_text->SetColor(g_Settings.custom_scheme.text);
     
-        this->nand_safe_text = pu::ui::elm::TextBlock::New(105, 480, cfg::strings::Main.GetString(27));
+        this->nand_safe_text = pu::ui::elm::TextBlock::New(105, 480, cfg::Strings.GetString(27));
         this->nand_safe_text->SetColor(g_Settings.custom_scheme.text);
         this->nand_safe_space_bar = pu::ui::elm::ProgressBar::New(100, 515, 300, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->nand_safe_space_bar);
@@ -64,7 +64,7 @@ namespace ui {
         this->nand_safe_free_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->nand_safe_free_text->SetColor(g_Settings.custom_scheme.text);
         
-        this->nand_user_text = pu::ui::elm::TextBlock::New(455, 480, cfg::strings::Main.GetString(28));
+        this->nand_user_text = pu::ui::elm::TextBlock::New(455, 480, cfg::Strings.GetString(28));
         this->nand_user_text->SetColor(g_Settings.custom_scheme.text);
         this->nand_user_space_bar = pu::ui::elm::ProgressBar::New(450, 515, 300, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->nand_user_space_bar);
@@ -72,7 +72,7 @@ namespace ui {
         this->nand_user_free_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
         this->nand_user_free_text->SetColor(g_Settings.custom_scheme.text);
         
-        this->nand_system_text = pu::ui::elm::TextBlock::New(805, 480, cfg::strings::Main.GetString(29));
+        this->nand_system_text = pu::ui::elm::TextBlock::New(805, 480, cfg::Strings.GetString(29));
         this->nand_system_text->SetColor(g_Settings.custom_scheme.text);
         this->nand_system_space_bar = pu::ui::elm::ProgressBar::New(800, 515, 300, 30, 100.0f);
         g_Settings.ApplyProgressBarColor(this->nand_system_space_bar);

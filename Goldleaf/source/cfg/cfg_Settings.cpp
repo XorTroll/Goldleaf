@@ -28,9 +28,25 @@ namespace cfg {
     namespace {
 
         inline std::string ColorToHex(const pu::ui::Color clr) {
-            char str[0x20] = {0};
-            sprintf(str, "#%02X%02X%02X%02X", clr.r, clr.g, clr.b, clr.a);
+            char str[0x20] = {};
+            snprintf(str, sizeof(str), "#%02X%02X%02X%02X", clr.r, clr.g, clr.b, clr.a);
             return str;
+        }
+
+        Language g_DefaultLanguage = Language::English;
+        bool g_DefaultLanguageLoaded = false;
+
+        void EnsureDefaultLanguage() {
+            if(!g_DefaultLanguageLoaded) {
+                u64 tmp_lang_code = 0;
+                auto sys_lang = SetLanguage_ENUS;
+                GLEAF_RC_ASSERT(setGetSystemLanguage(&tmp_lang_code));
+                GLEAF_RC_ASSERT(setMakeLanguage(tmp_lang_code, &sys_lang));
+                g_DefaultLanguage = GetLanguageBySystemLanguage(sys_lang);
+                g_DefaultLanguageLoaded = true;
+            }
+
+            GLEAF_ASSERT_TRUE(g_DefaultLanguageLoaded);
         }
 
     }
@@ -41,30 +57,28 @@ namespace cfg {
         if(this->has_custom_lang) {
             json["general"]["customLanguage"] = GetLanguageCode(this->custom_lang);
         }
-
         if(this->has_external_romfs) {
             json["general"]["externalRomFs"] = this->external_romfs;
         }
+        json["general"]["use12hTime"] = this->use_12h_time;
         
-        if(this->has_menu_item_size) {
-            json["ui"]["menuItemSize"] = this->menu_item_size;
-        }
-
         if(this->has_custom_scheme) {
             json["ui"]["base"] = ColorToHex(this->custom_scheme.base);
             json["ui"]["baseFocus"] = ColorToHex(this->custom_scheme.base_focus);
             json["ui"]["text"] = ColorToHex(this->custom_scheme.text);
         }
-
+        json["ui"]["menuItemSize"] = this->menu_item_size;
         if(this->has_scrollbar_color) {
             json["ui"]["scrollBar"] = ColorToHex(this->scrollbar_color);
         }
-
         if(this->has_progressbar_color) {
             json["ui"]["progressBar"] = ColorToHex(this->progressbar_color);
         }
 
         json["installs"]["ignoreRequiredFwVersion"] = this->ignore_required_fw_ver;
+        json["installs"]["copyBufferMaxSize"] = this->copy_buffer_max_size;
+
+        json["export"]["decryptBufferMaxSize"] = this->decrypt_buffer_max_size;
         
         for(u32 i = 0; i < this->bookmarks.size(); i++) {
             const auto &bmk = this->bookmarks[i];
@@ -118,22 +132,19 @@ namespace cfg {
     Settings ProcessSettings() {
         Settings settings = {};
 
-        u64 tmp_lang_code = 0;
-        auto sys_lang = SetLanguage_ENUS;
-        GLEAF_RC_ASSERT(setGetSystemLanguage(&tmp_lang_code));
-        GLEAF_RC_ASSERT(setMakeLanguage(tmp_lang_code, &sys_lang));
-        settings.custom_lang = GetLanguageBySystemLanguage(sys_lang);
-
         settings.has_custom_lang = false;
         settings.has_external_romfs = false;
+        settings.use_12h_time = false;
+
+        settings.has_custom_scheme = false;
+        settings.menu_item_size = 80;
         settings.has_scrollbar_color = false;
         settings.has_progressbar_color = false;
-        settings.has_custom_scheme = false;
-        settings.has_menu_item_size = false;
 
-        settings.menu_item_size = 80;
         settings.ignore_required_fw_ver = true;
-        settings.use_12h_time = false;
+        settings.copy_buffer_max_size = 4_MB;
+
+        settings.decrypt_buffer_max_size = 16_MB;
 
         settings.custom_scheme = ui::GenerateRandomScheme();
 
@@ -166,11 +177,6 @@ namespace cfg {
         }
 
         if(settings_json.count("ui")) {
-            const auto itemsize = settings_json["ui"].value("menuItemSize", 0);
-            if(itemsize > 0) {
-                settings.has_menu_item_size = true;
-                settings.menu_item_size = itemsize;
-            }
             const auto &background_clr = settings_json["ui"].value("background", "");
             if(!background_clr.empty()) {
                 settings.has_custom_scheme = true;
@@ -191,6 +197,7 @@ namespace cfg {
                 settings.has_custom_scheme = true;
                 settings.custom_scheme.text = pu::ui::Color::FromHex(text_clr);
             }
+            settings.menu_item_size = settings_json["ui"].value("menuItemSize", settings.menu_item_size);
             const auto &scrollbar_clr = settings_json["ui"].value("scrollBar", "");
             if(!scrollbar_clr.empty()) {
                 settings.has_scrollbar_color = true;
@@ -204,6 +211,10 @@ namespace cfg {
         }
         if(settings_json.count("installs")) {
             settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", settings.ignore_required_fw_ver);
+            settings.copy_buffer_max_size = settings_json["installs"].value("copyBufferMaxSize", settings.copy_buffer_max_size);
+        }
+        if(settings_json.count("export")) {
+            settings.decrypt_buffer_max_size = settings_json["installs"].value("decryptBufferMaxSize", settings.decrypt_buffer_max_size);
         }
         if(settings_json.count("web")) {
             if(settings_json["web"].count("bookmarks")) {
@@ -221,8 +232,14 @@ namespace cfg {
         return settings;
     }
 
-    bool Exists() {
-        auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->IsFile(GLEAF_PATH_SETTINGS_FILE);
+    Language Settings::GetLanguage() {
+        if(this->has_custom_lang) {
+            return this->custom_lang;
+        }
+        else {
+            EnsureDefaultLanguage();
+            return g_DefaultLanguage;
+        }
     }
+
 }

@@ -25,10 +25,10 @@
 namespace hos {
 
     std::string ContentIdAsString(const NcmContentId &cnt_id) {
-        char cnt_id_str[FS_MAX_PATH] = {0};
+        char cnt_id_str[FS_MAX_PATH] = {};
         const auto lower = __bswap64(*(u64*)cnt_id.c);
         const auto upper = __bswap64(*(u64*)(cnt_id.c + 0x8));
-        snprintf(cnt_id_str, sizeof(cnt_id_str) - 1, "%016lx%016lx", lower, upper);
+        snprintf(cnt_id_str, sizeof(cnt_id_str), "%016lx%016lx", lower, upper);
         return cnt_id_str;
     }
 
@@ -49,18 +49,19 @@ namespace hos {
         auto found = false;
         for(const auto &nca: ncas) {
             char path[FS_MAX_PATH] = {};
-            snprintf(path, sizeof(path) - 1, "@SystemContent://placehld/%s", nca.c_str());
+            snprintf(path, sizeof(path), "@SystemContent://placehld/%s", nca.c_str());
             FsFileSystem cnt_fs;
             // Just read the first CNMT NCA we succeed mounting
             if(R_SUCCEEDED(fsOpenFileSystemWithId(&cnt_fs, 0, FsFileSystemType_ContentMeta, path, FsContentAttributes_All))) {
                 fs::FspExplorer fwfs(cnt_fs, "hos.SystemContentAny");
                 const auto fs = fwfs.GetContents();
+                // Read version from the first found file (will be the NCA's CNMT)
                 for(const auto &f: fs) {
-                    u32 raw_ver = 0;
-                    fwfs.ReadFile(f, 0x8, sizeof(raw_ver), &raw_ver);
-                    out->major = (u8)((raw_ver >> 26) & 0x3F);
-                    out->minor = (u8)((raw_ver >> 20) & 0x3F);
-                    out->micro = (u8)((raw_ver >> 16) & 0x3F);
+                    ncm::PackagedContentMetaHeader cnmt_header;
+                    fwfs.ReadFile(f, 0, sizeof(cnmt_header), &cnmt_header);
+                    out->major = (u8)((cnmt_header.version >> 26) & 0x3F);
+                    out->minor = (u8)((cnmt_header.version >> 20) & 0x3F);
+                    out->micro = (u8)((cnmt_header.version >> 16) & 0x3F);
                     found = true;
                     break; 
                 }
@@ -78,7 +79,7 @@ namespace hos {
             .minor = static_cast<u8>(ver.minor),
             .micro = static_cast<u8>(ver.micro)
         };
-        snprintf(fw_ver.display_version, sizeof(fw_ver.display_version) - 1, "%d.%d.%d", ver.major, ver.minor, ver.micro);
+        snprintf(fw_ver.display_version, sizeof(fw_ver.display_version), "%d.%d.%d", ver.major, ver.minor, ver.micro);
         return fw_ver;
     }
 

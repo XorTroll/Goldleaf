@@ -24,20 +24,14 @@
 
 namespace cfg {
 
-    struct Strings {
+    struct StringHolder {
         Language language;
         JSON json;
 
         std::string GetString(const u32 idx);
     };
 
-    namespace strings {
-
-        extern Strings Main;
-        extern Strings Results;
-        extern Strings Modules;
-
-    }
+    extern StringHolder Strings;
     
     void LoadStrings();
 

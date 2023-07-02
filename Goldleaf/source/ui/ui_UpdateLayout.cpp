@@ -40,43 +40,43 @@ namespace ui {
 
     void UpdateLayout::StartUpdateSearch() {
         this->download_p_bar->SetVisible(false);
-        this->info_text->SetText(cfg::strings::Main.GetString(305));
+        this->info_text->SetText(cfg::Strings.GetString(305));
         g_MainApplication->CallForRender();
 
         const auto json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
         if(json_data.empty()) {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             g_MainApplication->ReturnToMainMenu();
             return;
         }
         const auto json = JSON::parse(json_data);
         if(json.size() <= 0) {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             g_MainApplication->ReturnToMainMenu();
             return;
         }
         const auto last_id = json[0].value("tag_name", "");
         if(last_id.empty()) {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             g_MainApplication->ReturnToMainMenu();
             return;
         }
-        this->info_text->SetText(cfg::strings::Main.GetString(306));
+        this->info_text->SetText(cfg::Strings.GetString(306));
         g_MainApplication->CallForRender();
 
         const auto last_ver = Version::FromString(last_id);
         const auto cur_ver = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO);
         if(last_ver.IsEqual(cur_ver)) {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(307), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(307), { cfg::Strings.GetString(234) }, true);
         }
         else if(last_ver.IsLower(cur_ver)) {
-            const auto option = g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(308), { cfg::strings::Main.GetString(111), cfg::strings::Main.GetString(18) }, true);
+            const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(308), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option == 0) {
                 EnsureDirectories();
                 auto sd_exp = fs::GetSdCardExplorer();
                 sd_exp->DeleteFile(GLEAF_PATH_TEMP_UPDATE_NRO);
 
-                this->info_text->SetText(cfg::strings::Main.GetString(309));
+                this->info_text->SetText(cfg::Strings.GetString(309));
                 g_MainApplication->CallForRender();
                 
                 hos::LockAutoSleep();
@@ -96,11 +96,11 @@ namespace ui {
                 }
                 
                 g_MainApplication->CallForRender();
-                g_MainApplication->ShowNotification(cfg::strings::Main.GetString(314) + " " + cfg::strings::Main.GetString(315));
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(314) + " " + cfg::Strings.GetString(315));
             }
         }
         else if(last_ver.IsHigher(cur_ver)) {
-            g_MainApplication->CreateShowDialog(cfg::strings::Main.GetString(284), cfg::strings::Main.GetString(316), { cfg::strings::Main.GetString(234) }, true);
+            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
         }
         g_MainApplication->ReturnToMainMenu();
     }

@@ -459,5 +459,11 @@
     "¿Realmente quiere resetear la versión de lanzamiento de este contenido?\nNo haga esto a menos que realmente sepa lo que está haciendo...",
     "Velocidad",
     "ETA",
-    "No se pudo reiniciar con el payload seleccionado..."
+    "No se pudo reiniciar con el payload seleccionado...",
+    "El NSP contiene varios contenidos principales",
+    "El NSP contiene el siguiente contenido principal:",
+    "Este contenido no tiene datos\n(se trata de un título archivado o un título de cartucho sin este insertado)",
+    "Ver anterior",
+    "Ver siguiente",
+    "Otros"
 ]

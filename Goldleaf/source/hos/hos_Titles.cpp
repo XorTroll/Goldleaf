@@ -37,10 +37,21 @@ namespace hos {
             };
         }
 
+        // Note: placed here since it might be too big to just be loaded on the stack
+        NsApplicationControlData g_TempApplicationControlData;
+
+        bool LoadApplicationControlData(const u64 app_id) {
+            size_t tmp;
+            return R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, app_id, &g_TempApplicationControlData, sizeof(g_TempApplicationControlData), &tmp));
+        }
+
+        std::unordered_map<NcmStorageId, std::vector<Title>> g_Titles;
+        std::unordered_map<NcmStorageId, bool> g_TitlesNeedRefresh;
+
     }
 
     std::string ContentId::GetBaseName() {
-        return hos::ContentIdAsString(this->id) + ".nca";
+        return ContentIdAsString(this->id) + ".nca";
     }
 
     std::string ContentId::GetFullPath() {
@@ -58,44 +69,43 @@ namespace hos {
         return "";
     }
 
-    NacpStruct Title::TryGetNacp() const {
-        NsApplicationControlData control_data = {};
-        size_t tmp = 0;
-        if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, this->app_id, &control_data, sizeof(control_data), &tmp))) {
-            return control_data.nacp;
+    bool Title::TryGetNacp() {
+        if(!IsNacpEmpty(this->nacp)) {
+            return true;
         }
-        else if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->app_id, this->type), &control_data, sizeof(control_data), &tmp))) {
-            return control_data.nacp;
+
+        if(LoadApplicationControlData(this->app_id) || LoadApplicationControlData(GetBaseApplicationId(this->app_id, this->type))) {
+            memcpy(&this->nacp, &g_TempApplicationControlData.nacp, sizeof(this->nacp));
+            return true;
         }
-        return {};
+        else {
+            return false;
+        }
     }
 
-    u8 *Title::TryGetIcon() const {
-        u8 *icon_data = nullptr;
-        NsApplicationControlData control_data = {};
-        size_t tmp = 0;
-        if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, this->app_id, &control_data, sizeof(control_data), &tmp))) {
-            icon_data = new u8[IconDataSize]();
-            memcpy(icon_data, control_data.icon, IconDataSize);
+    bool Title::TryGetIcon(u8 *&out_icon) const {
+        if(LoadApplicationControlData(this->app_id) || LoadApplicationControlData(GetBaseApplicationId(this->app_id, this->type))) {
+            out_icon = new u8[IconDataSize]();
+            memcpy(out_icon, g_TempApplicationControlData.icon, IconDataSize);
+            return true;
         }
-        else if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, GetBaseApplicationId(this->app_id, this->type), &control_data, sizeof(control_data), &tmp))) {
-            icon_data = new u8[IconDataSize]();
-            memcpy(icon_data, control_data.icon, IconDataSize);
+        else {
+            return false;
         }
-        return icon_data;
     }
 
-    bool Title::DumpControlData() const {
-        bool has_icon = false;
-        const auto nacp = this->TryGetNacp();
+    bool Title::DumpControlData() {
         auto sd_exp = fs::GetSdCardExplorer();
-        if(!hos::IsNacpEmpty(nacp)) {
+
+        if(this->TryGetNacp()) {
             const auto &nacp_file = GetExportedNacpPath(this->app_id);
             sd_exp->DeleteFile(nacp_file);
-            sd_exp->WriteFile(nacp_file, &nacp, sizeof(nacp));
+            sd_exp->WriteFile(nacp_file, &this->nacp, sizeof(this->nacp));
         }
-        const auto icon_data = this->TryGetIcon();
-        if(icon_data != nullptr) {
+
+        bool has_icon = false;
+        u8 *icon_data;
+        if(this->TryGetIcon(icon_data)) {
             const auto &icon_file = GetExportedIconPath(this->app_id);
             sd_exp->DeleteFile(icon_file);
             sd_exp->WriteFile(icon_file, icon_data, IconDataSize);
@@ -105,57 +115,47 @@ namespace hos {
         return has_icon;
     }
 
-    TitleContents Title::GetContents() const {
-        TitleContents cnts = {};
-        NcmContentMetaDatabase cnt_meta_db = {};
-        NcmContentStorage cnt_storage = {};
-        if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, this->storage_id))) {
-            if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, this->storage_id))) {
-                for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
-                    ContentId cnt_id = {
-                        .type = static_cast<NcmContentType>(i),
-                        .storage_id = this->storage_id,
-                        .is_empty = true,
-                        .size = 0
-                    };
-    
-                    if(R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(&cnt_meta_db, &cnt_id.id, &this->meta_key, cnt_id.type))) {
-                        cnt_id.is_empty = false;
-                        s64 tmp_size = 0;
-                        ncmContentStorageGetSizeFromContentId(&cnt_storage, &tmp_size, &cnt_id.id);
-                        cnt_id.size = static_cast<u64>(tmp_size);
+    bool Title::TryGetContents() {
+        if(this->title_cnts.empty()) {
+            u8 idx = 0;
+            while(true) {
+                auto found_any = false;
+                TitleContents cnts = {};
+                NcmContentMetaDatabase cnt_meta_db = {};
+                NcmContentStorage cnt_storage = {};
+                if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, this->storage_id))) {
+                    if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, this->storage_id))) {
+                        for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
+                            cnts.cnts[i] = {
+                                .type = static_cast<NcmContentType>(i),
+                                .storage_id = this->storage_id,
+                                .is_empty = true,
+                                .size = 0
+                            };
+            
+                            if(R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByTypeAndIdOffset(&cnt_meta_db, &cnts.cnts[i].id, &this->meta_key, cnts.cnts[i].type, idx))) {
+                                cnts.cnts[i].is_empty = false;
+                                s64 tmp_size = 0;
+                                ncmContentStorageGetSizeFromContentId(&cnt_storage, &tmp_size, &cnts.cnts[i].id);
+                                cnts.cnts[i].size = static_cast<u64>(tmp_size);
+                                found_any = true;
+                            }
+                        }
+                        ncmContentStorageClose(&cnt_storage);
                     }
-
-                    switch(cnt_id.type) {
-                        case NcmContentType_Meta: {
-                            cnts.meta = cnt_id;
-                        }
-                        case NcmContentType_Program: {
-                            cnts.program = cnt_id;
-                        }
-                        case NcmContentType_Data: {
-                            cnts.data = cnt_id;
-                        }
-                        case NcmContentType_Control: {
-                            cnts.control = cnt_id;
-                        }
-                        case NcmContentType_HtmlDocument: {
-                            cnts.html_document = cnt_id;
-                        }
-                        case NcmContentType_LegalInformation: {
-                            cnts.legal_info = cnt_id;
-                        }
-                        case NcmContentType_DeltaFragment: {
-                            cnts.delta_fragment = cnt_id;
-                        }
-                    }
+                    ncmContentMetaDatabaseClose(&cnt_meta_db);
                 }
-                ncmContentStorageClose(&cnt_storage);
+                if(!found_any) {
+                    break;
+                }
+
+                idx++;
+                this->title_cnts.push_back(cnts);
             }
-            ncmContentMetaDatabaseClose(&cnt_meta_db);
+            
         }
-        
-        return cnts;
+    
+        return !this->title_cnts.empty();
     }
 
     TitlePlayStats Title::GetGlobalPlayStats() const {
@@ -171,7 +171,7 @@ namespace hos {
     }
 
     bool Ticket::IsUsed() const {
-        return hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_SdCard, this->rights_id.GetApplicationId()) || hos::ExistsTitle(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser, this->rights_id.GetApplicationId());
+        return ExistsTitle(NcmStorageId_SdCard, NcmContentMetaType_Unknown, this->rights_id.GetApplicationId()) || ExistsTitle(NcmStorageId_BuiltInUser, NcmContentMetaType_Unknown, this->rights_id.GetApplicationId());
     }
 
     std::string Ticket::ToString() const {
@@ -187,36 +187,80 @@ namespace hos {
         return strm.str();
     }
 
+    void Initialize() {
+        g_TitlesNeedRefresh[NcmStorageId_SdCard] = true;
+        g_TitlesNeedRefresh[NcmStorageId_BuiltInUser] = true;
+        g_TitlesNeedRefresh[NcmStorageId_BuiltInSystem] = true;
+        g_TitlesNeedRefresh[NcmStorageId_GameCard] = true;
+        g_TitlesNeedRefresh[NcmStorageId_None] = true;
+    }
+
+    void NotifyTitlesChanged(const NcmStorageId storage_id) {
+        g_TitlesNeedRefresh[storage_id] = true;
+    }
+
     std::string FormatApplicationId(const u64 app_id) {
         std::stringstream strm;
         strm << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << app_id;
         return strm.str();
     }
 
-    std::vector<Title> SearchTitles(const NcmContentMetaType type, const NcmStorageId storage_id) {
-        std::vector<Title> titles;
-        NcmContentMetaDatabase cnt_meta_db = {};
-        if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, storage_id))) {
-            auto meta_keys = new NcmContentMetaKey[MaxTitleCount]();
-            s32 written = 0;
-            s32 total = 0;
-            if(R_SUCCEEDED(ncmContentMetaDatabaseList(&cnt_meta_db, &total, &written, meta_keys, MaxTitleCount, type, 0, 0, UINT64_MAX, NcmContentInstallType_Full)) && (written > 0)) {
-                for(s32 i = 0; i < written; i++) {
-                    const auto cur_meta_key = meta_keys[i];
-                    const Title title = {
-                        .app_id = cur_meta_key.id,
-                        .type = static_cast<NcmContentMetaType>(cur_meta_key.type),
-                        .version = cur_meta_key.version,
-                        .meta_key = cur_meta_key,
-                        .storage_id = storage_id,
-                    };
-                    titles.push_back(title);
+    std::vector<Title> &SearchTitles(const NcmStorageId storage_id, const NcmContentMetaType type) {
+        if(g_TitlesNeedRefresh.at(storage_id)) {
+            std::vector<Title> titles;
+            // Treat 'no storage' as a way of find titles without any content (only records, thus not present at meta databases)
+            if(storage_id == NcmStorageId_None) {
+                auto app_records = new NsApplicationRecord[MaxTitleCount]();
+                s32 record_count;
+                if(R_SUCCEEDED(nsListApplicationRecord(app_records, MaxTitleCount, 0, &record_count))) {
+                    for(s32 i = 0; i < record_count; i++) {
+                        const auto app_record = app_records[i];
+                        NsApplicationContentMetaStatus tmp_meta_status;
+                        s32 tmp_count;
+                        if(R_SUCCEEDED(nsListApplicationContentMetaStatus(app_record.application_id, 0, &tmp_meta_status, 1, &tmp_count)) && (tmp_count > 0)) {
+                            if(tmp_meta_status.storageID == storage_id) {
+                                const Title title = {
+                                    .app_id = tmp_meta_status.application_id,
+                                    .type = static_cast<NcmContentMetaType>(tmp_meta_status.meta_type),
+                                    .version = tmp_meta_status.version,
+                                    .storage_id = storage_id
+                                };
+                                titles.push_back(title);
+                            }
+                        }
+                    }
+                }
+                delete[] app_records;
+            }
+            else {
+                NcmContentMetaDatabase cnt_meta_db = {};
+                if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, storage_id))) {
+                    auto meta_keys = new NcmContentMetaKey[MaxTitleCount]();
+                    s32 written = 0;
+                    s32 total = 0;
+                    if(R_SUCCEEDED(ncmContentMetaDatabaseList(&cnt_meta_db, &total, &written, meta_keys, MaxTitleCount, type, 0, 0, UINT64_MAX, NcmContentInstallType_Full)) && (written > 0)) {
+                        for(s32 i = 0; i < written; i++) {
+                            const auto cur_meta_key = meta_keys[i];
+                            const Title title = {
+                                .app_id = cur_meta_key.id,
+                                .type = static_cast<NcmContentMetaType>(cur_meta_key.type),
+                                .version = cur_meta_key.version,
+                                .meta_key = cur_meta_key,
+                                .storage_id = storage_id,
+                            };
+                            titles.push_back(title);
+                        }
+                    }
+                    delete[] meta_keys;
+                    ncmContentMetaDatabaseClose(&cnt_meta_db);
                 }
             }
-            delete[] meta_keys;
-            ncmContentMetaDatabaseClose(&cnt_meta_db);
+
+            g_Titles[storage_id] = titles;
+            g_TitlesNeedRefresh[storage_id] = false;
         }
-        return titles;
+
+        return g_Titles.at(storage_id);
     }
 
     Title Locate(const u64 app_id) {
@@ -230,16 +274,16 @@ namespace hos {
         }
 
         Title title = {};
-        auto titles = SearchTitles(NcmContentMetaType_Unknown, NcmStorageId_BuiltInSystem);
+        auto &titles = SearchTitles(NcmStorageId_BuiltInSystem, NcmContentMetaType_Unknown);
         _TMP_FIND_LOCATE
 
         if(title.app_id == 0) {
-            titles = SearchTitles(NcmContentMetaType_Unknown, NcmStorageId_BuiltInUser);
+            auto &titles = SearchTitles(NcmStorageId_BuiltInUser, NcmContentMetaType_Unknown);
             _TMP_FIND_LOCATE
         }
 
         if(title.app_id == 0) {
-            titles = SearchTitles(NcmContentMetaType_Unknown, NcmStorageId_SdCard);
+            auto &titles = SearchTitles(NcmStorageId_SdCard, NcmContentMetaType_Unknown);
             _TMP_FIND_LOCATE
         }
 
@@ -248,8 +292,8 @@ namespace hos {
         return title;
     }
 
-    bool ExistsTitle(const NcmContentMetaType type, const NcmStorageId storage_id, const u64 app_id) {
-        const auto titles = SearchTitles(type, storage_id);
+    bool ExistsTitle(const NcmStorageId storage_id, const NcmContentMetaType type, const u64 app_id) {
+        const auto &titles = SearchTitles(storage_id, type);
 
         const auto title_it = std::find_if(titles.begin(), titles.end(), [&](const Title &title) -> bool {
             return (title.app_id == app_id);
@@ -257,34 +301,19 @@ namespace hos {
         return title_it != titles.end();
     }
 
-    void RemoveTitle(const Title &title) {
-        const auto &cnts = title.GetContents();
-
-        NcmContentStorage cnt_storage = {};
-        if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, title.storage_id))) {
-            if(!cnts.meta.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.meta.id);
+    void RemoveTitle(Title &title) {
+        if(title.TryGetContents()) {
+            for(const auto &cnts: title.title_cnts) {
+                NcmContentStorage cnt_storage = {};
+                if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, title.storage_id))) {
+                    for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
+                        if(!cnts.cnts[i].is_empty) {
+                            ncmContentStorageDelete(&cnt_storage, &cnts.cnts[i].id);
+                        }
+                    }
+                    ncmContentStorageClose(&cnt_storage);
+                }
             }
-            if(!cnts.program.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.program.id);
-            }
-            if(!cnts.data.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.data.id);
-            }
-            if(!cnts.control.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.control.id);
-            }
-            if(!cnts.html_document.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.html_document.id);
-            }
-            if(!cnts.legal_info.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.legal_info.id);
-            }
-            if(!cnts.delta_fragment.is_empty) {
-                ncmContentStorageDelete(&cnt_storage, &cnts.delta_fragment.id);
-            }
-
-            ncmContentStorageClose(&cnt_storage);
         }
 
         NcmContentMetaDatabase cnt_meta_db;
@@ -296,6 +325,9 @@ namespace hos {
         }
 
         ns::DeleteApplicationRecord(title.app_id);
+        nsDeleteApplicationCompletely(title.app_id);
+
+        NotifyTitlesChanged(title.storage_id);
     }
 
     Result RemoveTicket(const Ticket &tik) {
@@ -303,7 +335,7 @@ namespace hos {
     }
 
     Result UpdateTitleVersion(const Title &title) {
-        const auto titles = SearchTitles(NcmContentMetaType_Unknown, title.storage_id);
+        const auto &titles = SearchTitles(title.storage_id, NcmContentMetaType_Unknown);
         auto cur_max_version = title.meta_key.version;
         for(const auto &search_title: titles) {
             if(title.IsBaseOf(search_title)) {
@@ -330,7 +362,7 @@ namespace hos {
                 for(u32 i = 0; i < written; i++) {
                     const Ticket common_tik = {
                         .rights_id = ids[i],
-                        .type = hos::TicketType::Common
+                        .type = TicketType::Common
                     };
                     tickets.push_back(common_tik);
                 }
@@ -347,7 +379,7 @@ namespace hos {
                 for(u32 i = 0; i < written; i++) {
                     const Ticket personalized_tik = {
                         .rights_id = ids[i],
-                        .type = hos::TicketType::Personalized
+                        .type = TicketType::Personalized
                     };
                     tickets.push_back(personalized_tik);
                 }
@@ -411,23 +443,23 @@ namespace hos {
 
     std::string FindNacpName(const NacpStruct &nacp) {
         NacpLanguageEntry *lang_entry;
-        nacpGetLanguageEntry(const_cast<NacpStruct*>(std::addressof(nacp)), &lang_entry);
+        nsGetApplicationDesiredLanguage(const_cast<NacpStruct*>(std::addressof(nacp)), &lang_entry);
         if(lang_entry != nullptr) {
             return lang_entry->name;
         }
         else {
-            return "";
+            return "(...)";
         }
     }
 
     std::string FindNacpAuthor(const NacpStruct &nacp) {
         NacpLanguageEntry *lang_entry;
-        nacpGetLanguageEntry(const_cast<NacpStruct*>(std::addressof(nacp)), &lang_entry);
+        nsGetApplicationDesiredLanguage(const_cast<NacpStruct*>(std::addressof(nacp)), &lang_entry);
         if(lang_entry != nullptr) {
             return lang_entry->author;
         }
         else {
-            return "";
+            return "(...)";
         }
     }
 
