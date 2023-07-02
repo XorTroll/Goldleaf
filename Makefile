@@ -8,8 +8,8 @@ all:
 	@$(MAKE) -C Goldleaf/
 
 arc:
-	@python arc/arc.py gen_db default+Goldleaf/include/base_Results.rc.hpp
-	@python arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
+	@python arc/arc.py gen_db default+$(CURDIR)/Goldleaf/include/base_Results.rc.hpp
+	@python arc/arc.py gen_cpp rc GLEAF $(CURDIR)/Goldleaf/include/base_Results.gen.hpp
 
 setup: arc
 	@$(MAKE) -C libusbhsfs/ fs-libs
