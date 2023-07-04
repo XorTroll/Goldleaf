@@ -50,7 +50,7 @@ jobs:
 
     - name: Build Goldleaf
       run: |
-        python3.9 arc/arc.py gen_db default
+        python3.9 arc/arc.py gen_db default+Goldleaf/include/base_Results.rc.hpp
         python3.9 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
         make -j$(nproc)
 
