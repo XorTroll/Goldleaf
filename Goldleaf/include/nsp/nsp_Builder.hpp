@@ -24,8 +24,9 @@
 
 namespace nsp {
 
-    using GenerateCallback = std::function<void(const u64, const u64)>;
+    using GenerateStartCallback = std::function<void(const double)>;
+    using GenerateProgressCallback = std::function<void(const double)>;
 
-    bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateCallback cb_fn);
+    bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateStartCallback start_cb, GenerateProgressCallback prog_cb);
 
 }

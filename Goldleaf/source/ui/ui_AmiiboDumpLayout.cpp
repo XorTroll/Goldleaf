@@ -29,8 +29,9 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     AmiiboDumpLayout::AmiiboDumpLayout() : pu::ui::Layout() {
-        this->info_txt = pu::ui::elm::TextBlock::New(150, 320, "-");
+        this->info_txt = pu::ui::elm::TextBlock::New(0, 0, "-");
         this->info_txt->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->info_txt->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
         this->info_txt->SetColor(g_Settings.custom_scheme.text);
         this->Add(this->info_txt);
     }

@@ -465,5 +465,12 @@
     "Este contenido no tiene datos\n(se trata de un título archivado o un título de cartucho sin este insertado)",
     "Ver anterior",
     "Ver siguiente",
-    "Otros"
+    "Otros",
+    "Viendo archivo de texto",
+    "Viendo archivo binario",
+    "Progreso de copia total",
+    "Progreso de copia de archivo actual",
+    "Ya existe otra carpeta con el mismo nombre. ¿Le gustaría eliminarla?",
+    "Copiando archivo...",
+    "Copiando carpeta..."
 ]

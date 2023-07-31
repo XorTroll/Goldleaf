@@ -50,7 +50,7 @@ namespace ui {
         this->info_text->SetText(cfg::Strings.GetString(426));
         g_MainApplication->CallForRender();
         this->p_bar->SetVisible(true);
-        hos::UnlockAutoSleep();
+        hos::UnlockExit();
         auto rc = amssu::SetupUpdate(nullptr, UpdateWorkBufferSize, path.c_str(), with_exfat);
         if(R_SUCCEEDED(rc)) {
             AsyncResult async_rc;

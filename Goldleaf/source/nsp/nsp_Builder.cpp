@@ -24,7 +24,7 @@
 
 namespace nsp {
 
-    bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateCallback cb_fn) {
+    bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateStartCallback start_cb, GenerateProgressCallback prog_cb) {
         auto exp = fs::GetExplorerForPath(input_path);
         const auto files = exp->GetFiles(input_path);
         PFS0Header header = {
@@ -61,6 +61,7 @@ namespace nsp {
         out_exp->WriteFile(output_nsp, string_table_buf, string_table_size);
         fs::DeleteWorkBuffer(string_table_buf);
 
+        start_cb((double)base_offset);
         for(const auto &entry: file_entries) {
             auto rem_size = entry.entry.size;
             auto work_buf = fs::AllocateWorkBuffer();
@@ -72,7 +73,7 @@ namespace nsp {
                 out_exp->WriteFile(output_nsp, work_buf, read_size);
                 off += read_size;
                 rem_size -= read_size;
-                cb_fn(off, base_offset);
+                prog_cb((double)read_size);
             }
             exp->EndFile();
             fs::DeleteWorkBuffer(work_buf);

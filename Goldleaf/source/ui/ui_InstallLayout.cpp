@@ -304,11 +304,9 @@ namespace ui {
     }
 
     InstallLayout::InstallLayout() : pu::ui::Layout() {
-        u32 cur_y = 180;
-        this->speed_info_text = pu::ui::elm::TextBlock::New(0, cur_y, "A");
+        this->speed_info_text = pu::ui::elm::TextBlock::New(0, 180, "A");
         this->speed_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->speed_info_text->SetColor(g_Settings.custom_scheme.text);
-        cur_y += this->speed_info_text->GetHeight() + 25;
     }
 
     void InstallLayout::StartInstall(const std::string &path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
@@ -380,7 +378,7 @@ namespace ui {
                 return;
             }
 
-            hos::LockAutoSleep();
+            hos::LockExit();
 
             g_MainApplication->ClearLayout(g_MainApplication->GetInstallLayout());
             this->content_info_texts.clear();
@@ -463,7 +461,7 @@ namespace ui {
 
                 g_MainApplication->CallForRender();
             });
-            hos::UnlockAutoSleep();
+            hos::UnlockExit();
         }
 
         if(R_FAILED(rc)) {

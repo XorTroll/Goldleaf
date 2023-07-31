@@ -76,6 +76,10 @@ namespace fs {
                 return new_path;
             }
 
+            inline std::string MakePresentablePath(const std::string &abs_path) const {
+                return this->disp_name + abs_path.substr(abs_path.find_first_of(':'));
+            }
+
             inline std::string FullPresentablePathFor(const std::string &path) const {
                 auto pres_cwd = this->GetPresentableCwd();
                 auto new_path = pres_cwd;
@@ -120,9 +124,11 @@ namespace fs {
             }
 
             void CopyFile(const std::string &path, const std::string &new_path);
-            void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn);
             void CopyDirectory(const std::string &dir, const std::string &new_dir);
-            void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn);
+
+            void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileStartCallback start_cb, CopyFileProgressCallback prog_cb);
+            void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryStartCallback start_cb, CopyDirectoryFileStartCallback file_start_cb, CopyDirectoryFileProgressCallback file_prog_cb);
+
             bool IsFileBinary(const std::string &path);
             std::vector<u8> ReadFile(const std::string &path);
             JSON ReadJSON(const std::string &path);

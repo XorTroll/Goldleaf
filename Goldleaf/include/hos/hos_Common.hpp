@@ -40,8 +40,9 @@ namespace hos {
     std::string FormatResult(const Result rc);
     std::string FormatTime(const u64 sec);
 
-    void LockAutoSleep();
-    void UnlockAutoSleep();
+    void LockExit();
+    void UnlockExit();
+    bool IsExitLocked();
 
     u8 ReadSystemKeyGeneration();
 

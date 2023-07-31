@@ -79,7 +79,7 @@ namespace ui {
                 this->info_text->SetText(cfg::Strings.GetString(309));
                 g_MainApplication->CallForRender();
                 
-                hos::LockAutoSleep();
+                hos::LockExit();
                 this->download_p_bar->SetVisible(true);
                 const auto download_url = "https://github.com/XorTroll/Goldleaf/releases/download/" + last_id + "/Goldleaf.nro";
                 sd_exp->DeleteFile(GLEAF_PATH_TEMP_UPDATE_NRO);
@@ -89,7 +89,7 @@ namespace ui {
                     g_MainApplication->CallForRender();
                 });
                 this->download_p_bar->SetVisible(false);
-                hos::UnlockAutoSleep();
+                hos::UnlockExit();
 
                 if(sd_exp->IsFile(GLEAF_PATH_TEMP_UPDATE_NRO)) {
                     g_UpdatedNeedsRename = true;

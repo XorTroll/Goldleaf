@@ -77,27 +77,31 @@ namespace expt {
 
     }
 
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptCallback cb_fn) {
+    Result DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptStartCallback dec_start_cb, DecryptProgressCallback dec_prog_cb) {
         s64 cnt_size = 0;
-        ncmContentStorageGetSizeFromContentId(cnt_storage, &cnt_size, &cnt_id);
+        GLEAF_RC_TRY(ncmContentStorageGetSizeFromContentId(cnt_storage, &cnt_size, &cnt_id));
         auto rem_size = static_cast<u64>(cnt_size);
         auto exp = fs::GetExplorerForPath(path);
+        dec_start_cb((double)cnt_size);
 
         auto data_buf = new u8[g_Settings.decrypt_buffer_max_size]();
+        ScopeGuard on_exit([&]() {
+            delete[] data_buf;
+        });
+
         s64 off = 0;
         exp->StartFile(path, fs::FileMode::Write);
         while(rem_size) {
             const auto read_size = std::min(g_Settings.decrypt_buffer_max_size, rem_size);
-            if(R_FAILED(ncmContentStorageReadContentIdFile(cnt_storage, data_buf, read_size, &cnt_id, off))) {
-                break;
-            }
+            GLEAF_RC_TRY(ncmContentStorageReadContentIdFile(cnt_storage, data_buf, read_size, &cnt_id, off));
             exp->WriteFile(path, data_buf, read_size);
             rem_size -= read_size;
             off += read_size;
-            cb_fn((double)off, (double)cnt_size);
+            dec_prog_cb((double)read_size);
         }
         exp->EndFile();
-        delete[] data_buf;
+        
+        GLEAF_RC_SUCCEED;
     }
 
     std::string ExportTicketCert(const u64 app_id, const bool export_cert) {

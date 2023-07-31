@@ -465,5 +465,12 @@
     "该内容未包含数据\n(可能是 archived title，或是尚未插入游戏卡带的空白卡带 Title)",
     "查看上一个",
     "查看下一个",
-    "其他"
+    "其他",
+    "Viewing text file",
+    "Viewing binary file",
+    "Total copy progress",
+    "Current file copy progress",
+    "Another directory exists with the same name. Would you like to remove it?",
+    "Copying file...",
+    "Copying directory..."
 ]

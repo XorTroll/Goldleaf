@@ -465,5 +465,12 @@
     "This content has no data\n(it's an archived title, or a gamecard title without the gamecard inserted)",
     "See previous",
     "See next",
-    "Other"
+    "Other",
+    "Viewing text file",
+    "Viewing binary file",
+    "Total copy progress",
+    "Current file copy progress",
+    "Another directory exists with the same name. Would you like to remove it?",
+    "Copying file...",
+    "Copying directory..."
 ]

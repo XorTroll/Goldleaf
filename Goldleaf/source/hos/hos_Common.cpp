@@ -30,6 +30,8 @@ namespace hos {
         u8 g_SystemKeyGeneration = 0;
         bool g_SystemKeyGenerationRead = false;
 
+        bool g_ExitLocked = false;
+
     }
 
     u32 GetBatteryLevel() {
@@ -122,18 +124,28 @@ namespace hos {
         return time_fmt;
     }
 
-    void LockAutoSleep() {
+    void LockExit() {
         if(GetLaunchMode() == LaunchMode::Application) {
             appletBeginBlockingHomeButton(0);
         }
         appletSetMediaPlaybackState(true);
+
+        g_ExitLocked = true;
     }
 
-    void UnlockAutoSleep() {
-        appletSetMediaPlaybackState(false);
-        if(GetLaunchMode() == LaunchMode::Application) {
-            appletEndBlockingHomeButton();
+    void UnlockExit() {
+        if(g_ExitLocked) {
+            appletSetMediaPlaybackState(false);
+            if(GetLaunchMode() == LaunchMode::Application) {
+                appletEndBlockingHomeButton();
+            }
+            
+            g_ExitLocked = false;
         }
+    }
+
+    bool IsExitLocked() {
+        return g_ExitLocked;
     }
 
     u8 ReadSystemKeyGeneration() {

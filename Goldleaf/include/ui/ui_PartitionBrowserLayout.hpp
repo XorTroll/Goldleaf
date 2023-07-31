@@ -40,6 +40,7 @@ namespace ui {
             void ChangePartitionPCDrive(const std::string &mount_name, const bool update_contents = true);
             void ChangePartitionDrive(UsbHsFsDevice &drv, const bool update_contents = true);
             void UpdateElements(const int idx = 0);
+            void ResetMenuHead();
             void HandleFileDirectly(const std::string &path);
             void PromptDeleteFile(const std::string &path);
             bool GoBack();

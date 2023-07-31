@@ -29,31 +29,32 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     ContentExportLayout::ContentExportLayout() {
-        this->exp_text = pu::ui::elm::TextBlock::New(150, 320, cfg::Strings.GetString(151));
-        this->exp_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->exp_text->SetColor(g_Settings.custom_scheme.text);
-        this->cnt_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        this->cnt_p_bar->SetVisible(false);
-        g_Settings.ApplyProgressBarColor(this->cnt_p_bar);
-        this->Add(this->exp_text);
-        this->Add(this->cnt_p_bar);
+        this->speed_info_text = pu::ui::elm::TextBlock::New(0, 180, "A");
+        this->speed_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->speed_info_text->SetColor(g_Settings.custom_scheme.text);
+        this->Add(this->speed_info_text);
     }
 
     void ContentExportLayout::StartExport(hos::Title &cnt, const bool has_tik) {
         EnsureDirectories();
         g_MainApplication->CallForRender();
 
+        g_MainApplication->ClearLayout(g_MainApplication->GetContentExportLayout());
+        this->content_info_texts.clear();
+        this->content_p_bars.clear();
+        this->Add(this->speed_info_text);
+
         const auto format_app_id = hos::FormatApplicationId(cnt.app_id);
         
         auto sd_exp = fs::GetSdCardExplorer();
         const auto out_dir = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/" + format_app_id);
         sd_exp->CreateDirectory(out_dir);
-        this->exp_text->SetText(cfg::Strings.GetString(192));
+        this->speed_info_text->SetText(cfg::Strings.GetString(192));
         g_MainApplication->CallForRender();
         if(has_tik) {
             expt::ExportTicketCert(cnt.app_id, true);
         }
-        this->exp_text->SetText(cfg::Strings.GetString(193));
+        this->speed_info_text->SetText(cfg::Strings.GetString(193));
         g_MainApplication->CallForRender();
     
         NcmContentStorage cnt_storage;
@@ -97,20 +98,72 @@ namespace ui {
             return;
         }
 
-        hos::LockAutoSleep();
-        if(cnt.storage_id == NcmStorageId_SdCard) {
-            this->exp_text->SetText(cfg::Strings.GetString(194));
+        u32 cur_y = 180 + this->speed_info_text->GetHeight() + 25;
 
+        constexpr auto cnts_per_column = 4;
+        const auto total_count = export_cnts.size() + 1;
+        const auto column_count = (total_count + 3) / 4;
+        constexpr auto margin = 25;
+        const auto p_bar_width = (pu::ui::render::ScreenWidth - (column_count + 1) * margin) / column_count;
+
+        const auto base_column_y = cur_y;
+        auto cur_x = margin;
+        u32 j = 0;
+        for(u32 i = 0; i < total_count; i++) {
+            auto info_text = pu::ui::elm::TextBlock::New(cur_x, cur_y, "A");
+            if(i < export_cnts.size()) {
+                const auto cnt_name = hos::ContentIdAsString(export_cnts.at(i).second) + (export_cnts.at(i).first ? ".cnmt" : "") + ".nca";
+                info_text->SetText(cnt_name);
+            }
+            else {
+                info_text->SetText(cfg::Strings.GetString(196));
+            }
+            info_text->SetColor(g_Settings.custom_scheme.text);
+            cur_y += info_text->GetHeight() + 10;
+            auto p_bar = pu::ui::elm::ProgressBar::New(cur_x, cur_y, p_bar_width, 30, 0.0f);
+            g_Settings.ApplyProgressBarColor(p_bar);
+            cur_y += p_bar->GetHeight() + 15;
+
+            this->content_info_texts.push_back(info_text);
+            this->content_p_bars.push_back(p_bar);
+            this->Add(info_text);
+            this->Add(p_bar);
+
+            j++;
+            if(j >= cnts_per_column) {
+                j = 0;
+                cur_x += p_bar_width + margin;
+                cur_y = base_column_y;
+            }
+        }
+
+        hos::LockExit();
+        auto last_tp = std::chrono::steady_clock::now();
+        if(cnt.storage_id == NcmStorageId_SdCard) {
+            u32 i = 0;
             for(const auto &[cnt_is_meta, cnt_id] : export_cnts) {
-                const auto out_cnt_path = out_dir + "/" + hos::ContentIdAsString(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
+                const auto cnt_name = hos::ContentIdAsString(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
+                const auto out_cnt_path = out_dir + "/" + cnt_name;
                 fs::CreateConcatenationFile(out_cnt_path);
-                this->cnt_p_bar->SetVisible(true);
-                expt::DecryptCopyNAX0ToNCA(&cnt_storage, cnt_id, out_cnt_path, [&](const double done, const double total) {
-                    this->cnt_p_bar->SetMaxProgress(total);
-                    this->cnt_p_bar->SetProgress(done);
+                const auto rc = expt::DecryptCopyNAX0ToNCA(&cnt_storage, cnt_id, out_cnt_path, [&](const double file_size) {
+                    this->content_p_bars.at(i)->SetMaxProgress(file_size);
+                }, [&](const double cur_rw_size) {
+                    const auto cur_tp = std::chrono::steady_clock::now();
+                    const auto time_diff = (double)std::chrono::duration_cast<std::chrono::milliseconds>(cur_tp - last_tp).count();
+                    last_tp = cur_tp;
+
+                    const auto speed_bps = (1000.0f / time_diff) * cur_rw_size;
+                    const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(i)->GetMaxProgress() - this->content_p_bars.at(i)->GetProgress())));
+                    this->speed_info_text->SetText(speed_text);
+
+                    this->content_p_bars.at(i)->IncrementProgress(cur_rw_size);
                     g_MainApplication->CallForRender();
                 });
-                this->cnt_p_bar->SetVisible(false);
+                if(R_FAILED(rc)) {
+                    HandleResult(rc, cfg::Strings.GetString(198));
+                    return;
+                }
+                i++;
             }
         }
         else {
@@ -122,26 +175,34 @@ namespace ui {
                 nand_exp = fs::GetNANDUserExplorer();
             }
             else {
-                hos::UnlockAutoSleep();
+                hos::UnlockExit();
                 HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::Strings.GetString(198));
                 g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
                 return;
             }
 
-            this->exp_text->SetText(cfg::Strings.GetString(195));
-
+            u32 i = 0;
             for(const auto &[cnt_is_meta, cnt_id] : export_cnts) {
+                const auto cnt_name = hos::ContentIdAsString(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
                 const auto cnt_ncm_path = expt::GetContentIdPath(&cnt_storage, cnt_id);
                 const auto cnt_nand_path = nand_exp->FullPathFor("Contents/" + cnt_ncm_path.substr(__builtin_strlen("@UserContent://")));
-                const auto out_cnt_path = out_dir + "/" + hos::ContentIdAsString(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
+                const auto out_cnt_path = out_dir + "/" + cnt_name;
                 fs::CreateConcatenationFile(out_cnt_path);
-                this->cnt_p_bar->SetVisible(true);
-                fs::CopyFileProgress(cnt_nand_path, out_cnt_path, [&](const double done, const double total) {
-                    this->cnt_p_bar->SetMaxProgress(total);
-                    this->cnt_p_bar->SetProgress(done);
+                fs::CopyFileProgress(cnt_nand_path, out_cnt_path, [&](const size_t file_size) {
+                    this->content_p_bars.at(i)->SetMaxProgress(file_size);
+                }, [&](const size_t cur_rw_size) {
+                    const auto cur_tp = std::chrono::steady_clock::now();
+                    const auto time_diff = (double)std::chrono::duration_cast<std::chrono::milliseconds>(cur_tp - last_tp).count();
+                    last_tp = cur_tp;
+
+                    const auto speed_bps = (1000.0f / time_diff) * cur_rw_size;
+                    const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(i)->GetMaxProgress() - this->content_p_bars.at(i)->GetProgress())));
+                    this->speed_info_text->SetText(speed_text);
+
+                    this->content_p_bars.at(i)->IncrementProgress(cur_rw_size);
                     g_MainApplication->CallForRender();
                 });
-                this->cnt_p_bar->SetVisible(false);
+                i++;
             }
         }
 
@@ -154,14 +215,22 @@ namespace ui {
         }
 
         fs::CreateConcatenationFile(out_nsp);
-        this->cnt_p_bar->SetVisible(true);
-        this->exp_text->SetText(cfg::Strings.GetString(196));
-        const auto ok = nsp::GenerateFrom(out_dir, out_nsp, [&](const u64 done, const u64 total) {
-            this->cnt_p_bar->SetMaxProgress((double)total);
-            this->cnt_p_bar->SetProgress((double)done);
+        const auto nsp_i = export_cnts.size();
+        const auto ok = nsp::GenerateFrom(out_dir, out_nsp, [&](const size_t file_size) {
+            this->content_p_bars.at(nsp_i)->SetMaxProgress(file_size);
+        }, [&](const size_t cur_rw_size) {
+            const auto cur_tp = std::chrono::steady_clock::now();
+            const auto time_diff = (double)std::chrono::duration_cast<std::chrono::milliseconds>(cur_tp - last_tp).count();
+            last_tp = cur_tp;
+
+            const auto speed_bps = (1000.0f / time_diff) * cur_rw_size;
+            const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(nsp_i)->GetMaxProgress() - this->content_p_bars.at(nsp_i)->GetProgress())));
+            this->speed_info_text->SetText(speed_text);
+
+            this->content_p_bars.at(nsp_i)->IncrementProgress(cur_rw_size);
             g_MainApplication->CallForRender();
         });
-        hos::UnlockAutoSleep();
+        hos::UnlockExit();
         sd_exp->EmptyDirectory(GLEAF_PATH_EXPORT_TEMP_DIR);
         sd_exp->DeleteDirectory(out_dir);
         if(ok) {

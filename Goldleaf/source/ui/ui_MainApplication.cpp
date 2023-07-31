@@ -435,6 +435,7 @@ namespace ui {
 
     void MainApplication::fileContent_Input(const u64 down, const u64 up, const u64 held) {
         if(down & HidNpadButton_B) {
+            this->partition_browser_lyt->ResetMenuHead();
             this->LoadLayout(this->partition_browser_lyt);
         }
         else if((down & HidNpadButton_Down) || (down & HidNpadButton_StickLDown) || (held & HidNpadButton_StickRDown)) {
@@ -529,14 +530,16 @@ namespace ui {
     }
 
     void MainApplication::OnInput(const u64 down, const u64 up, const u64 held) {
-        if(down & HidNpadButton_Plus) {
-            this->CloseWithFadeOut();
-        }
-        else if(down & HidNpadButton_Minus) {
-            this->helpImage_OnClick();
-        }
-        else if((down & HidNpadButton_ZL) || (down & HidNpadButton_ZR)) {
-            ShowPowerTasksDialog(cfg::Strings.GetString(229), cfg::Strings.GetString(230));
+        if(!hos::IsExitLocked()) {
+            if(down & HidNpadButton_Plus) {
+                this->CloseWithFadeOut();
+            }
+            else if(down & HidNpadButton_Minus) {
+                this->helpImage_OnClick();
+            }
+            else if((down & HidNpadButton_ZL) || (down & HidNpadButton_ZR)) {
+                ShowPowerTasksDialog(cfg::Strings.GetString(229), cfg::Strings.GetString(230));
+            }
         }
     }
 

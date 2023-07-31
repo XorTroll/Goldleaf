@@ -37,7 +37,7 @@ namespace ui {
             FileContentLayout();
             PU_SMART_CTOR(FileContentLayout)
 
-            void LoadFile(const std::string &path, fs::Explorer *exp, const bool read_hex);
+            void LoadFile(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const bool read_hex);
             void ScrollUp();
             void ScrollDown();
 

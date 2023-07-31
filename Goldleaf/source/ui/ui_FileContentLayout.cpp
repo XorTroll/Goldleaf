@@ -41,12 +41,19 @@ namespace ui {
         this->line_offset = 0;
     }
 
-    void FileContentLayout::LoadFile(const std::string &path, fs::Explorer *exp, const bool read_hex) {
+    void FileContentLayout::LoadFile(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const bool read_hex) {
         this->path = path;
         this->read_hex = read_hex;
         this->file_exp = exp;
         this->line_offset = 0;
 
+        if(read_hex) {
+            g_MainApplication->LoadMenuHead(cfg::Strings.GetString(468) + ": " + pres_path);
+        }
+        else {
+            g_MainApplication->LoadMenuHead(cfg::Strings.GetString(467) + ": " + pres_path);
+        }
+        
         this->read_lines = this->ReadLines(this->line_offset, MaxLineCount);
         this->UpdateLines();
     }

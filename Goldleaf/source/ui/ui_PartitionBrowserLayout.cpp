@@ -95,7 +95,7 @@ namespace ui {
     void PartitionBrowserLayout::UpdateElements(const int idx) {
         const auto contents = this->cur_exp->GetContents();
         this->browse_menu->ClearItems();
-        g_MainApplication->LoadMenuHead(this->cur_exp->GetPresentableCwd());
+        this->ResetMenuHead();
         this->browse_menu->SetVisible(!contents.empty());
         this->empty_dir_text->SetVisible(contents.empty());
         if(!contents.empty()) {
@@ -156,6 +156,10 @@ namespace ui {
             }
             this->browse_menu->SetSelectedIndex(tmp_idx);
         }
+    }
+
+    void PartitionBrowserLayout::ResetMenuHead() {
+        g_MainApplication->LoadMenuHead(this->cur_exp->GetPresentableCwd());
     }
 
     void PartitionBrowserLayout::HandleFileDirectly(const std::string &path) {
@@ -314,7 +318,7 @@ namespace ui {
                         g_MainApplication->LoadLayout(g_MainApplication->GetInstallLayout());
                         g_MainApplication->GetInstallLayout()->StartInstall(full_item, this->cur_exp, dst);
                         g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
-                        g_MainApplication->LoadMenuHead(this->cur_exp->GetPresentableCwd());
+                        this->ResetMenuHead();
                         break;
                     }
                 }
@@ -573,7 +577,7 @@ namespace ui {
                 switch(option_1) {
                     case 0: {
                         g_MainApplication->LoadLayout(g_MainApplication->GetFileContentLayout());
-                        g_MainApplication->GetFileContentLayout()->LoadFile(full_item, this->cur_exp, false);
+                        g_MainApplication->GetFileContentLayout()->LoadFile(full_item, pres_full_item, this->cur_exp, false);
                         break;
                     }
                 }
@@ -585,7 +589,7 @@ namespace ui {
             const auto rename_option = option_count - 2;
             if((option_1 == static_cast<s32>(view_option)) && (this->cur_exp->GetFileSize(full_item) > 0)) {
                 g_MainApplication->LoadLayout(g_MainApplication->GetFileContentLayout());
-                g_MainApplication->GetFileContentLayout()->LoadFile(full_item, this->cur_exp, true);
+                g_MainApplication->GetFileContentLayout()->LoadFile(full_item, pres_full_item, this->cur_exp, true);
             }
             else if(option_1 == static_cast<s32>(copy_option)) {
                 UpdateClipboard(full_item);
@@ -749,7 +753,7 @@ namespace ui {
                                 g_MainApplication->GetInstallLayout()->StartInstall(nsp_path, this->cur_exp, dst, true);
                                 g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
                             }
-                            g_MainApplication->LoadMenuHead(this->cur_exp->GetPresentableCwd());
+                            this->ResetMenuHead();
                             break;
                         }
                     }

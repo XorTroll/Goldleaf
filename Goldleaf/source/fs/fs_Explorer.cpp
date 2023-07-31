@@ -103,28 +103,6 @@ namespace fs {
         exp->EndFile();
     }
 
-    void Explorer::CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn) {
-        const auto full_path = this->MakeFull(path);
-        auto exp = GetExplorerForPath(new_path);
-        const auto full_new_path = exp->MakeFull(new_path);
-        auto work_buf = AllocateWorkBuffer();
-        auto file_size = this->GetFileSize(full_path);
-        auto rem_size = file_size;
-        u64 offset = 0;
-        this->StartFile(full_path, fs::FileMode::Read);
-        exp->StartFile(full_new_path, fs::FileMode::Write);
-        while(rem_size) {
-            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, DefaultWorkBufferSize), work_buf);
-            rem_size -= read_size;
-            offset += read_size;
-            exp->WriteFile(full_new_path, work_buf, read_size);
-            cb_fn(offset, file_size);
-        }
-        DeleteWorkBuffer(work_buf);
-        this->EndFile();
-        exp->EndFile();
-    }
-
     void Explorer::CopyDirectory(const std::string &dir, const std::string &new_dir) {
         const auto full_dir = this->MakeFull(dir);
         auto exp = GetExplorerForPath(new_dir);
@@ -144,9 +122,32 @@ namespace fs {
         }
     }
 
+    void Explorer::CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileStartCallback start_cb, CopyFileProgressCallback prog_cb) {
+        const auto full_path = this->MakeFull(path);
+        auto exp = GetExplorerForPath(new_path);
+        const auto full_new_path = exp->MakeFull(new_path);
+        auto work_buf = AllocateWorkBuffer();
+        const auto file_size = this->GetFileSize(full_path);
+        start_cb(file_size);
+        auto rem_size = file_size;
+        u64 offset = 0;
+        this->StartFile(full_path, fs::FileMode::Read);
+        exp->StartFile(full_new_path, fs::FileMode::Write);
+        while(rem_size) {
+            const auto read_size = this->ReadFile(full_path, offset, std::min(rem_size, DefaultWorkBufferSize), work_buf);
+            rem_size -= read_size;
+            offset += read_size;
+            exp->WriteFile(full_new_path, work_buf, read_size);
+            prog_cb(read_size);
+        }
+        DeleteWorkBuffer(work_buf);
+        this->EndFile();
+        exp->EndFile();
+    }
+
     namespace {
 
-        void DoCopyDirectoryProgress(Explorer *exp, u64 &cur_done_size, const u64 total_size, const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn) {
+        void DoCopyDirectoryProgress(Explorer *exp, u64 &cur_done_size, const u64 total_size, const std::string &dir, const std::string &new_dir, CopyDirectoryFileStartCallback file_start_cb, CopyDirectoryFileProgressCallback file_prog_cb) {
             const auto full_dir = exp->MakeFull(dir);
             auto new_exp = GetExplorerForPath(new_dir);
             const auto full_new_dir = new_exp->MakeFull(new_dir);
@@ -155,8 +156,10 @@ namespace fs {
             for(const auto &copy_file_name: exp->GetFiles(full_dir)) {
                 const auto copy_file = full_dir + "/" + copy_file_name;
                 const auto new_file = full_new_dir + "/" + copy_file_name;
-                exp->CopyFileProgress(copy_file, new_file, [&](const size_t cur_file_size, const size_t total_file_size) {
-                    cb_fn(cur_done_size + cur_file_size, total_size, copy_file_name, cur_file_size, total_file_size);
+                exp->CopyFileProgress(copy_file, new_file, [&](const size_t file_size) {
+                    file_start_cb(file_size, copy_file, new_file);
+                }, [&](const size_t cur_rw_size) {
+                    file_prog_cb(cur_rw_size);
                 });
                 cur_done_size += exp->GetFileSize(copy_file);
             }
@@ -164,17 +167,18 @@ namespace fs {
             for(const auto &copy_dir_name: exp->GetDirectories(full_dir)) {
                 const auto copy_dir = full_dir + "/" + copy_dir_name;
                 const auto new_dir = full_new_dir + "/" + copy_dir_name;
-                DoCopyDirectoryProgress(exp, cur_done_size, total_size, copy_dir, new_dir, cb_fn);
+                DoCopyDirectoryProgress(exp, cur_done_size, total_size, copy_dir, new_dir, file_start_cb, file_prog_cb);
             }
         }
 
     }
 
-    void Explorer::CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn) {
+    void Explorer::CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryStartCallback start_cb, CopyDirectoryFileStartCallback file_start_cb, CopyDirectoryFileProgressCallback file_prog_cb) {
         u64 cur_done_size = 0;
         const auto total_size = this->GetDirectorySize(dir);
+        start_cb(total_size);
 
-        DoCopyDirectoryProgress(this, cur_done_size, total_size, dir, new_dir, cb_fn);
+        DoCopyDirectoryProgress(this, cur_done_size, total_size, dir, new_dir, file_start_cb, file_prog_cb);
     }
 
     bool Explorer::IsFileBinary(const std::string &path) {
@@ -223,7 +227,7 @@ namespace fs {
         if(file_size > 0) {
             this->ReadFile(full_path, 0, file_size, work_buf);
         }
-        
+
         auto json = JSON::object();
         try {
             json = JSON::parse(std::string(reinterpret_cast<const char*>(work_buf), file_size));

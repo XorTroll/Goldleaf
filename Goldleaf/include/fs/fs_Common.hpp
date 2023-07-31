@@ -36,11 +36,16 @@ namespace fs {
         fsdevCreateFile(path.c_str(), 0, FsCreateOption_BigFile);
     }
 
-    using CopyFileCallback = std::function<void(const size_t, const size_t)>;
-    using CopyDirectoryCallback = std::function<void(const size_t, const size_t, const std::string&, const size_t, const size_t)>;
-    
-    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn);
-    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn);
+    using CopyFileStartCallback = std::function<void(const size_t)>;
+    using CopyFileProgressCallback = std::function<void(const size_t)>;
+
+    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileStartCallback start_cb, CopyFileProgressCallback prog_cb);
+
+    using CopyDirectoryStartCallback = std::function<void(const size_t)>;
+    using CopyDirectoryFileStartCallback = std::function<void(const size_t, const std::string&, const std::string&)>;
+    using CopyDirectoryFileProgressCallback = std::function<void(const size_t)>;
+
+    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryStartCallback start_cb, CopyDirectoryFileStartCallback file_start_cb, CopyDirectoryFileProgressCallback file_prog_cb);
     
     inline std::string GetBaseName(const std::string &path) {
         return path.substr(path.find_last_of("/") + 1);

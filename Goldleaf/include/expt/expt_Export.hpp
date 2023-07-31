@@ -24,9 +24,10 @@
 
 namespace expt {
 
-    using DecryptCallback = std::function<void(const double, const double)>;
+    using DecryptStartCallback = std::function<void(const double)>;
+    using DecryptProgressCallback = std::function<void(const double)>;
 
-    void DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptCallback cb_fn);
+    Result DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptStartCallback dec_start_cb, DecryptProgressCallback dec_prog_cb);
     std::string ExportTicketCert(const u64 app_id, const bool export_cert);
     std::string GetContentIdPath(NcmContentStorage *cnt_storage, const NcmContentId cnt_id);
 

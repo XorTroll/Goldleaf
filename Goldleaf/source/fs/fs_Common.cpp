@@ -29,7 +29,7 @@ namespace fs {
 
     }
 
-    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileCallback cb_fn) {
+    void CopyFileProgress(const std::string &path, const std::string &new_path, CopyFileStartCallback start_cb, CopyFileProgressCallback prog_cb) {
         auto exp = GetExplorerForPath(path);
         auto new_exp = GetExplorerForPath(new_path);
 
@@ -38,12 +38,12 @@ namespace fs {
         if((file_size >= 4_GB) && (new_exp == sd_exp)) {
             CreateConcatenationFile(new_path);
         }
-        exp->CopyFileProgress(path, new_path, cb_fn);
+        exp->CopyFileProgress(path, new_path, start_cb, prog_cb);
     }
 
-    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryCallback cb_fn) {
+    void CopyDirectoryProgress(const std::string &dir, const std::string &new_dir, CopyDirectoryStartCallback start_cb, CopyDirectoryFileStartCallback file_start_cb, CopyDirectoryFileProgressCallback file_prog_cb) {
         auto exp = GetExplorerForPath(dir);
-        exp->CopyDirectoryProgress(dir, new_dir, cb_fn);
+        exp->CopyDirectoryProgress(dir, new_dir, start_cb, file_start_cb, file_prog_cb);
     }
 
     u64 GetTotalSpaceForPartition(const Partition partition) {

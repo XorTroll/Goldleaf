@@ -27,8 +27,10 @@ namespace ui {
     class CopyLayout : public pu::ui::Layout {
         private:
             pu::ui::elm::ProgressBar::Ref copy_total_p_bar;
-            pu::ui::elm::TextBlock::Ref info_text;
+            pu::ui::elm::TextBlock::Ref total_info_text;
             pu::ui::elm::ProgressBar::Ref copy_file_p_bar;
+            pu::ui::elm::TextBlock::Ref file_info_text;
+            pu::ui::elm::TextBlock::Ref copy_info_text;
 
         public:
             CopyLayout();
