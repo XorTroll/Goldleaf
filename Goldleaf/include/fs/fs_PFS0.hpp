@@ -21,28 +21,51 @@
 
 #pragma once
 #include <fs/fs_FileSystem.hpp>
-#include <nsp/nsp_Types.hpp>
 
-namespace nsp {
+namespace fs {
 
     class PFS0 {
+        public:
+            struct Header {
+                u32 magic;
+                u32 file_count;
+                u32 string_table_size;
+                u32 reserved;
+            };
+            static_assert(sizeof(Header) == 0x10);
+
+            struct FileEntry {
+                u64 offset;
+                u64 size;
+                u32 string_table_offset;
+                u32 pad;
+            };
+            static_assert(sizeof(FileEntry) == 0x18);
+
+            static constexpr u32 Magic = 0x30534650; // 'PFS0'
+
+            static constexpr u32 InvalidFileIndex = UINT32_MAX;
+
+            struct File {
+                FileEntry entry;
+                std::string name;
+            };
+
         private:
             std::string path;
             fs::Explorer *exp;
             u8 *string_table;
             u32 header_size;
-            PFS0Header header;
-            std::vector<PFS0File> files;
+            Header header;
+            std::vector<File> files;
             bool ok;
 
         public:
-            static constexpr u32 InvalidFileIndex = UINT32_MAX;
-
-            NX_CONSTEXPR bool IsValidFileIndex(u32 idx) {
+            static constexpr inline bool IsValidFileIndex(u32 idx) {
                 return idx != InvalidFileIndex;
             }
             
-            NX_CONSTEXPR bool IsInvalidFileIndex(u32 idx) {
+            static constexpr inline bool IsInvalidFileIndex(u32 idx) {
                 return idx == InvalidFileIndex;
             }
 

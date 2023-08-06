@@ -19,9 +19,9 @@
 
 */
 
-#include <nsp/nsp_PFS0.hpp>
+#include <fs/fs_PFS0.hpp>
 
-namespace nsp {
+namespace fs {
 
     PFS0::PFS0(fs::Explorer *exp, const std::string &path) {
         this->path = path;
@@ -34,13 +34,13 @@ namespace nsp {
         this->exp->ReadFile(this->path, 0, sizeof(this->header), &this->header);
         if(this->header.magic == Magic) {
             this->ok = true;
-            const auto string_table_offset = sizeof(PFS0Header) + (sizeof(PFS0FileEntry) * this->header.file_count);
+            const auto string_table_offset = sizeof(Header) + (sizeof(FileEntry) * this->header.file_count);
             this->string_table = new u8[this->header.string_table_size]();
             this->header_size = string_table_offset + this->header.string_table_size;
             this->exp->ReadFile(this->path, string_table_offset, this->header.string_table_size, this->string_table);
             for(u32 i = 0; i < this->header.file_count; i++) {
-                const auto offset = sizeof(PFS0Header) + (i * sizeof(PFS0FileEntry));
-                PFS0FileEntry ent = {};
+                const auto offset = sizeof(Header) + (i * sizeof(FileEntry));
+                FileEntry ent = {};
                 this->exp->ReadFile(this->path, offset, sizeof(ent), &ent);
                 std::string name;
                 for(u32 j = ent.string_table_offset; j < this->header.string_table_size; j++) {
@@ -50,7 +50,7 @@ namespace nsp {
                     }
                     name += ch;
                 }
-                const PFS0File file = {
+                const File file = {
                     .entry = ent,
                     .name = name,
                 };

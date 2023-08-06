@@ -20,11 +20,11 @@
 */
 
 #pragma once
-#include <nsp/nsp_PFS0.hpp>
 #include <ncm/ncm_PackagedContentMeta.hpp>
 #include <es/es_Service.hpp>
 #include <ns/ns_Service.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <fs/fs_PFS0.hpp>
 #include <hos/hos_Content.hpp>
 #include <hos/hos_Titles.hpp>
 
@@ -59,7 +59,7 @@ namespace nsp {
 
     class Installer {
         private:
-            PFS0 pfs0_file;
+            fs::PFS0 pfs0_file;
             u8 keygen;
             hos::TicketFile tik_file;
             ncm::PackagedContentMeta packaged_cnt_meta;

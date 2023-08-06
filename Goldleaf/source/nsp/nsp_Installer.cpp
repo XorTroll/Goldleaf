@@ -177,9 +177,9 @@ namespace nsp {
         GLEAF_RC_TRY(ncmOpenContentMetaDatabase(&this->cnt_meta_db, this->storage_id));
 
         std::string cnmt_nca_file_name;
-        auto cnmt_nca_file_idx = PFS0::InvalidFileIndex;
+        auto cnmt_nca_file_idx = fs::PFS0::InvalidFileIndex;
         u64 cnmt_nca_file_size = 0;
-        auto tik_file_idx = PFS0::InvalidFileIndex;
+        auto tik_file_idx = fs::PFS0::InvalidFileIndex;
         tik_file_size = 0;
         const auto pfs0_files = pfs0_file.GetFiles();
         for(u32 i = 0; i < pfs0_files.size(); i++) {
@@ -199,7 +199,7 @@ namespace nsp {
                 }
             }
         }
-        GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(cnmt_nca_file_idx), rc::goldleaf::ResultMetaNotFound);
+        GLEAF_RC_UNLESS(fs::PFS0::IsValidFileIndex(cnmt_nca_file_idx), rc::goldleaf::ResultMetaNotFound);
         GLEAF_RC_UNLESS(cnmt_nca_file_size > 0, rc::goldleaf::ResultMetaNotFound);
         const auto cnmt_nca_content_id = fs::GetBaseName(cnmt_nca_file_name);
 
@@ -295,7 +295,7 @@ namespace nsp {
                 const auto control_nca_content_id = hos::ContentIdAsString(cnt.info.content_id);
                 const auto control_nca_file_name = control_nca_content_id + ".nca";
                 const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
-                if(PFS0::IsValidFileIndex(control_nca_file_idx)) {
+                if(fs::PFS0::IsValidFileIndex(control_nca_file_idx)) {
                     const auto control_nca_temp_path = nand_sys_explorer->MakeFull("Contents/temp/" + control_nca_file_name);
                     this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_temp_path);
 
@@ -394,7 +394,7 @@ namespace nsp {
         for(const auto &cnt: this->contents) {
             const auto content_file_name = hos::ContentIdAsString(cnt.content_id) + ((cnt.content_type == NcmContentType_Meta) ? ".cnmt" : "") + ".nca";
             const auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
-            GLEAF_RC_UNLESS(PFS0::IsValidFileIndex(content_file_idx), rc::goldleaf::ResultInvalidNsp);
+            GLEAF_RC_UNLESS(fs::PFS0::IsValidFileIndex(content_file_idx), rc::goldleaf::ResultInvalidNsp);
             total_size += pfs0_file.GetFileSize(content_file_idx);
             content_file_idxs.push_back(content_file_idx);
         }

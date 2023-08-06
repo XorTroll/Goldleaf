@@ -21,24 +21,25 @@
 
 #include <nsp/nsp_Builder.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <fs/fs_PFS0.hpp>
 
 namespace nsp {
 
     bool GenerateFrom(const std::string &input_path, const std::string &output_nsp, GenerateStartCallback start_cb, GenerateProgressCallback prog_cb) {
         auto exp = fs::GetExplorerForPath(input_path);
         const auto files = exp->GetFiles(input_path);
-        PFS0Header header = {
-            .magic = Magic,
+        fs::PFS0::Header header = {
+            .magic = fs::PFS0::Magic,
             .file_count = static_cast<u32>(files.size()),
         };
 
         const size_t string_table_max_size = files.size() * FS_MAX_PATH;
         auto string_table_buf = fs::AllocateWorkBuffer(string_table_max_size);
         size_t string_table_size = 0;
-        std::vector<PFS0File> file_entries;
+        std::vector<fs::PFS0::File> file_entries;
         size_t base_offset = 0;
         for(auto &file: files) {
-            PFS0File entry = {};
+            fs::PFS0::File entry = {};
             entry.entry.offset = base_offset;
             entry.entry.string_table_offset = string_table_size;
             const auto file_size = exp->GetFileSize(input_path + "/" + file);

@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <nsp/nsp_Types.hpp>
+#include <base_Common.hpp>
 
 namespace nsp {
 
