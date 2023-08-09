@@ -196,6 +196,8 @@ You also need to install libusbK drivers for USB to work fine.
 
 The best way to install Java 9 in Windows (or a very simple one) is to install [AdoptOpenJDK 11 or higher](https://adoptopenjdk.net).
 
+> Note: make sure that the JDK/JRE you choose contains JavaFX! You can always install it manually otherwise
+
 After installing it, double-clicking the JAR should be enough to start it.
 
 Otherwise, run ```java -jar Quark.jar``` in the command prompt.
