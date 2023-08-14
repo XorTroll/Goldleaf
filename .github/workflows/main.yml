@@ -15,14 +15,8 @@ jobs:
     - name: Update packages
       run: |
         sudo -n apt-get update
-        sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd
-        sudo -n apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev curl software-properties-common
-        wget https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tar.xz 
-        tar -xf Python-3.9.0.tar.xz
-        cd Python-3.9.0
-        ./configure
-        sudo make altinstall
-        python3.9 -m pip install requests
+        sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd  python3 python3-pip
+        python3 -m pip install requests
         sudo -n dkp-pacman --noconfirm -U \
           "https://wii.leseratte10.de/devkitPro/other-stuff/dkp-toolchain-vars-1.0.2-1-any.pkg.tar.xz"
 
@@ -50,8 +44,8 @@ jobs:
 
     - name: Build Goldleaf
       run: |
-        python3.9 arc/arc.py gen_db default+Goldleaf/include/base_Results.rc.hpp
-        python3.9 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
+        python3 arc/arc.py gen_db default+Goldleaf/include/base_Results.rc.hpp
+        python3 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
         make -j$(nproc)
 
     - uses: actions/upload-artifact@v3
