@@ -343,7 +343,7 @@
     "选择的文件不是有效的 NACP",
     "操作信息：",
     "按 - 键或触摸帮助按钮可打开此对话框",
-    "按 Y 键可在浏览时查看文件夹选项(不稳定)",
+    "按 Y 键可在浏览时查看文件夹选项",
     "按 X 键可 复制/粘贴 文件或文件夹",
     "按 + 键(仅 NRO 版本)可回到 hbmenu(易黑屏)",
     "按 ZL/ZR 键可打开 重启/关机 对话框",
@@ -466,11 +466,11 @@
     "查看上一个",
     "查看下一个",
     "其他",
-    "Viewing text file",
-    "Viewing binary file",
-    "Total copy progress",
-    "Current file copy progress",
-    "Another directory exists with the same name. Would you like to remove it?",
-    "Copying file...",
-    "Copying directory..."
+    "查看文本文件",
+    "查看二进制文件",
+    "总复制进度",
+    "当前文件复制进度",
+    "存在同名文件夹。需要删除该文件夹吗？",
+    "正在复制文件...",
+    "正在复制文件夹..."
 ]
