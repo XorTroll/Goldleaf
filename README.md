@@ -22,10 +22,10 @@
   <a title="Patreon" href="https://www.patreon.com/xortroll">
     <img alt="Patreon" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3DXorTroll%26type%3Dpatrons&style=for-the-badge"/>
   </a>
-  <a href="https://github.com/sponsors/XorTroll">
+  <a title="GitHub sponsors" href="https://github.com/sponsors/XorTroll">
     <img alt="GitHub sponsors" src="https://img.shields.io/github/sponsors/XorTroll?label=Sponsor&logo=GitHub&style=for-the-badge"/>
   </a>
-  <a href="https://www.paypal.com/donate/?hosted_button_id=PHQKFTY9AHPUU">
+  <a title="PayPal" href="https://www.paypal.com/donate/?hosted_button_id=PHQKFTY9AHPUU">
     <img alt="PayPal" src="https://img.shields.io/badge/Donate-PayPal-green.svg?style=for-the-badge"/>
   </a>
 </p>
@@ -36,6 +36,8 @@ Table of contents
 
 - [Features](#features)
   - [Controls](#controls)
+- [Frequently asked questions](#frequently-asked-questions)
+  - [NSP installs](#nsp-installs)
 - [Disclaimer](#disclaimer)
   - [NSP installing](#nsp-installing)
   - [Tickets](#tickets)
@@ -170,6 +172,36 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - **(Y)**: Select folder (might take a bit of time with folders with many sub-items)
 
+## Frequently asked questions
+
+Make sure you check these before making an issue!
+
+### NSP installs
+
+- **I keep getting 'invalid NCA'/'missing sigpatches' or weird FS/ETicket errors...**
+
+  Check the following:
+
+  - The NSP is converted from XCI (using tools like 4NXCI)? Then you need extra patches.
+  
+  - Do you have all the required patches?
+
+    If you have just updated to a new console version and this error happens, try to redownload them.
+
+- **Goldleaf freezes and Quark doesn't respond/complains when I launch it...**
+
+  - Do you have USB set-up correctly? Check how to do so [here](#quark-and-remote-browsing).
+
+    - If you do have USB corrently set-up, Quark shouldn't complain. If it does, try doing the setup again to ensure it is done fine.
+
+  - Also, make sure you're launching Quark **after having launched Goldleaf. Goldleaf needs to be opened first.**
+
+  - Are you using the latest version of both Goldleaf and Quark? Double-check it just in case, since this is a very common mistake.
+
+- **I can't launch Quark / Quark is giving me errors on Linux...**
+
+  - Quark is a little bit fucky on Linux. Make sure to check [the setup](#linux) for some more information about the matter.
+
 ## Disclaimer
 
 ### NSP installing
@@ -226,7 +258,7 @@ Install OpenJDK 11 (or higher) in the terminal:
 
 - Create the file ```/etc/udev/rules.d/99-switch.rules``` with the following contents: ```SUBSYSTEM=="usb", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="3000", GROUP="plugdev"```
 
-- Reload udev rules with: ```sudo udevadm control --reload-rules```
+- Reload udev rules with: ```sudo udevadm control --reload-rules && sudo udevadm trigger```
 
 Now you can run Quark using ```java -jar Quark.jar```.
 
