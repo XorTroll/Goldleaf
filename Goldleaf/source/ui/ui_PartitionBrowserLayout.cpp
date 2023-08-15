@@ -33,6 +33,10 @@ namespace ui {
 
         std::stack<u32> g_EntryIndexStack;
 
+        inline bool IsHiddenContent(const std::string &path) {
+            return !path.empty() && (path[0] == '.');
+        }
+
     }
 
     PartitionBrowserLayout::PartitionBrowserLayout() : pu::ui::Layout() {
@@ -100,6 +104,10 @@ namespace ui {
         this->empty_dir_text->SetVisible(contents.empty());
         if(!contents.empty()) {
             for(const auto &item: contents) {
+                if(g_Settings.ignore_hidden_files && IsHiddenContent(item)) {
+                    continue;
+                }
+
                 auto menu_item = pu::ui::elm::MenuItem::New(item);
                 menu_item->SetColor(g_Settings.custom_scheme.text);
                 if(this->cur_exp->IsDirectory(item)) {
@@ -630,6 +638,10 @@ namespace ui {
             const auto files = this->cur_exp->GetFiles(full_item);
             std::vector<std::string> nsps;
             for(const auto &file: files) {
+                if(g_Settings.ignore_hidden_files && IsHiddenContent(file)) {
+                    continue;
+                }
+
                 const auto path = full_item + "/" + file;
                 const auto ext = LowerCaseString(fs::GetExtension(path));
                 if(ext == "nsp") {

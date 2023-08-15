@@ -30,6 +30,7 @@ namespace ui {
             pu::ui::elm::MenuItem::Ref custom_lang_item;
             pu::ui::elm::MenuItem::Ref ignore_required_fw_version_item;
             pu::ui::elm::MenuItem::Ref use_12h_time_item;
+            pu::ui::elm::MenuItem::Ref ignore_hidden_files_item;
 
         public:
             OwnSettingsLayout();
@@ -39,6 +40,7 @@ namespace ui {
             void custom_lang_DefaultKey();
             void ignore_required_fw_version_DefaultKey();
             void use_12h_time_DefaultKey();
+            void ignore_hidden_files_DefaultKey();
     };
 
 }

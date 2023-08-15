@@ -34,20 +34,26 @@ namespace cfg {
     bool has_##name;
 
     struct Settings {
+        // General
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(Language, custom_lang)
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(std::string, external_romfs)
         bool use_12h_time;
+        bool ignore_hidden_files;
         
+        // UI
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
         u32 menu_item_size;
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
         _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
         
+        // Installs
         bool ignore_required_fw_ver;
         size_t copy_buffer_max_size;
 
+        // Export
         size_t decrypt_buffer_max_size;
 
+        // Web
         std::vector<WebBookmark> bookmarks;
 
         void Save();

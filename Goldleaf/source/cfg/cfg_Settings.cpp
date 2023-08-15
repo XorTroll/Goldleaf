@@ -61,6 +61,7 @@ namespace cfg {
             json["general"]["externalRomFs"] = this->external_romfs;
         }
         json["general"]["use12hTime"] = this->use_12h_time;
+        json["general"]["ignoreHiddenFiles"] = this->ignore_hidden_files;
         
         if(this->has_custom_scheme) {
             json["ui"]["base"] = ColorToHex(this->custom_scheme.base);
@@ -135,6 +136,7 @@ namespace cfg {
         settings.has_custom_lang = false;
         settings.has_external_romfs = false;
         settings.use_12h_time = false;
+        settings.ignore_hidden_files = false;
 
         settings.has_custom_scheme = false;
         settings.menu_item_size = 80;
@@ -174,6 +176,7 @@ namespace cfg {
             }
 
             settings.use_12h_time = settings_json["general"].value("use12hTime", settings.use_12h_time);
+            settings.ignore_hidden_files = settings_json["general"].value("ignoreHiddenFiles", settings.ignore_hidden_files);
         }
 
         if(settings_json.count("ui")) {

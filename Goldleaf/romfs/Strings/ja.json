@@ -472,5 +472,6 @@
     "Current file copy progress",
     "Another directory exists with the same name. Would you like to remove it?",
     "Copying file...",
-    "Copying directory..."
+    "Copying directory...",
+    "Ignore hidden files/directories"
 ]

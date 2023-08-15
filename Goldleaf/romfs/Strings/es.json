@@ -472,5 +472,6 @@
     "Progreso de copia de archivo actual",
     "Ya existe otra carpeta con el mismo nombre. ¿Le gustaría eliminarla?",
     "Copiando archivo...",
-    "Copiando carpeta..."
+    "Copiando carpeta...",
+    "Ignorar archivos/carpetas ocultas"
 ]

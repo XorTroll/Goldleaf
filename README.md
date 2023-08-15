@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a title="b" href="https://www.patreon.com/xortroll">
+  <a title="Patreon" href="https://www.patreon.com/xortroll">
     <img alt="Patreon" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3DXorTroll%26type%3Dpatrons&style=for-the-badge"/>
   </a>
   <a href="https://github.com/sponsors/XorTroll">

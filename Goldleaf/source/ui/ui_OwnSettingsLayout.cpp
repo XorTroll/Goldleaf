@@ -71,10 +71,17 @@ namespace ui {
         this->use_12h_time_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
         this->use_12h_time_item->SetColor(g_Settings.custom_scheme.text);
         this->use_12h_time_item->AddOnKey(std::bind(&OwnSettingsLayout::use_12h_time_DefaultKey, this));
+
+        const auto ignore_hidden_files_name = cfg::Strings.GetString(474) + ": " + (g_Settings.ignore_hidden_files ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        this->ignore_hidden_files_item = pu::ui::elm::MenuItem::New(ignore_hidden_files_name);
+        this->ignore_hidden_files_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
+        this->ignore_hidden_files_item->SetColor(g_Settings.custom_scheme.text);
+        this->ignore_hidden_files_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_hidden_files_DefaultKey, this));
         
         this->settings_menu->AddItem(this->custom_lang_item);
         this->settings_menu->AddItem(this->ignore_required_fw_version_item);
         this->settings_menu->AddItem(this->use_12h_time_item);
+        this->settings_menu->AddItem(this->ignore_hidden_files_item);
 
         if(!reset_selected_idx) {
             this->settings_menu->SetSelectedIndex(old_idx);
@@ -108,6 +115,11 @@ namespace ui {
 
     void OwnSettingsLayout::use_12h_time_DefaultKey() {
         g_Settings.use_12h_time = !g_Settings.use_12h_time;
+        SaveChanges(false);
+    }
+
+    void OwnSettingsLayout::ignore_hidden_files_DefaultKey() {
+        g_Settings.ignore_hidden_files = !g_Settings.ignore_hidden_files;
         SaveChanges(false);
     }
 
