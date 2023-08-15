@@ -49,6 +49,7 @@ namespace cfg {
         // Installs
         bool ignore_required_fw_ver;
         size_t copy_buffer_max_size;
+        bool show_deletion_prompt_after_install;
 
         // Export
         size_t decrypt_buffer_max_size;

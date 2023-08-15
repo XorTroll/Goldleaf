@@ -473,5 +473,6 @@
     "存在同名文件夹。需要删除该文件夹吗？",
     "正在复制文件...",
     "正在复制文件夹...",
-    "Ignore hidden files/directories"
+    "Ignore hidden files/directories",
+    "Show deletion prompt after NSP installs"
 ]

@@ -473,5 +473,6 @@
     "Ya existe otra carpeta con el mismo nombre. ¿Le gustaría eliminarla?",
     "Copiando archivo...",
     "Copiando carpeta...",
-    "Ignorar archivos/carpetas ocultas"
+    "Ignorar archivos/carpetas ocultas",
+    "Mostrar diálogo de eliminación tras instalar NSPs"
 ]

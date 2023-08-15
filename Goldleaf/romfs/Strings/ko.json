@@ -473,5 +473,6 @@
     "같은 이름의 다른 디렉터리가 있습니다. 제거하겠습니까?",
     "파일 복사 중...",
     "디렉터리 복사 중...",
-    "Ignore hidden files/directories"
+    "Ignore hidden files/directories",
+    "Show deletion prompt after NSP installs"
 ]

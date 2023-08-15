@@ -473,5 +473,6 @@
     "Another directory exists with the same name. Would you like to remove it?",
     "Copying file...",
     "Copying directory...",
-    "Ignore hidden files/directories"
+    "Ignore hidden files/directories",
+    "Show deletion prompt after NSP installs"
 ]

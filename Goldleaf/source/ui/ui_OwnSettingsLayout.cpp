@@ -60,12 +60,6 @@ namespace ui {
         this->custom_lang_item->SetColor(g_Settings.custom_scheme.text);
         this->custom_lang_item->AddOnKey(std::bind(&OwnSettingsLayout::custom_lang_DefaultKey, this));
 
-        const auto ignore_required_fw_version_item_name = cfg::Strings.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
-        this->ignore_required_fw_version_item = pu::ui::elm::MenuItem::New(ignore_required_fw_version_item_name);
-        this->ignore_required_fw_version_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
-        this->ignore_required_fw_version_item->SetColor(g_Settings.custom_scheme.text);
-        this->ignore_required_fw_version_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_required_fw_version_DefaultKey, this));
-
         const auto use_12h_time_name = cfg::Strings.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->use_12h_time_item = pu::ui::elm::MenuItem::New(use_12h_time_name);
         this->use_12h_time_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
@@ -79,9 +73,23 @@ namespace ui {
         this->ignore_hidden_files_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_hidden_files_DefaultKey, this));
         
         this->settings_menu->AddItem(this->custom_lang_item);
-        this->settings_menu->AddItem(this->ignore_required_fw_version_item);
         this->settings_menu->AddItem(this->use_12h_time_item);
         this->settings_menu->AddItem(this->ignore_hidden_files_item);
+
+        const auto ignore_required_fw_version_item_name = cfg::Strings.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        this->ignore_required_fw_version_item = pu::ui::elm::MenuItem::New(ignore_required_fw_version_item_name);
+        this->ignore_required_fw_version_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
+        this->ignore_required_fw_version_item->SetColor(g_Settings.custom_scheme.text);
+        this->ignore_required_fw_version_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_required_fw_version_DefaultKey, this));
+
+        const auto show_deletion_prompt_after_install_name = cfg::Strings.GetString(475) + ": " + (g_Settings.show_deletion_prompt_after_install ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        this->show_deletion_prompt_after_install_item = pu::ui::elm::MenuItem::New(show_deletion_prompt_after_install_name);
+        this->show_deletion_prompt_after_install_item->SetIcon(g_Settings.PathForResource("/Common/Settings.png"));
+        this->show_deletion_prompt_after_install_item->SetColor(g_Settings.custom_scheme.text);
+        this->show_deletion_prompt_after_install_item->AddOnKey(std::bind(&OwnSettingsLayout::show_deletion_prompt_after_install_DefaultKey, this));
+
+        this->settings_menu->AddItem(this->ignore_required_fw_version_item);
+        this->settings_menu->AddItem(this->show_deletion_prompt_after_install_item);
 
         if(!reset_selected_idx) {
             this->settings_menu->SetSelectedIndex(old_idx);
@@ -108,11 +116,6 @@ namespace ui {
         }
     }
 
-    void OwnSettingsLayout::ignore_required_fw_version_DefaultKey() {
-        g_Settings.ignore_required_fw_ver = !g_Settings.ignore_required_fw_ver;
-        SaveChanges(false);
-    }
-
     void OwnSettingsLayout::use_12h_time_DefaultKey() {
         g_Settings.use_12h_time = !g_Settings.use_12h_time;
         SaveChanges(false);
@@ -120,6 +123,16 @@ namespace ui {
 
     void OwnSettingsLayout::ignore_hidden_files_DefaultKey() {
         g_Settings.ignore_hidden_files = !g_Settings.ignore_hidden_files;
+        SaveChanges(false);
+    }
+
+    void OwnSettingsLayout::ignore_required_fw_version_DefaultKey() {
+        g_Settings.ignore_required_fw_ver = !g_Settings.ignore_required_fw_ver;
+        SaveChanges(false);
+    }
+
+    void OwnSettingsLayout::show_deletion_prompt_after_install_DefaultKey() {
+        g_Settings.show_deletion_prompt_after_install = !g_Settings.show_deletion_prompt_after_install;
         SaveChanges(false);
     }
 

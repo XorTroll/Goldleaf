@@ -77,6 +77,7 @@ namespace cfg {
         }
 
         json["installs"]["ignoreRequiredFwVersion"] = this->ignore_required_fw_ver;
+        json["installs"]["showDeletionPromptAfterInstall"] = this->show_deletion_prompt_after_install;
         json["installs"]["copyBufferMaxSize"] = this->copy_buffer_max_size;
 
         json["export"]["decryptBufferMaxSize"] = this->decrypt_buffer_max_size;
@@ -144,6 +145,7 @@ namespace cfg {
         settings.has_progressbar_color = false;
 
         settings.ignore_required_fw_ver = true;
+        settings.show_deletion_prompt_after_install = false;
         settings.copy_buffer_max_size = 4_MB;
 
         settings.decrypt_buffer_max_size = 16_MB;
@@ -214,6 +216,7 @@ namespace cfg {
         }
         if(settings_json.count("installs")) {
             settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", settings.ignore_required_fw_ver);
+            settings.show_deletion_prompt_after_install = settings_json["installs"].value("showDeletionPromptAfterInstall", settings.show_deletion_prompt_after_install);
             settings.copy_buffer_max_size = settings_json["installs"].value("copyBufferMaxSize", settings.copy_buffer_max_size);
         }
         if(settings_json.count("export")) {

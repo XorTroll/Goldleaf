@@ -471,7 +471,9 @@ namespace ui {
             hos::NotifyTitlesChanged(storage_id);
             g_MainApplication->ShowNotification(cfg::Strings.GetString(150));
 
-            g_MainApplication->GetBrowserLayout()->PromptDeleteFile(path);
+            if(g_Settings.show_deletion_prompt_after_install) {
+                g_MainApplication->GetBrowserLayout()->PromptDeleteFile(path);
+            }
         }
     }
 
