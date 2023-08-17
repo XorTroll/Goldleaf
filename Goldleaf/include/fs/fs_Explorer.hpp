@@ -37,10 +37,11 @@ namespace fs {
             std::string mnt_name;
             std::string cwd;
             bool warn_write;
+            bool block_write;
             FileMode started_file_mode;
 
         public:
-            Explorer() : warn_write(false), started_file_mode(FileMode::None) {}
+            Explorer() : warn_write(false), block_write(false), started_file_mode(FileMode::None) {}
             virtual ~Explorer() {}
 
             void SetNames(const std::string &mount_name, const std::string &display_name);
@@ -148,6 +149,14 @@ namespace fs {
 
             inline bool ShouldWarnOnWriteAccess() {
                 return this->warn_write;
+            }
+
+            inline void SetWriteAccessBlocked(const bool should_warn) {
+                this->block_write = should_warn;
+            }
+
+            inline bool IsWriteAccessBlocked() {
+                return this->block_write;
             }
 
             virtual std::vector<std::string> GetDirectories(const std::string &path) = 0;

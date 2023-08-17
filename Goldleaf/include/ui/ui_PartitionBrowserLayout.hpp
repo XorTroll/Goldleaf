@@ -44,7 +44,7 @@ namespace ui {
             void HandleFileDirectly(const std::string &path);
             void PromptDeleteFile(const std::string &path);
             bool GoBack();
-            bool WarnWriteAccess();
+            bool CheckWriteAccess();
             void fsItems_DefaultKey(const std::string &item);
             void fsItems_Y(const std::string &item);
             

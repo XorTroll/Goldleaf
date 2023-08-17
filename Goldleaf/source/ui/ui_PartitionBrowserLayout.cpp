@@ -189,7 +189,7 @@ namespace ui {
     }
 
     void PartitionBrowserLayout::PromptDeleteFile(const std::string &path) {
-        if(this->WarnWriteAccess()) {
+        if(this->CheckWriteAccess()) {
             const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(127), cfg::Strings.GetString(128), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option < 0) {
                 return;
@@ -209,12 +209,18 @@ namespace ui {
         return this->cur_exp->NavigateBack();
     }
 
-    bool PartitionBrowserLayout::WarnWriteAccess() {
-        if(!this->cur_exp->ShouldWarnOnWriteAccess()) {
+    bool PartitionBrowserLayout::CheckWriteAccess() {
+        if(this->cur_exp->IsWriteAccessBlocked()) {
+            g_MainApplication->ShowNotification(cfg::Strings.GetString(476));
+            return false;
+        }
+        else if(this->cur_exp->ShouldWarnOnWriteAccess()) {
+            const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(50), cfg::Strings.GetString(51), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+            return option == 0;
+        }
+        else {
             return true;
         }
-        const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(50), cfg::Strings.GetString(51), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
-        return option == 0;
     }
 
     void PartitionBrowserLayout::fsItems_DefaultKey(const std::string &item) {
@@ -373,7 +379,7 @@ namespace ui {
                             const auto rc = romfsMountFromFsdev(full_item.c_str(), romfs_offset, mnt_name.c_str());
                             if(R_SUCCEEDED(rc)) {
                                 auto romfs_exp = new fs::RomFsExplorer("NroRomFs-" + romfs_id, mnt_name, true);
-                                romfs_exp->SetShouldWarnOnWriteAccess(true);
+                                romfs_exp->SetWriteAccessBlocked(true);
                                 g_MainApplication->GetExploreMenuLayout()->AddMountedExplorer(romfs_exp, "RomFs (" + fs::GetBaseName(full_item) + ")", g_Settings.PathForResource("/Common/NAND.png"));
                                 g_MainApplication->ShowNotification(cfg::Strings.GetString(454));
                             }
@@ -606,19 +612,21 @@ namespace ui {
                 this->PromptDeleteFile(full_item);
             }
             else if(option_1 == static_cast<s32>(rename_option)) {
-                const auto new_name = ShowKeyboard(cfg::Strings.GetString(130), item);
-                if(!new_name.empty()) {
-                    if(new_name == item) {
-                        return;
-                    }
-                    const auto new_path = this->cur_exp->FullPathFor(new_name);
-                    if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
-                        HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::Strings.GetString(254));
-                    }
-                    else if(this->WarnWriteAccess()) {
-                        this->cur_exp->RenameFile(full_item, new_path);
-                        g_MainApplication->ShowNotification(cfg::Strings.GetString(133));
-                        this->UpdateElements(this->browse_menu->GetSelectedIndex());
+                if(this->CheckWriteAccess()) {
+                    const auto new_name = ShowKeyboard(cfg::Strings.GetString(130), item);
+                    if(!new_name.empty()) {
+                        if(new_name == item) {
+                            return;
+                        }
+                        const auto new_path = this->cur_exp->FullPathFor(new_name);
+                        if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
+                            HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::Strings.GetString(254));
+                        }
+                        else {
+                            this->cur_exp->RenameFile(full_item, new_path);
+                            g_MainApplication->ShowNotification(cfg::Strings.GetString(133));
+                            this->UpdateElements(this->browse_menu->GetSelectedIndex());
+                        }
                     }
                 }
             }
@@ -705,7 +713,7 @@ namespace ui {
                     break;
                 }
                 case 2: {
-                    if(this->WarnWriteAccess()) {
+                    if(this->CheckWriteAccess()) {
                         const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(325), cfg::Strings.GetString(326), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                         if(option_2 < 0) {
                             return;
@@ -717,20 +725,22 @@ namespace ui {
                     break;
                 }
                 case 3: {
-                    const auto new_name = ShowKeyboard(cfg::Strings.GetString(238), item);
-                    if(!new_name.empty()) {
-                        if(new_name == item) {
-                            // TODO: special handling?
-                            return;
-                        }
-                        const auto new_path = this->cur_exp->FullPathFor(new_name);
-                        if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
-                            HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::Strings.GetString(254));
-                        }
-                        else if(this->WarnWriteAccess()) {
-                            this->cur_exp->RenameDirectory(full_item, new_path);
-                            g_MainApplication->ShowNotification(cfg::Strings.GetString(139));
-                            this->UpdateElements();
+                    if(this->CheckWriteAccess())  {
+                        const auto new_name = ShowKeyboard(cfg::Strings.GetString(238), item);
+                        if(!new_name.empty()) {
+                            if(new_name == item) {
+                                // TODO: special handling?
+                                return;
+                            }
+                            const auto new_path = this->cur_exp->FullPathFor(new_name);
+                            if(this->cur_exp->IsFile(new_path) || this->cur_exp->IsDirectory(new_path)) {
+                                HandleResult(rc::goldleaf::ResultEntryAlreadyPresent, cfg::Strings.GetString(254));
+                            }
+                            else {
+                                this->cur_exp->RenameDirectory(full_item, new_path);
+                                g_MainApplication->ShowNotification(cfg::Strings.GetString(139));
+                                this->UpdateElements();
+                            }
                         }
                     }
                     break;

@@ -474,5 +474,6 @@
     "Copiando archivo...",
     "Copiando carpeta...",
     "Ignorar archivos/carpetas ocultas",
-    "Mostrar diálogo de eliminación tras instalar NSPs"
+    "Mostrar diálogo de eliminación tras instalar NSPs",
+    "El acceso a escritura está bloqueado aquí..."
 ]

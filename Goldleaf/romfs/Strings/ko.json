@@ -474,5 +474,6 @@
     "파일 복사 중...",
     "디렉터리 복사 중...",
     "Ignore hidden files/directories",
-    "Show deletion prompt after NSP installs"
+    "Show deletion prompt after NSP installs",
+    "Write access is blocked here..."
 ]

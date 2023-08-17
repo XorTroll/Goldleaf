@@ -474,5 +474,6 @@
     "Copying file...",
     "Copying directory...",
     "Ignore hidden files/directories",
-    "Show deletion prompt after NSP installs"
+    "Show deletion prompt after NSP installs",
+    "Write access is blocked here..."
 ]

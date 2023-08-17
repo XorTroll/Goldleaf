@@ -474,5 +474,6 @@
     "正在复制文件...",
     "正在复制文件夹...",
     "Ignore hidden files/directories",
-    "Show deletion prompt after NSP installs"
+    "Show deletion prompt after NSP installs",
+    "Write access is blocked here..."
 ]
