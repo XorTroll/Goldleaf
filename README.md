@@ -350,7 +350,7 @@ You will also need to install the following packages with devkitPro's pacman:
 
 Remember to clone this repository recursively (`git clone <this-repo-url> --recurse-submodules`) since Goldleaf makes use of submodules.
 
-In order to build Goldleaf, run `make setup` (for the first time, just `make` for the following builds) and wait for it to finish building.
+In order to build Goldleaf, run `make setup` (only for the first time), then just run `make` (or `make dev` for a dev version) and wait for it to finish building.
 
 In order to build Quark, just execute the `build.sh` script in its directory.
 

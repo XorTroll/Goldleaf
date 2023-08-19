@@ -51,8 +51,7 @@ VER_MICRO	:= 0
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
-# "-dev" prefix is manually appended when a new version is under development
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-dev
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)$(DEV_PREFIX)
 
 #---------------------------------------------------------------------------------
 # options for code generation

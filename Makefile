@@ -1,11 +1,16 @@
-# Note: run 'make setup' for the first time (to install libusbhsfs packages), after that simply run 'make' to avoid unnecessary recompiles
+# Note: for the first time, run 'make setup' first (to install libusbhsfs packages), after that simply run 'make' or 'make dev' to build the project
 
-.PHONY: all allclean clean libclean setup arc
+.PHONY: all dev allclean clean libclean setup arc
 
 all:
 	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
 	@$(MAKE) -C Plutonium/
 	@$(MAKE) -C Goldleaf/
+
+dev:
+	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
+	@$(MAKE) -C Plutonium/
+	@$(MAKE) -C Goldleaf/ DEV_PREFIX=-dev
 
 arc:
 	@python arc/arc.py gen_db default+$(CURDIR)/Goldleaf/include/base_Results.rc.hpp
@@ -13,9 +18,6 @@ arc:
 
 setup: arc
 	@$(MAKE) -C libusbhsfs/ fs-libs
-	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
-	@$(MAKE) -C Plutonium/
-	@$(MAKE) -C Goldleaf/
 
 allclean: libclean clean
 
