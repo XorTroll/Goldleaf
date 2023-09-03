@@ -30,29 +30,48 @@
   </a>
 </p>
 
+<p align="center">
+  <a title="Ko-fi" href='https://ko-fi.com/xortroll' target='_blank'>
+    <img alt="Ko-fi" height='35' style='border:0px;height:46px;' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' border='0'/>
+  </a>
+</p>
+
+# Goldleaf
+
+[![LatestVer](https://img.shields.io/github/release-pre/xortroll/goldleaf.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) [![Releases](https://img.shields.io/github/downloads/xortroll/goldleaf/total.svg)](https://github.com/XorTroll/Goldleaf/releases/latest) ![License](https://img.shields.io/badge/License-GPLv3-blue.svg) **(thanks for 1M downloads 💜)**
+
+> Goldleaf is multipurpose homebrew tool for Nintendo Switch.
+
+<img src="Screenshots/Goldleaf.1.jpg" alt="drawing" width="auto"/>
+
+<img src="Screenshots/Goldleaf.2.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.3.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.4.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.5.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.6.jpg" alt="drawing" width="250"/>
+
+<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
+
 <h3>
 Table of contents
 </h3>
 
-- [Features](#features)
-  - [Controls](#controls)
-- [Frequently asked questions](#frequently-asked-questions)
-  - [NSP installs](#nsp-installs)
-- [Disclaimer](#disclaimer)
-  - [NSP installing](#nsp-installing)
-  - [Tickets](#tickets)
-- [Quark and remote browsing](#quark-and-remote-browsing)
-  - [Windows](#windows)
-  - [Linux](#linux)
-  - [Mac](#mac)
-- [Settings](#settings)
-  - [Sample](#sample)
-  - [Notes](#notes)
-- [Known bugs](#known-bugs)
-- [Building](#building)
-- [Contributing](#contributing)
-  - [Translations](#translations)
-- [Credits](#credits)
+- [Goldleaf](#goldleaf)
+  - [Features](#features)
+    - [Controls](#controls)
+  - [Frequently asked questions](#frequently-asked-questions)
+    - [NSP installs](#nsp-installs)
+  - [Disclaimer](#disclaimer)
+    - [NSP installing](#nsp-installing)
+    - [Tickets](#tickets)
+  - [Quark and remote browsing](#quark-and-remote-browsing)
+    - [Windows](#windows)
+    - [Linux](#linux)
+    - [Mac](#mac)
+  - [Settings](#settings)
+    - [Sample](#sample)
+    - [Notes](#notes)
+  - [Known bugs](#known-bugs)
+  - [Building](#building)
+  - [Contributing](#contributing)
+    - [Translations](#translations)
+  - [Credits](#credits)
 
 ## Features
 
