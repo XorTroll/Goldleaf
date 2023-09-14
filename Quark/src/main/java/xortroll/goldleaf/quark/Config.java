@@ -24,31 +24,34 @@ package xortroll.goldleaf.quark;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
 public class Config {
-    public static String ConfigPathName = "quark-config.cfg";
-    public static String ConfigPath = ConfigPathName;
+    public static Path ConfigPath;
     private Properties inner_cfg;
     private File cfg_file;
 
-    static {
-        try {
-            ConfigPath = Paths.get(new File(Config.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath(), ConfigPathName).toString();
-        }
-        catch(Exception e) {
-            ConfigPath = ConfigPathName;
-        }
-    }
-
     public Config() throws Exception {
+        if(ConfigPath == null) {
+            String configHome = System.getenv("XDG_CONFIG_HOME");
+            if (configHome == null || configHome.trim().length() == 0) {
+                configHome = System.getProperty("user.home") + File.separator + ".config";
+            }
+            Path quarkConfigDirPath = Paths.get(configHome, "quark");
+            if (Files.notExists(quarkConfigDirPath)) {
+                Files.createDirectories(quarkConfigDirPath);
+            }
+            ConfigPath = quarkConfigDirPath.resolve("quark-config.cfg");
+        }
         this.inner_cfg = new Properties();
         reloadConfigFile();
     }
 
     public void reloadConfigFile() throws Exception {
-        this.cfg_file = Paths.get(ConfigPath).toFile();
+        this.cfg_file = ConfigPath.toFile();
         if(this.cfg_file.isFile()) {
             this.inner_cfg.load(new FileInputStream(this.cfg_file));
         }
