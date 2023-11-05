@@ -48,7 +48,7 @@ import xortroll.goldleaf.quark.usb.cf.CommandFramework;
 import xortroll.goldleaf.quark.usb.cmd.CommandBlock;
 
 public class MainApplication extends Application {
-    public static final Version CurrentVersion = new Version(0, 10, 1);
+    public static final Version CurrentVersion = new Version(1, 0, 0);
 
     private static Config special_path_cfg;
     private static Object special_path_cfg_lock;
