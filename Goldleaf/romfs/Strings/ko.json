@@ -473,7 +473,7 @@
     "같은 이름의 다른 디렉터리가 있습니다. 제거하겠습니까?",
     "파일 복사 중...",
     "디렉터리 복사 중...",
-    "Ignore hidden files/directories",
-    "Show deletion prompt after NSP installs",
-    "Write access is blocked here..."
+    "숨겨진 파일/디렉토리 무시",
+    "NSP 설치 후 삭제 프롬프트 표시",
+    "쓰기 접속이 차단되었습니다..."
 ]
