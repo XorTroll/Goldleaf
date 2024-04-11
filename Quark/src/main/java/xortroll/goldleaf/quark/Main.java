@@ -21,6 +21,7 @@
 
 package xortroll.goldleaf.quark;
 
+import java.nio.file.Paths;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -38,7 +39,7 @@ public class Main {
         try {
             CommandLine cmd = parser.parse(options, args);
             if(cmd.hasOption(ConfigFileOption)) {
-                Config.ConfigPath = cmd.getOptionValue(ConfigFileOption);
+                Config.ConfigPath = Paths.get(cmd.getOptionValue(ConfigFileOption));
             }
         }
         catch(Exception e) {

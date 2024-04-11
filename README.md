@@ -30,6 +30,18 @@
   </a>
 </p>
 
+<p align="center">
+  <a title="Ko-fi" href='https://ko-fi.com/xortroll' target='_blank'>
+    <img alt="Ko-fi" height='35' style='border:0px;height:46px;' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' border='0'/>
+  </a>
+</p>
+
+<img src="Screenshots/Goldleaf.1.jpg" alt="drawing" width="auto"/>
+
+<img src="Screenshots/Goldleaf.2.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.3.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.4.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.5.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.6.jpg" alt="drawing" width="250"/>
+
+<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
+
 <h3>
 Table of contents
 </h3>
