@@ -231,8 +231,8 @@ struct Version {
 };
 
 Result Initialize();
-void NORETURN Close(const Result rc);
-void NORETURN Exit(const Result rc);
+void NX_NORETURN Close(const Result rc);
+void NX_NORETURN Exit(const Result rc);
 
 inline ExecutableMode GetExecutableMode() {
     return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;

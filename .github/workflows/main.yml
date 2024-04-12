@@ -8,7 +8,7 @@ jobs:
     container: devkitpro/devkita64:latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@master
       with:
         submodules: recursive
 
@@ -38,9 +38,7 @@ jobs:
     - name: Build libusbhsfs dependencies
       run: |
         cd libusbhsfs
-        cd libntfs-3g; su -s /bin/bash nobody -c "dkp-makepkg -c -C -f" > /dev/null; sudo -n dkp-pacman -U --needed --noconfirm *.pkg.tar.* > /dev/null; cd ..
-        cd liblwext4; su -s /bin/bash nobody -c "dkp-makepkg -c -C -f" > /dev/null; sudo -n dkp-pacman -U --needed --noconfirm *.pkg.tar.* > /dev/null; cd ..
-        make BUILD_TYPE=GPL release
+        make BUILD_TYPE=GPL install -j$(nproc)
 
     - name: Build Goldleaf
       run: |
@@ -48,7 +46,7 @@ jobs:
         python3 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/base_Results.gen.hpp
         make -j$(nproc)
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@master
       with:
         name: Goldleaf
         path: Goldleaf/Goldleaf.nro
