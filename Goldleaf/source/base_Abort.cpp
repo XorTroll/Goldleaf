@@ -36,7 +36,7 @@ extern "C" {
 
     // This way, any kind of result abort by us or libnx gets saved to a simple report, and Goldleaf simply closes itself
 
-    NORETURN void diagAbortWithResult(Result rc) {
+    NX_NORETURN void diagAbortWithResult(Result rc) {
         const auto crash_log_file = "fatal_" + hos::FormatHex(rc) + ".log";
         std::string crash_data = "\nGoldleaf fatal report\n\n";
         crash_data += " - Goldleaf version: " GOLDLEAF_VERSION "\n - Current time: " + hos::GetCurrentTime(false) + "\n - Fatal result: " + hos::FormatHex(rc);

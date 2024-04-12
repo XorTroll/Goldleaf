@@ -74,7 +74,7 @@ LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lusbhsfs -lntfs-3g -l
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium $(CURDIR)/../libusbhsfs
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) /run/media/xor/MDA/Nintendo/Switch/Proyectos/Plutonium/Plutonium $(CURDIR)/../libusbhsfs
 
 
 #---------------------------------------------------------------------------------

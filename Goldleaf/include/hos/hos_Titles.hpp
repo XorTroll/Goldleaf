@@ -46,6 +46,7 @@ namespace hos {
         RSA_4096_SHA256 = 0x10003,
         RSA_2048_SHA256 = 0x10004,
         ECDSA_SHA256 = 0x10005,
+        HMAC_SHA1_160 = 0x10006
     };
 
     inline constexpr bool IsValidTicketSignature(const TicketSignature sig) {
@@ -147,18 +148,30 @@ namespace hos {
         std::string ToString() const;
     };
 
+    enum class TicketFlags : u8 {
+        PreInstalled = BIT(0),
+        Shared = BIT(1),
+        AllContents = BIT(2),
+        DeviceLinkIndependent = BIT(3),
+        Temporary = BIT(4)
+    };
+    GLEAF_DEFINE_FLAG_ENUM(TicketFlags, u8);
+
     struct TicketData {
         u8 issuer[0x40];
         u8 title_key_block[0x100];
-        u8 unk[0x6];
+        u8 ticket_version;
+        u8 title_key_type;
+        u8 unk_1[0x2];
+        u8 license_type;
         u8 master_key_gen;
-        u8 unk_2;
-        u8 unk_3[0x8];
+        TicketFlags flags;
+        u8 unk_2[0x8];
         u8 ticket_id[0x8];
         u8 device_id[0x8];
         es::RightsId rights_id;
         u8 account_id[0x4];
-        u8 unk_4[0xC];
+        u8 unk_3[0xC];
 
         std::string GetTitleKey() const;
     };
@@ -177,6 +190,9 @@ namespace hos {
             case TicketSignature::ECDSA_SHA1:
             case TicketSignature::ECDSA_SHA256: {
                 return 0x3C + 0x40;
+            }
+            case TicketSignature::HMAC_SHA1_160: {
+                return 0x14 + 0x28;
             }
             default: {
                 return 0;

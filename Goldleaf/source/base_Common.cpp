@@ -209,9 +209,9 @@ void EnsureDirectories() {
 extern "C" {
 
     void __appExit();
-    void NORETURN __nx_exit(Result rc, LoaderReturnFn ret_addr);
+    void NX_NORETURN __nx_exit(Result rc, LoaderReturnFn ret_addr);
 
-    void NORETURN __libnx_exit(Result rc) {
+    void NX_NORETURN __libnx_exit(Result rc) {
         void __libc_fini_array(void);
         __libc_fini_array();
 
@@ -247,7 +247,7 @@ Result Initialize() {
     return 0;
 }
 
-void NORETURN Exit(const Result rc) {
+void NX_NORETURN Exit(const Result rc) {
     if(g_MainApplication) {
         g_MainApplication->Close();
     }

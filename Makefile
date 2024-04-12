@@ -3,12 +3,12 @@
 .PHONY: all dev allclean clean libclean setup arc
 
 all:
-	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
+	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL release
 	@$(MAKE) -C Plutonium/
 	@$(MAKE) -C Goldleaf/
 
 dev:
-	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL install
+	@$(MAKE) -C libusbhsfs/ BUILD_TYPE=GPL release
 	@$(MAKE) -C Plutonium/
 	@$(MAKE) -C Goldleaf/ DEV_PREFIX=-dev
 

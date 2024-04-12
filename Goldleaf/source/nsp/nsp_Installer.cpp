@@ -180,14 +180,18 @@ namespace nsp {
         auto cnmt_nca_file_idx = fs::PFS0::InvalidFileIndex;
         u64 cnmt_nca_file_size = 0;
         auto tik_file_idx = fs::PFS0::InvalidFileIndex;
-        tik_file_size = 0;
+        this->tik_file_size = 0;
+        auto cert_file_idx = fs::PFS0::InvalidFileIndex;
         const auto pfs0_files = pfs0_file.GetFiles();
         for(u32 i = 0; i < pfs0_files.size(); i++) {
             const auto file = pfs0_files.at(i);
             if(fs::GetExtension(file) == "tik") {
-                tik_file_name = file;
+                this->tik_file_name = file;
                 tik_file_idx = i;
-                tik_file_size = pfs0_file.GetFileSize(i);
+                this->tik_file_size = pfs0_file.GetFileSize(i);
+            }
+            else if(fs::GetExtension(file) == "cert") {
+                cert_file_idx = i;
             }
             else {
                 if(file.length() >= __builtin_strlen("cnmt.nca")) {
@@ -207,9 +211,12 @@ namespace nsp {
         nand_sys_explorer->CreateDirectory("Contents/temp");
 
         if(tik_file_size > 0) {
-            auto tik_path = nand_sys_explorer->FullPathFor("Contents/temp/" + tik_file_name);
+            const auto tik_path = nand_sys_explorer->FullPathFor("Contents/temp/" + tik_file_name);
             this->pfs0_file.SaveFile(tik_file_idx, nand_sys_explorer, tik_path);
             this->tik_file = hos::ReadTicket(tik_path);
+
+            const auto cert_path = fs::GetFileName(tik_path) + ".cert";
+            this->pfs0_file.SaveFile(cert_file_idx, nand_sys_explorer, cert_path);
         }
 
         const auto cnmt_nca_temp_path = nand_sys_explorer->FullPathFor("Contents/temp/" + cnmt_nca_file_name);
@@ -353,13 +360,16 @@ namespace nsp {
         std::vector<ns::ContentStorageMetaKey> content_storage_meta_keys;
         if(content_meta_count > 0) {
             auto cnt_storage_meta_key_buf = new ns::ContentStorageMetaKey[content_meta_count]();
+            ScopeGuard on_exit([&]() {
+                delete[] cnt_storage_meta_key_buf;
+            });
+
             u32 real_count = 0;
             GLEAF_RC_TRY(ns::ListApplicationRecordContentMeta(0, base_app_id, cnt_storage_meta_key_buf, content_meta_count, &real_count));
             content_storage_meta_keys.reserve(real_count);
             for(u32 i = 0; i < real_count; i++) {
                 content_storage_meta_keys.push_back(cnt_storage_meta_key_buf[i]);
             }
-            delete[] cnt_storage_meta_key_buf;
         }
 
         const ns::ContentStorageMetaKey cnt_storage_meta_key = {
@@ -379,7 +389,28 @@ namespace nsp {
             const auto tik_path = "Contents/temp/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
             nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
-            GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
+
+            auto tik_signature = *reinterpret_cast<hos::TicketSignature*>(tik_buf);
+            auto tik_data = reinterpret_cast<hos::TicketData*>(tik_buf + hos::GetTicketSignatureSize(tik_signature));
+            if(static_cast<bool>(tik_data->flags & hos::TicketFlags::Temporary)) {
+                tik_data->flags = tik_data->flags & ~hos::TicketFlags::Temporary;
+            }
+
+            const auto cert_path = "Contents/temp/" + fs::GetFileName(this->tik_file_name) + ".cert";
+            if(nand_sys_explorer->IsFile(cert_path)) {
+                const auto cert_file_size = nand_sys_explorer->GetFileSize(cert_path);
+                auto cert_buf = fs::AllocateWorkBuffer(cert_file_size);
+                ScopeGuard on_exit([&]() {
+                    fs::DeleteWorkBuffer(cert_buf);
+                });
+                nand_sys_explorer->ReadFile(cert_path, 0, cert_file_size, cert_buf);
+
+                GLEAF_LOG_FMT("Importing ticket with genuine cert!");
+                GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, cert_buf, cert_file_size));
+            }
+            else {
+                GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
+            }
         }
         GLEAF_RC_SUCCEED;
     }

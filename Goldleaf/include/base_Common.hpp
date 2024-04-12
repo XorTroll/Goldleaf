@@ -124,6 +124,18 @@ inline constexpr size_t operator ""_GB(unsigned long long n) {
 #define GLEAF_PATH_REPORTS_DIR GLEAF_PATH_ROOT_DIR "/reports"
 #define GLEAF_PATH_USER_DATA_DIR GLEAF_PATH_ROOT_DIR "/userdata"
 
+#define GLEAF_DEFINE_FLAG_ENUM(enum_type, base_type) \
+inline constexpr enum_type operator|(const enum_type lhs, const enum_type rhs) { \
+    return static_cast<const enum_type>(static_cast<const base_type>(lhs) | static_cast<const base_type>(rhs)); \
+} \
+inline constexpr enum_type operator&(const enum_type lhs, const enum_type rhs) { \
+    return static_cast<const enum_type>(static_cast<const base_type>(lhs) & static_cast<const base_type>(rhs)); \
+} \
+inline constexpr enum_type operator~(const enum_type enm) { \
+    return static_cast<const enum_type>(~static_cast<const base_type>(enm)); \
+}
+
+
 enum class ExecutableMode {
     NSO,
     NRO
@@ -231,8 +243,8 @@ struct Version {
 };
 
 Result Initialize();
-void NORETURN Close(const Result rc);
-void NORETURN Exit(const Result rc);
+void NX_NORETURN Close(const Result rc);
+void NX_NORETURN Exit(const Result rc);
 
 inline ExecutableMode GetExecutableMode() {
     return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;

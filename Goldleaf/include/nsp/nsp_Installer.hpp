@@ -69,6 +69,8 @@ namespace nsp {
             u64 base_app_id;
             u64 tik_file_size;
             std::string tik_file_name;
+            u64 cert_file_size;
+            std::string cert_file_name;
             NcmContentInfo meta_cnt_info;
             std::vector<NcmContentInfo> contents;
             std::vector<InstallableProgram> programs;

@@ -55,6 +55,29 @@ namespace ui {
             }
         }
 
+        std::string FormatTicketFlags(const hos::TicketFlags flags) {
+            std::string fmt = "";
+
+            #define _GLEAF_TICKET_FMT_HANDLE_FLAG(flag) \
+            if(static_cast<bool>(flags & hos::TicketFlags::flag)) { \
+                if(!fmt.empty()) { \
+                    fmt += ", ";    \
+                } \
+                fmt += #flag; \
+            }
+
+            _GLEAF_TICKET_FMT_HANDLE_FLAG(PreInstalled);
+            _GLEAF_TICKET_FMT_HANDLE_FLAG(Shared);
+            _GLEAF_TICKET_FMT_HANDLE_FLAG(AllContents);
+            _GLEAF_TICKET_FMT_HANDLE_FLAG(DeviceLinkIndependent);
+            _GLEAF_TICKET_FMT_HANDLE_FLAG(Temporary);
+
+            if(fmt.empty()) {
+                fmt = "Default";
+            }
+            return fmt;
+        }
+
         enum class InstallDialogResult {
             Cancel,
             Prev,
@@ -105,70 +128,75 @@ namespace ui {
             const auto keygen = nsp_installer.GetKeyGeneration();
             const auto m_key = keygen - 1;
             info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(keygen) + " ";
+
+            // https://switchbrew.org/wiki/NCA
             switch(m_key) {
-                case 0: {
+                case 0x00: {
                     info += "(1.0.0 - 2.3.0)";
                     break;
                 }
-                case 1: {
+                case 0x01: {
                     info += "(3.0.0)";
                     break;
                 }
-                case 2: {
+                case 0x02: {
                     info += "(3.0.1 - 3.0.2)";
                     break;
                 }
-                case 3: {
+                case 0x03: {
                     info += "(4.0.0 - 4.1.0)";
                     break;
                 }
-                case 4: {
+                case 0x04: {
                     info += "(5.0.0 - 5.1.0)";
                     break;
                 }
-                case 5: {
+                case 0x05: {
                     info += "(6.0.0 - 6.1.0)";
                     break;
                 }
-                case 6: {
+                case 0x06: {
                     info += "(6.2.0)";
                     break;
                 }
-                case 7: {
+                case 0x07: {
                     info += "(7.0.0 - 8.0.1)";
                     break;
                 }
-                case 8: {
+                case 0x08: {
                     info += "(8.1.0 - 8.1.1)";
                     break;
                 }
-                case 9: {
+                case 0x09: {
                     info += "(9.0.0 - 9.0.1)";
                     break;
                 }
-                case 10: {
+                case 0x0A: {
                     info += "(9.1.0 - 12.0.3)";
                     break;
                 }
-                case 11: {
+                case 0x0B: {
                     info += "(12.1.0)";
                     break;
                 }
-                case 12: {
+                case 0x0C: {
                     info += "(13.0.0 - 13.2.1)";
                     break;
                 }
-                case 13: {
+                case 0x0D: {
                     info += "(14.0.0 - 14.1.2)";
                     break;
                 }
-                case 14: {
+                case 0x0E: {
                     info += "(15.0.0 - 15.0.1)";
                     break;
                 }
-                case 15: {
-                    info += "(16.0.0 -)";
+                case 0x0F: {
+                    info += "(16.0.0 - 17.0.0)";
                     break;
+                }
+                case 0x10: {
+                    info += "(17.0.0 -)";
                 }
                 default: {
                     info += cfg::Strings.GetString(96);
@@ -179,15 +207,16 @@ namespace ui {
             if(nsp_installer.HasTicket()) {
                 const auto &ticket = nsp_installer.GetTicketFile();
                 info += "\n\n" + cfg::Strings.GetString(94) + "\n";
-                info += " - " + cfg::Strings.GetString(235) + " " + ticket.data.GetTitleKey();
+                info += "[" + FormatTicketFlags(ticket.data.flags) + "]";
+                info += "\n - " + cfg::Strings.GetString(235) + " " + ticket.data.GetTitleKey();
                 info += "\n - " + cfg::Strings.GetString(236) + " ";
                 switch(ticket.signature) {
                     case hos::TicketSignature::RSA_4096_SHA1: {
-                        info += "RSA 4096 (SHA1)";
+                        info += "RSA-4096 PKCS#1 v1.5 (SHA1)";
                         break;
                     }
                     case hos::TicketSignature::RSA_2048_SHA1: {
-                        info += "RSA 2048 (SHA1)";
+                        info += "RSA-2048 PKCS#1 v1.5 (SHA1)";
                         break;
                     }
                     case hos::TicketSignature::ECDSA_SHA1: {
@@ -195,15 +224,19 @@ namespace ui {
                         break;
                     }
                     case hos::TicketSignature::RSA_4096_SHA256: {
-                        info += "RSA 4096 (SHA256)";
+                        info += "RSA-4096 PKCS#1 v1.5 (SHA256)";
                         break;
                     }
                     case hos::TicketSignature::RSA_2048_SHA256: {
-                        info += "RSA 2048 (SHA256)";
+                        info += "RSA-2048 PKCS#1 v1.5 (SHA256)";
                         break;
                     }
                     case hos::TicketSignature::ECDSA_SHA256: {
                         info += "ECDSA (SHA256)";
+                        break;
+                    }
+                    case hos::TicketSignature::HMAC_SHA1_160: {
+                        info += "HMAC-SHA1-160";
                         break;
                     }
                         

@@ -27,7 +27,7 @@ namespace nfp {
     struct CharacterId {
         u16 game_character_id;
         u8 character_variant;
-    } PACKED;
+    } NX_PACKED;
     static_assert(sizeof(CharacterId) == 3);
 
     struct AmiiboId {
@@ -35,7 +35,7 @@ namespace nfp {
         u8 series;
         u16 model_number;
         u8 figure_type;
-    } PACKED;
+    } NX_PACKED;
     static_assert(sizeof(AmiiboId) == 7);
 
     struct AdminInfo {
