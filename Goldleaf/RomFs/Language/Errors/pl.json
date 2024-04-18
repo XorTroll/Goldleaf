@@ -1,0 +1,15 @@
+[
+    "Nieznany lub nieudokumentowany błąd",
+    "Niepoprawna ścieżka",
+    "Niepoprawne NCA (może oznaczać brak sigpatchów lub zbyt niski firmware)",
+    "Niepoprawne PFS0 (NSP)",
+    "Standardowy błąd C/C++",
+    "Brak wolnego miejsca na dokończenie polecenia",
+    "Nie znaleziono metadanych NCA w NSP",
+    "Nie znaleziono metadanych NCA",
+    "Ten tytuł jest już zainstalowany",
+    "Istnieje inny plik lub folder o tej samej nazwie",
+    "Nie znaleziono zawartości tytułu",
+    "Nie zbudowano PFS0 (NSP)",
+    "Klucze się nie zgadzają (zbyt niski firmware)"
+]
