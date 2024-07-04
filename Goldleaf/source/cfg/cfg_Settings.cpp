@@ -64,6 +64,7 @@ namespace cfg {
         json["general"]["ignoreHiddenFiles"] = this->ignore_hidden_files;
         
         if(this->has_custom_scheme) {
+            json["ui"]["background"] = ColorToHex(this->custom_scheme.bg);
             json["ui"]["base"] = ColorToHex(this->custom_scheme.base);
             json["ui"]["baseFocus"] = ColorToHex(this->custom_scheme.base_focus);
             json["ui"]["text"] = ColorToHex(this->custom_scheme.text);
