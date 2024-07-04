@@ -196,7 +196,12 @@ namespace ui {
                     break;
                 }
                 case 0x10: {
-                    info += "(17.0.0 -)";
+                    info += "(17.0.0 - 18.0.0)";
+                    break;
+                }
+                case 0x11: {
+                    info += "(18.0.0 -)";
+                    break;
                 }
                 default: {
                     info += cfg::Strings.GetString(96);
