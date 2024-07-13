@@ -19,6 +19,7 @@ jobs:
         python3 -m pip install requests
         sudo -n dkp-pacman --noconfirm -U \
           "https://wii.leseratte10.de/devkitPro/other-stuff/dkp-toolchain-vars-1.0.2-1-any.pkg.tar.xz"
+        rm -rf libusbhsfs
 
     - name: Silence all git safe directory warnings
       run: git config --system --add safe.directory '*'
@@ -32,7 +33,7 @@ jobs:
         git clone https://github.com/DarkMatterCore/libusbhsfs.git
 
     - name: Set workspace permissions
-      run: chmod 777 -R "$GITHUB_WORKSPACE" && rm -rf libusbhsfs
+      run: chmod 777 -R "$GITHUB_WORKSPACE"
 
     - name: Build and install libnx
       run: |
