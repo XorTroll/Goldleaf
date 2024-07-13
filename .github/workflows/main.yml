@@ -27,8 +27,12 @@ jobs:
       run: |
         git clone --recurse-submodules https://github.com/switchbrew/libnx.git
 
+    - name: Checkout latest libusbhsfs commit
+      run: |
+        git clone https://github.com/DarkMatterCore/libusbhsfs.git
+
     - name: Set workspace permissions
-      run: chmod 777 -R "$GITHUB_WORKSPACE"
+      run: chmod 777 -R "$GITHUB_WORKSPACE" && rm -rf libusbhsfs
 
     - name: Build and install libnx
       run: |
