@@ -1,8 +1,10 @@
 # Note: for the first time, run 'make setup' first (to install libusbhsfs packages), after that simply run 'make' or 'make dev' to build the project
 
-.PHONY: all allclean clean libclean setup arc
+.PHONY: all allclean build clean libclean setup arc
 
-all: arc
+all: arc build
+
+build:
 	@$(MAKE) -C Plutonium/
 	@$(MAKE) -C libnx-ext/libnx-ipcext/
 	@$(MAKE) -C Goldleaf/

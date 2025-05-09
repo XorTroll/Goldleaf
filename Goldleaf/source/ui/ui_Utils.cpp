@@ -169,7 +169,7 @@ namespace ui {
         else if(ext == "nacp") {
             return g_CommonIcons[static_cast<u32>(CommonIconKind::NACP)];
         }
-        else if((ext == "jpg") || (ext == "jpeg")) {
+        else if((ext == "jpg") || (ext == "jpeg") || (ext == "png") || (ext == "webp")) {
             return g_CommonIcons[static_cast<u32>(CommonIconKind::Image)];
         }
         else if(ext == "bin") {

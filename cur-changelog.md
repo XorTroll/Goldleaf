@@ -42,9 +42,9 @@
 
 - The "image" menu icon is now shown also for PNG/WEBP images (even though they cannot be set as user icons)
 
-- Updated key generation recognition up to the latest `20.0.0` firmware
+- Updated key generation recognition up to the latest `20.0.0`/`20.0.1` firmwares
 
-- For used tickets, the game title is displayed instead of the application ID (this one can still be viewed by selecting a given ticket)
+- For used tickets, the game title is displayed instead of the application ID on the ticket menu items (the ID can still be viewed by selecting a given ticket)
 
 - Added special handling when removing an account that is also linked (removing requires it to be unlinked first, this is now done automatically)
 
@@ -54,7 +54,7 @@
 
 - The user icon is exported again after changing it
 
-- A minor bug was fixed where logging wouldn't happen in certain menus
+- A bug was fixed where logging wouldn't happen correctly in certain menus
 
 - Mounted filesystems are now properly disposed when exiting Goldleaf
 
