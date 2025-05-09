@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright (C) 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,11 +27,14 @@ namespace ui {
     class FileContentLayout : public pu::ui::Layout {
         private:
             u32 line_offset;
+            u32 available_line_count;
             std::vector<std::string> read_lines;
             bool read_hex;
             std::string path;
             pu::ui::elm::TextBlock::Ref cnt_text;
             fs::Explorer *file_exp;
+
+            void OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos);
 
         public:
             FileContentLayout();

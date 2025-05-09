@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,24 +42,34 @@ namespace ui {
 
     }
 
+    void WebBrowserLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
+        if(keys_down & HidNpadButton_B) {
+            g_MainApplication->ReturnToParentLayout();
+        }
+    }
+
     WebBrowserLayout::WebBrowserLayout() : pu::ui::Layout() {
-        this->opts_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        g_Settings.ApplyScrollBarColor(this->opts_menu);
+        this->opts_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
+        this->opts_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
         this->Add(this->opts_menu);
+
+        this->SetOnInput(std::bind(&WebBrowserLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     }
 
     void WebBrowserLayout::Refresh() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(36), CommonIconKind::Browser, cfg::Strings.GetString(14));
+
         this->opts_menu->ClearItems();
     
         auto input_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(378));
-        input_itm->SetColor(g_Settings.custom_scheme.text);
+        input_itm->SetColor(g_Settings.GetColorScheme().text);
         input_itm->AddOnKey(std::bind(&WebBrowserLayout::input_DefaultKey, this));
         this->opts_menu->AddItem(input_itm);
 
         for(const auto &bmk: g_Settings.bookmarks) {
             auto bmk_itm = pu::ui::elm::MenuItem::New(bmk.name);
-            bmk_itm->SetColor(g_Settings.custom_scheme.text);
-            bmk_itm->SetIcon(g_Settings.PathForResource("/Common/Browser.png"));
+            bmk_itm->SetColor(g_Settings.GetColorScheme().text);
+            bmk_itm->SetIcon(GetCommonIcon(CommonIconKind::Browser));
             bmk_itm->AddOnKey(std::bind(&WebBrowserLayout::bookmark_DefaultKey, this, bmk));
             this->opts_menu->AddItem(bmk_itm);
         }
@@ -70,7 +80,7 @@ namespace ui {
         if(!url.empty()) {
             LaunchWebAppletImpl(url);
 
-            const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(379), cfg::Strings.GetString(380), { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+            const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(379), cfg::Strings.GetString(380), { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
             if(option == 0) {
                 const auto name = ShowKeyboard(cfg::Strings.GetString(381));
                 if(!name.empty()) {
@@ -85,7 +95,7 @@ namespace ui {
     }
     
     void WebBrowserLayout::bookmark_DefaultKey(cfg::WebBookmark &bmk) {
-        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(383), cfg::Strings.GetString(384), { cfg::Strings.GetString(385), cfg::Strings.GetString(386), cfg::Strings.GetString(245), cfg::Strings.GetString(18) }, true);
+        const auto option_1 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(383), cfg::Strings.GetString(384), { cfg::Strings.GetString(385), cfg::Strings.GetString(386), cfg::Strings.GetString(245), cfg::Strings.GetString(18) }, true);
         switch(option_1) {
             case 0: {
                 const auto rc = LaunchWebAppletImpl(bmk.url);
@@ -95,7 +105,7 @@ namespace ui {
                 break;
             }
             case 1: {
-                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(387), cfg::Strings.GetString(388), { cfg::Strings.GetString(389), cfg::Strings.GetString(390), cfg::Strings.GetString(18) }, true);
+                const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(387), cfg::Strings.GetString(388), { cfg::Strings.GetString(389), cfg::Strings.GetString(390), cfg::Strings.GetString(18) }, true);
                 switch(option_2) {
                     case 0: {
                         const auto name = ShowKeyboard(cfg::Strings.GetString(391));
@@ -130,7 +140,7 @@ namespace ui {
                 break;
             }
             case 2: {
-                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(395), cfg::Strings.GetString(396), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+                const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(395), cfg::Strings.GetString(396), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 switch(option_2) {
                     case 0: {
                         for(u32 i = 0; i < g_Settings.bookmarks.size(); i++) {

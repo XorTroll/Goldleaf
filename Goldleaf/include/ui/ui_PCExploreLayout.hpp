@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ namespace ui {
             pu::ui::elm::Menu::Ref paths_menu;
             std::vector<pu::ui::elm::MenuItem::Ref> path_items;
 
+            void OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos);
         public:
             PCExploreLayout();
             PU_SMART_CTOR(PCExploreLayout)

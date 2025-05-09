@@ -39,19 +39,19 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source/fatfs source/acc source/sm source/amssu source/bpcams source/expt source/es source/fs source/drive source/hos source/ncm source/net source/ns source/nsp source/cfg source/nfp source/ui source/usb source/usb/cmd source
+SOURCES		:=	source/fatfs source/acc source/expt source/fs source/drive source/cnt source/hos source/net source/nsp source/cfg source/nfp source/ui source/usb source/usb/cmd source/res source/upd source/util source
 INCLUDES	:=	include
 DATA		:=	data
 ROMFS		:=	romfs
 
 VER_MAJOR	:= 1
-VER_MINOR	:= 0
+VER_MINOR	:= 1
 VER_MICRO	:= 0
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
 
-APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)$(DEV_PREFIX)
+APP_VERSION := $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -61,20 +61,20 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -O2 -ffunction-sections -Wall -Werror $(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags`
-CFLAGS	+=	-DGOLDLEAF_MAJOR=$(VER_MAJOR) -DGOLDLEAF_MINOR=$(VER_MINOR) -DGOLDLEAF_MICRO=$(VER_MICRO) -DGOLDLEAF_VERSION=\"$(APP_VERSION)\"
+CFLAGS	+=	-DGLEAF_MAJOR=$(VER_MAJOR) -DGLEAF_MINOR=$(VER_MINOR) -DGLEAF_MICRO=$(VER_MICRO) -DGLEAF_VERSION=\"$(APP_VERSION)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx -lusbhsfs -lntfs-3g -llwext4 -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx-ipcext -lnx -lusbhsfs -lntfs-3g -llwext4 -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium $(CURDIR)/../libusbhsfs
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium $(CURDIR)/../libusbhsfs $(CURDIR)/../libnx-ext/libnx-ext $(CURDIR)/../libnx-ext/libnx-ipcext
 
 
 #---------------------------------------------------------------------------------

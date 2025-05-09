@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <base_Common.hpp>
+#include <base.hpp>
 
 namespace drive {
 
@@ -30,9 +30,8 @@ namespace drive {
         u8 fs_type;
     };
 
-    bool IsFspUsbAccessible();
     Result Initialize();
-    void Exit();
+    void Finalize();
 
     inline std::string FormatFileSystemType(UsbHsFsDeviceFileSystemType fs_type) {
         switch(fs_type) {
@@ -54,7 +53,7 @@ namespace drive {
         }
     }
 
-    NX_CONSTEXPR bool DrivesEqual(UsbHsFsDevice &drive_a, UsbHsFsDevice &drive_b) {
+    NX_CONSTEXPR bool DrivesEqual(const UsbHsFsDevice &drive_a, const UsbHsFsDevice &drive_b) {
         return (drive_a.usb_if_id == drive_b.usb_if_id) && (drive_a.lun == drive_b.lun) && (drive_a.fs_idx == drive_b.fs_idx);
     }
 

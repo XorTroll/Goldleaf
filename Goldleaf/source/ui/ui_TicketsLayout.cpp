@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,12 +30,12 @@ namespace ui {
 
     namespace {
 
-        inline std::string FormatTicketType(const hos::TicketType type) {
+        inline std::string FormatTicketType(const cnt::TicketType type) {
             switch(type) {
-                case hos::TicketType::Common: {
+                case cnt::TicketType::Common: {
                     return cfg::Strings.GetString(448);
                 }
-                case hos::TicketType::Personalized: {
+                case cnt::TicketType::Personalized: {
                     return cfg::Strings.GetString(449);
                 }
             }
@@ -44,33 +44,48 @@ namespace ui {
 
     }
 
+    void TicketsLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
+        if(keys_down & HidNpadButton_B) {
+            g_MainApplication->ReturnToParentLayout();
+        }
+    }
+
     TicketsLayout::TicketsLayout() : pu::ui::Layout() {
-        this->tiks_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        g_Settings.ApplyScrollBarColor(this->tiks_menu);
+        this->tiks_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
+        this->tiks_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
         this->no_unused_tiks_text = pu::ui::elm::TextBlock::New(0, 0, cfg::Strings.GetString(199));
         this->no_unused_tiks_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->no_unused_tiks_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->no_unused_tiks_text->SetColor(g_Settings.custom_scheme.text);
+        this->no_unused_tiks_text->SetColor(g_Settings.GetColorScheme().text);
         this->Add(this->no_unused_tiks_text);
         this->Add(this->tiks_menu);
+
+        this->SetOnInput(std::bind(&TicketsLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     }
 
-    void TicketsLayout::UpdateElements(bool cooldown) {
+    void TicketsLayout::UpdateElements() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(4), CommonIconKind::Ticket, cfg::Strings.GetString(279));
         this->tiks_menu->ClearItems();
         this->no_unused_tiks_text->SetVisible(true);
         this->tiks_menu->SetVisible(false);
-        this->tiks_menu->SetCooldownEnabled(cooldown);
 
         g_MainApplication->LoadMenuHead(cfg::Strings.GetString(248));
 
         auto has_any = false;
-        for(const auto &tik: hos::GetAllTickets()) {
-            const auto tik_name = hos::FormatApplicationId(tik.rights_id.GetApplicationId());
-            const auto tik_opts = "(" + FormatTicketType(tik.type) + ", " + (tik.IsUsed() ? cfg::Strings.GetString(450) : cfg::Strings.GetString(451)) + ")";
+        for(const auto &tik: cnt::GetTickets()) {
+            auto tik_name = util::FormatApplicationId(esGetRightsIdApplicationId(&tik.rights_id));
+
+            const auto used_title = tik.IsUsed();
+            const auto is_used = used_title.has_value();
+            if(is_used) {
+                tik_name = used_title->get().cache.display_name;
+            }
+
+            const auto tik_opts = "(" + FormatTicketType(tik.type) + ", " + (is_used ? cfg::Strings.GetString(450) : cfg::Strings.GetString(451)) + ")";
 
             auto itm = pu::ui::elm::MenuItem::New(tik_name + " " + tik_opts);
-            itm->SetColor(g_Settings.custom_scheme.text);
-            itm->SetIcon(g_Settings.PathForResource("/Common/Ticket.png"));
+            itm->SetColor(g_Settings.GetColorScheme().text);
+            itm->SetIcon(GetCommonIcon(CommonIconKind::Ticket));
             itm->AddOnKey(std::bind(&TicketsLayout::tickets_DefaultKey, this, tik));
             this->tiks_menu->AddItem(itm);
             has_any = true;
@@ -83,30 +98,36 @@ namespace ui {
         }
     }
 
-    void TicketsLayout::tickets_DefaultKey(const hos::Ticket tik) {
-        const auto tik_app_id = tik.rights_id.GetApplicationId();
-        const auto tik_used = tik.IsUsed();
+    void TicketsLayout::tickets_DefaultKey(const cnt::Ticket tik) {
+        const auto tik_app_id = esGetRightsIdApplicationId(&tik.rights_id);
+        const auto used_title = tik.IsUsed();
+        const auto tik_used = used_title.has_value();
         
         auto info = cfg::Strings.GetString(201) + "\n\n\n";
         
-        info += cfg::Strings.GetString(90) + " " + hos::FormatApplicationId(tik_app_id);
-        info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(tik.rights_id.GetKeyGeneration() + 1);
+        info += cfg::Strings.GetString(90) + " " + util::FormatApplicationId(tik_app_id);
+        if(tik_used) {
+            info += " (" + used_title->get().cache.display_name + ")";
+        }
+
+        const auto key_gen = esGetRightsIdKeyGeneration(&tik.rights_id);
+        info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " (" + cnt::GetKeyGenerationRange(key_gen) + ")";
         info += "\n" + cfg::Strings.GetString(447) + " " + FormatTicketType(tik.type);
         info += "\n\n";
         info += tik_used ? cfg::Strings.GetString(202) : cfg::Strings.GetString(203);
 
-        const auto opt_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(200), info, { cfg::Strings.GetString(245), cfg::Strings.GetString(244), cfg::Strings.GetString(438), cfg::Strings.GetString(18) }, true);
+        const auto opt_1 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(200), info, { cfg::Strings.GetString(245), cfg::Strings.GetString(244), cfg::Strings.GetString(438), cfg::Strings.GetString(18) }, true);
         if(opt_1 == 0) {
             if(tik_used) {
-                g_MainApplication->CreateShowDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(440), { cfg::Strings.GetString(234) }, true);
+                g_MainApplication->DisplayDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(440), { cfg::Strings.GetString(234) }, true);
             }
             else {
-                const auto opt_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(204), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+                const auto opt_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(204), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 if(opt_2 == 0) {
-                    const auto rc = hos::RemoveTicket(tik);
+                    const auto rc = cnt::RemoveTicket(tik);
                     if(R_SUCCEEDED(rc)) {
                         g_MainApplication->ShowNotification(cfg::Strings.GetString(206));
-                        this->UpdateElements(false);
+                        this->UpdateElements();
                     }
                     else {
                         HandleResult(rc, cfg::Strings.GetString(207));

@@ -7,3 +7,6 @@
 [submodule "arc"]
 	path = arc
 	url = https://github.com/XorTroll/arc
+[submodule "libnx-ext"]
+	path = libnx-ext
+	url = https://github.com/XorTroll/libnx-ext

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,21 +31,9 @@ namespace ui {
 
     namespace {
 
-        inline constexpr u8 VariateChannelImpl(const u8 input, const u8 v) {
-            const auto tmp = static_cast<u32>(input + v);
-            if(tmp > 0xFF) {
-                return 0xFF;
-            }
-            return static_cast<u8>(tmp);
-        }
+        pu::sdl2::TextureHandle::Ref g_CommonIcons[static_cast<u32>(CommonIconKind::Count)] = {};
 
-        inline pu::ui::Color GenerateColorVariation(const pu::ui::Color clr, const u8 min_v, const u8 max_v) {
-            const auto v = static_cast<u8>(RandomFromRange(min_v, max_v));
-            return { VariateChannelImpl(clr.r, v), VariateChannelImpl(clr.g, v), VariateChannelImpl(clr.b, v), clr.a };
-        }
-
-        constexpr pu::ui::Color TextLight = { 225, 225, 225, 0xFF };
-        constexpr pu::ui::Color TextDark = { 15, 15, 15, 0xFF };
+        std::unordered_map<u64, pu::sdl2::TextureHandle::Ref> g_ApplicationIcons = {};
 
     }
 
@@ -54,14 +42,20 @@ namespace ui {
     }
 
     void ShowPowerTasksDialog(const std::string &title, const std::string &msg) {
-        const auto option = g_MainApplication->CreateShowDialog(title, msg, { cfg::Strings.GetString(233), cfg::Strings.GetString(232), cfg::Strings.GetString(18) }, true);
+        const auto option = g_MainApplication->DisplayDialog(title, msg, { cfg::Strings.GetString(233), cfg::Strings.GetString(232), cfg::Strings.GetString(18) }, true);
         switch(option) {
             case 0: {
-                hos::PowerOff();
+                const auto option_2 = g_MainApplication->DisplayDialog(title, cfg::Strings.GetString(483), { cfg::Strings.GetString(234), cfg::Strings.GetString(18) }, true);
+                if(option_2 == 0) {
+                    hos::PowerOff();
+                }
                 break;
             }
             case 1: {
-                hos::Reboot();
+                const auto option_2 = g_MainApplication->DisplayDialog(title, cfg::Strings.GetString(484), { cfg::Strings.GetString(234), cfg::Strings.GetString(18) }, true);
+                if(option_2 == 0) {
+                    hos::Reboot();
+                }
                 break;
             }
         }
@@ -97,38 +91,112 @@ namespace ui {
 
     void HandleResult(const Result rc, const std::string &info) {
         if(R_FAILED(rc)) {
-            std::string rc_msg = info + "\n\n" + cfg::Strings.GetString(266) + ": " + hos::FormatResult(rc) + " (" + hos::FormatHex(rc) + ")";
+            std::string rc_msg = info + "\n\n" + cfg::Strings.GetString(266) + ": " + util::FormatResult(rc) + " (" + util::FormatHex(R_VALUE(rc)) + ")";
 
-            const char *module_name;
-            const char *rc_name;
-            if(rc::GetResultNameAny(rc, module_name, rc_name)) {
-                rc_msg += "\n" + cfg::Strings.GetString(264) + ": " + module_name + "\n" + cfg::Strings.GetString(265) + ": " + rc_name;
+            std::string s_module_name;
+            std::string s_rc_name;
+            if(res::IsSpecialResult(R_VALUE(rc), s_module_name, s_rc_name)) {
+                rc_msg += "\n" + cfg::Strings.GetString(264) + ": " + s_module_name + "\n" + cfg::Strings.GetString(265) + ": " + s_rc_name;
+            }
+            else {
+                const char *module_name;
+                const char *rc_name;
+                if(rc::GetResultNameAny(R_VALUE(rc), module_name, rc_name)) {
+                    rc_msg += "\n" + cfg::Strings.GetString(264) + ": " + module_name + "\n" + cfg::Strings.GetString(265) + ": " + rc_name;
+                }
             }
 
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(266), rc_msg, { cfg::Strings.GetString(234) }, false);
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(266), rc_msg, { cfg::Strings.GetString(234) }, false);
         }
     }
 
-    ColorScheme GenerateRandomScheme() {
-        ColorScheme scheme = {};
+    void LoadCommonIcons() {
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Accounts)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Accounts.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Amiibo)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Amiibo.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Browser)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Browser.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Certificate)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Certificate.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::CFW)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/CFW.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Directory)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Directory.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::DirectoryEmpty)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/DirectoryEmpty.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Drive)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Drive.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::TextFile)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/TextFile.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::BinaryFile)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/BinaryFile.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Copy)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Copy.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Game)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Game.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Help)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Help.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Image)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Image.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Info)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Info.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::NACP)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/NACP.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::NAND)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/NAND.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::NCA)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/NCA.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::NRO)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/NRO.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::NSP)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/NSP.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::SdCard)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/SdCard.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Settings)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Settings.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Storage)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Storage.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Ticket)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Ticket.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Update)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Update.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::USB)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/USB.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::User)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/User.png")));
+    }
 
-        pu::ui::Color clr;
-        randomGet(&clr, sizeof(clr));
-        clr.a = 0xFF;
+    void DisposeCommonIcons() {
+        for(auto &icon : g_CommonIcons) {
+            icon = nullptr;
+        }
+    }
 
-        scheme.base = clr;
-        scheme.bg = GenerateColorVariation(clr, 30, 50);
-        scheme.base_focus = GenerateColorVariation(clr, 20, 40);
+    pu::sdl2::TextureHandle::Ref GetCommonIcon(const CommonIconKind kind) {
+        return g_CommonIcons[static_cast<u32>(kind)];
+    }
 
-        const auto v = std::max({ clr.r, clr.g, clr.b });
-        if(v < 0x80) {
-            scheme.text = TextLight;
+    pu::sdl2::TextureHandle::Ref GetCommonIconForExtension(const std::string &ext) {
+        if(ext == "nsp") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::NSP)];
+        }
+        else if(ext == "nro") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::NRO)];
+        }
+        else if(ext == "tik") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::Ticket)];
+        }
+        else if(ext == "cert") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::Certificate)];
+        }
+        else if(ext == "nca") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::NCA)];
+        }
+        else if(ext == "nacp") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::NACP)];
+        }
+        else if((ext == "jpg") || (ext == "jpeg")) {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::Image)];
+        }
+        else if(ext == "bin") {
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::CFW)];
         }
         else {
-            scheme.text = TextDark;
+            return g_CommonIcons[static_cast<u32>(CommonIconKind::BinaryFile)];
         }
+    }
 
-        return scheme;
+    void ClearApplicationIcons() {
+        for(auto &icon : g_ApplicationIcons) {
+            icon.second.reset();
+        }
+        g_ApplicationIcons.clear();
+    }
+
+    void SetApplicationIcon(const u64 app_id, pu::sdl2::TextureHandle::Ref icon) {
+        g_ApplicationIcons.insert({ app_id, icon });
+    }
+
+    pu::sdl2::TextureHandle::Ref GetApplicationIcon(const u64 app_id) {
+        const auto it = g_ApplicationIcons.find(app_id);
+        if(it != g_ApplicationIcons.end()) {
+            return it->second;
+        }
+        return nullptr;
     }
 
 }

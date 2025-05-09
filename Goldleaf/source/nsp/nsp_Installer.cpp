@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,9 +21,13 @@
 
 #include <nsp/nsp_Installer.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <util/util_String.hpp>
 #include <hos/hos_Common.hpp>
+#include <es/es_CommonCertificate.hpp>
 #include <cfg/cfg_Settings.hpp>
+#include <ui/ui_MainApplication.hpp>
 
+extern ui::MainApplication::Ref g_MainApplication;
 extern cfg::Settings g_Settings;
 
 namespace nsp {
@@ -145,7 +149,8 @@ namespace nsp {
                 }
         };
 
-        void ContentWriteThread(void *ctx_raw) {
+        void ContentWriteMain(void *ctx_raw) {
+            SetThreadName("nsp.ContentWriteThread");
             auto ctx = reinterpret_cast<ContentWriteContext*>(ctx_raw);
 
             while(true) {
@@ -208,23 +213,23 @@ namespace nsp {
         const auto cnmt_nca_content_id = fs::GetBaseName(cnmt_nca_file_name);
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        nand_sys_explorer->CreateDirectory("Contents/temp");
+        nand_sys_explorer->CreateDirectory(GLEAF_PATH_NAND_INSTALL_TEMP_DIR);
 
         if(tik_file_size > 0) {
-            const auto tik_path = nand_sys_explorer->FullPathFor("Contents/temp/" + tik_file_name);
+            const auto tik_path = nand_sys_explorer->FullPathFor(GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + tik_file_name);
             this->pfs0_file.SaveFile(tik_file_idx, nand_sys_explorer, tik_path);
-            this->tik_file = hos::ReadTicket(tik_path);
+            this->tik_file = cnt::ReadTicket(tik_path);
 
             const auto cert_path = fs::GetFileName(tik_path) + ".cert";
             this->pfs0_file.SaveFile(cert_file_idx, nand_sys_explorer, cert_path);
         }
 
-        const auto cnmt_nca_temp_path = nand_sys_explorer->FullPathFor("Contents/temp/" + cnmt_nca_file_name);
+        const auto cnmt_nca_temp_path = nand_sys_explorer->FullPathFor(GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + cnmt_nca_file_name);
         nand_sys_explorer->DeleteFile(cnmt_nca_temp_path);
         pfs0_file.SaveFile(cnmt_nca_file_idx, nand_sys_explorer, cnmt_nca_temp_path);
 
         char cnmt_nca_content_path[FS_MAX_PATH] = {};
-        snprintf(cnmt_nca_content_path, sizeof(cnmt_nca_content_path), "@SystemContent://temp/%s", cnmt_nca_file_name.c_str());
+        snprintf(cnmt_nca_content_path, sizeof(cnmt_nca_content_path), GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/%s", cnmt_nca_file_name.c_str());
         FsRightsId tmp_rid;
         GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, FsContentAttributes_All, &this->keygen, &tmp_rid));
         const auto system_keygen = hos::ReadSystemKeyGeneration();
@@ -251,11 +256,11 @@ namespace nsp {
             });
 
             cnmt_nca_fs_obj.ReadFile(cnmt_file_name, 0, cnmt_file_size, cnmt_read_buf);
-            GLEAF_RC_UNLESS(ncm::ReadContentMeta(cnmt_read_buf, cnmt_file_size, this->packaged_cnt_meta), rc::goldleaf::ResultInvalidMeta);
+            GLEAF_RC_UNLESS(cnt::ReadContentMeta(cnmt_read_buf, cnmt_file_size, this->packaged_cnt_meta), rc::goldleaf::ResultInvalidMeta);
         }
 
         this->meta_cnt_info = {
-            .content_id = hos::StringAsContentId(cnmt_nca_content_id),
+            .content_id = util::GetContentId(cnmt_nca_content_id),
             .content_type = NcmContentType_Meta,
         };
         ncmU64ToContentInfoSize(cnmt_nca_file_size, &this->meta_cnt_info);
@@ -284,8 +289,7 @@ namespace nsp {
             };
         }
 
-        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmStorageId_SdCard, NcmContentMetaType_Unknown, this->programs.front().meta_key.id), rc::goldleaf::ResultTitleAlreadyInstalled);
-        GLEAF_RC_UNLESS(!hos::ExistsTitle(NcmStorageId_BuiltInUser, NcmContentMetaType_Unknown, this->programs.front().meta_key.id), rc::goldleaf::ResultTitleAlreadyInstalled);
+        GLEAF_RC_UNLESS(!cnt::ExistsApplicationContent(this->programs.front().meta_key.id).has_value(), rc::goldleaf::ResultContentAlreadyInstalled);
         
         bool has_cnmt_installed = false;
         GLEAF_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &this->meta_cnt_info.content_id));
@@ -299,15 +303,18 @@ namespace nsp {
             this->contents.push_back(cnt.info);
             if(cnt.info.content_type == NcmContentType_Control) {
                 auto &cur_program = this->programs.at(program_i);
-                const auto control_nca_content_id = hos::ContentIdAsString(cnt.info.content_id);
+                const auto control_nca_content_id = util::FormatContentId(cnt.info.content_id);
                 const auto control_nca_file_name = control_nca_content_id + ".nca";
                 const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
                 if(fs::PFS0::IsValidFileIndex(control_nca_file_idx)) {
-                    const auto control_nca_temp_path = nand_sys_explorer->MakeFull("Contents/temp/" + control_nca_file_name);
+                    const auto control_nca_temp_path = nand_sys_explorer->MakeFull(GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + control_nca_file_name);
                     this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_temp_path);
 
                     char control_nca_content_path[FS_MAX_PATH] = {};
-                    snprintf(control_nca_content_path, sizeof(control_nca_content_path), "@SystemContent://temp/%s", control_nca_file_name.c_str());
+                    snprintf(control_nca_content_path, sizeof(control_nca_content_path), GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/%s", control_nca_file_name.c_str());
+
+                    const auto control_nca_content_full_path = nand_sys_explorer->MakeFull(control_nca_content_path);
+                    this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_content_full_path);
 
                     FsFileSystem control_nca_fs;
                     if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, cur_program.meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path, FsContentAttributes_All))) {
@@ -345,7 +352,7 @@ namespace nsp {
 
     Result Installer::StartInstallation() {
         const auto &main_program = this->programs.front();
-        const auto base_app_id = hos::GetBaseApplicationId(main_program.meta_key.id, static_cast<NcmContentMetaType>(main_program.meta_key.type));
+        const auto base_app_id = cnt::GetBaseApplicationId(main_program.meta_key.id, static_cast<NcmContentMetaType>(main_program.meta_key.type));
 
         u8 *meta_data;
         size_t meta_data_size;
@@ -354,31 +361,35 @@ namespace nsp {
         GLEAF_RC_TRY(ncmContentMetaDatabaseCommit(&this->cnt_meta_db));
         delete[] meta_data;
 
-        s32 content_meta_count = 0;
-        GLEAF_RC_TRY_EXCEPT(nsCountApplicationContentMeta(base_app_id, &content_meta_count), 0x410);
+        // Already installed something, need to refresh the application list for future uses
+        cnt::NotifyApplicationsChanged();
+        g_MainApplication->GetApplicationListLayout()->NotifyApplicationsChanged();
 
-        std::vector<ns::ContentStorageMetaKey> content_storage_meta_keys;
+        s32 content_meta_count = 0;
+        GLEAF_RC_TRY_EXCEPT(nsCountApplicationContentMeta(base_app_id, &content_meta_count), rc::ns::ResultApplicationIdNotFound);
+
+        std::vector<NsExtContentStorageMetaKey> content_storage_meta_keys;
         if(content_meta_count > 0) {
-            auto cnt_storage_meta_key_buf = new ns::ContentStorageMetaKey[content_meta_count]();
+            auto cnt_storage_meta_key_buf = new NsExtContentStorageMetaKey[content_meta_count]();
             ScopeGuard on_exit([&]() {
                 delete[] cnt_storage_meta_key_buf;
             });
 
             u32 real_count = 0;
-            GLEAF_RC_TRY(ns::ListApplicationRecordContentMeta(0, base_app_id, cnt_storage_meta_key_buf, content_meta_count, &real_count));
+            GLEAF_RC_TRY(nsextListApplicationRecordContentMeta(0, base_app_id, cnt_storage_meta_key_buf, content_meta_count, &real_count));
             content_storage_meta_keys.reserve(real_count);
             for(u32 i = 0; i < real_count; i++) {
                 content_storage_meta_keys.push_back(cnt_storage_meta_key_buf[i]);
             }
         }
 
-        const ns::ContentStorageMetaKey cnt_storage_meta_key = {
+        const NsExtContentStorageMetaKey cnt_storage_meta_key = {
             .meta_key = main_program.meta_key,
             .storage_id = this->storage_id,
         };
         content_storage_meta_keys.push_back(cnt_storage_meta_key);
-        ns::DeleteApplicationRecord(base_app_id);
-        GLEAF_RC_TRY(ns::PushApplicationRecord(base_app_id, 3, content_storage_meta_keys.data(), content_storage_meta_keys.size()));
+        nsextDeleteApplicationRecord(base_app_id);
+        GLEAF_RC_TRY(nsextPushApplicationRecord(base_app_id, NsExtApplicationEvent_Present, content_storage_meta_keys.data(), content_storage_meta_keys.size()));
 
         if(this->tik_file_size > 0) {
             auto tik_buf = fs::AllocateWorkBuffer(this->tik_file_size);
@@ -386,17 +397,19 @@ namespace nsp {
                 fs::DeleteWorkBuffer(tik_buf);
             });
 
-            const auto tik_path = "Contents/temp/" + this->tik_file_name;
+            const auto tik_path = GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
             nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
 
-            auto tik_signature = *reinterpret_cast<hos::TicketSignature*>(tik_buf);
-            auto tik_data = reinterpret_cast<hos::TicketData*>(tik_buf + hos::GetTicketSignatureSize(tik_signature));
-            if(static_cast<bool>(tik_data->flags & hos::TicketFlags::Temporary)) {
-                tik_data->flags = tik_data->flags & ~hos::TicketFlags::Temporary;
+            auto tik_signature = *reinterpret_cast<cnt::TicketSignature*>(tik_buf);
+            auto tik_data = reinterpret_cast<cnt::TicketData*>(tik_buf + cnt::GetTicketSignatureSize(tik_signature));
+
+            // Make temporary tickets permanent
+            if(static_cast<bool>(tik_data->flags & cnt::TicketFlags::Temporary)) {
+                tik_data->flags = tik_data->flags & ~cnt::TicketFlags::Temporary;
             }
 
-            const auto cert_path = "Contents/temp/" + fs::GetFileName(this->tik_file_name) + ".cert";
+            const auto cert_path = GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/" + fs::GetFileName(this->tik_file_name) + ".cert";
             if(nand_sys_explorer->IsFile(cert_path)) {
                 const auto cert_file_size = nand_sys_explorer->GetFileSize(cert_path);
                 auto cert_buf = fs::AllocateWorkBuffer(cert_file_size);
@@ -405,12 +418,16 @@ namespace nsp {
                 });
                 nand_sys_explorer->ReadFile(cert_path, 0, cert_file_size, cert_buf);
 
-                GLEAF_LOG_FMT("Importing ticket with genuine cert!");
-                GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, cert_buf, cert_file_size));
+                GLEAF_LOG_FMT("Importing ticket with cert!");
+                GLEAF_RC_TRY(esImportTicket(tik_buf, this->tik_file_size, cert_buf, cert_file_size));
             }
             else {
-                GLEAF_RC_TRY(es::ImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
+                GLEAF_LOG_FMT("Importing ticket!");
+                GLEAF_RC_TRY(esImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
             }
+
+            // We installed a ticket, so we need to refresh the ticket list for future uses
+            cnt::NotifyTicketsChanged();
         }
         GLEAF_RC_SUCCEED;
     }
@@ -423,7 +440,7 @@ namespace nsp {
         std::vector<NcmPlaceHolderId> content_placehld_ids;
         std::vector<u32> content_write_idxs;
         for(const auto &cnt: this->contents) {
-            const auto content_file_name = hos::ContentIdAsString(cnt.content_id) + ((cnt.content_type == NcmContentType_Meta) ? ".cnmt" : "") + ".nca";
+            const auto content_file_name = util::FormatContentId(cnt.content_id) + ((cnt.content_type == NcmContentType_Meta) ? ".cnmt" : "") + ".nca";
             const auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
             GLEAF_RC_UNLESS(fs::PFS0::IsValidFileIndex(content_file_idx), rc::goldleaf::ResultInvalidNsp);
             total_size += pfs0_file.GetFileSize(content_file_idx);
@@ -448,7 +465,7 @@ namespace nsp {
         write_ctx.NotifyStart(on_start_write_fn);
 
         Thread cnt_write_thread;
-        GLEAF_RC_TRY(threadCreate(&cnt_write_thread, ContentWriteThread, reinterpret_cast<void*>(&write_ctx), nullptr, 0x100000, 0x3B, -2));
+        GLEAF_RC_TRY(threadCreate(&cnt_write_thread, ContentWriteMain, reinterpret_cast<void*>(&write_ctx), nullptr, 1_MB, 0x1F, -2));
         GLEAF_RC_TRY(threadStart(&cnt_write_thread));
 
         for(u32 i = 0; i < this->contents.size(); i++) {
@@ -460,7 +477,7 @@ namespace nsp {
             
             u64 cur_written_size = 0;
             auto rem_size = content_file_size;
-            const auto content_path = "Contents/temp/" + content_file_name;
+            const auto content_path = GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/" + content_file_name;
             switch(cnt.content_type) {
                 case NcmContentType_Meta:
                 case NcmContentType_Control: {
@@ -535,8 +552,9 @@ namespace nsp {
     void Installer::FinalizeInstallation() {
         ncmContentStorageClose(&this->cnt_storage);
         ncmContentMetaDatabaseClose(&this->cnt_meta_db);
+
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        nand_sys_explorer->DeleteDirectory("Contents/temp");
+        nand_sys_explorer->DeleteDirectory(GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR);
     }
 
 }

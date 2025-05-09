@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,10 +28,18 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
+    void PCExploreLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
+        if(keys_down & HidNpadButton_B) {
+            g_MainApplication->ReturnToParentLayout();
+        }
+    }
+
     PCExploreLayout::PCExploreLayout() : pu::ui::Layout() {
-        this->paths_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        g_Settings.ApplyScrollBarColor(this->paths_menu);
+        this->paths_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
+        this->paths_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
         this->Add(this->paths_menu);
+
+        this->SetOnInput(std::bind(&PCExploreLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     }
 
     void PCExploreLayout::UpdatePaths() {
@@ -48,7 +56,7 @@ namespace ui {
                 size_t tmp_free_size;
                 // TODO (low priority): make use of drive sizes?
                 if(R_SUCCEEDED(usb::cf::GetDriveInfo(i, label, path, tmp_total_size, tmp_free_size))) {
-                    this->names.push_back(label + " (" + path + ":/)");
+                    this->names.push_back(label);
                     this->paths.push_back(path);
                 }
             }
@@ -68,20 +76,20 @@ namespace ui {
 
         for(u32 i = 0; i < this->names.size(); i++) {
             auto item = pu::ui::elm::MenuItem::New(this->names[i]);
-            item->SetColor(g_Settings.custom_scheme.text);
+            item->SetColor(g_Settings.GetColorScheme().text);
             if(i < drive_count) {
-                item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
+                item->SetIcon(GetCommonIcon(CommonIconKind::Drive));
             }
             else {
-                item->SetIcon(g_Settings.PathForResource("/FileSystem/Directory.png"));
+                item->SetIcon(GetCommonIcon(CommonIconKind::Directory));
             }
             item->AddOnKey(std::bind(&PCExploreLayout::path_DefaultKey, this));
             this->paths_menu->AddItem(item);
         }
 
         auto file_select_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(407));
-        file_select_item->SetColor(g_Settings.custom_scheme.text);
-        file_select_item->SetIcon(g_Settings.PathForResource("/FileSystem/File.png"));
+        file_select_item->SetColor(g_Settings.GetColorScheme().text);
+        file_select_item->SetIcon(GetCommonIcon(CommonIconKind::BinaryFile));
         file_select_item->AddOnKey(std::bind(&PCExploreLayout::fileSelect_DefaultKey, this));
         this->paths_menu->AddItem(file_select_item);
         this->paths_menu->SetSelectedIndex(0);
@@ -90,7 +98,7 @@ namespace ui {
     void PCExploreLayout::path_DefaultKey() {
         const auto idx = this->paths_menu->GetSelectedIndex();
         g_MainApplication->GetBrowserLayout()->ChangePartitionPCDrive(this->paths[idx]);
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void PCExploreLayout::fileSelect_DefaultKey() {

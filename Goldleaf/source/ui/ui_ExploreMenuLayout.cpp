@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,48 +28,51 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
-    ExploreMenuLayout::ExploreMenuLayout() : pu::ui::Layout() {
-        this->mounts_menu = pu::ui::elm::Menu::New(0, 160, pu::ui::render::ScreenWidth, g_Settings.custom_scheme.base, g_Settings.custom_scheme.base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        g_Settings.ApplyScrollBarColor(this->mounts_menu);
-        this->UpdateMenu();
-        this->Add(this->mounts_menu);
-    }
-
-    ExploreMenuLayout::~ExploreMenuLayout() {
-        for(auto &mounted_exp: this->mounted_explorers) {
-            delete mounted_exp;
+    void ExploreMenuLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
+        if(keys_down & HidNpadButton_B) {
+            g_MainApplication->ReturnToParentLayout();
         }
     }
 
+    ExploreMenuLayout::ExploreMenuLayout() : pu::ui::Layout() {
+        this->mounts_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
+        this->mounts_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->Add(this->mounts_menu);
+
+        this->SetOnInput(std::bind(&ExploreMenuLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    }
+
     void ExploreMenuLayout::UpdateMenu() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(277), CommonIconKind::Storage, cfg::Strings.GetString(278));
+
         this->mounts_menu->ClearItems();
         this->sd_card_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(19));
-        this->sd_card_menu_item->SetIcon(g_Settings.PathForResource("/Common/SdCard.png"));
-        this->sd_card_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->sd_card_menu_item->SetIcon(GetCommonIcon(CommonIconKind::SdCard));
+        this->sd_card_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->sd_card_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::sdCard_DefaultKey, this));
         this->remote_pc_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(279));
-        this->remote_pc_menu_item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
-        this->remote_pc_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->remote_pc_menu_item->SetIcon(GetCommonIcon(CommonIconKind::Drive));
+        this->remote_pc_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->remote_pc_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::pcDrive_DefaultKey, this));
         this->usb_drive_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(398));
-        this->usb_drive_menu_item->SetIcon(g_Settings.PathForResource("/Common/Drive.png"));
-        this->usb_drive_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->usb_drive_menu_item->SetIcon(GetCommonIcon(CommonIconKind::Drive));
+        this->usb_drive_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->usb_drive_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::usbDrive_DefaultKey, this));
         this->nand_prodinfof_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (PRODINFOF)");
-        this->nand_prodinfof_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
-        this->nand_prodinfof_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->nand_prodinfof_menu_item->SetIcon(GetCommonIcon(CommonIconKind::NAND));
+        this->nand_prodinfof_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->nand_prodinfof_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandProdInfoF_DefaultKey, this));
         this->nand_safe_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (SAFE)");
-        this->nand_safe_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
-        this->nand_safe_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->nand_safe_menu_item->SetIcon(GetCommonIcon(CommonIconKind::NAND));
+        this->nand_safe_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->nand_safe_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandSafe_DefaultKey, this));
         this->nand_user_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (USER)");
-        this->nand_user_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
-        this->nand_user_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->nand_user_menu_item->SetIcon(GetCommonIcon(CommonIconKind::NAND));
+        this->nand_user_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->nand_user_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandUser_DefaultKey, this));
         this->nand_system_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(20) + " (SYSTEM)");
-        this->nand_system_menu_item->SetIcon(g_Settings.PathForResource("/Common/NAND.png"));
-        this->nand_system_menu_item->SetColor(g_Settings.custom_scheme.text);
+        this->nand_system_menu_item->SetIcon(GetCommonIcon(CommonIconKind::NAND));
+        this->nand_system_menu_item->SetColor(g_Settings.GetColorScheme().text);
         this->nand_system_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::nandSystem_DefaultKey, this));
         this->mounts_menu->AddItem(this->sd_card_menu_item);
         this->mounts_menu->AddItem(this->remote_pc_menu_item);
@@ -85,18 +88,18 @@ namespace ui {
     }
 
     void ExploreMenuLayout::sdCard_DefaultKey() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(19), CommonIconKind::SdCard, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->GetBrowserLayout()->ChangePartitionSdCard();
-        g_MainApplication->LoadMenuData(cfg::Strings.GetString(19), "SdCard", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::pcDrive_DefaultKey() {
         if(usb::IsStateOk()) {
             g_MainApplication->GetPCExploreLayout()->UpdatePaths();
-            g_MainApplication->LoadLayout(g_MainApplication->GetPCExploreLayout());
+            g_MainApplication->ShowLayout(g_MainApplication->GetPCExploreLayout());
         }
         else {
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(299), cfg::Strings.GetString(300), { cfg::Strings.GetString(234) }, true);
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(299), cfg::Strings.GetString(300), { cfg::Strings.GetString(234) }, true);
         }
     }
 
@@ -108,15 +111,15 @@ namespace ui {
         }
         options.push_back(cfg::Strings.GetString(18));
 
-        const auto option_1 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(401), cfg::Strings.GetString(402) + " " + std::to_string(drives.size()), options, true);
+        const auto option_1 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(401), cfg::Strings.GetString(402) + " " + std::to_string(drives.size()), options, true);
         if(!drives.empty()) {
             if(option_1 < static_cast<s64>(drives.size())) {
                 auto &drive = drives.at(option_1);
-                const auto option_2 = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(401), cfg::Strings.GetString(434), { cfg::Strings.GetString(136), cfg::Strings.GetString(435), cfg::Strings.GetString(18) }, true);
+                const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(401), cfg::Strings.GetString(434), { cfg::Strings.GetString(136), cfg::Strings.GetString(435), cfg::Strings.GetString(18) }, true);
                 if(option_2 == 0) {
+                    g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(403), CommonIconKind::Drive, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
                     g_MainApplication->GetBrowserLayout()->ChangePartitionDrive(drive);
-                    g_MainApplication->LoadMenuData(cfg::Strings.GetString(403), "Drive", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-                    g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+                    g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
                 }
                 else if(option_2 == 1) {
                     if(drive::UnmountDrive(drive)) {
@@ -131,51 +134,44 @@ namespace ui {
     }
 
     void ExploreMenuLayout::nandProdInfoF_DefaultKey() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(1), CommonIconKind::NAND, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::PRODINFOF);
-        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandSafe_DefaultKey() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(1), CommonIconKind::NAND, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSafe);
-        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandUser_DefaultKey() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(1), CommonIconKind::NAND, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDUser);
-        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::nandSystem_DefaultKey() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(1), CommonIconKind::NAND, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->GetBrowserLayout()->ChangePartitionNAND(fs::Partition::NANDSystem);
-        g_MainApplication->LoadMenuData(cfg::Strings.GetString(1), "NAND", g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
-    void ExploreMenuLayout::explorer_DefaultKey(fs::Explorer *exp, const std::string &name, const std::string &icon) {
+    void ExploreMenuLayout::explorer_DefaultKey(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon) {
+        g_MainApplication->LoadMenuData(true, name, icon, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd());
         g_MainApplication->GetBrowserLayout()->ChangePartitionExplorer(exp);
-        g_MainApplication->LoadMenuData(name, icon, g_MainApplication->GetBrowserLayout()->GetExplorer()->GetPresentableCwd(), false);
-        g_MainApplication->LoadLayout(g_MainApplication->GetBrowserLayout());
+        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
     }
 
     void ExploreMenuLayout::explorer_X(fs::Explorer *exp) {
-        const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(404), cfg::Strings.GetString(405), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+        const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(404), cfg::Strings.GetString(405), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
         if(option == 0) {
-            u32 mounted_exp_idx = 0;
-            auto found = false;
-            for(auto &mounted: this->mounted_explorers) {
-                if(exp == mounted) {
-                    found = true;
-                    break;
-                }
-                mounted_exp_idx++;
-            }
-            if(found) {
+            auto mounted_exp = std::find(this->mounted_explorers.begin(), this->mounted_explorers.end(), exp);
+            if(mounted_exp != this->mounted_explorers.end()) {
                 delete exp;
-                this->mounted_explorers.erase(this->mounted_explorers.begin() + mounted_exp_idx);
-                this->mounted_explorer_items.erase(this->mounted_explorer_items.begin() + mounted_exp_idx);
+                this->mounted_explorers.erase(mounted_exp);
+                const auto idx = std::distance(this->mounted_explorers.begin(), mounted_exp);
+                this->mounted_explorer_items.erase(this->mounted_explorer_items.begin() + idx);
                 this->UpdateMenu();
                 g_MainApplication->ShowNotification(cfg::Strings.GetString(406));
             }
@@ -185,14 +181,15 @@ namespace ui {
         }
     }
 
-    void ExploreMenuLayout::AddMountedExplorer(fs::Explorer *exp, const std::string &name, const std::string &icon) {
+    void ExploreMenuLayout::AddMountedExplorer(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon) {
         auto mounted_exp_item = pu::ui::elm::MenuItem::New(name);
         mounted_exp_item->SetIcon(icon);
-        mounted_exp_item->SetColor(g_Settings.custom_scheme.text);
+        mounted_exp_item->SetColor(g_Settings.GetColorScheme().text);
         mounted_exp_item->AddOnKey(std::bind(&ExploreMenuLayout::explorer_DefaultKey, this, exp, name, icon));
         mounted_exp_item->AddOnKey(std::bind(&ExploreMenuLayout::explorer_X, this, exp), HidNpadButton_X);
         this->mounted_explorer_items.push_back(mounted_exp_item);
         this->mounted_explorers.push_back(exp);
+        fs::RegisterMountedExplorer(exp);
         this->UpdateMenu();
     }
 

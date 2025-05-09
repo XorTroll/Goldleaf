@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ import xortroll.goldleaf.quark.usb.cf.CommandFramework;
 import xortroll.goldleaf.quark.usb.cmd.CommandBlock;
 
 public class MainApplication extends Application {
-    public static final Version CurrentVersion = new Version(1, 0, 0);
+    public static final Version CurrentVersion = new Version(1, 1, 0);
 
     private static Config special_path_cfg;
     private static Object special_path_cfg_lock;

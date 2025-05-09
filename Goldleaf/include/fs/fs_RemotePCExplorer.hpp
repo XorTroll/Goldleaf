@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ namespace fs {
             RemotePCExplorer(const std::string &mount_name);
             virtual std::vector<std::string> GetDirectories(const std::string &path) override;
             virtual std::vector<std::string> GetFiles(const std::string &path) override;
+            virtual bool IsDirectoryEmpty(const std::string &dir_path) override;
             virtual bool Exists(const std::string &path) override;
             virtual bool IsFile(const std::string &path) override;
             virtual bool IsDirectory(const std::string &path) override;

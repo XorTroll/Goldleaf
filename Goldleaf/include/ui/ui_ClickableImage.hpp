@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,16 +33,14 @@ namespace ui {
             s32 y;
             s32 w;
             s32 h;
-            std::string img;
-            pu::sdl2::Texture img_tex;
+            pu::sdl2::TextureHandle::Ref img_tex;
             OnClickCallback cb;
             std::chrono::steady_clock::time_point touch_time_point;
             bool touched;
 
         public:
-            ClickableImage(const s32 x, const s32 y, const std::string &img);
+            ClickableImage(const s32 x, const s32 y, pu::sdl2::TextureHandle::Ref tex);
             PU_SMART_CTOR(ClickableImage)
-            ~ClickableImage();
 
             inline s32 GetX() override {
                 return this->x;
@@ -75,12 +73,8 @@ namespace ui {
             inline void SetHeight(const s32 h) {
                 this->h = h;
             }
-
-            inline std::string GetImage() {
-                return this->img;
-            }
             
-            void SetImage(const std::string &img);
+            void SetImage(pu::sdl2::TextureHandle::Ref tex);
             
             inline bool IsImageValid() {
                 return this->img_tex != nullptr;

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ namespace drive {
         return usbHsFsInitialize(0);
     }
 
-    void Exit() {
+    void Finalize() {
         usbHsFsExit();
     }
 
@@ -38,7 +38,6 @@ namespace drive {
         if(drive_count > 0) {
             auto drive_array = new UsbHsFsDevice[drive_count]();
             const auto written = usbHsFsListMountedDevices(drive_array, drive_count);
-
             for(u32 i = 0; i < written; i++) {
                 drives.push_back(drive_array[i]);
             }

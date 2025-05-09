@@ -1,10 +1,11 @@
 build/
-Build/
+dev/
 lib/
 *.nso
 *.nro
 *.nacp
 *.elf
+*.7z
 .vscode/
 .vs/
 bin/

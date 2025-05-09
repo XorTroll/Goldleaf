@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #include <hos/hos_Payload.hpp>
 #include <hos/hos_Common.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <bpcams/bpcams_Service.hpp>
 
 namespace hos {
 
@@ -34,9 +33,9 @@ namespace hos {
                 auto payload_buf = new u8[payload_size]();
                 exp->ReadFile(path, 0, payload_size, payload_buf);
 
-                if(R_SUCCEEDED(bpcams::Initialize())) {
-                    const auto rc = bpcams::SetRebootPayload(payload_buf, payload_size);
-                    bpcams::Exit();
+                if(R_SUCCEEDED(bpcamsInitialize())) {
+                    const auto rc = bpcamsSetRebootPayload(payload_buf, payload_size);
+                    bpcamsExit();
 
                     if(R_SUCCEEDED(rc)) {
                         if(R_SUCCEEDED(Reboot())) {

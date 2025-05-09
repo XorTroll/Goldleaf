@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,38 +28,65 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     CopyLayout::CopyLayout() {
-        this->copy_total_p_bar = pu::ui::elm::ProgressBar::New(0, 180, 600, 30, 100.0f);
+        const s32 p_bars_x = 120;
+
+        this->copy_total_p_bar = pu::ui::elm::ProgressBar::New(p_bars_x, 300, pu::ui::render::ScreenWidth - (2 * p_bars_x), 30, 100.0f);
         this->copy_total_p_bar->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        g_Settings.ApplyProgressBarColor(this->copy_total_p_bar);
+        this->copy_total_p_bar->SetProgressColor(g_Settings.GetColorScheme().progress_bar);
+        this->copy_total_p_bar->SetBackgroundColor(g_Settings.GetColorScheme().progress_bar_bg);
         this->Add(this->copy_total_p_bar);
 
-        this->total_info_text = pu::ui::elm::TextBlock::New(0, 220, cfg::Strings.GetString(469));
+        this->total_info_text = pu::ui::elm::TextBlock::New(0, 345, cfg::Strings.GetString(469));
         this->total_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->total_info_text->SetColor(g_Settings.custom_scheme.text);
+        this->total_info_text->SetColor(g_Settings.GetColorScheme().text);
+        this->total_info_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::MediumLarge));
         this->Add(this->total_info_text);
 
-        this->copy_file_p_bar = pu::ui::elm::ProgressBar::New(0, 260, 600, 30, 100.0f);
+        this->copy_file_p_bar = pu::ui::elm::ProgressBar::New(p_bars_x, 550, pu::ui::render::ScreenWidth - (2 * p_bars_x), 30, 100.0f);
         this->copy_file_p_bar->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        g_Settings.ApplyProgressBarColor(this->copy_file_p_bar);
+        this->copy_file_p_bar->SetProgressColor(g_Settings.GetColorScheme().progress_bar);
+        this->copy_file_p_bar->SetBackgroundColor(g_Settings.GetColorScheme().progress_bar_bg);
         this->Add(this->copy_file_p_bar);
 
-        this->file_info_text = pu::ui::elm::TextBlock::New(0, 300, cfg::Strings.GetString(470));
+        this->file_info_text = pu::ui::elm::TextBlock::New(0, 595, cfg::Strings.GetString(470));
         this->file_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->file_info_text->SetColor(g_Settings.custom_scheme.text);
+        this->file_info_text->SetColor(g_Settings.GetColorScheme().text);
+        this->file_info_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::MediumLarge));
         this->Add(this->file_info_text);
 
-        this->copy_info_text = pu::ui::elm::TextBlock::New(0, 450, "A");
-        this->copy_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->copy_info_text->SetColor(g_Settings.custom_scheme.text);
-        this->Add(this->copy_info_text);
+        u32 copy_info_text_y = 725;
+        #define _CREATE_COPY_INFO_TEXT(obj_text) { \
+            obj_text = pu::ui::elm::TextBlock::New(0, copy_info_text_y, "0"); \
+            obj_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center); \
+            obj_text->SetColor(g_Settings.GetColorScheme().text); \
+            obj_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::MediumLarge)); \
+            this->Add(obj_text); \
+            copy_info_text_y += 45; \
+        }
+
+        _CREATE_COPY_INFO_TEXT(this->copy_file_src_info_text);
+
+        _CREATE_COPY_INFO_TEXT(this->copy_file_arrow_info_text);
+        this->copy_file_arrow_info_text->SetText("\uE093");
+
+        _CREATE_COPY_INFO_TEXT(this->copy_file_dst_info_text);
+
+        copy_info_text_y += 30;
+        _CREATE_COPY_INFO_TEXT(this->copy_speed_eta_info_text);
     }
 
     void CopyLayout::StartCopy(const std::string &path, const std::string &new_path) {
+        ScopeGuard on_exit([&]() {
+            g_MainApplication->ReturnToParentLayout();
+        });
+
         auto exp = fs::GetExplorerForPath(path);
         auto new_exp = fs::GetExplorerForPath(new_path);
         if(exp->IsDirectory(path)) {
+            g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(506), CommonIconKind::Copy, cfg::Strings.GetString(473));
+
             if(new_exp->IsDirectory(new_path)) {
-                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(135), cfg::Strings.GetString(471), { cfg::Strings.GetString(111), cfg::Strings.GetString(112), cfg::Strings.GetString(18) }, true);
+                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(135), cfg::Strings.GetString(471), { cfg::Strings.GetString(111), cfg::Strings.GetString(112), cfg::Strings.GetString(18) }, true);
                 if(option == 0) {
                     new_exp->DeleteDirectory(new_path);
                 }
@@ -70,16 +97,15 @@ namespace ui {
 
             const auto dir_name = fs::GetBaseName(path);
             hos::LockExit();
-            g_MainApplication->LoadMenuHead(cfg::Strings.GetString(473));
             this->copy_file_p_bar->SetVisible(true);
             this->file_info_text->SetVisible(true);
 
-            std::string cur_files_text;
             auto last_tp = std::chrono::steady_clock::now();
             exp->CopyDirectoryProgress(path, new_path, [&](const size_t total_size) {
                 this->copy_total_p_bar->SetMaxProgress(total_size);
             }, [&](const size_t file_size, const std::string &old_file, const std::string &new_file) {
-                cur_files_text = exp->MakePresentablePath(old_file) + "\n↓\n" + new_exp->MakePresentablePath(new_file);
+                this->copy_file_src_info_text->SetText(exp->MakePresentablePath(old_file));
+                this->copy_file_dst_info_text->SetText(new_exp->MakePresentablePath(new_file));
                 this->copy_file_p_bar->SetMaxProgress(file_size);
                 this->copy_file_p_bar->SetProgress(0);
             }, [&](const size_t cur_rw_size) {
@@ -91,9 +117,9 @@ namespace ui {
                 last_tp = cur_tp;
                 // By elapsed time and rw size, compute how much data has been written in 1 second
                 const auto speed_bps = (1000.0f / time_diff) * (double)cur_rw_size;
-                const auto speed_text = cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->copy_file_p_bar->GetMaxProgress() - this->copy_file_p_bar->GetProgress())));
+                const auto speed_text = cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + util::FormatTime((u64)((1.0f / speed_bps) * (this->copy_total_p_bar->GetMaxProgress() - this->copy_total_p_bar->GetProgress())));
 
-                this->copy_info_text->SetText(cur_files_text + "\n\n" + speed_text);
+                this->copy_speed_eta_info_text->SetText(speed_text);
 
                 g_MainApplication->CallForRender();
             });
@@ -101,8 +127,10 @@ namespace ui {
             g_MainApplication->ShowNotification(cfg::Strings.GetString(141));
         }
         else {
+            g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(506), CommonIconKind::Copy, cfg::Strings.GetString(472));
+
             if(new_exp->IsFile(new_path)) {
-                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(153), cfg::Strings.GetString(143), { cfg::Strings.GetString(239), cfg::Strings.GetString(18) }, true);
+                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(153), cfg::Strings.GetString(143), { cfg::Strings.GetString(239), cfg::Strings.GetString(18) }, true);
                 if(option != 0) {
                     return;
                 }
@@ -111,10 +139,11 @@ namespace ui {
 
             const auto file_name = fs::GetBaseName(path);
             hos::LockExit();
-            g_MainApplication->LoadMenuHead(cfg::Strings.GetString(472));
             this->copy_file_p_bar->SetVisible(false);
             this->file_info_text->SetVisible(false);
-            const auto base_text = exp->MakePresentablePath(path) + "\n↓\n" + new_exp->MakePresentablePath(new_path);
+
+            this->copy_file_src_info_text->SetText(exp->MakePresentablePath(path));
+            this->copy_file_dst_info_text->SetText(new_exp->MakePresentablePath(new_path));
 
             auto last_tp = std::chrono::steady_clock::now();
             exp->CopyFileProgress(path, new_path, [&](const size_t file_size) {
@@ -127,9 +156,9 @@ namespace ui {
                 last_tp = cur_tp;
                 // By elapsed time and rw size, compute how much data has been written in 1 second
                 const auto speed_bps = (1000.0f / time_diff) * (double)cur_rw_size;
-                const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->copy_total_p_bar->GetMaxProgress() - this->copy_total_p_bar->GetProgress())));
+                const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + util::FormatTime((u64)((1.0f / speed_bps) * (this->copy_total_p_bar->GetMaxProgress() - this->copy_total_p_bar->GetProgress())));
 
-                this->copy_info_text->SetText(base_text + "\n\n" + speed_text);
+                this->copy_speed_eta_info_text->SetText(speed_text);
 
                 g_MainApplication->CallForRender();
             });

@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <base_Common.hpp>
+#include <base.hpp>
 
 namespace cfg {
 
@@ -29,22 +29,20 @@ namespace cfg {
         std::string url;
     };
 
-    #define _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(type, name) \
-    type name; \
-    bool has_##name;
-
     struct Settings {
         // General
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(Language, custom_lang)
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(std::string, external_romfs)
+        Language lang;
+        std::string external_romfs_path;
         bool use_12h_time;
         bool ignore_hidden_files;
-        
+
         // UI
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(ColorScheme, custom_scheme)
+        ColorScheme light_color_scheme;
+        ColorScheme dark_color_scheme;
         u32 menu_item_size;
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, scrollbar_color)
-        _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE(pu::ui::Color, progressbar_color)
+
+        // FS
+        bool compute_directory_sizes;
         
         // Installs
         bool ignore_required_fw_ver;
@@ -57,15 +55,17 @@ namespace cfg {
         // Web
         std::vector<WebBookmark> bookmarks;
 
+        bool system_is_light;
+
+        inline ColorScheme &GetColorScheme() {
+            return this->system_is_light ? this->light_color_scheme : this->dark_color_scheme;
+        }
+
         void Save();
         std::string PathForResource(const std::string &res_path);
         JSON ReadJSONResource(const std::string &res_path);
-        void ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu);
-        void ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &p_bar);
         Language GetLanguage();
     };
-
-    #undef _CFG_SETTINGS_DEFINE_OPTIONAL_VALUE
 
     Settings ProcessSettings();
 

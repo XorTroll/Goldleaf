@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,9 +37,9 @@ namespace ui {
             std::vector<fs::Explorer*> mounted_explorers;
             std::vector<pu::ui::elm::MenuItem::Ref> mounted_explorer_items;
 
+            void OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos);
         public:
             ExploreMenuLayout();
-            ~ExploreMenuLayout();
             PU_SMART_CTOR(ExploreMenuLayout)
 
             void UpdateMenu();
@@ -54,9 +54,13 @@ namespace ui {
             void otherMount_DefaultKey();
             void specialMount_X();
             void otherMount_X();
-            void explorer_DefaultKey(fs::Explorer *exp, const std::string &name, const std::string &icon);
+            void explorer_DefaultKey(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon);
             void explorer_X(fs::Explorer *exp);
-            void AddMountedExplorer(fs::Explorer *exp, const std::string &name, const std::string &icon);
+            void AddMountedExplorer(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon);
+
+            inline void AddMountedExplorerWithCommonIcon(fs::Explorer *exp, const std::string &name, const CommonIconKind kind) {
+                this->AddMountedExplorer(exp, name, GetCommonIcon(kind));
+            }
 
             inline std::vector<fs::Explorer*> &GetMountedExplorers() {
                 return this->mounted_explorers;

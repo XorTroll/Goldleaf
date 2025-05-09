@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 */
 
 #include <hos/hos_Common.hpp>
-#include <hos/hos_Titles.hpp>
 #include <fs/fs_FileSystem.hpp>
 
 namespace hos {
@@ -122,6 +121,31 @@ namespace hos {
             time_fmt.erase(time_fmt.begin());
         }
         return time_fmt;
+    }
+
+    std::string FormatApplicationId(const u64 app_id) {
+        std::stringstream strm;
+        strm << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << app_id;
+        return strm.str();
+    }
+
+    std::string ContentIdAsString(const NcmContentId &cnt_id) {
+        char cnt_id_str[FS_MAX_PATH] = {};
+        const auto lower = __bswap64(*(u64*)cnt_id.c);
+        const auto upper = __bswap64(*(u64*)(cnt_id.c + 0x8));
+        snprintf(cnt_id_str, sizeof(cnt_id_str), "%016lx%016lx", lower, upper);
+        return cnt_id_str;
+    }
+
+    NcmContentId StringAsContentId(const std::string &cnt_id_str) {
+        NcmContentId cnt_id = {};
+        char lower[0x20] = {0};
+        char upper[0x20] = {0};
+        memcpy(lower, cnt_id_str.c_str(), 0x10);
+        memcpy(upper, cnt_id_str.c_str() + 0x10, 0x10);
+        *(u64*)cnt_id.c = __bswap64(strtoul(lower, nullptr, 0x10));
+        *(u64*)(cnt_id.c + 0x8) = __bswap64(strtoul(upper, nullptr, 0x10));
+        return cnt_id;
     }
 
     void LockExit() {

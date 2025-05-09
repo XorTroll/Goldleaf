@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -75,6 +75,28 @@ namespace fs {
         return files;
     }
 
+    bool StdExplorer::IsDirectoryEmpty(const std::string &dir_path) {
+        const auto full_path = this->MakeFull(dir_path);
+
+        auto dp = opendir(full_path.c_str());
+        if(dp != nullptr) {
+            while(true) {
+                auto dt = readdir(dp);
+                if(dt == nullptr) {
+                    break;
+                }
+                
+                const std::string name = dt->d_name;
+                if((name != ".") && (name != "..")) {
+                    closedir(dp);
+                    return false;
+                }
+            }
+            closedir(dp);
+        }
+        return true;
+    }
+
     bool StdExplorer::Exists(const std::string &path) {
         const auto full_path = this->MakeFull(path);
 
@@ -131,7 +153,6 @@ namespace fs {
 
     void StdExplorer::DeleteDirectory(const std::string &path) {
         const auto full_path = this->MakeFull(path);
-
         fsdevDeleteDirectoryRecursively(full_path.c_str());
         this->DoCommit();
     }
@@ -152,8 +173,7 @@ namespace fs {
                 break;
             }
             default: {
-                // Error?
-                break;
+                GLEAF_ASSERT_FAIL("Invalid file mode");
             }
         }
 

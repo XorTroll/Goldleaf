@@ -65,6 +65,18 @@ Table of contents
 - [Contributing](#contributing)
   - [Translations](#translations)
 - [Credits](#credits)
+- [Quark and remote browsing](#quark-and-remote-browsing-1)
+  - [Windows](#windows-1)
+  - [Linux](#linux-1)
+  - [Mac](#mac-1)
+- [Settings \& themeing](#settings--themeing)
+  - [Sample](#sample-1)
+  - [Notes](#notes-1)
+- [Known bugs](#known-bugs-1)
+- [Building](#building-1)
+- [Contributing](#contributing-1)
+  - [Translations](#translations-1)
+- [Credits](#credits-1)
 
 ## Features
 
@@ -86,7 +98,7 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
     - *NRO homebrew RomFs (read-only)*
 
-    > Note: all will be automatically unmounted when Goldleaf is exited
+    > Note: all of them are automatically unmounted when Goldleaf is exited
 
   - Features:
 
@@ -395,10 +407,195 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 - 2767mr, for all the support given in Goldtree (former Quark tool).
 
 - developer.su for [NS-USBloader](https://github.com/developersu/ns-usbloader), which helped a lot on the development of Quark, mainly on the usage of usb4java and the base of a multi-platform JavaFX Java project.
+## Quark and remote browsing
+
+Quark Goldleaf's desktop Java tool, working as the desktop client for the remote PC option. It supports Windows, Linux and Mac.
+
+Quark needs Java 9 or greater to run. See below the recommended installation for each supported system.
+
+You also need to install libusbK drivers for USB to work fine.
+
+### Windows
+
+The best way to install Java 9 in Windows (or a very simple one) is to install [AdoptOpenJDK 11 or higher](https://adoptopenjdk.net).
+
+> Note: make sure that the JDK/JRE you choose contains JavaFX! You can always install it manually otherwise
+
+After installing it, double-clicking the JAR should be enough to start it.
+
+Otherwise, run ```java -jar Quark.jar``` in the command prompt.
+
+For the USB to get recognized, follow the following steps:
+
+- Download [Zadig](https://zadig.akeo.ie)
+
+- Boot your console with CFW, connect it to the PC via USB
+
+- Open Goldleaf
+
+- With Zadig, select the device named "Goldleaf" (if it doesn't appear, ensure Goldleaf has a USB icon on the top of the screen, and select "List all devices" under "Options" in Zadig)
+
+- Install **libusbK** to that device (any other driver won't work fine)
+
+### Linux
+
+Install OpenJDK 11 (or higher) in the terminal:
+
+- Run ```sudo add-apt-repository ppa:openjdk-r/ppa```
+
+- Run ```sudo apt-get update```
+
+- Finally, run ```sudo apt-get install openjdk-11-jdk``` (if you just want the JRE, install `openjdk-11-jre` instead)
+
+- Create the file ```/etc/udev/rules.d/99-switch.rules``` with the following contents: ```SUBSYSTEM=="usb", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="3000", GROUP="plugdev"```
+
+- Reload udev rules with: ```sudo udevadm control --reload-rules && sudo udevadm trigger```
+
+Now you can run Quark using ```java -jar Quark.jar```.
+
+### Mac
+
+Install OpenJDK 11 (or higher) in the terminal:
+
+- Install brew ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
+
+- Run ```brew tap AdoptOpenJDK/openjdk```
+
+- Run ```brew install adoptopenjdk11 --cask```
+
+- Finally, run ```java -version``` to check the JDK version
+
+Now you can run Quark using ```java -jar Quark.jar```.
+
+Having done all this, the USB connection should work fine.
+
+## Settings & themeing
+
+Goldleaf supports the customization of colors, assets and other options via a JSON file located at Goldleaf's folder: `sd:/switch/Goldleaf/settings.json`.
+
+### Sample
+
+This is an example JSON for Goldleaf settings:
+
+```json
+{
+    "general": {
+        "language": "es",
+        "external_romfs_path": "sdmc:/switch/Goldleaf/custom-romfs",
+        "use_12h_time": true
+    },
+    "ui": {
+        "light_color_scheme": {
+          "background": "#aabbccdd",
+          "base": "#aabbccdd",
+          "base_focus": "#aabbccdd",
+          "text": "#aabbccdd",
+          "scroll_bar": "#aabbccdd",
+          "progress_bar": "#aabbccdd",
+          "progress_bar_bg": "#aabbccdd"
+        },
+        "dark_color_scheme": {
+          "background": "#aabbccdd",
+          "base": "#aabbccdd",
+          "base_focus": "#aabbccdd",
+          "text": "#aabbccdd",
+          "scroll_bar": "#aabbccdd",
+          "progress_bar": "#aabbccdd",
+          "progress_bar_bg": "#aabbccdd"
+        },
+        "menu_item_size": 80
+    },
+    "installs": {
+        "ignore_required_fw_version": false,
+        "copy_buffer_max_size": 10485760
+    },
+    "export": {
+        "decrypt_buffer_max_size": 10485760
+    },
+    "web": {
+        "bookmarks": [
+            {
+                "name": "Google",
+                "url": "https://www.google.com"
+            },
+            {
+                "name": "GitHub",
+                "url": "https://www.github.com"
+            }
+        ]
+    }
+}
+```
+
+If a certain attribute isn't present Goldleaf will use default values (none of these fields are mandatory).
+
+Colors follow `#RRGGBBAA` hex format. Not all color schemes/color scheme fields have to be implemented, otherwise default light/dark scheme ones will be used (for those not implemented).
+
+Possible language values: `auto` (uses the system language) and all language codes listed [here](https://switchbrew.org/wiki/Settings_services#LanguageCode).
+
+### Notes
+
+Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/FileSystem/FileDataFont.ttf` resource font, if `romfsReplace` is true and `romfsReplacePath` is, for instance, `/switch/Goldleaf/testromfs`, Goldleaf will look if `sd:/switch/Goldleaf/testromfs/FileSystem/FileDataFont.ttf` exists and use it if so, otherwise will use RomFs's one.
+
+So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets that might be added in future updates.
+
+## Known bugs
+
+- Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on those specific versions. Any non-7.x firmware doesn't seem to have this issue.
+
+## Building
+
+In order to build Goldleaf, you will need the following:
+
+- [devkitA64](https://devkitpro.org)
+
+- JDK 9 or higher (needed for Quark)
+
+- Maven (needed for Quark)
+
+You will also need to install the following packages with devkitPro's pacman:
+
+- `switch-sdl2 switch-freetype switch-glad switch-libdrm_nouveau switch-sdl2_gfx switch-sdl2_image switch-sdl2_ttf switch-sdl2_mixer`
+
+Remember to clone this repository recursively (`git clone <this-repo-url> --recurse-submodules`) since Goldleaf makes use of submodules.
+
+In order to build Goldleaf, run `make setup` (only for the first time), then just run `make` (or `make dev` for a dev version) and wait for it to finish building.
+
+In order to build Quark, just execute the `build.sh` script in its directory.
+
+## Contributing
+
+If you would like to contribute with new features, you are free to fork Goldleaf and open pull requests showcasing your additions.
+
+If you just would like to suggest new ideas, but without actual code implementations, you're free to open an issue. Please try not to duplicate those, if the idea or problem is already reported in another issue.
+
+You can always contact me on my Discord server (invite link below) as an easier way to suggest ideas or directly report issues.
+
+### Translations
+
+Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
+
+Note that some languages may contain untranslated (English) content. I prioritize relevant releases/updates over correct and fully up-to-date translations, thus releases may not contain complete translations.
+
+Anyone with enough knowledge of a certain language is absolutely welcome to make a PR with translation suggestions and/or fixes.
+
+## Credits
+
+The main concepts of Goldleaf are and have been developed by me (XorTroll), but without the effort and support of many others, this project wouldn't have been a thing:
+
+- Adubbz and all the (old) [Tinfoil](https://github.com/Adubbz/Tinfoil) contributors, for their huge work with title installing.
+
+- C4Phoenix, for his awesome work doing this project's logo.
+
+- All the graphics except Goldleaf's logo (see credit above) were grabbed from [freepik](https://www.freepik.com/) and [flaticon](https://www.flaticon.com/).
+
+- 2767mr, for all the support given in Goldtree (former Quark tool).
+
+- developer.su for [NS-USBloader](https://github.com/developersu/ns-usbloader), which helped a lot on the development of Quark, mainly on the usage of usb4java and the base of a multi-platform JavaFX Java project.
 
 - Simon for his libusbK implementation for C#, which made the former Goldtree client possible.
 
-- shchmue for the system to get tickets from system save data without breaking anything, found in [Lockpick](https://github.com/shchmue/Lockpick).
+- shchmue for the system to get tickets from system save data without breaking anything, which was part of Lockpick.
 
 - WerWolv for the help with custom exception handling, avoiding those frustrating fatals.
 

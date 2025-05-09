@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,9 +20,8 @@
 */
 
 #include <acc/acc_UserSelection.hpp>
-#include <acc/acc_Service.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <hos/hos_Common.hpp>
+#include <util/util_String.hpp>
 
 namespace acc {
 
@@ -60,7 +59,7 @@ namespace acc {
     }
 
     bool SelectFromPreselectedUser() {
-        AccountUid pre_user_id = {};
+        AccountUid pre_user_id;
         const auto rc = accountGetPreselectedUser(&pre_user_id);
         if(R_SUCCEEDED(rc) && accountUidIsValid(&pre_user_id)) {
             SetSelectedUser(pre_user_id);
@@ -70,7 +69,7 @@ namespace acc {
     }
 
     bool SelectUser() {
-        AccountUid user_id = {};
+        AccountUid user_id;
         if(R_SUCCEEDED(ShowUserSelector(&user_id))) {
             if(accountUidIsValid(&user_id)) {
                 SetSelectedUser(user_id);
@@ -98,12 +97,12 @@ namespace acc {
             AccountUserData user_data = {};
             rc = accountProfileGet(&prof, &user_data, &prof_base);
             if(R_SUCCEEDED(rc)) {
-                Service editor;
-                rc = GetProfileEditor(g_SelectedUser, &editor);
+                AccountExtProfileEditor editor;
+                rc = accountextGetProfileEditor(g_SelectedUser, &editor);
                 if(R_SUCCEEDED(rc)) {
                     cb(&prof_base, &user_data);
-                    rc = ProfileEditor_Store(&editor, prof_base, user_data);
-                    serviceClose(&editor);
+                    rc = accountextProfileEditorStore(&editor, &prof_base, &user_data);
+                    accountextProfileEditorClose(&editor);
                 }
             }
             accountProfileClose(&prof);
@@ -119,11 +118,17 @@ namespace acc {
             AccountUserData user_data = {};
             rc = accountProfileGet(&prof, &user_data, &prof_base);
             if(R_SUCCEEDED(rc)) {
-                Service editor;
-                rc = GetProfileEditor(g_SelectedUser, &editor);
+                AccountExtProfileEditor editor;
+                rc = accountextGetProfileEditor(g_SelectedUser, &editor);
                 if(R_SUCCEEDED(rc)) {
-                    rc = ProfileEditor_StoreWithImage(&editor, prof_base, user_data, jpg, size);
-                    serviceClose(&editor);
+                    rc = accountextProfileEditorStoreWithImage(&editor, &prof_base, &user_data, jpg, size);
+                    if(R_SUCCEEDED(rc)) {
+                        const auto icon_path = GetExportedUserIcon();
+                        auto sd_exp = fs::GetSdCardExplorer();
+                        sd_exp->DeleteFile(icon_path);
+                        sd_exp->WriteFile(icon_path, jpg, size);
+                    }
+                    accountextProfileEditorClose(&editor);
                 }
             }
             accountProfileClose(&prof);
@@ -131,7 +136,7 @@ namespace acc {
         return rc;
     }
 
-    void CacheSelectedUserIcon() {
+    void ExportSelectedUserIcon() {
         AccountProfile prof;
         if(R_SUCCEEDED(accountGetProfile(&prof, g_SelectedUser))) {
             u32 icon_size = 0;
@@ -140,7 +145,7 @@ namespace acc {
                 auto icon = new u8[icon_size]();
                 u32 tmp_size = 0;
                 if(R_SUCCEEDED(accountProfileLoadImage(&prof, icon, icon_size, &tmp_size))) {
-                    const auto icon_path = GetCachedUserIcon();
+                    const auto icon_path = GetExportedUserIcon();
                     auto sd_exp = fs::GetSdCardExplorer();
                     sd_exp->DeleteFile(icon_path);
                     sd_exp->WriteFile(icon_path, icon, icon_size);
@@ -151,45 +156,46 @@ namespace acc {
         }
     }
 
-    std::string GetCachedUserIcon() {
+    std::string GetExportedUserIcon() {
         auto sd_exp = fs::GetSdCardExplorer();
-        return sd_exp->MakeAbsolute(GLEAF_PATH_USER_DATA_DIR "/" + hos::FormatHex128(g_SelectedUser) + ".jpg");
+        return sd_exp->MakeAbsolute(GLEAF_PATH_USER_DATA_DIR "/" + util::FormatHex128(g_SelectedUser) + ".jpg");
     }
 
     bool IsLinked() {
         bool linked = false;
-        Service baas;
-        const auto rc = GetBaasAccountAdministrator(g_SelectedUser, &baas);
+        AccountExtAdministrator baas_admin;
+        const auto rc = accountextGetBaasAccountAdministrator(g_SelectedUser, &baas_admin);
         if(R_SUCCEEDED(rc)) {
-            BaasAdministrator_IsLinkedWithNintendoAccount(&baas, &linked);
-            serviceClose(&baas);
+            accountextAdministratorIsLinkedWithNintendoAccount(&baas_admin, &linked);
+            accountextAdministratorClose(&baas_admin);
         }
         return linked;
     }
 
     Result UnlinkLocally() {
-        Service baas;
-        auto rc = GetBaasAccountAdministrator(g_SelectedUser, &baas);
+        AccountExtAdministrator baas_admin;
+        auto rc = accountextGetBaasAccountAdministrator(g_SelectedUser, &baas_admin);
         if(R_SUCCEEDED(rc)) {
             bool linked = false;
-            rc = BaasAdministrator_IsLinkedWithNintendoAccount(&baas, &linked);
+            rc = accountextAdministratorIsLinkedWithNintendoAccount(&baas_admin, &linked);
             if(R_SUCCEEDED(rc) && linked) {
-                rc = BaasAdministrator_DeleteRegistrationInfoLocally(&baas);
+                rc = accountextAdministratorDeleteRegistrationInfoLocally(&baas_admin);
             }
-            serviceClose(&baas);
+            accountextAdministratorClose(&baas_admin);
         }
         return rc;
     }
 
     LinkedAccountInfo GetUserLinkedInfo() {
         LinkedAccountInfo info = {};
-        Service baas;
-        const auto rc = GetBaasAccountAdministrator(g_SelectedUser, &baas);
+        AccountExtAdministrator baas_admin;
+        const auto rc = accountextGetBaasAccountAdministrator(g_SelectedUser, &baas_admin);
         if(R_SUCCEEDED(rc)) {
-            BaasAdministrator_GetAccountId(&baas, &info.account_id);
-            BaasAdministrator_GetNintendoAccountId(&baas, &info.nintendo_account_id);
-            serviceClose(&baas);
+            accountextAdministratorGetAccountId(&baas_admin, &info.account_id);
+            accountextAdministratorGetNintendoAccountId(&baas_admin, &info.nintendo_account_id);
+            accountextAdministratorClose(&baas_admin);
         }
         return info;
     }
+
 }

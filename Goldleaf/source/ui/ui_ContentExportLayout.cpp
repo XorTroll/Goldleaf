@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program_cnt_id is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,14 +28,39 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
+    namespace {
+
+        std::string SanitizeExportName(const std::string &name) {
+            auto sanitized_name = name;
+            for(auto &c: sanitized_name) {
+                if(c == '/' || c == '\\' || c == ':') {
+                    c = '_';
+                }
+            }
+            return sanitized_name;
+        }
+
+    }
+
     ContentExportLayout::ContentExportLayout() {
-        this->speed_info_text = pu::ui::elm::TextBlock::New(0, 180, "A");
+        this->speed_info_text = pu::ui::elm::TextBlock::New(0, 290, "A");
         this->speed_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->speed_info_text->SetColor(g_Settings.custom_scheme.text);
+        this->speed_info_text->SetColor(g_Settings.GetColorScheme().text);
         this->Add(this->speed_info_text);
     }
 
-    void ContentExportLayout::StartExport(hos::Title &cnt, const bool has_tik) {
+    void ContentExportLayout::StartExport(const cnt::Application &app, const u32 cnt_i, const bool has_tik) {
+        const auto &cnt_status = app.meta_status_list.at(cnt_i);
+        const auto &cnts = app.contents.at(cnt_i);
+        const auto cnt_storage_id = static_cast<NcmStorageId>(cnt_status.storageID);
+        const auto format_app_id = util::FormatApplicationId(cnt_status.application_id);
+        
+        g_MainApplication->LoadMenuData(true, cfg::Strings.GetString(505), GetApplicationIcon(app.record.id), cfg::Strings.GetString(359) + ": " + app.cache.display_name + " (" + cnt::GetContentMetaTypeName(static_cast<NcmContentMetaType>(cnt_status.meta_type)) + ", " + format_app_id + ")");
+
+        ScopeGuard on_exit([&]() {
+            g_MainApplication->ReturnToParentLayout();
+        });
+
         EnsureDirectories();
         g_MainApplication->CallForRender();
 
@@ -43,8 +68,6 @@ namespace ui {
         this->content_info_texts.clear();
         this->content_p_bars.clear();
         this->Add(this->speed_info_text);
-
-        const auto format_app_id = hos::FormatApplicationId(cnt.app_id);
         
         auto sd_exp = fs::GetSdCardExplorer();
         const auto out_dir = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/" + format_app_id);
@@ -52,16 +75,15 @@ namespace ui {
         this->speed_info_text->SetText(cfg::Strings.GetString(192));
         g_MainApplication->CallForRender();
         if(has_tik) {
-            expt::ExportTicketCert(cnt.app_id, true);
+            expt::ExportTicketCert(cnt_status.application_id, true);
         }
         this->speed_info_text->SetText(cfg::Strings.GetString(193));
         g_MainApplication->CallForRender();
     
         NcmContentStorage cnt_storage;
-        auto rc = ncmOpenContentStorage(&cnt_storage, cnt.storage_id);
+        auto rc = ncmOpenContentStorage(&cnt_storage, cnt_storage_id);
         if(R_FAILED(rc)) {
-            HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::Strings.GetString(198));
-            g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
+            HandleResult(rc::goldleaf::ResultUnableToLocateContents, cfg::Strings.GetString(198));
             return;
         }
         ScopeGuard on_exit_1([&]() {
@@ -69,10 +91,9 @@ namespace ui {
         });
 
         NcmContentMetaDatabase cnt_meta_db;
-        rc = ncmOpenContentMetaDatabase(&cnt_meta_db, cnt.storage_id);
+        rc = ncmOpenContentMetaDatabase(&cnt_meta_db, cnt_storage_id);
         if(R_FAILED(rc)) {
-            HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::Strings.GetString(198));
-            g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
+            HandleResult(rc::goldleaf::ResultUnableToLocateContents, cfg::Strings.GetString(198));
             return;
         }
         ScopeGuard on_exit_2([&]() {
@@ -81,29 +102,26 @@ namespace ui {
 
         std::vector<std::pair<bool, NcmContentId>> export_cnts;
         auto is_any_meta = false;
-        for(const auto &cnts: cnt.title_cnts) {
-            for(u32 i = 0; i < ncm::ContentTypeCount; i++) {
-                if(!cnts.cnts[i].is_empty) {
-                    const auto is_meta = static_cast<NcmContentType>(i) == NcmContentType_Meta;
-                    export_cnts.push_back({ is_meta, cnts.cnts[i].id });
-                    if(is_meta) {
-                        is_any_meta = true;
-                    }
+        for(u32 i = 0; i < cnt::MaxContentCount; i++) {
+            if(cnts.cnt_ids[i].has_value()) {
+                const auto is_meta = static_cast<NcmContentType>(i) == NcmContentType_Meta;
+                export_cnts.push_back({ is_meta, cnts.cnt_ids[i].value() });
+                if(is_meta) {
+                    is_any_meta = true;
                 }
             }
         }
         if(!is_any_meta) {
-            HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::Strings.GetString(198));
-            g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
+            HandleResult(rc::goldleaf::ResultUnableToLocateContents, cfg::Strings.GetString(198));
             return;
         }
 
-        u32 cur_y = 180 + this->speed_info_text->GetHeight() + 25;
+        u32 cur_y = this->speed_info_text->GetY() + this->speed_info_text->GetHeight() + 35;
 
         constexpr auto cnts_per_column = 4;
         const auto total_count = export_cnts.size() + 1;
         const auto column_count = (total_count + 3) / 4;
-        constexpr auto margin = 25;
+        constexpr auto margin = 45;
         const auto p_bar_width = (pu::ui::render::ScreenWidth - (column_count + 1) * margin) / column_count;
 
         const auto base_column_y = cur_y;
@@ -112,17 +130,18 @@ namespace ui {
         for(u32 i = 0; i < total_count; i++) {
             auto info_text = pu::ui::elm::TextBlock::New(cur_x, cur_y, "A");
             if(i < export_cnts.size()) {
-                const auto cnt_name = hos::ContentIdAsString(export_cnts.at(i).second) + (export_cnts.at(i).first ? ".cnmt" : "") + ".nca";
+                const auto cnt_name = util::FormatContentId(export_cnts.at(i).second) + (export_cnts.at(i).first ? ".cnmt" : "") + ".nca";
                 info_text->SetText(cnt_name);
             }
             else {
                 info_text->SetText(cfg::Strings.GetString(196));
             }
-            info_text->SetColor(g_Settings.custom_scheme.text);
-            cur_y += info_text->GetHeight() + 10;
+            info_text->SetColor(g_Settings.GetColorScheme().text);
+            cur_y += info_text->GetHeight() + 20;
             auto p_bar = pu::ui::elm::ProgressBar::New(cur_x, cur_y, p_bar_width, 30, 0.0f);
-            g_Settings.ApplyProgressBarColor(p_bar);
-            cur_y += p_bar->GetHeight() + 15;
+            p_bar->SetProgressColor(g_Settings.GetColorScheme().progress_bar);
+            p_bar->SetBackgroundColor(g_Settings.GetColorScheme().progress_bar_bg);
+            cur_y += p_bar->GetHeight() + 20;
 
             this->content_info_texts.push_back(info_text);
             this->content_p_bars.push_back(p_bar);
@@ -139,13 +158,13 @@ namespace ui {
 
         hos::LockExit();
         auto last_tp = std::chrono::steady_clock::now();
-        if(cnt.storage_id == NcmStorageId_SdCard) {
+        if(cnt_storage_id == NcmStorageId_SdCard) {
             u32 i = 0;
             for(const auto &[cnt_is_meta, cnt_id] : export_cnts) {
-                const auto cnt_name = hos::ContentIdAsString(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
+                const auto cnt_name = util::FormatContentId(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
                 const auto out_cnt_path = out_dir + "/" + cnt_name;
                 fs::CreateConcatenationFile(out_cnt_path);
-                const auto rc = expt::DecryptCopyNAX0ToNCA(&cnt_storage, cnt_id, out_cnt_path, [&](const double file_size) {
+                const auto rc = expt::DecryptCopyNax0ToNca(&cnt_storage, cnt_id, out_cnt_path, [&](const double file_size) {
                     this->content_p_bars.at(i)->SetMaxProgress(file_size);
                 }, [&](const double cur_rw_size) {
                     const auto cur_tp = std::chrono::steady_clock::now();
@@ -153,7 +172,7 @@ namespace ui {
                     last_tp = cur_tp;
 
                     const auto speed_bps = (1000.0f / time_diff) * cur_rw_size;
-                    const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(i)->GetMaxProgress() - this->content_p_bars.at(i)->GetProgress())));
+                    const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + util::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(i)->GetMaxProgress() - this->content_p_bars.at(i)->GetProgress())));
                     this->speed_info_text->SetText(speed_text);
 
                     this->content_p_bars.at(i)->IncrementProgress(cur_rw_size);
@@ -168,22 +187,21 @@ namespace ui {
         }
         else {
             fs::Explorer *nand_exp = nullptr;
-            if(cnt.storage_id == NcmStorageId_BuiltInSystem) {
+            if(cnt_storage_id == NcmStorageId_BuiltInSystem) {
                 nand_exp = fs::GetNANDSystemExplorer();
             }
-            else if(cnt.storage_id == NcmStorageId_BuiltInUser) {
+            else if(cnt_storage_id == NcmStorageId_BuiltInUser) {
                 nand_exp = fs::GetNANDUserExplorer();
             }
             else {
                 hos::UnlockExit();
-                HandleResult(rc::goldleaf::ResultCouldNotLocateTitleContents, cfg::Strings.GetString(198));
-                g_MainApplication->LoadLayout(g_MainApplication->GetContentManagerLayout());
+                HandleResult(rc::goldleaf::ResultUnableToLocateContents, cfg::Strings.GetString(198));
                 return;
             }
 
             u32 i = 0;
             for(const auto &[cnt_is_meta, cnt_id] : export_cnts) {
-                const auto cnt_name = hos::ContentIdAsString(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
+                const auto cnt_name = util::FormatContentId(cnt_id) + (cnt_is_meta ? ".cnmt" : "") + ".nca";
                 const auto cnt_ncm_path = expt::GetContentIdPath(&cnt_storage, cnt_id);
                 const auto cnt_nand_path = nand_exp->FullPathFor("Contents/" + cnt_ncm_path.substr(__builtin_strlen("@UserContent://")));
                 const auto out_cnt_path = out_dir + "/" + cnt_name;
@@ -196,7 +214,7 @@ namespace ui {
                     last_tp = cur_tp;
 
                     const auto speed_bps = (1000.0f / time_diff) * cur_rw_size;
-                    const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(i)->GetMaxProgress() - this->content_p_bars.at(i)->GetProgress())));
+                    const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + util::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(i)->GetMaxProgress() - this->content_p_bars.at(i)->GetProgress())));
                     this->speed_info_text->SetText(speed_text);
 
                     this->content_p_bars.at(i)->IncrementProgress(cur_rw_size);
@@ -207,8 +225,15 @@ namespace ui {
         }
 
         auto out_nsp = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/");
-        if(cnt.TryGetNacp()) {
-            out_nsp += hos::FindNacpName(cnt.nacp) + " [" + format_app_id + "] [v" + std::to_string(cnt.version) + "].nsp";
+        if(!cnt::IsApplicationNacpEmpty(app.control_data.nacp)) {
+            u32 max_version = 0;
+            for(const auto &status: app.meta_status_list) {
+                if(status.version > max_version) {
+                    max_version = status.version;
+                }
+            }
+
+            out_nsp += SanitizeExportName(cnt::FindApplicationNacpName(app.control_data.nacp)) + " [" + format_app_id + "] [v" + std::to_string(max_version) + "].nsp";
         }
         else {
             out_nsp += format_app_id + ".nsp";
@@ -224,7 +249,7 @@ namespace ui {
             last_tp = cur_tp;
 
             const auto speed_bps = (1000.0f / time_diff) * cur_rw_size;
-            const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(nsp_i)->GetMaxProgress() - this->content_p_bars.at(nsp_i)->GetProgress())));
+            const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + util::FormatTime((u64)((1.0f / speed_bps) * (this->content_p_bars.at(nsp_i)->GetMaxProgress() - this->content_p_bars.at(nsp_i)->GetProgress())));
             this->speed_info_text->SetText(speed_text);
 
             this->content_p_bars.at(nsp_i)->IncrementProgress(cur_rw_size);
@@ -237,7 +262,7 @@ namespace ui {
             g_MainApplication->ShowNotification(cfg::Strings.GetString(197) + " '" + out_nsp + "'");
         }
         else {
-            HandleResult(rc::goldleaf::ResultCouldNotBuildNsp, cfg::Strings.GetString(198));
+            HandleResult(rc::goldleaf::ResultUnableToBuildNsp, cfg::Strings.GetString(198));
             sd_exp->EmptyDirectory(GLEAF_PATH_EXPORT_DIR);
             EnsureDirectories();
         }

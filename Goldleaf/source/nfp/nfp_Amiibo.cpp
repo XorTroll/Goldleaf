@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <nfp/nfp_Amiibo.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <hos/hos_Common.hpp>
+#include <util/util_String.hpp>
 
 namespace nfp {
 
@@ -36,6 +36,8 @@ namespace nfp {
                 .buffers = { { out_data, sizeof(NfpData) } },
             );
         }
+
+        constexpr size_t LegacyMiiSize = 0x60;
 
     }
 
@@ -132,7 +134,7 @@ namespace nfp {
         sd_exp->WriteFile(amiibo_path + "/" + mii_charinfo, &reg.mii, sizeof(reg.mii));
 
         const auto legacy_mii = "legacy-mii.bin";
-        sd_exp->WriteFile(amiibo_path + "/" + legacy_mii, all.legacy_mii, sizeof(all.legacy_mii));
+        sd_exp->WriteFile(amiibo_path + "/" + legacy_mii, &all.mii, LegacyMiiSize);
 
         for(u32 i = 0; i < sizeof(tag.uuid); i++) {
             amiibo["uuid"][i] = tag.uuid[i];
@@ -154,19 +156,19 @@ namespace nfp {
         sd_exp->WriteJSON(amiibo_path + "/amiibo.json", amiibo);
 
         // If the amiibo has application area...
-        if(all.admin_info.flags & BIT(1)) {
+        if(all.settings_flag & BIT(5)) {
             auto area_info = JSON::object();
-            area_info["current_area_access_id"] = all.admin_info.access_id;
-            area_info["areas"][0]["program_id"] = all.admin_info.program_id;
-            area_info["areas"][0]["access_id"] = all.admin_info.access_id;
+            area_info["current_area_access_id"] = all.access_id;
+            area_info["areas"][0]["program_id"] = all.application_id;
+            area_info["areas"][0]["access_id"] = all.access_id;
 
             sd_exp->WriteJSON(amiibo_path + "/areas.json", area_info);
 
             const auto areas_dir = amiibo_path + "/areas";
             sd_exp->CreateDirectory(areas_dir);
 
-            const auto area_path = areas_dir + "/" + hos::FormatHex(all.admin_info.access_id) + ".bin";
-            sd_exp->WriteFile(area_path, all.app_area, sizeof(all.app_area));
+            const auto area_path = areas_dir + "/" + util::FormatHex(all.access_id) + ".bin";
+            sd_exp->WriteFile(area_path, all.application_area, sizeof(all.application_area));
         }
 
         return amiibo_folder;

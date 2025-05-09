@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <base_Common.hpp>
+#include <base.hpp>
 
 namespace hos {
 
@@ -28,17 +28,6 @@ namespace hos {
     bool IsCharging();
 
     std::string GetCurrentTime(const bool use_12h_time);
-    
-    template<typename N>
-    inline std::string FormatHex(const N num) {
-        std::stringstream strm;
-        strm << "0x" << std::hex << std::uppercase << num;
-        return strm.str();
-    }
-
-    std::string FormatHex128(const AccountUid user_id);
-    std::string FormatResult(const Result rc);
-    std::string FormatTime(const u64 sec);
 
     void LockExit();
     void UnlockExit();

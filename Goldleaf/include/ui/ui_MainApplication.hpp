@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
 #include <ui/ui_AccountLayout.hpp>
 #include <ui/ui_AmiiboDumpLayout.hpp>
 #include <ui/ui_ClickableImage.hpp>
+#include <ui/ui_ApplicationListLayout.hpp>
+#include <ui/ui_ApplicationContentsLayout.hpp>
 #include <ui/ui_ContentExportLayout.hpp>
-#include <ui/ui_ContentInformationLayout.hpp>
-#include <ui/ui_ContentManagerLayout.hpp>
 #include <ui/ui_CopyLayout.hpp>
 #include <ui/ui_ExploreMenuLayout.hpp>
 #include <ui/ui_FileContentLayout.hpp>
@@ -34,10 +34,9 @@
 #include <ui/ui_MainMenuLayout.hpp>
 #include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_OwnSettingsLayout.hpp>
-#include <ui/ui_PartitionBrowserLayout.hpp>
+#include <ui/ui_BrowserLayout.hpp>
 #include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_SettingsLayout.hpp>
-#include <ui/ui_StorageContentsLayout.hpp>
 #include <ui/ui_TicketsLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
 #include <ui/ui_UpdateInstallLayout.hpp>
@@ -47,6 +46,12 @@ namespace ui {
 
     class MainApplication : public pu::ui::Application {
         private:
+            struct MenuData {
+                std::string name;
+                pu::sdl2::TextureHandle::Ref img;
+                std::string head;
+            };
+
             u32 cur_battery_val;
             bool cur_is_charging;
             bool usb_ok;
@@ -55,15 +60,14 @@ namespace ui {
             std::string cur_time;
             bool read_values_once;
             MainMenuLayout::Ref main_menu_lyt;
-            PartitionBrowserLayout::Ref partition_browser_lyt;
+            BrowserLayout::Ref browser_lyt;
             FileContentLayout::Ref file_content_lyt;
             CopyLayout::Ref copy_lyt;
             ExploreMenuLayout::Ref explore_menu_lyt;
             PCExploreLayout::Ref pc_explore_lyt;
             InstallLayout::Ref install_lyt;
-            ContentInformationLayout::Ref cnt_information_lyt;
-            StorageContentsLayout::Ref storage_cnts_lyt;
-            ContentManagerLayout::Ref cnt_manager_lyt;
+            ApplicationListLayout::Ref app_list_lyt;
+            ApplicationContentsLayout::Ref app_cnts_lyt;
             ContentExportLayout::Ref cnt_expt_lyt;
             TicketsLayout::Ref tiks_lyt;
             AccountLayout::Ref account_lyt;
@@ -92,7 +96,11 @@ namespace ui {
             ClickableImage::Ref help_img;
             pu::ui::extras::Toast::Ref toast;
             std::chrono::time_point<std::chrono::steady_clock> start_time;
+            std::stack<MenuData> menu_data_stack;
+            std::stack<pu::ui::Layout::Ref> lyt_stack;
 
+            void DoLoadMenuData(const std::string &name, pu::sdl2::TextureHandle::Ref img, const std::string &temp_head);
+            void helpImage_OnClick();
         public:
             using Application::Application;
             PU_SMART_CTOR(MainApplication)
@@ -100,37 +108,39 @@ namespace ui {
             void OnLoad() override;
 
             void ShowNotification(const std::string &text);
+            int DisplayDialog(const std::string &title, const std::string &content, const std::vector<std::string> &opts, const bool use_last_opt_as_cancel, pu::sdl2::TextureHandle::Ref icon = {});
+
             void UpdateValues();
-            void ReturnToMainMenu();
-            void LoadMenuData(const std::string &name, const std::string &img_name, const std::string &temp_head, const bool is_common_icon = true);
+            void ReturnToParentLayout();
+
+            void LoadMenuData(const bool push_new, const std::string &name, pu::sdl2::TextureHandle::Ref icon, const std::string &temp_head);
+
+            inline void LoadFileMenuData(const bool push_new, const std::string &name, const std::string &img_path, const std::string &temp_head) {
+                this->LoadMenuData(push_new, name, pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(img_path)), temp_head);
+            }
+
+            inline void LoadCommonIconMenuData(const bool push_new, const std::string &name, const CommonIconKind kind, const std::string &temp_head) {
+                this->LoadMenuData(push_new, name, GetCommonIcon(kind), temp_head);
+            }
+
+            void PopMenuData();
             void LoadMenuHead(const std::string &head);
             void UnloadMenuData();
+
+            void ShowLayout(pu::ui::Layout::Ref lyt);
+            void PopLayout();
             void ClearLayout(pu::ui::Layout::Ref lyt);
-            void browser_Input(const u64 down, const u64 up, const u64 held);
-            void exploreMenu_Input(const u64 down, const u64 up, const u64 held);
-            void pcExplore_Input(const u64 down, const u64 up, const u64 held);
-            void fileContent_Input(const u64 down, const u64 up, const u64 held);
-            void contentInformation_Input(const u64 down, const u64 up, const u64 held);
-            void storageContents_Input(const u64 down, const u64 up, const u64 held);
-            void contentManager_Input(const u64 down, const u64 up, const u64 held);
-            void unusedTickets_Input(const u64 down, const u64 up, const u64 held);
-            void account_Input(const u64 down, const u64 up, const u64 held);
-            void amiibo_Input(const u64 down, const u64 up, const u64 held);
-            void settings_Input(const u64 down, const u64 up, const u64 held);
-            void ownSettings_Input(const u64 down, const u64 up, const u64 held);
-            void memory_Input(const u64 down, const u64 up, const u64 held);
-            void webBrowser_Input(const u64 down, const u64 up, const u64 held);
-            void about_Input(const u64 down, const u64 up, u64 const held);
-            void userImage_OnClick();
-            void helpImage_OnClick();
+
+            void PickUser();
+
             void OnInput(const u64 down, const u64 up, const u64 held);
             
             inline MainMenuLayout::Ref &GetMainMenuLayout() {
                 return this->main_menu_lyt;
             }
 
-            inline PartitionBrowserLayout::Ref &GetBrowserLayout() {
-                return this->partition_browser_lyt;
+            inline BrowserLayout::Ref &GetBrowserLayout() {
+                return this->browser_lyt;
             }
 
             inline FileContentLayout::Ref &GetFileContentLayout() {
@@ -153,16 +163,12 @@ namespace ui {
                 return this->install_lyt;
             }
 
-            inline ContentInformationLayout::Ref &GetContentInformationLayout() {
-                return this->cnt_information_lyt;
+            inline ApplicationListLayout::Ref &GetApplicationListLayout() {
+                return this->app_list_lyt;
             }
 
-            inline StorageContentsLayout::Ref &GetStorageContentsLayout() {
-                return this->storage_cnts_lyt;
-            }
-
-            inline ContentManagerLayout::Ref &GetContentManagerLayout() {
-                return this->cnt_manager_lyt;
+            inline ApplicationContentsLayout::Ref &GetApplicationContentsLayout() {
+                return this->app_cnts_lyt;
             }
 
             inline ContentExportLayout::Ref &GetContentExportLayout() {
@@ -210,11 +216,6 @@ namespace ui {
             }
     };
 
-    constexpr ColorScheme DefaultLight = { { 124, 199, 239, 0xFF }, { 196, 224, 239, 0xFF }, { 168, 214, 237, 0xFF }, { 15, 15, 15, 0xFF } };
-    constexpr ColorScheme DefaultDark = { { 29, 81, 114, 0xFF }, { 37, 104, 145, 0xFF }, { 45, 124, 173, 0xFF }, { 225, 225, 225, 0xFF } };
-
     void UpdateClipboard(const std::string &path);
-
-    void ApplyRandomScheme();
 
 }

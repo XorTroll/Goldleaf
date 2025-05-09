@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ namespace fs {
         NANDExplorer *g_NANDSystemExplorer = nullptr;
         RemotePCExplorer *g_RemotePCExplorer = nullptr;
         DriveExplorer *g_DriveExplorer = nullptr;
+        std::vector<Explorer*> g_MountedExplorers;
 
         template<typename T, typename ...Args>
         inline T *EnsureExplorer(T *&exp, Args &&...args) {
@@ -156,6 +157,14 @@ namespace fs {
         DeleteExplorer(g_NANDSystemExplorer);
         DeleteExplorer(g_RemotePCExplorer);
         DeleteExplorer(g_DriveExplorer);
+        for(auto &exp: g_MountedExplorers) {
+            DeleteExplorer(exp);
+        }
+        g_MountedExplorers.clear();
+    }
+
+    void RegisterMountedExplorer(Explorer *exp) {
+        g_MountedExplorers.push_back(exp);
     }
 
 }
