@@ -265,12 +265,12 @@ namespace nsp {
         };
         ncmU64ToContentInfoSize(cnmt_nca_file_size, &this->meta_cnt_info);
 
-        this->programs.clear();
+        this->inst_contents.clear();
         for(const auto &cnt: this->packaged_cnt_meta.contents) {
             if(cnt.info.content_type == NcmContentType_Program) {
-                const auto program_idx = this->programs.size();
+                const auto program_idx = this->inst_contents.size();
 
-                auto &program = this->programs.emplace_back();
+                auto &program = this->inst_contents.emplace_back();
                 program.meta_key = {
                     .id = this->packaged_cnt_meta.header.app_id + program_idx,
                     .version = this->packaged_cnt_meta.header.version,
@@ -279,8 +279,8 @@ namespace nsp {
                 };
             }
         }
-        if(this->programs.empty()) {
-            auto &main_program = this->programs.emplace_back();
+        if(this->inst_contents.empty()) {
+            auto &main_program = this->inst_contents.emplace_back();
             main_program.meta_key = {
                 .id = this->packaged_cnt_meta.header.app_id,
                 .version = this->packaged_cnt_meta.header.version,
@@ -289,7 +289,7 @@ namespace nsp {
             };
         }
 
-        GLEAF_RC_UNLESS(!cnt::ExistsApplicationContent(this->programs.front().meta_key.id).has_value(), rc::goldleaf::ResultContentAlreadyInstalled);
+        GLEAF_RC_UNLESS(!cnt::ExistsApplicationContent(this->packaged_cnt_meta.header.app_id, static_cast<NcmContentMetaType>(this->packaged_cnt_meta.header.type)).has_value(), rc::goldleaf::ResultContentAlreadyInstalled);
         
         bool has_cnmt_installed = false;
         GLEAF_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &this->meta_cnt_info.content_id));
@@ -297,12 +297,12 @@ namespace nsp {
             this->contents.push_back(this->meta_cnt_info);
         }
 
-        // TODO: improve? this supposes that programs are ordered according to their ids
+        // TODO: improve? this supposes that inst_contents are ordered according to their ids
         u32 program_i = 0;
         for(const auto &cnt: this->packaged_cnt_meta.contents) {
             this->contents.push_back(cnt.info);
             if(cnt.info.content_type == NcmContentType_Control) {
-                auto &cur_program = this->programs.at(program_i);
+                auto &cur_program = this->inst_contents.at(program_i);
                 const auto control_nca_content_id = util::FormatContentId(cnt.info.content_id);
                 const auto control_nca_file_name = control_nca_content_id + ".nca";
                 const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
@@ -312,10 +312,6 @@ namespace nsp {
 
                     char control_nca_content_path[FS_MAX_PATH] = {};
                     snprintf(control_nca_content_path, sizeof(control_nca_content_path), GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/%s", control_nca_file_name.c_str());
-
-                    const auto control_nca_content_full_path = nand_sys_explorer->MakeFull(control_nca_content_path);
-                    this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_content_full_path);
-
                     FsFileSystem control_nca_fs;
                     if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, cur_program.meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path, FsContentAttributes_All))) {
                         fs::FspExplorer control_nca_fs_obj(control_nca_fs, "nsp.ControlData");
@@ -351,7 +347,7 @@ namespace nsp {
     }
 
     Result Installer::StartInstallation() {
-        const auto &main_program = this->programs.front();
+        const auto &main_program = this->inst_contents.front();
         const auto base_app_id = cnt::GetBaseApplicationId(main_program.meta_key.id, static_cast<NcmContentMetaType>(main_program.meta_key.type));
 
         u8 *meta_data;
@@ -397,7 +393,7 @@ namespace nsp {
                 fs::DeleteWorkBuffer(tik_buf);
             });
 
-            const auto tik_path = GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/" + this->tik_file_name;
+            const auto tik_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + this->tik_file_name;
             auto nand_sys_explorer = fs::GetNANDSystemExplorer();
             nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
 
@@ -409,7 +405,7 @@ namespace nsp {
                 tik_data->flags = tik_data->flags & ~cnt::TicketFlags::Temporary;
             }
 
-            const auto cert_path = GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/" + fs::GetFileName(this->tik_file_name) + ".cert";
+            const auto cert_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + fs::GetFileName(this->tik_file_name) + ".cert";
             if(nand_sys_explorer->IsFile(cert_path)) {
                 const auto cert_file_size = nand_sys_explorer->GetFileSize(cert_path);
                 auto cert_buf = fs::AllocateWorkBuffer(cert_file_size);
@@ -474,10 +470,10 @@ namespace nsp {
             const auto content_file_name = this->pfs0_file.GetFile(content_file_idx);
             const auto content_file_size = this->pfs0_file.GetFileSize(content_file_idx);
             const auto content_write_id = content_write_idxs.at(i);
-            
+
             u64 cur_written_size = 0;
             auto rem_size = content_file_size;
-            const auto content_path = GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/" + content_file_name;
+            const auto content_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + content_file_name;
             switch(cnt.content_type) {
                 case NcmContentType_Meta:
                 case NcmContentType_Control: {
@@ -495,7 +491,7 @@ namespace nsp {
                 if(R_FAILED(last_rc)) {
                     GLEAF_RC_TRY(threadWaitForExit(&cnt_write_thread));
                     GLEAF_RC_TRY(threadClose(&cnt_write_thread));
-                    return last_rc;
+                    GLEAF_RC_TRY(last_rc);
                 }
 
                 const auto read_size = std::min(rem_size, g_Settings.copy_buffer_max_size);
@@ -554,7 +550,7 @@ namespace nsp {
         ncmContentMetaDatabaseClose(&this->cnt_meta_db);
 
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        nand_sys_explorer->DeleteDirectory(GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR);
+        nand_sys_explorer->DeleteDirectory(GLEAF_PATH_NAND_INSTALL_TEMP_DIR);
     }
 
 }

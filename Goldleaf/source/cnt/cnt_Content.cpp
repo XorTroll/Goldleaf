@@ -23,6 +23,9 @@
 #include <cnt/cnt_Names.hpp>
 #include <util/util_String.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <ui/ui_MainApplication.hpp>
+
+extern ui::MainApplication::Ref g_MainApplication;
 
 namespace cnt {
 
@@ -86,11 +89,10 @@ namespace cnt {
                         const auto &status = g_ApplicationContentMetaStatusBuffer[j];
                         NcmContentMetaDatabase meta_db;
                         if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&meta_db, static_cast<NcmStorageId>(status.storageID)))) {
-                            NcmContentMetaKey meta_key;
-                            if(R_SUCCEEDED(ncmContentMetaDatabaseGetLatestContentMetaKey(&meta_db, &meta_key, status.application_id))) {
+                            if(R_SUCCEEDED(ncmContentMetaDatabaseGetLatestContentMetaKey(&meta_db, &content.meta_key, status.application_id))) {
                                 for(u32 i = 0; i < MaxContentCount; i++) {
                                     NcmContentId cnt_id;
-                                    if(R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(&meta_db, &cnt_id, &meta_key, static_cast<NcmContentType>(i)))) {
+                                    if(R_SUCCEEDED(ncmContentMetaDatabaseGetContentIdByType(&meta_db, &cnt_id, &content.meta_key, static_cast<NcmContentType>(i)))) {
                                         content.cnt_ids[i] = cnt_id;
                                     }
                                     else {
@@ -110,24 +112,12 @@ namespace cnt {
             }
         }
 
-        /*
-        bool SortContentsImpl(cnt::ContentEntry &cnt_a, cnt::ContentEntry &cnt_b) {
-            const auto cnt_a_name = cnt_a.TryGetNacp() ? cnt::FindNacpName(cnt_a.nacp) : "";   
-            const auto cnt_b_name = cnt_b.TryGetNacp() ? cnt::FindNacpName(cnt_b.nacp) : "";
-
-            if(cnt_a_name.empty() && !cnt_b_name.empty()) {
-                return true;
-            }
-            if(!cnt_a_name.empty() && cnt_b_name.empty()) {
-                return false;
-            }
-            if(cnt_a_name.empty() && cnt_b_name.empty()) {
-                return cnt_a.program_id < cnt_b.program_id;
-            }
-
-            return cnt_a_name.front() < cnt_b_name.front();
+        bool SortApplicationsImpl(cnt::Application &app_a, cnt::Application &app_b) {
+            return app_a.cache.display_name.front() < app_b.cache.display_name.front();
         }
-        */
+
+        Thread g_LoadApplicationsThread;
+        std::atomic_bool g_LoadApplicationsThreadDone = true;
 
         void ScanApplications() {
             ScopedLock lk(g_ApplicationsLock);
@@ -158,6 +148,7 @@ namespace cnt {
 
                 nsCalculateApplicationOccupiedSize(app.record.id, reinterpret_cast<NsApplicationOccupiedSize*>(&app.occupied_size));
 
+                /*
                 GLEAF_LOG_FMT("Application %016lX:", app.record.id);
 
                 if(!IsApplicationNacpEmpty(app.control_data.nacp)) {
@@ -205,25 +196,63 @@ namespace cnt {
                 else {
                     GLEAF_LOG_FMT("  ! <no meta status>");
                 }
+                */
             }
 
-            // std::sort(contents.begin(), contents.end(), SortContentsImpl);
+            std::sort(g_Applications.begin(), g_Applications.end(), SortApplicationsImpl);
         }
-
-        Thread g_LoadApplicationsThread;
 
         void LoadApplicationsMain(void*) {
             SetThreadName("cnt.LoadApplicationsThread");
 
             GLEAF_LOG_FMT("Scanning applications...");
             ScanApplications();
+
             GLEAF_LOG_FMT("Done! Exiting thread...");
+            g_LoadApplicationsThreadDone = true;
         }
 
         void RequestLoadApplications() {
+            if(!g_LoadApplicationsThreadDone) {
+                threadWaitForExit(&g_LoadApplicationsThread);
+            }
             threadClose(&g_LoadApplicationsThread);
+
+            g_LoadApplicationsThreadDone = false;
             GLEAF_RC_ASSERT(threadCreate(&g_LoadApplicationsThread, LoadApplicationsMain, nullptr, nullptr, 512_KB, 0x1F, -2));
             GLEAF_RC_ASSERT(threadStart(&g_LoadApplicationsThread));
+        }
+
+        Result RemoveApplicationContentMeta(const cnt::Application &app, const cnt::ApplicationContent &cnt) {
+            s32 content_meta_count;
+            GLEAF_RC_TRY(nsCountApplicationContentMeta(app.record.id, &content_meta_count));
+    
+            std::vector<NsExtContentStorageMetaKey> content_storage_meta_keys;
+            if(content_meta_count > 0) {
+                auto cnt_storage_meta_key_buf = new NsExtContentStorageMetaKey[content_meta_count]();
+                ScopeGuard on_exit([&]() {
+                    delete[] cnt_storage_meta_key_buf;
+                });
+    
+                u32 real_count;
+                GLEAF_RC_TRY(nsextListApplicationRecordContentMeta(0, app.record.id, cnt_storage_meta_key_buf, content_meta_count, &real_count));
+                content_storage_meta_keys.assign(cnt_storage_meta_key_buf, cnt_storage_meta_key_buf + real_count);
+            }
+    
+            for(u32 i = 0; i < content_storage_meta_keys.size(); i++) {
+                const auto &cnt_storage_meta_key = content_storage_meta_keys.at(i);
+                if(cnt_storage_meta_key.meta_key.id == cnt.meta_key.id) {
+                    content_storage_meta_keys.erase(content_storage_meta_keys.begin() + i);
+                    break;
+                }
+            }
+    
+            GLEAF_RC_TRY(nsextDeleteApplicationRecord(app.record.id));
+            if(!content_storage_meta_keys.empty()) {
+                GLEAF_RC_TRY(nsextPushApplicationRecord(app.record.id, NsExtApplicationEvent_Present, content_storage_meta_keys.data(), content_storage_meta_keys.size()));
+            }
+
+            return 0;
         }
 
     }
@@ -274,21 +303,47 @@ namespace cnt {
         return g_Applications;
     }
 
-    std::optional<std::reference_wrapper<Application>> ExistsApplicationContent(const u64 app_id) {
+    std::optional<std::reference_wrapper<Application>> ExistsApplicationContent(const u64 program_id, const NcmContentMetaType content_type) {
         ScopedLock lk(g_ApplicationsLock);
+
+        const auto app_id = GetBaseApplicationId(program_id, content_type);
+
         const auto app_it = std::find_if(g_Applications.begin(), g_Applications.end(), [&](const Application &app) -> bool {
-            return (app.record.id == app_id) || (app.record.id == GetBaseApplicationId(app_id, NcmContentMetaType_Patch)) || (app.record.id == GetBaseApplicationId(app_id, NcmContentMetaType_AddOnContent));
-        });
-        
-        if(app_it != g_Applications.end()) {
-            for(const auto &cnt_status: app_it->meta_status_list) {
-                if(cnt_status.application_id == app_id) {
-                    return std::optional(std::reference_wrapper(*app_it));
+            if(app.record.id == app_id) {
+                const auto cnt_it = std::find_if(app.meta_status_list.begin(), app.meta_status_list.end(), [&](const NsApplicationContentMetaStatus &cnt_status) -> bool {
+                    return cnt_status.application_id == program_id;
+                });
+
+                if(cnt_it != app.meta_status_list.end()) {
+                    return true;
+                }
+                else {
+                    return false;
                 }
             }
+            else {
+                return false;
+            }
+        });
+    
+        if(app_it != g_Applications.end()) {
+            return std::optional(std::reference_wrapper(*app_it));
+        }
+        else {
+            return {};
+        }
+    }
+
+    std::optional<std::reference_wrapper<Application>> ExistsApplicationAnyContents(const u64 program_id) {
+        auto app = ExistsApplicationContent(program_id, NcmContentMetaType_Application);
+        if(!app.has_value()) {
+            app = ExistsApplicationContent(program_id, NcmContentMetaType_Patch);
+        }
+        if(!app.has_value()) {
+            app = ExistsApplicationContent(program_id, NcmContentMetaType_AddOnContent);
         }
 
-        return {};
+        return app;
     }
 
     void RemoveApplicationById(const u64 app_id) {
@@ -324,6 +379,38 @@ namespace cnt {
         nsextDeleteApplicationRecord(app_id);
         nsDeleteApplicationCompletely(app_id);
         NotifyApplicationsChanged();
+    }
+
+    void RemoveApplicationContentById(const cnt::Application &app, const u32 cnt_idx) {
+        const auto &cnt_status = app.meta_status_list.at(cnt_idx);
+        const auto &content = app.contents.at(cnt_idx);
+        const auto cnt_storage_id = static_cast<NcmStorageId>(cnt_status.storageID);
+
+        NcmContentStorage cnt_storage = {};
+        if(R_SUCCEEDED(ncmOpenContentStorage(&cnt_storage, cnt_storage_id))) {
+            for(u32 i = 0; i < MaxContentCount; i++) {
+                if(content.cnt_ids[i].has_value()) {
+                    ncmContentStorageDelete(&cnt_storage, std::addressof(content.cnt_ids[i].value()));
+                }
+            }
+            ncmContentStorageClose(&cnt_storage);
+        }
+
+        NcmContentMetaDatabase cnt_meta_db;
+        if(R_SUCCEEDED(ncmOpenContentMetaDatabase(&cnt_meta_db, cnt_storage_id))) {
+            ncmContentMetaDatabaseRemove(&cnt_meta_db, &content.meta_key);
+            ncmContentMetaDatabaseCommit(&cnt_meta_db);
+            
+            ncmContentMetaDatabaseClose(&cnt_meta_db);
+        }
+
+        const auto rc = RemoveApplicationContentMeta(app, content);
+        if(R_FAILED(rc)) {
+            GLEAF_LOG_FMT("Failed to remove application content meta: 0x%X", rc);
+        }
+
+        NotifyApplicationsChanged();
+        g_MainApplication->GetApplicationListLayout()->NotifyApplicationsChanged();
     }
 
     Result UpdateApplicationVersion(const Application &app) {

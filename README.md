@@ -3,8 +3,8 @@
 </p
 
 <p align="center">
-  <b>💜 thanks for 2M downloads 💜</b>
-</p
+  <b>💙 thanks for 2M downloads 💙</b>
+</p>
 
 <p align="center">
   <a title="Discord" href="https://discord.gg/3KpFyaH">
@@ -36,11 +36,9 @@
   </a>
 </p>
 
-<img src="Screenshots/Goldleaf.1.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light1.jpg" alt="drawing" width="auto"/>
 
-<img src="Screenshots/Goldleaf.2.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.3.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.4.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.5.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.6.jpg" alt="drawing" width="250"/>
-
-<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
+<img src="screenshots/dark1.jpg" alt="drawing" width="auto"/>
 
 <h3>
 Table of contents
@@ -49,17 +47,14 @@ Table of contents
 - [Features](#features)
   - [Controls](#controls)
 - [Frequently asked questions](#frequently-asked-questions)
-  - [NSP installs](#nsp-installs)
-- [Disclaimer](#disclaimer)
   - [NSP installing](#nsp-installing)
+- [Disclaimer](#disclaimer)
+  - [NSP installing](#nsp-installing-1)
   - [Tickets](#tickets)
 - [Quark and remote browsing](#quark-and-remote-browsing)
   - [Windows](#windows)
   - [Linux](#linux)
   - [Mac](#mac)
-- [Settings](#settings)
-  - [Sample](#sample)
-  - [Notes](#notes)
 - [Known bugs](#known-bugs)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -70,8 +65,9 @@ Table of contents
   - [Linux](#linux-1)
   - [Mac](#mac-1)
 - [Settings \& themeing](#settings--themeing)
-  - [Sample](#sample-1)
-  - [Notes](#notes-1)
+  - [Sample](#sample)
+  - [Notes](#notes)
+- [Screenshots](#screenshots)
 - [Known bugs](#known-bugs-1)
 - [Building](#building-1)
 - [Contributing](#contributing-1)
@@ -82,7 +78,7 @@ Table of contents
 
 Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s, a well-known Nintendo 3DS homebrew tool.
 
-- **Content explorer**: An easy-to-use but fully featured filesystem browser.
+- **Explorer**: An easy-to-use but fully featured filesystem browser.
 
   - Supported locations/devices:
 
@@ -102,39 +98,45 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Features:
 
-    - Basic file operations: create, delete, copy, rename, view as hexadecimal/text, get size, etc.
+    - File operations: create, delete, copy, rename, view as hex/text, get size, etc.
 
-    - Basic directory operations: create, delete, copy, rename, (un)set archive bit, get full size, etc.
+    - Directory operations: create, delete, copy, rename, (un)set archive bit, get full size, install all NSPs inside, etc.
 
-    - Install NSP packages of applications/games, updates, add-on-content/DLC, etc. (**Note: use this carefully, and make sure you know what you're doing!**)
+    - Install NSPs of games, updates, DLC, etc. (**use this carefully, and make sure you know what you're doing!**)
 
-    - Launch other NRO homebrews and mount their RomFs (option mentioned above)
+    - Launch other NRO homebrews and mount their RomFs (as mentioned above)
 
     - Execute .bin files as RCM payloads (reboot with them)
 
-    - Set JPG/JPEG files as user icons (**Note: use this carefully, and make sure you know what you're doing!**)
+    - Set JPG/JPEG files as user icons (**use this very carefully, and make sure you know what you're doing!**)
 
-    - // TODO: more
+    - Preview of NACP files (the ones automatically exported by Goldleaf, and so on)
 
-- **Content manager**: an easy-to-use but fully featured content manager:
+    - 
 
-  - Basic content (program, update, DLC, etc.) operations:
+- **Game/update/DLC browser**: an easy-to-use but fully featured content manager:
 
-    - View content information (ID, size, version, play stats...)
+  - Per title:
 
-    - Uninstall/completely remove the content (won't remove savedata)
-
-    - Export existing contents to a NSP package
+    - View general information (occupied size, play stats, launch flags and so on)
 
     - Mount savedata to navigate it (check the **Content explorer** above)
 
-    - Remove ticket if present (**Note: use this carefully, and make sure you know what you're doing!**)
+  - Content operations (for each title content: base game, update or DLCs):
+
+    - View information (ID, contents, version, ticket...)
+
+    - Uninstall/completely remove the content (won't remove savedata)
+
+    - Export content to NSP
+
+    - Remove ticket, if present (**use this carefully, and make sure you know what you're doing!**)
 
     - Reset launch version (useful to be able to play a base game after an update has been removed)
 
-    > Note: some of this operations are not available with system or gamecard contents.
+    > Note: some of these are only (obviously) available for games with contents
 
-  - Check unused tickets, and remove them (**Note: use this carefully, and make sure you know what you're doing!**)
+- **Ticket browser** Check tickets, and optionally remove unused ones (**use this carefully, and make sure you know what you're doing!**)
 
 - **Web browser**: makes use of the console's web applet:
 
@@ -142,9 +144,9 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Create and save bookmarks
 
-  > Note: the web browser is only guaranteed to work properly when launched as application.
+  > Note: the web browser is only usable when launched as application (due to system memory limitations).
 
-- **Account manager**: select a user (or just use the pre-selected one if present) and manage it:
+- **Account manager**: select a user (or just use the pre-selected one if present), and:
 
   - Change nickname
 
@@ -152,7 +154,7 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Delete user (of course, only if there is more than one in the system!)
 
-  > Note: to change the user's icon, check the **Content explorer** above.
+  > Note: to change the user's icon, select the desired JPG/JPEG icon file by browsing in the **Content explorer**.
 
 - **Amiibo dump**: create a virtual amiibo (for emuiibo) from a real amiibo figurine.
 
@@ -170,47 +172,39 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Goldleaf settings: check settings present in `settings.json`
 
-- **Updates**: check for latest Goldleaf updates, and (if desired) update to a new release if it exists
-
-- **About**: check Goldleaf's version and how it was launched (as an applet or an application)
+- **About**: check Goldleaf's version and how it was launched (as an applet or an application), and check for latest Goldleaf updates + update to a new release if it exists
 
 - Goldleaf has been translated to **11** different languages so far: **English**, **Spanish**, **German**, **French**, **Italian**, **Dutch**, **Japanese**, **Portuguese**, **Korean**, **traditional Chinese** and **simplified Chinese**.
 
-> *Thanks to all the various contributors to the different translations! 💜*
+> *Thanks to all the various contributors to the different translations! 💛*
 
 ### Controls
 
 - Common:
 
-  - **(LR-stick / R-stick / D-pad)**: Move through the current menu
+  - **(LR-stick / R-stick / D-pad)** Move through the current menu
 
-  - **(ZL / ZR)**: Show a dialog to shut down or reboot the console.
+  - **(ZL / ZR)** Show a dialog to shut down or reboot the console. To avoid unwanted shut-downs/reboots, Goldleaf will ask for confirmation.
 
-  - **(Minus / -)**: Show a dialog with this control information.
+  - **(Minus / -)** Show a dialog with this control information.
 
-  - **(Plus / +)**: Exit the application in order to return to hbmenu.
+  - **(Plus / +)** Exit the application in order to return to hbmenu.
 
 - Content explorer:
 
-  - **(X)**: Unmount the selected location (only when a manually-mounted location is selected)
+  - **(X)** Unmount the selected location (only when a manually-mounted location is selected)
 
-  - **(Y)**: Select folder (might take a bit of time with folders with many sub-items)
+  - **(Y)** Select folder (might take a bit of time with folders with many sub-items)
 
 ## Frequently asked questions
 
 Make sure you check these before making an issue!
 
-### NSP installs
+### NSP installing
 
-- **I keep getting 'invalid NCA'/'missing sigpatches' or weird FS/ETicket errors...**
+- **I keep getting 'invalid NCA'/'missing patches' or weird FS/ETicket errors...**
 
-  Check the following:
-
-  - The NSP is converted from XCI (using tools like 4NXCI)? Then you need extra patches.
-  
-  - Do you have all the required patches?
-
-    If you have just updated to a new console version and this error happens, try to redownload them.
+  - Do you actually have all the required patches?
 
 - **Goldleaf freezes and Quark doesn't respond/complains when I launch it...**
 
@@ -230,15 +224,15 @@ Make sure you check these before making an issue!
 
 ### NSP installing
 
-Always keep in mind that installing NSP packages can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a smaller chance to get banned.
+Always keep in mind that installing NSPs can be a very easy way to get banned.
 
-**NEVER** install untrusted NSPs. Goldleaf won't do any special verification, so please be very careful about installing untrusted packages.
+**NEVER** install untrusted NSPs. Goldleaf doesn't do any special verification, so please be very careful about installing untrusted packages.
 
 ### Tickets
 
-Tickets represent a game purchase - technically speaking, you can't launch a title if the ticket isn't present and the title requires it (official titles require them). NSP packages which don't have/require a ticket are standard-crypto.
+Tickets represent a game purchase - technically speaking, you can't launch a title if the ticket isn't present and the title requires it (official titles require them). NSPs which don't have/require a ticket are standard-crypto.
 
-Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access a title's content. Otherwise, they are undecryptable, hence unlaunchable by the system.
+Goldleaf will display whether a ticket is present or not, and if so, it's title-key. Title-keys are required to decrypt and access a title's content. Otherwise, they are undecryptable, hence unlaunchable by the system.
 
 ## Quark and remote browsing
 
@@ -302,58 +296,6 @@ Now you can run Quark using ```java -jar Quark.jar```.
 
 Having done all this, the USB connection should work fine.
 
-## Settings
-
-Goldleaf supports the customization of colors, assets and other options via a JSON file located at Goldleaf's folder: `sd:/switch/Goldleaf/settings.json`.
-
-### Sample
-
-This is an example JSON for Goldleaf settings:
-
-```json
-{
-    "general": {
-        "customLanguage": "es",
-        "externalRomFs": "/switch/Goldleaf/theme/rom",
-        "use12hTime": true
-    },
-    "ui": {
-        "background": "#aabbccdd",
-        "base": "#aabbccdd",
-        "baseFocus": "#aabbccdd",
-        "text": "#aabbccdd",
-        "menuItemSize": 80
-    },
-    "installs": {
-        "ignoreRequiredFwVersion": false,
-        "copyBufferMaxSize": 10485760
-    },
-    "export": {
-        "decryptBufferMaxSize": 10485760
-    },
-    "web": {
-        "bookmarks": [
-            {
-                "name": "Google",
-                "url": "https://www.google.com"
-            },
-            {
-                "name": "GitHub",
-                "url": "https://www.github.com"
-            }
-        ]
-    }
-}
-```
-
-If a certain attribute isn't present Goldleaf will use default values. For colors, Goldleaf will initially load default light/dark themes according to the console's theme color, and later, colors present in the JSON will be used instead of default theme ones.
-
-### Notes
-
-Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/FileSystem/FileDataFont.ttf` resource font, if `romfsReplace` is true and `romfsReplacePath` is, for instance, `/switch/Goldleaf/testromfs`, Goldleaf will look if `sd:/switch/Goldleaf/testromfs/FileSystem/FileDataFont.ttf` exists and use it if so, otherwise will use RomFs's one.
-
-So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets that might be added in future updates.
-
 ## Known bugs
 
 - Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on those specific versions. Any non-7.x firmware doesn't seem to have this issue.
@@ -374,7 +316,7 @@ You will also need to install the following packages with devkitPro's pacman:
 
 Remember to clone this repository recursively (`git clone <this-repo-url> --recurse-submodules`) since Goldleaf makes use of submodules.
 
-In order to build Goldleaf, run `make setup` (only for the first time), then just run `make` (or `make dev` for a dev version) and wait for it to finish building.
+In order to build Goldleaf, run `make setup` (only for the first time), then just run `make` and wait for it to finish building.
 
 In order to build Quark, just execute the `build.sh` script in its directory.
 
@@ -390,9 +332,9 @@ You can always contact me on my Discord server (invite link below) as an easier 
 
 Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
 
-Note that some languages may contain untranslated (English) content. I prioritize relevant releases/updates over correct and fully up-to-date translations, thus releases may not contain complete translations.
+Note that some languages may contain untranslated (English) content. I prioritize dropping relevant releases/updates over waiting for correct and fully up-to-date translations, thus releases may not contain complete translations.
 
-Anyone with enough knowledge of a certain language is absolutely welcome to make a PR with translation suggestions and/or fixes.
+Anyone with enough knowledge of a certain language is absolutely welcome to make a PR with translation suggestions and/or fixes, and will be credited for such a contribution.
 
 ## Credits
 
@@ -482,31 +424,46 @@ This is an example JSON for Goldleaf settings:
     "general": {
         "language": "es",
         "external_romfs_path": "sdmc:/switch/Goldleaf/custom-romfs",
-        "use_12h_time": true
+        "use_12h_time": true,
+        "ignore_hidden_files": true,
     },
     "ui": {
         "light_color_scheme": {
-          "background": "#aabbccdd",
-          "base": "#aabbccdd",
-          "base_focus": "#aabbccdd",
+          "bg": "#aabbccdd",
+          "menu_base": "#aabbccdd",
+          "menu_base_focus": "#aabbccdd",
           "text": "#aabbccdd",
+          "version_text": "#aabbccdd",
           "scroll_bar": "#aabbccdd",
           "progress_bar": "#aabbccdd",
-          "progress_bar_bg": "#aabbccdd"
+          "progress_bar_bg": "#aabbccdd",
+          "dialog_title": "#aabbccdd",
+          "dialog_opt": "#aabbccdd",
+          "dialog": "#aabbccdd",
+          "dialog_over": "#aabbccdd"
         },
         "dark_color_scheme": {
-          "background": "#aabbccdd",
-          "base": "#aabbccdd",
-          "base_focus": "#aabbccdd",
+          "bg": "#aabbccdd",
+          "menu_base": "#aabbccdd",
+          "menu_base_focus": "#aabbccdd",
           "text": "#aabbccdd",
+          "version_text": "#aabbccdd",
           "scroll_bar": "#aabbccdd",
           "progress_bar": "#aabbccdd",
-          "progress_bar_bg": "#aabbccdd"
+          "progress_bar_bg": "#aabbccdd",
+          "dialog_title": "#aabbccdd",
+          "dialog_opt": "#aabbccdd",
+          "dialog": "#aabbccdd",
+          "dialog_over": "#aabbccdd"
         },
         "menu_item_size": 80
     },
+    "fs": {
+        "compute_directory_sizes": false
+    },
     "installs": {
         "ignore_required_fw_version": false,
+        "show_deletion_prompt_after_install": false,
         "copy_buffer_max_size": 10485760
     },
     "export": {
@@ -538,6 +495,18 @@ Possible language values: `auto` (uses the system language) and all language cod
 Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/FileSystem/FileDataFont.ttf` resource font, if `romfsReplace` is true and `romfsReplacePath` is, for instance, `/switch/Goldleaf/testromfs`, Goldleaf will look if `sd:/switch/Goldleaf/testromfs/FileSystem/FileDataFont.ttf` exists and use it if so, otherwise will use RomFs's one.
 
 So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets that might be added in future updates.
+
+## Screenshots
+
+<img src="screenshots/light1.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light2.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light3.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light4.jpg" alt="drawing" width="auto"/>
+
+<img src="screenshots/dark1.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/dark2.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/dark3.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/dark4.jpg" alt="drawing" width="auto"/>
 
 ## Known bugs
 
@@ -601,4 +570,4 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou), [FuryBaguette](https://github.com/FuryBaguette) and GOffrier#9688 for French, and [LoOkYe](https://github.com/lookye) and C4Phoenix for German.
 
-- All the testers, for reporting bugs and helping a lot with the project's development <3
+- All the testers, for reporting bugs and helping a lot with the project's development 💙

@@ -51,7 +51,7 @@ namespace cnt {
         TicketType type;
 
         inline std::optional<std::reference_wrapper<Application>> IsUsed() const {
-            return ExistsApplicationContent(esGetRightsIdApplicationId(&this->rights_id));
+            return ExistsApplicationAnyContents(esGetRightsIdApplicationId(&this->rights_id));
         }
         
         std::string ToString() const;

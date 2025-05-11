@@ -72,7 +72,8 @@ namespace cnt {
 
     constexpr size_t MaxContentCount = 7;
 
-    struct ApplicationContentEntry {
+    struct ApplicationContent {
+        NcmContentMetaKey meta_key;
         std::optional<NcmContentId> cnt_ids[MaxContentCount];
     };
 
@@ -89,7 +90,7 @@ namespace cnt {
         NsExtApplicationView view;
         NsApplicationControlData control_data;
         std::vector<NsApplicationContentMetaStatus> meta_status_list;
-        std::vector<ApplicationContentEntry> contents;
+        std::vector<ApplicationContent> contents;
         NsExtApplicationOccupiedSize occupied_size;
         u32 max_version;
         u32 launch_required_version;
@@ -109,17 +110,18 @@ namespace cnt {
         ApplicationPlayStats GetUserPlayStats(const AccountUid user_id) const;
     };
 
-    constexpr u32 MaxApplicationCount = 64000;
-
     void InitializeApplications();
     void FinalizeApplications();
 
     void NotifyApplicationsChanged();
 
     std::vector<Application> &GetApplications();
-    std::optional<std::reference_wrapper<Application>> ExistsApplicationContent(const u64 app_id);
+    
+    std::optional<std::reference_wrapper<Application>> ExistsApplicationContent(const u64 program_id, const NcmContentMetaType content_type);
+    std::optional<std::reference_wrapper<Application>> ExistsApplicationAnyContents(const u64 app_id);
     
     void RemoveApplicationById(const u64 app_id);
+    void RemoveApplicationContentById(const Application &app, const u32 cnt_idx);
     Result UpdateApplicationVersion(const Application &app);
     std::string GetExportedApplicationIconPath(const u64 app_id);
     std::string GetExportedApplicationNacpPath(const u64 app_id);

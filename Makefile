@@ -1,4 +1,4 @@
-# Note: for the first time, run 'make setup' first (to install libusbhsfs packages), after that simply run 'make' or 'make dev' to build the project
+# Note: for the first time, run 'make setup' first (to install libusbhsfs packages), after that simply run 'make' to build the project
 
 .PHONY: all allclean build clean libclean setup arc
 

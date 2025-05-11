@@ -31,6 +31,9 @@ namespace cnt {
         std::vector<Ticket> g_Tickets;
         Lock g_TicketsLock;
 
+        Thread g_LoadTicketsThread;
+        std::atomic_bool g_LoadTicketsThreadDone = true;
+
         void ScanTickets() {
             ScopedLock lk(g_TicketsLock);
             g_Tickets.clear();
@@ -69,6 +72,7 @@ namespace cnt {
                 delete[] ids;
             }
 
+            /*
             for(const auto &tik: g_Tickets) {
                 GLEAF_LOG_FMT("Ticket for application ID %016lX:", esGetRightsIdApplicationId(&tik.rights_id));
                 if(tik.type == TicketType::Common) {
@@ -79,20 +83,26 @@ namespace cnt {
                 }
                 GLEAF_LOG_FMT("  - Key generation: %d", esGetRightsIdKeyGeneration(&tik.rights_id));
             }
+            */
         }
-
-        Thread g_LoadTicketsThread;
 
         void LoadTicketsMain(void*) {
             SetThreadName("cnt.LoadTicketsThread");
 
             GLEAF_LOG_FMT("Scanning tickets...");
             ScanTickets();
+
             GLEAF_LOG_FMT("Done! Exiting thread...");
+            g_LoadTicketsThreadDone = true;
         }
 
         void RequestLoadTickets() {
+            if(!g_LoadTicketsThreadDone) {
+                threadWaitForExit(&g_LoadTicketsThread);
+            }
             threadClose(&g_LoadTicketsThread);
+
+            g_LoadTicketsThreadDone = false;
             GLEAF_RC_ASSERT(threadCreate(&g_LoadTicketsThread, LoadTicketsMain, nullptr, nullptr, 512_KB, 0x1F, -2));
             GLEAF_RC_ASSERT(threadStart(&g_LoadTicketsThread));
         }
@@ -113,7 +123,11 @@ namespace cnt {
     }
 
     Result RemoveTicket(const Ticket &tik) {
-        return esDeleteTicket(&tik.rights_id);
+        const auto rc = esDeleteTicket(&tik.rights_id);
+        if(R_SUCCEEDED(rc)) {
+            NotifyTicketsChanged();
+        }
+        return rc;
     }
 
     void InitializeTickets() {

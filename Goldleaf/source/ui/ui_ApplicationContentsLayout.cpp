@@ -96,7 +96,7 @@ namespace ui {
         info += "\n\n";
 
         cnt::Ticket tik;
-        const auto has_tik = cnt::TryFindApplicationTicket(app.record.id, tik);
+        const auto has_tik = cnt::TryFindApplicationTicket(cnt_status.application_id, tik);
         if(has_tik) {
             const auto key_gen = esGetRightsIdKeyGeneration(&tik.rights_id);
             info += cfg::Strings.GetString(201) + " " + std::string((tik.type == cnt::TicketType::Common) ? cfg::Strings.GetString(448) : cfg::Strings.GetString(449)) + "\n";
@@ -104,7 +104,12 @@ namespace ui {
             info += "\n";
         }
 
-        std::vector<std::string> options = { cfg::Strings.GetString(234), cfg::Strings.GetString(245), cfg::Strings.GetString(244) };
+        std::vector<std::string> options = { cfg::Strings.GetString(234) };
+        const auto has_contents = (cnt_status.storageID == NcmStorageId_SdCard) || (cnt_status.storageID == NcmStorageId_BuiltInUser) || (cnt_status.storageID == NcmStorageId_GameCard);
+        if(has_contents) {
+            options.push_back(cfg::Strings.GetString(245));
+            options.push_back(cfg::Strings.GetString(244));
+        }
         if(has_tik) {
             options.push_back(cfg::Strings.GetString(293));
         }
@@ -121,19 +126,24 @@ namespace ui {
 
                 const auto cnt_count = app.contents.size();
 
-                cnt::RemoveApplicationById(cnt_status.application_id);
+                cnt::RemoveApplicationContentById(app, cnt_idx);
                 if(remove_tik) {
                     cnt::RemoveTicket(tik);
                 }
 
-                cnt::NotifyApplicationsChanged();
-                g_MainApplication->GetApplicationListLayout()->NotifyApplicationsChanged();
                 if(cnt_count == 1) {
-                    g_MainApplication->GetApplicationListLayout()->Reload();
+                    g_MainApplication->GetApplicationListLayout()->ReloadApplications();
                     g_MainApplication->ReturnToParentLayout();
                 }
                 else {
                     this->LoadApplication(this->app_idx);
+
+                    const auto &new_app = cnt::GetApplications().at(this->app_idx);
+                    if(new_app.record.id != app.record.id) {
+                        // If application ordering changed, better to reload the list
+                        g_MainApplication->GetApplicationListLayout()->ReloadApplications();
+                        g_MainApplication->ReturnToParentLayout();
+                    }
                 }
             }
         }
@@ -144,7 +154,7 @@ namespace ui {
                 g_MainApplication->GetContentExportLayout()->StartExport(app, cnt_idx, has_tik);
             }
         }
-        else if(option == 3 && has_tik) {
+        else if(option == 3) {
             const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(200), cfg::Strings.GetString(205), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option_2 == 0) {
                 const auto rc = esDeleteTicket(&tik.rights_id);
@@ -175,7 +185,7 @@ namespace ui {
         }
         info += "\n";
 
-        const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(162), info, { cfg::Strings.GetString(234), cfg::Strings.GetString(494), cfg::Strings.GetString(495), cfg::Strings.GetString(414), cfg::Strings.GetString(319) }, false, GetApplicationIcon(app.record.id));
+        const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(162), info, { cfg::Strings.GetString(234), cfg::Strings.GetString(494), cfg::Strings.GetString(495), cfg::Strings.GetString(414), cfg::Strings.GetString(319), cfg::Strings.GetString(245) }, false, GetApplicationIcon(app.record.id));
         if(option == 1) {
             std::string size_info;
 
@@ -274,6 +284,14 @@ namespace ui {
                 else {
                     HandleResult(rc, cfg::Strings.GetString(234));
                 }
+            }
+        }
+        else if(option == 5) {
+            const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(243), cfg::Strings.GetString(186), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+            if(option_2 == 0) {
+                cnt::RemoveApplicationById(app.record.id);
+                g_MainApplication->GetApplicationListLayout()->ReloadApplications();
+                g_MainApplication->ReturnToParentLayout();
             }
         }
     }

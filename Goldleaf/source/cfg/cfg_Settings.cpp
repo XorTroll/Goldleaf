@@ -133,6 +133,8 @@ namespace cfg {
         json["ui"]["dark_color_scheme"] = GenerateColorScheme(this->dark_color_scheme);
         json["ui"]["menu_item_size"] = this->menu_item_size;
 
+        json["fs"]["compute_directory_sizes"] = this->compute_directory_sizes;
+
         json["installs"]["ignore_required_fw_version"] = this->ignore_required_fw_ver;
         json["installs"]["show_deletion_prompt_after_install"] = this->show_deletion_prompt_after_install;
         json["installs"]["copy_buffer_max_size"] = this->copy_buffer_max_size;

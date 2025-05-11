@@ -45,7 +45,7 @@ namespace nsp {
     using OnStartWriteFunction = std::function<void(const ContentWriteProgress&)>;
     using OnContentWriteFunction = std::function<void(const ContentWriteProgress&)>;
 
-    struct InstallableProgram {
+    struct InstallableContent {
         NcmContentMetaKey meta_key;
         NacpStruct nacp_data;
         std::string icon_path;
@@ -71,12 +71,12 @@ namespace nsp {
             std::string cert_file_name;
             NcmContentInfo meta_cnt_info;
             std::vector<NcmContentInfo> contents;
-            std::vector<InstallableProgram> programs;
+            std::vector<InstallableContent> inst_contents;
 
-            Result StartProgramInstallation(const InstallableProgram &program);
+            Result StartProgramInstallation(const InstallableContent &program);
 
         public:
-            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id), contents(), programs() {}
+            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id), contents(), inst_contents() {}
             ~Installer();
     
             Result PrepareInstallation();
@@ -94,8 +94,8 @@ namespace nsp {
                 return this->keygen;
             }
 
-            inline std::vector<InstallableProgram> &GetPrograms() {
-                return this->programs;
+            inline std::vector<InstallableContent> &GetInstallablePrograms() {
+                return this->inst_contents;
             }
 
             inline std::vector<NcmContentInfo> &GetContents() {

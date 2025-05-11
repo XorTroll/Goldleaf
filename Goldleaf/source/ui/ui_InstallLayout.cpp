@@ -86,8 +86,8 @@ namespace ui {
         };
 
         InstallDialogResult ShowInstallDialogPage(nsp::Installer &nsp_installer, const size_t program_idx) {
-            const size_t program_count = nsp_installer.GetPrograms().size();
-            const auto &program = nsp_installer.GetPrograms().at(program_idx);
+            const size_t program_count = nsp_installer.GetInstallablePrograms().size();
+            const auto &program = nsp_installer.GetInstallablePrograms().at(program_idx);
 
             auto info = cfg::Strings.GetString(82) + "\n\n";
 
@@ -243,12 +243,21 @@ namespace ui {
         }
 
         void HandleInstallationFailure(const Result rc, nsp::Installer &nsp_installer) {
-            for(const auto &program: nsp_installer.GetPrograms()) {
-                const auto app_id = program.meta_key.id;
-                auto program_cnt = cnt::ExistsApplicationContent(app_id);
-                if(program_cnt.has_value()) {
-                    GLEAF_LOG_FMT("Removing program %016lX failed installation leftovers...", app_id);
-                    cnt::RemoveApplicationById(app_id);
+            for(const auto &program: nsp_installer.GetInstallablePrograms()) {
+                const auto program_id = program.meta_key.id;
+                auto program_app = cnt::ExistsApplicationContent(program_id, static_cast<NcmContentMetaType>(program.meta_key.type));
+                if(program_app.has_value()) {
+                    GLEAF_LOG_FMT("Removing program %016lX failed installation leftovers...", program_id);
+
+                    const auto &cnt_status = program_app.value().get().meta_status_list;
+                    const auto cnt_it = std::find_if(cnt_status.begin(), cnt_status.end(), [&](const NsApplicationContentMetaStatus &cnt_status) -> bool {
+                        return cnt_status.application_id == program_id;
+                    });
+                    if(cnt_it != cnt_status.end()) {
+                        GLEAF_LOG_FMT("Removing program %016lX...", program_id);
+                        const auto cnt_idx = std::distance(cnt_status.begin(), cnt_it);
+                        cnt::RemoveApplicationContentById(program_app.value().get(), cnt_idx);
+                    }
                 }
             }
 
@@ -276,11 +285,21 @@ namespace ui {
             if(rc == rc::goldleaf::ResultContentAlreadyInstalled) {
                 const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), cfg::Strings.GetString(272) + "\n" + cfg::Strings.GetString(273) + "\n" + cfg::Strings.GetString(274), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 if(option == 0) {
-                    for(const auto &program: nsp_installer.GetPrograms()) {
-                        const auto app_id = program.meta_key.id;
-                        const auto program_cnt = cnt::ExistsApplicationContent(app_id);
-                        if(program_cnt.has_value()) {
-                            cnt::RemoveApplicationById(app_id);
+                    for(const auto &program: nsp_installer.GetInstallablePrograms()) {
+                        const auto program_id = program.meta_key.id;
+                        GLEAF_WARN_FMT("Checking program %016lX...", program_id);
+                        const auto program_app = cnt::ExistsApplicationContent(program_id, static_cast<NcmContentMetaType>(program.meta_key.type));
+                        if(program_app.has_value()) {
+                            GLEAF_WARN_FMT("Removing program %016lX...", program_id);
+                            const auto &cnt_status = program_app.value().get().meta_status_list;
+                            const auto cnt_it = std::find_if(cnt_status.begin(), cnt_status.end(), [&](const NsApplicationContentMetaStatus &cnt_status) -> bool {
+                                return cnt_status.application_id == program_id;
+                            });
+                            if(cnt_it != cnt_status.end()) {
+                                GLEAF_WARN_FMT("Removing program %016lX actually...", program_id);
+                                const auto cnt_idx = std::distance(cnt_status.begin(), cnt_it);
+                                cnt::RemoveApplicationContentById(program_app.value().get(), cnt_idx);
+                            }
                         }
                     }
                     nsp_installer.FinalizeInstallation();
@@ -305,7 +324,7 @@ namespace ui {
             do_install = true;
         }
         else {
-            const auto program_count = nsp_installer.GetPrograms().size();
+            const auto program_count = nsp_installer.GetInstallablePrograms().size();
             size_t program_i = 0;
             while(program_i < program_count) {
                 const auto dialog_res = ShowInstallDialogPage(nsp_installer, program_i);

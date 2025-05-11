@@ -52,10 +52,7 @@ namespace ui {
         g_MainApplication->ShowLayout(g_MainApplication->GetApplicationContentsLayout());
     }
 
-    void ApplicationListLayout::Reload() {
-        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(488), CommonIconKind::Game, cfg::Strings.GetString(489));
-        this->apps_menu->SetSelectedIndex(0);
-
+    void ApplicationListLayout::ReloadApplications() {
         if(!this->needs_menu_reload) {
             return;
         }
@@ -82,6 +79,13 @@ namespace ui {
         const auto is_empty = apps.empty();
         this->no_apps_text->SetVisible(is_empty);
         this->apps_menu->SetVisible(!is_empty);
+    }
+
+    void ApplicationListLayout::Reload() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(488), CommonIconKind::Game, cfg::Strings.GetString(489));
+        this->apps_menu->SetSelectedIndex(0);
+
+        this->ReloadApplications();
     }
 
 }

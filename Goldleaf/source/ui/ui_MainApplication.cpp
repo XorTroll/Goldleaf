@@ -114,6 +114,8 @@ namespace ui {
         this->usb_img->SetHeight(80);
         this->usb_img->SetVisible(false);
         this->conn_img = pu::ui::elm::Image::New(640, 10, pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Connection/None.png"))));
+        this->conn_img->SetWidth(80);
+        this->conn_img->SetHeight(80);
         this->conn_img->SetVisible(true);
         this->ip_text = pu::ui::elm::TextBlock::New(740, 32, "");
         this->ip_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::MediumLarge));

@@ -36,6 +36,7 @@ namespace ui {
             ApplicationListLayout();
             PU_SMART_CTOR(ApplicationListLayout)
 
+            void ReloadApplications();
             void Reload();
 
             inline void NotifyApplicationsChanged() {

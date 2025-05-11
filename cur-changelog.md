@@ -86,7 +86,9 @@
 
 - Empty *.bin files can no longer be launched (or rather, Goldleaf attempting to launch them)
 
-- Made transitions and movement in menus slightly faster (for convenience)
+- Made transitions and movement in menus slightly faster (for convenience) and with more icons/dedicated messages for each menu
+
+- The text viewer was slightly improved, allowing to also displace horizontally to read long lines, and only rendering the visible part of each line
 
 # `v1.0.0`
 
