@@ -41,7 +41,7 @@ namespace ui {
             void ChangePartitionSdCard(const bool update_contents = true);
             void ChangePartitionNAND(const fs::Partition partition, const bool update_contents = true);
             void ChangePartitionPCDrive(const std::string &mount_name, const bool update_contents = true);
-            void ChangePartitionDrive(UsbHsFsDevice &drv, const bool update_contents = true);
+            void ChangePartitionDrive(const UsbHsFsDevice &drv, const bool update_contents = true);
             void UpdateElements(const int idx = 0);
             void ResetMenuHead();
             void HandleFileDirectly(const std::string &path);

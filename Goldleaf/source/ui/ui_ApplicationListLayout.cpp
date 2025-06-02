@@ -34,8 +34,8 @@ namespace ui {
     }
 
     ApplicationListLayout::ApplicationListLayout() : needs_menu_reload(true) {
-        this->apps_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->apps_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->apps_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->apps_menu);
         this->no_apps_text = pu::ui::elm::TextBlock::New(0, 0, cfg::Strings.GetString(188));
         this->no_apps_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->no_apps_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
@@ -54,8 +54,10 @@ namespace ui {
 
     void ApplicationListLayout::ReloadApplications() {
         if(!this->needs_menu_reload) {
+            GLEAF_LOG_FMT("ApplicationListLayout::ReloadApplications: No need to reload menu.");
             return;
         }
+        GLEAF_LOG_FMT("ApplicationListLayout::ReloadApplications: Reloading applications menu.");
         this->needs_menu_reload = false;
 
         this->apps_menu->ClearItems();

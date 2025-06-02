@@ -20,6 +20,7 @@
 */
 
 #include <cfg/cfg_Strings.hpp>
+#include <cfg/cfg_Settings.hpp>
 #include <fs/fs_FileSystem.hpp>
 
 extern cfg::Settings g_Settings;
@@ -28,15 +29,7 @@ namespace cfg {
 
     StringHolder Strings;
 
-    std::string StringHolder::GetString(u32 idx) {
-        if(idx >= this->json.size()) {
-            return "???";
-        }
-        return this->json[idx].get<std::string>();
-    }
-
     void LoadStrings() {
-        Strings.language = g_Settings.GetLanguage();
-        Strings.json = g_Settings.ReadJSONResource("/Strings/" + GetLanguageCode(g_Settings.GetLanguage()) + ".json");
+        Strings = g_Settings.ReadStrings(g_Settings.GetLanguage());
     }
 }

@@ -29,8 +29,10 @@ namespace ui {
             pu::ui::elm::Menu::Ref settings_menu;
 
             pu::ui::elm::MenuItem::Ref view_logs_item;
+            pu::ui::elm::MenuItem::Ref clear_logs_item;
             
             void view_logs_DefaultKey();
+            void clear_logs_DefaultKey();
 
             // General
             pu::ui::elm::MenuItem::Ref custom_lang_item;

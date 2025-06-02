@@ -21,6 +21,7 @@
 
 #pragma once
 #include <string>
+#include <vector>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <codecvt>
@@ -35,13 +36,11 @@
 #include <cerrno>
 #include <switch.h>
 #include <switch-ipcext.h>
-#include <json.hpp>
+#include <glaze/glaze.hpp>
 #include <usbhsfs.h>
 #include <curl/curl.h>
 #include <pu/Plutonium>
 #include <res/res_Results.hpp>
-
-using JSON = nlohmann::json;
 
 inline constexpr size_t operator ""_KB(unsigned long long n) {
     return n * 0x400;
@@ -150,6 +149,14 @@ inline constexpr enum_type operator&(const enum_type lhs, const enum_type rhs) {
 inline constexpr enum_type operator~(const enum_type enm) { \
     return static_cast<const enum_type>(~static_cast<const base_type>(enm)); \
 }
+
+struct PartialJsonOptions : glz::opts {
+    char indentation_char = ' ';
+    u8 indentation_width = 4;
+    bool comments = true;
+    bool prettify = true;
+    bool error_on_unknown_keys = false;
+};
 
 enum class ExecutableMode {
     NSO,

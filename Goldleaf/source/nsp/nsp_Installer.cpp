@@ -232,7 +232,7 @@ namespace nsp {
         snprintf(cnmt_nca_content_path, sizeof(cnmt_nca_content_path), GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/%s", cnmt_nca_file_name.c_str());
         FsRightsId tmp_rid;
         GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, FsContentAttributes_All, &this->keygen, &tmp_rid));
-        const auto system_keygen = hos::ReadSystemKeyGeneration();
+        const auto system_keygen = hos::GetSystemKeyGeneration();
         GLEAF_RC_UNLESS(system_keygen >= this->keygen, rc::goldleaf::ResultKeyGenerationMismatch);
 
         FsFileSystem cnmt_nca_fs;
@@ -352,7 +352,7 @@ namespace nsp {
 
         u8 *meta_data;
         size_t meta_data_size;
-        this->packaged_cnt_meta.CreateContentMetaForInstall(this->meta_cnt_info, meta_data, meta_data_size, g_Settings.ignore_required_fw_ver);
+        this->packaged_cnt_meta.CreateContentMetaForInstall(this->meta_cnt_info, meta_data, meta_data_size, g_Settings.json_settings.installs.value().ignore_required_fw_version.value());
         GLEAF_RC_TRY(ncmContentMetaDatabaseSet(&this->cnt_meta_db, std::addressof(main_program.meta_key), meta_data, meta_data_size));
         GLEAF_RC_TRY(ncmContentMetaDatabaseCommit(&this->cnt_meta_db));
         delete[] meta_data;
@@ -494,7 +494,7 @@ namespace nsp {
                     GLEAF_RC_TRY(last_rc);
                 }
 
-                const auto read_size = std::min(rem_size, g_Settings.copy_buffer_max_size);
+                const auto read_size = std::min(rem_size, g_Settings.json_settings.installs.value().copy_buffer_max_size.value());
                 auto read_buf = fs::AllocateWorkBuffer(read_size);
                 u64 tmp_read_size = 0;
                 switch(cnt.content_type) {

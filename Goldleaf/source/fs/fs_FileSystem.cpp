@@ -101,7 +101,7 @@ namespace fs {
         return g_RemotePCExplorer;
     }
 
-    DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive) {
+    DriveExplorer *GetDriveExplorer(const UsbHsFsDevice &drive) {
         if((g_DriveExplorer != nullptr) && !drive::DrivesEqual(g_DriveExplorer->GetDrive(), drive)) {
             DeleteExplorer(g_DriveExplorer);
         }
@@ -135,8 +135,7 @@ namespace fs {
             return g_DriveExplorer;
         }
 
-        auto &mounted_exps = g_MainApplication->GetExploreMenuLayout()->GetMountedExplorers();
-        for(auto &exp: mounted_exps) {
+        for(auto &exp: g_MountedExplorers) {
             if(IsExplorer(exp, mount_name)) {
                 return exp;
             }
@@ -165,6 +164,14 @@ namespace fs {
 
     void RegisterMountedExplorer(Explorer *exp) {
         g_MountedExplorers.push_back(exp);
+    }
+
+    void UnregisterMountedExplorer(Explorer *exp) {
+        auto it = std::find(g_MountedExplorers.begin(), g_MountedExplorers.end(), exp);
+        if(it != g_MountedExplorers.end()) {
+            DeleteExplorer(*it);
+            g_MountedExplorers.erase(it);
+        }
     }
 
 }

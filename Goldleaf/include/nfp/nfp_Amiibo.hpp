@@ -24,29 +24,87 @@
 
 namespace nfp {
 
+    namespace json {
+
+        struct Date {
+            int d;
+            int m;
+            int y;
+        };
+
+        struct AmiiboId {
+            int character_variant;
+            int game_character_id;
+            int series;
+            int model_number;
+            int figure_type;
+        };
+
+        using Uuid = std::vector<int>;
+
+        struct Amiibo {
+            Date first_write_date;
+            Date last_write_date;
+            std::string name;
+            int version;
+            int write_counter;
+            AmiiboId id;
+            Uuid uuid;
+            std::string mii_charinfo_file;
+        };
+
+        struct AreaInfoEntry {
+            u64 program_id;
+            u32 access_id;
+        };
+
+        struct AreaInfo {
+            u32 current_area_access_id;
+            std::vector<AreaInfoEntry> areas;
+        };
+
+    }
+
     struct CharacterId {
         u16 game_character_id;
         u8 character_variant;
     } NX_PACKED;
     static_assert(sizeof(CharacterId) == 3);
 
-    struct AmiiboId {
+    struct InternalAmiiboId {
         CharacterId character_id;
         u8 series;
         u16 model_number;
         u8 figure_type;
-    } NX_PACKED;
-    static_assert(sizeof(AmiiboId) == 7);
+        u8 tag_type;
+    };
+    static_assert(sizeof(InternalAmiiboId) == 8);
+
+    NX_CONSTEXPR InternalAmiiboId GetInternalAmiiboIdFromModelInfo(const NfpModelInfo &model_info) {
+        InternalAmiiboId amiibo_id = {};
+        amiibo_id.character_id.game_character_id = model_info.game_character_id;
+        amiibo_id.character_id.character_variant = model_info.character_variant;
+        amiibo_id.series = model_info.series_id;
+        amiibo_id.model_number = model_info.numbering_id;
+        amiibo_id.figure_type = model_info.nfp_type;
+        amiibo_id.tag_type = 2;
+        return amiibo_id;
+    }
+
+    struct AmiiboData {
+        NfpTagInfo tag_info;
+        NfpRegisterInfo register_info;
+        NfpCommonInfo common_info;
+        NfpModelInfo model_info;
+        NfpAdminInfo admin_info;
+        NfpData data;
+    };
 
     Result Initialize();
     bool IsReady();
     Result Open();
-    NfpTagInfo GetTagInfo();
-    NfpRegisterInfo GetRegisterInfo();
-    NfpCommonInfo GetCommonInfo();
-    NfpModelInfo GetModelInfo();
-    NfpData GetAll(); // No need for GetAdminInfo since NfpData includes it
-    std::string ExportAsVirtualAmiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model, const NfpData &all);
+    Result GetAmiiboData(AmiiboData &out_data);
+    std::string ExportAsVirtualAmiibo(const AmiiboData &data);
     void Close();
     void Exit();
 

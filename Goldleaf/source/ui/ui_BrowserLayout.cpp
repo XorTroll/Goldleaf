@@ -478,7 +478,7 @@ namespace ui {
         const auto files = this->cur_exp->GetFiles(full_item);
         std::vector<std::string> nsps;
         for(const auto &file: files) {
-            if(g_Settings.ignore_hidden_files && IsHiddenContent(file)) {
+            if(g_Settings.json_settings.fs.value().ignore_hidden_files.value() && IsHiddenContent(file)) {
                 continue;
             }
 
@@ -495,7 +495,7 @@ namespace ui {
         extra_options.push_back(cfg::Strings.GetString(18));
 
         auto msg = cfg::Strings.GetString(134);
-        if(g_Settings.compute_directory_sizes) {
+        if(g_Settings.json_settings.fs.value().compute_directory_sizes.value()) {
             // This can be pretty slow, so only do it if the user wants it
             msg += "\n\n" + cfg::Strings.GetString(237) + " " + fs::FormatSize(this->cur_exp->GetDirectorySize(full_item));
         }
@@ -621,8 +621,8 @@ namespace ui {
 
     BrowserLayout::BrowserLayout() : pu::ui::Layout() {
         this->cur_exp = fs::GetSdCardExplorer();
-        this->browse_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->browse_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->browse_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->browse_menu);
         this->empty_dir_text = pu::ui::elm::TextBlock::New(30, 630, cfg::Strings.GetString(49));
         this->empty_dir_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->empty_dir_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
@@ -674,7 +674,7 @@ namespace ui {
         this->ChangePartitionExplorer(fs::GetRemotePCExplorer(mount_name), update_contents);
     }
 
-    void BrowserLayout::ChangePartitionDrive(UsbHsFsDevice &drv, const bool update_contents) {
+    void BrowserLayout::ChangePartitionDrive(const UsbHsFsDevice &drv, const bool update_contents) {
         this->ChangePartitionExplorer(fs::GetDriveExplorer(drv), update_contents);
     }
 
@@ -686,7 +686,7 @@ namespace ui {
         this->empty_dir_text->SetVisible(contents.empty());
         if(!contents.empty()) {
             for(const auto &item: contents) {
-                if(g_Settings.ignore_hidden_files && IsHiddenContent(item)) {
+                if(g_Settings.json_settings.fs.value().ignore_hidden_files.value() && IsHiddenContent(item)) {
                     continue;
                 }
 

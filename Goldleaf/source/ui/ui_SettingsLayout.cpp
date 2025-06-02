@@ -21,7 +21,7 @@
 
 #include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_MainApplication.hpp>
-#include <upd/upd_Pending.hpp>
+#include <upd/upd_Update.hpp>
 
 extern ui::MainApplication::Ref g_MainApplication;
 extern cfg::Settings g_Settings;
@@ -35,8 +35,8 @@ namespace ui {
     }
 
     SettingsLayout::SettingsLayout() : pu::ui::Layout() {
-        this->options_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->options_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->options_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->options_menu);
         auto fw_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(352));
         fw_itm->SetColor(g_Settings.GetColorScheme().text);
         fw_itm->AddOnKey(std::bind(&SettingsLayout::optsFirmware_DefaultKey, this));
@@ -113,16 +113,19 @@ namespace ui {
     void SettingsLayout::optsFirmware_DefaultKey() {
         SetSysFirmwareVersion fw_ver = {};
         setsysGetFirmwareVersion(&fw_ver);
+
         auto msg = cfg::Strings.GetString(362) + ":\n";
         msg += std::string("\n") + cfg::Strings.GetString(363) + ": " + fw_ver.display_version + " (" + fw_ver.display_title + ")";
         msg += std::string("\n") + cfg::Strings.GetString(364) + ": '" + fw_ver.version_hash + "'";
-        msg += std::string("\n") + cfg::Strings.GetString(95) + " " + std::to_string(hos::ReadSystemKeyGeneration());
+        msg += std::string("\n") + cfg::Strings.GetString(95) + " " + std::to_string(hos::GetSystemKeyGeneration());
         msg += "\n\n" + cfg::Strings.GetString(365) + ":\n";
-        upd::PendingUpdateVersion pupd = {};
-        const auto is_pending_present = upd::GetPendingUpdateInfo(&pupd);
-        const auto is_update_present = upd::ConvertPendingUpdateVersion(pupd);
+
+        upd::UpdateVersion pending_upd = {};
+        const auto is_pending_present = upd::GetPendingUpdateInfo(pending_upd);
+        const auto is_update_present = upd::GetUpdateFirmwareVersion(pending_upd);
+
         if(is_pending_present) {
-            msg += std::string("\n") + cfg::Strings.GetString(363) + ": " + std::to_string(pupd.major) + "." + std::to_string(pupd.minor) + "." + std::to_string(pupd.micro);
+            msg += std::string("\n") + cfg::Strings.GetString(363) + ": " + std::to_string(pending_upd.major) + "." + std::to_string(pending_upd.minor) + "." + std::to_string(pending_upd.micro) + " (" + std::to_string(pending_upd.relstep) + ")";
             msg += "\n" + cfg::Strings.GetString(366);
         }
         else {

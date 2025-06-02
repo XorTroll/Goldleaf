@@ -85,7 +85,7 @@ namespace expt {
         auto exp = fs::GetExplorerForPath(path);
         dec_start_cb((double)cnt_size);
 
-        auto data_buf = new u8[g_Settings.decrypt_buffer_max_size]();
+        auto data_buf = new u8[g_Settings.json_settings.exports.value().decrypt_buffer_max_size.value()]();
         ScopeGuard on_exit([&]() {
             delete[] data_buf;
         });
@@ -93,7 +93,7 @@ namespace expt {
         s64 off = 0;
         exp->StartFile(path, fs::FileMode::Write);
         while(rem_size) {
-            const auto read_size = std::min(g_Settings.decrypt_buffer_max_size, rem_size);
+            const auto read_size = std::min(g_Settings.json_settings.exports.value().decrypt_buffer_max_size.value(), rem_size);
             GLEAF_RC_TRY(ncmContentStorageReadContentIdFile(cnt_storage, data_buf, read_size, &cnt_id, off));
             exp->WriteFile(path, data_buf, read_size);
             rem_size -= read_size;

@@ -466,7 +466,7 @@ This is an example JSON for Goldleaf settings:
         "show_deletion_prompt_after_install": false,
         "copy_buffer_max_size": 10485760
     },
-    "export": {
+    "exports": {
         "decrypt_buffer_max_size": 10485760
     },
     "web": {

@@ -323,7 +323,10 @@ void LogImpl(const char *log_buf, const size_t log_buf_len) {
     ScopedLock lk(g_LogLock);
 
     const auto thread_name = GetThreadName();
-    const auto cur_time = hos::GetCurrentTime(g_Settings.use_12h_time);
+    std::string cur_time = "...";
+    if(g_Settings.json_settings.general.has_value() && g_Settings.json_settings.general.value().use_12h_time.has_value()) {
+        cur_time = hos::GetCurrentTime(g_Settings.json_settings.general.value().use_12h_time.value());
+    }
     const auto log_str = "[" + cur_time + "] [" + thread_name + "] " + std::string(log_buf, log_buf_len);
 
     // To ensure no race conditions, use plain FS functions instead of the explorers

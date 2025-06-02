@@ -35,7 +35,6 @@
 #include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_OwnSettingsLayout.hpp>
 #include <ui/ui_BrowserLayout.hpp>
-#include <ui/ui_PCExploreLayout.hpp>
 #include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_TicketsLayout.hpp>
 #include <ui/ui_UpdateLayout.hpp>
@@ -64,7 +63,6 @@ namespace ui {
             FileContentLayout::Ref file_content_lyt;
             CopyLayout::Ref copy_lyt;
             ExploreMenuLayout::Ref explore_menu_lyt;
-            PCExploreLayout::Ref pc_explore_lyt;
             InstallLayout::Ref install_lyt;
             ApplicationListLayout::Ref app_list_lyt;
             ApplicationContentsLayout::Ref app_cnts_lyt;
@@ -153,10 +151,6 @@ namespace ui {
 
             inline ExploreMenuLayout::Ref &GetExploreMenuLayout() {
                 return this->explore_menu_lyt;
-            }
-
-            inline PCExploreLayout::Ref &GetPCExploreLayout() {
-                return this->pc_explore_lyt;
             }
 
             inline InstallLayout::Ref &GetInstallLayout() {

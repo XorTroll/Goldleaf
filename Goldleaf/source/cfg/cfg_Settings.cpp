@@ -49,13 +49,6 @@ namespace cfg {
             GLEAF_ASSERT_TRUE(g_DefaultLanguageLoaded);
         }
 
-        inline void ParseColorSchemeColor(const JSON &scheme_json, const char *name, pu::ui::Color &out_clr) {
-            const auto raw_clr = scheme_json.value(name, "");
-            if(!raw_clr.empty()) {
-                out_clr = pu::ui::Color::FromHex(raw_clr);
-            }
-        }
-
         // Light/dark blue schemes by default
 
         constexpr ColorScheme DefaultLightScheme = {
@@ -88,75 +81,117 @@ namespace cfg {
             .dialog_over = pu::ui::Color(0x8B, 0x66, 0x00, 0xFF)
         };
 
-        void ParseColorScheme(const JSON &json, ColorScheme &out_scheme) {
-            ParseColorSchemeColor(json, "bg", out_scheme.bg);
-            ParseColorSchemeColor(json, "menu_base", out_scheme.menu_base);
-            ParseColorSchemeColor(json, "menu_base_focus", out_scheme.menu_base_focus);
-            ParseColorSchemeColor(json, "text", out_scheme.text);
-            ParseColorSchemeColor(json, "version_text", out_scheme.version_text);
-            ParseColorSchemeColor(json, "scroll_bar", out_scheme.scroll_bar);
-            ParseColorSchemeColor(json, "progress_bar", out_scheme.progress_bar);
-            ParseColorSchemeColor(json, "progress_bar_bg", out_scheme.progress_bar_bg);
-            ParseColorSchemeColor(json, "dialog_title", out_scheme.dialog_title);
-            ParseColorSchemeColor(json, "dialog_opt", out_scheme.dialog_opt);
-            ParseColorSchemeColor(json, "dialog", out_scheme.dialog);
-            ParseColorSchemeColor(json, "dialog_over", out_scheme.dialog_over);
+        #define _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, name) \
+            if(json_scheme.name.has_value()) { \
+                out_scheme.name = pu::ui::Color::FromHex(json_scheme.name.value()); \
+            } \
+            else { \
+                out_scheme.name = def_scheme.name; \
+            } \
+
+        void ParseColorScheme(const json::UiColorScheme &json_scheme, ColorScheme &out_scheme, const ColorScheme &def_scheme) {
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, bg);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, menu_base);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, menu_base_focus);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, text);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, version_text);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, scroll_bar);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, progress_bar);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, progress_bar_bg);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog_title);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog_opt);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog_over);
         }
 
-        JSON GenerateColorScheme(const ColorScheme &scheme) {
-            auto json = JSON::object();
-            json["bg"] = ColorToHex(scheme.bg);
-            json["menu_base"] = ColorToHex(scheme.menu_base);
-            json["menu_base_focus"] = ColorToHex(scheme.menu_base_focus);
-            json["text"] = ColorToHex(scheme.text);
-            json["scroll_bar"] = ColorToHex(scheme.scroll_bar);
-            json["progress_bar"] = ColorToHex(scheme.progress_bar);
-            json["progress_bar_bg"] = ColorToHex(scheme.progress_bar_bg);
-            json["dialog_title"] = ColorToHex(scheme.dialog_title);
-            json["dialog_opt"] = ColorToHex(scheme.dialog_opt);
-            json["dialog"] = ColorToHex(scheme.dialog);
-            json["dialog_over"] = ColorToHex(scheme.dialog_over);
-            return json;
+        #define _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, name) out_json_scheme.name = ColorToHex(scheme.name)
+
+        void GenerateColorScheme(const ColorScheme &scheme, json::UiColorScheme &out_json_scheme, const ColorScheme &def_scheme) {
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, bg);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, menu_base);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, menu_base_focus);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, text);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, version_text);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, scroll_bar);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, progress_bar);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, progress_bar_bg);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog_title);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog_opt);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog_over);
         }
 
     }
 
-    void Settings::Save() {
-        auto json = JSON::object();
-
-        json["general"]["language"] = GetLanguageCode(this->lang);
-        json["general"]["external_romfs_path"] = this->external_romfs_path;
-        json["general"]["use_12h_time"] = this->use_12h_time;
-        json["general"]["ignore_hidden_files"] = this->ignore_hidden_files;
-
-        json["ui"]["light_color_scheme"] = GenerateColorScheme(this->light_color_scheme);
-        json["ui"]["dark_color_scheme"] = GenerateColorScheme(this->dark_color_scheme);
-        json["ui"]["menu_item_size"] = this->menu_item_size;
-
-        json["fs"]["compute_directory_sizes"] = this->compute_directory_sizes;
-
-        json["installs"]["ignore_required_fw_version"] = this->ignore_required_fw_ver;
-        json["installs"]["show_deletion_prompt_after_install"] = this->show_deletion_prompt_after_install;
-        json["installs"]["copy_buffer_max_size"] = this->copy_buffer_max_size;
-
-        json["export"]["decrypt_buffer_max_size"] = this->decrypt_buffer_max_size;
-
-        for(u32 i = 0; i < this->bookmarks.size(); i++) {
-            const auto &bmk = this->bookmarks[i];
-            json["web"]["bookmarks"][i]["name"] = bmk.name;
-            json["web"]["bookmarks"][i]["url"] = bmk.url;
+    #define _CFG_ENSURE_SETTING(json_settings, setting, type) \
+        if(!json_settings.setting.has_value()) { \
+            json_settings.setting = json::type::MakeDefault(); \
         }
 
-        auto sd_exp = fs::GetSdCardExplorer();
-        sd_exp->DeleteFile(GLEAF_PATH_SETTINGS_FILE);
-        sd_exp->WriteJSON(GLEAF_PATH_SETTINGS_FILE, json);
+    void Settings::Load() {
+        _CFG_ENSURE_SETTING(this->json_settings, general, GeneralSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, ui, UiSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, fs, FsSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, installs, InstallsSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, exports, ExportsSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, web, WebSettings);
+
+        const auto err = glz::read_file_json<PartialJsonOptions{}>(this->json_settings, "sdmc:/" GLEAF_PATH_SETTINGS_FILE, std::string{});
+        if(err) {
+            GLEAF_WARN_FMT("Failed to read settings JSON: %d (%s)", (u32)err.ec, err.custom_error_message.data());
+        }
+
+        if(this->json_settings.general.value().language.has_value()) {
+            this->lang = GetLanguageByCode(this->json_settings.general.value().language.value());
+        }
+        else {
+            this->lang = Language::Auto;
+        }
+
+        ColorSetId sys_color_set_id;
+        GLEAF_RC_ASSERT(setsysGetColorSetId(&sys_color_set_id));
+        this->is_light_mode = sys_color_set_id == ColorSetId_Light;
+
+        if(this->json_settings.ui.value().light_color_scheme.has_value()) {
+            ParseColorScheme(this->json_settings.ui.value().light_color_scheme.value(), this->light_color_scheme, DefaultLightScheme);
+        }
+        else {
+            this->light_color_scheme = DefaultLightScheme;
+        }
+
+        if(this->json_settings.ui.value().dark_color_scheme.has_value()) {
+            ParseColorScheme(this->json_settings.ui.value().dark_color_scheme.value(), this->dark_color_scheme, DefaultDarkScheme);
+        }
+        else {
+            this->dark_color_scheme = DefaultDarkScheme;
+        }
+
+        #define _CFG_CLAMP_FS_BUFFER_SIZE(mod, name) \
+            if(this->json_settings.mod.value().name.value() > 12_MB) { \
+                this->json_settings.mod.value().name.value() = 12_MB; \
+            } \
+
+        _CFG_CLAMP_FS_BUFFER_SIZE(installs, copy_buffer_max_size);
+        _CFG_CLAMP_FS_BUFFER_SIZE(exports, decrypt_buffer_max_size);
+    }
+
+    void Settings::Save() {
+        this->json_settings.general.value().language = GetLanguageCode(this->lang);
+
+        this->json_settings.ui.value().light_color_scheme = json::UiColorScheme{};
+        GenerateColorScheme(this->light_color_scheme, this->json_settings.ui.value().light_color_scheme.value(), DefaultLightScheme);
+
+        this->json_settings.ui.value().dark_color_scheme = json::UiColorScheme{};
+        GenerateColorScheme(this->dark_color_scheme, this->json_settings.ui.value().dark_color_scheme.value(), DefaultDarkScheme);
+
+        GLEAF_ASSERT_TRUE(!glz::write_file_json<PartialJsonOptions{}>(this->json_settings, "sdmc:/" GLEAF_PATH_SETTINGS_FILE, std::string{}));
     }
 
     std::string Settings::PathForResource(const std::string &res_path) {
         auto romfs_exp = fs::GetRomFsExplorer();
         
-        if(!this->external_romfs_path.empty()) {
-            const auto &ext_path = this->external_romfs_path + "/" + res_path;
+        if(this->json_settings.general.value().external_romfs_path.has_value()) {
+            const auto &ext_path = this->json_settings.general.value().external_romfs_path.value() + "/" + res_path;
             auto sd_exp = fs::GetSdCardExplorer();
             if(sd_exp->IsFile(ext_path)) {
                 return ext_path;
@@ -165,110 +200,16 @@ namespace cfg {
         return romfs_exp->MakeAbsolute(res_path);
     }
 
-    JSON Settings::ReadJSONResource(const std::string &res_path) {
-        auto sd_exp = fs::GetSdCardExplorer();
-        auto romfs_exp = fs::GetRomFsExplorer();
-
-        if(!this->external_romfs_path.empty()) {
-            const auto &ext_path = this->external_romfs_path + "/" + res_path;
-            if(sd_exp->IsFile(ext_path)) {
-                return sd_exp->ReadJSON(ext_path);
-            }
-        }
-        return romfs_exp->ReadJSON(romfs_exp->MakeAbsolute(res_path));
-    }
-
-    Settings ProcessSettings() {
-        Settings settings = {
-            .lang = Language::Auto,
-            .external_romfs_path = "",
-            .use_12h_time = false,
-            .ignore_hidden_files = false,
-
-            .light_color_scheme = DefaultLightScheme,
-            .dark_color_scheme = DefaultDarkScheme,
-            .menu_item_size = 100,
-
-            .compute_directory_sizes = false,
-
-            .ignore_required_fw_ver = true,
-            .copy_buffer_max_size = 16_MB,
-
-            .decrypt_buffer_max_size = 16_MB,
-
-            .bookmarks = {}
+    StringHolder Settings::ReadStrings(const Language lang) {
+        StringHolder str_holder = {
+            .language = lang,
+            .strings = {}
         };
 
-        ColorSetId sys_color_set_id;
-        GLEAF_RC_ASSERT(setsysGetColorSetId(&sys_color_set_id));
-        settings.system_is_light = sys_color_set_id == ColorSetId_Light;
+        auto romfs_exp = fs::GetRomFsExplorer();
+        GLEAF_ASSERT_TRUE(!glz::read_file_json<PartialJsonOptions{}>(str_holder.strings, romfs_exp->MakeAbsolute("/Strings/" + GetLanguageCode(lang) + ".json"), std::string{}));
 
-        auto sd_exp = fs::GetSdCardExplorer();
-        const auto settings_json = sd_exp->ReadJSON(GLEAF_PATH_SETTINGS_FILE);
-        if(settings_json.count("general")) {
-            const auto &lang = settings_json["general"].value("language", "");
-            if(!lang.empty()) {
-                settings.lang = GetLanguageByCode(lang);
-            }
-
-            const auto &ext_romfs_path = settings_json["general"].value("external_romfs_path", "");
-            if(!ext_romfs_path.empty()) {
-                if(ext_romfs_path.substr(0, 6) == "sdmc:/") {
-                    settings.external_romfs_path = ext_romfs_path;
-                }
-                else {
-                    settings.external_romfs_path = "sdmc:";
-                    if(ext_romfs_path[0] != '/') {
-                        settings.external_romfs_path += "/";
-                    }
-                    settings.external_romfs_path += ext_romfs_path;
-                }
-            }
-
-            settings.use_12h_time = settings_json["general"].value("use_12h_time", settings.use_12h_time);
-            settings.ignore_hidden_files = settings_json["general"].value("ignore_hidden_files", settings.ignore_hidden_files);
-        }
-
-        if(settings_json.count("ui")) {
-            if(settings_json["ui"].count("light_color_scheme")) {
-                ParseColorScheme(settings_json["ui"]["light_color_scheme"], settings.light_color_scheme);
-            }
-            if(settings_json["ui"].count("dark_color_scheme")) {
-                ParseColorScheme(settings_json["ui"]["dark_color_scheme"], settings.dark_color_scheme);
-            }
-
-            settings.menu_item_size = settings_json["ui"].value("menu_item_size", settings.menu_item_size);
-        }
-
-        if(settings_json.count("fs")) {
-            settings.compute_directory_sizes = settings_json["fs"].value("compute_directory_sizes", settings.compute_directory_sizes);
-        }
-
-        if(settings_json.count("installs")) {
-            settings.ignore_required_fw_ver = settings_json["installs"].value("ignore_required_fw_version", settings.ignore_required_fw_ver);
-            settings.show_deletion_prompt_after_install = settings_json["installs"].value("show_deletion_prompt_after_install", settings.show_deletion_prompt_after_install);
-            settings.copy_buffer_max_size = settings_json["installs"].value("copy_buffer_max_size", settings.copy_buffer_max_size);
-        }
-
-        if(settings_json.count("export")) {
-            settings.decrypt_buffer_max_size = settings_json["installs"].value("decrypt_buffer_max_size", settings.decrypt_buffer_max_size);
-        }
-
-        if(settings_json.count("web")) {
-            if(settings_json["web"].count("bookmarks")) {
-                for(u32 i = 0; i < settings_json["web"]["bookmarks"].size(); i++) {
-                    const WebBookmark bmk = {
-                        .name = settings_json["web"]["bookmarks"][i].value("name", ""),
-                        .url = settings_json["web"]["bookmarks"][i].value("url", "")
-                    };
-                    if(!bmk.url.empty() && !bmk.name.empty()) {
-                        settings.bookmarks.push_back(bmk);
-                    }
-                }
-            }
-        }
-
-        return settings;
+        return str_holder;
     }
 
     Language Settings::GetLanguage() {

@@ -10,3 +10,6 @@
 [submodule "libnx-ext"]
 	path = libnx-ext
 	url = https://github.com/XorTroll/libnx-ext
+[submodule "glaze"]
+	path = glaze
+	url = https://github.com/stephenberry/glaze

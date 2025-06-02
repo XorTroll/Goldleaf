@@ -46,8 +46,8 @@ namespace ui {
     }
 
     ApplicationContentsLayout::ApplicationContentsLayout() {
-        this->cnts_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->cnts_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->cnts_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->cnts_menu);
         this->Add(this->cnts_menu);
 
         this->SetOnInput(std::bind(&ApplicationContentsLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -100,7 +100,7 @@ namespace ui {
         if(has_tik) {
             const auto key_gen = esGetRightsIdKeyGeneration(&tik.rights_id);
             info += cfg::Strings.GetString(201) + " " + std::string((tik.type == cnt::TicketType::Common) ? cfg::Strings.GetString(448) : cfg::Strings.GetString(449)) + "\n";
-            info += cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " (" + cnt::GetKeyGenerationRange(key_gen) + ")\n";
+            info += cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " (" + hos::GetKeyGenerationRange(key_gen) + ")\n";
             info += "\n";
         }
 
@@ -124,6 +124,7 @@ namespace ui {
                     remove_tik = option_3 == 0;
                 }
 
+                const auto app_id = app.record.id;
                 const auto cnt_count = app.contents.size();
 
                 cnt::RemoveApplicationContentById(app, cnt_idx);
@@ -139,7 +140,7 @@ namespace ui {
                     this->LoadApplication(this->app_idx);
 
                     const auto &new_app = cnt::GetApplications().at(this->app_idx);
-                    if(new_app.record.id != app.record.id) {
+                    if(new_app.record.id != app_id) {
                         // If application ordering changed, better to reload the list
                         g_MainApplication->GetApplicationListLayout()->ReloadApplications();
                         g_MainApplication->ReturnToParentLayout();
@@ -201,7 +202,6 @@ namespace ui {
                 total_app_size += app.occupied_size.entities[i].app_size;
                 total_patch_size += app.occupied_size.entities[i].patch_size;
                 total_aoc_size += app.occupied_size.entities[i].add_on_content_size;
-
 
                 size_info += cnt::GetStorageIdName(static_cast<NcmStorageId>(app.occupied_size.entities[i].storage_id)) + ":\n";
                 size_info += "\uE090 " + cfg::Strings.GetString(261) + ": " + fs::FormatSize(app.occupied_size.entities[i].app_size) + "\n";
@@ -290,6 +290,7 @@ namespace ui {
             const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(243), cfg::Strings.GetString(186), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option_2 == 0) {
                 cnt::RemoveApplicationById(app.record.id);
+                GLEAF_LOG_FMT("Deleted! Reload requested");
                 g_MainApplication->GetApplicationListLayout()->ReloadApplications();
                 g_MainApplication->ReturnToParentLayout();
             }

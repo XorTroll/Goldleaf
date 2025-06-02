@@ -146,7 +146,6 @@ namespace ui {
         this->file_content_lyt = FileContentLayout::New();
         this->copy_lyt = CopyLayout::New();
         this->explore_menu_lyt = ExploreMenuLayout::New();
-        this->pc_explore_lyt = PCExploreLayout::New();
         this->install_lyt = InstallLayout::New();
         this->app_list_lyt = ApplicationListLayout::New();
         this->app_cnts_lyt = ApplicationContentsLayout::New();
@@ -164,7 +163,6 @@ namespace ui {
         _UI_MAINAPP_MENU_SET_BASE(this->main_menu_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->browser_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->explore_menu_lyt);
-        _UI_MAINAPP_MENU_SET_BASE(this->pc_explore_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->file_content_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->copy_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->install_lyt);
@@ -218,7 +216,7 @@ namespace ui {
             }
         }
 
-        const auto cur_time = hos::GetCurrentTime(g_Settings.use_12h_time);
+        const auto cur_time = hos::GetCurrentTime(g_Settings.json_settings.general.value().use_12h_time.value());
         const auto battery_val = hos::GetBatteryLevel();
         const auto is_charging = hos::IsCharging();
         if((this->cur_battery_val != battery_val) || !this->read_values_once) {

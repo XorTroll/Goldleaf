@@ -28,8 +28,8 @@ extern cfg::Settings g_Settings;
 namespace ui {
 
     MainMenuLayout::MainMenuLayout() : pu::ui::Layout() {
-        this->options_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->options_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->options_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->options_menu);
         this->explore_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(277));
         this->explore_menu_item->SetIcon(GetCommonIcon(CommonIconKind::SdCard));
         this->explore_menu_item->SetColor(g_Settings.GetColorScheme().text);
@@ -71,13 +71,10 @@ namespace ui {
         this->options_menu->AddItem(this->settings_menu_item);
         this->options_menu->AddItem(this->about_menu_item);
         this->Add(this->options_menu);
-
-        this->options_menu->SetMoveWaitTimeMs(100);
-        this->options_menu->SetItemAlphaIncrementSteps(15);
     }
 
     void MainMenuLayout::exploreMenu_DefaultKey() {
-        g_MainApplication->GetExploreMenuLayout()->UpdateMenu();
+        g_MainApplication->GetExploreMenuLayout()->Reload();
         g_MainApplication->ShowLayout(g_MainApplication->GetExploreMenuLayout());
     }
 
@@ -88,13 +85,13 @@ namespace ui {
     }
 
     void MainMenuLayout::tickets_DefaultKey() {
-        g_MainApplication->GetTicketsLayout()->UpdateElements();
+        g_MainApplication->GetTicketsLayout()->Reload();
         g_MainApplication->ShowLayout(g_MainApplication->GetTicketsLayout());
     }
 
     void MainMenuLayout::webBrowser_DefaultKey() {
         if(GetLaunchMode() == LaunchMode::Application) {
-            g_MainApplication->GetWebBrowserLayout()->Refresh();
+            g_MainApplication->GetWebBrowserLayout()->Reload();
             g_MainApplication->ShowLayout(g_MainApplication->GetWebBrowserLayout());
         }
         else {

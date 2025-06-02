@@ -132,6 +132,5 @@ namespace cnt {
     Result RemoveTicket(const Ticket &tik);
     TicketFile ReadTicket(const std::string &path);
     void SaveTicket(fs::Explorer *exp, const std::string &path, const TicketFile tik_file);
-    std::string GetKeyGenerationRange(const u8 key_gen);
 
 }

@@ -34,8 +34,10 @@ namespace ui {
             PU_SMART_CTOR(WebBrowserLayout)
 
             void Refresh();
+            void Reload();
+
             void input_DefaultKey();
-            void bookmark_DefaultKey(cfg::WebBookmark &bmk);
+            void bookmark_DefaultKey(cfg::json::WebBookmark &bmk);
     };
 
 }

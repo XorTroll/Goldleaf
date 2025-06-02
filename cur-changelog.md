@@ -1,3 +1,31 @@
+# `v1.1.1`
+
+- Changed the JSON libraries used internally (should slightly improve performance)
+
+  - The `export` settings field was renamed to `exports` for convenience
+
+- Reverted default config changes to use `8MB` for copy and install buffers (the previous `16MB` default config would make USB freeze)
+
+- The explore-content menu was slightly redesigned by merging everything together: new (removed) inserted USB drives will automatically (dis)appear, and PC USB connection options will also be loaded when entering-exiting-refreshing with Y
+
+- USB connections now have a timeout of around 5 seconds to avoid permanent freezes
+
+- Animations were made slightly faster
+
+- Fixed a bug where the firmware key generation would be not read properly on Mariko models
+
+- Fixed UI bugs where several menu info/icons were not properly hid when moving to other menus
+
+- Fixed a minor bug when parsing pending update versions
+
+- Additionally mounted filesystems are properly removed from the menu now
+
+- Fixed a bug where deleting an entire program would not be reflected in the menu (it would still show up)
+
+- Fixed a major bug where (sometimes?) some contents would not be deleted properly (I specially apologize for this one, further testing of the last version would have shown this behavior quickly)
+
+- Added an option to clear Goldleaf logs from the app itself (mostly for debugging/testing things, maybe someone else other than me will find this useful)
+
 # `v1.1.0`
 
 ## General

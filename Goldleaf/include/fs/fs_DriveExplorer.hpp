@@ -30,7 +30,7 @@ namespace fs {
             UsbHsFsDevice drv;
         
         public:
-            DriveExplorer(UsbHsFsDevice &drive);
+            DriveExplorer(const UsbHsFsDevice &drive);
 
             inline UsbHsFsDevice &GetDrive() {
                 return this->drv;

@@ -23,10 +23,9 @@
 
 namespace fs {
 
-    DriveExplorer::DriveExplorer(UsbHsFsDevice &drive) : drv(drive) {
-        const std::string drive_name = drive.name;
-        const auto drive_name_without_dots = drive_name.substr(0, drive_name.length() - 1);
-        this->SetNames(drive_name_without_dots, drive_name_without_dots);
+    DriveExplorer::DriveExplorer(const UsbHsFsDevice &drive) : drv(drive) {
+        GLEAF_LOG_FMT("Creating DriveExplorer with drive '%s' / '%s' / '%s'", drive.name, drive.product_name, drive.manufacturer);
+        this->SetNames(drive::GetDriveMountName(drive), drive::FormatDriveName(drive));
     }
 
 }

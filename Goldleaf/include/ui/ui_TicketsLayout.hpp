@@ -35,6 +35,8 @@ namespace ui {
             PU_SMART_CTOR(TicketsLayout)
             
             void UpdateElements();
+            void Reload();
+
             void tickets_DefaultKey(const cnt::Ticket tik);
     };
 

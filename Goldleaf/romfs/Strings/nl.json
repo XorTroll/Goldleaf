@@ -512,5 +512,7 @@
     "Compute directory sizes",
     "Browse available & used space on different partitions",
     "This version is more recent than the last release... this surely is a debug build, right?",
-    "Delta fragment"
+    "Delta fragment",
+    "Clear logs",
+    "Goldleaf logs were successfully cleared."
 ]

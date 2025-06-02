@@ -24,14 +24,16 @@
 
 namespace upd {
 
-    struct PendingUpdateVersion {
+    struct UpdateVersion {
         u32 major;
         u32 minor;
         u32 micro;
+        u32 relstep;
     };
 
-    bool GetPendingUpdateInfo(PendingUpdateVersion *out);
-    SetSysFirmwareVersion ConvertPendingUpdateVersion(const PendingUpdateVersion ver);
+    bool GetPendingUpdateInfo(UpdateVersion &out_ver);
     void CleanPendingUpdate();
+
+    SetSysFirmwareVersion GetUpdateFirmwareVersion(const UpdateVersion &ver);
 
 }

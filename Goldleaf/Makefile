@@ -40,13 +40,13 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source/fatfs source/acc source/expt source/fs source/drive source/cnt source/hos source/net source/nsp source/cfg source/nfp source/ui source/usb source/usb/cmd source/res source/upd source/util source
-INCLUDES	:=	include
+INCLUDES	:=	include ../glaze/include
 DATA		:=	data
 ROMFS		:=	romfs
 
 VER_MAJOR	:= 1
 VER_MINOR	:= 1
-VER_MICRO	:= 0
+VER_MICRO	:= 1
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
@@ -63,7 +63,7 @@ CFLAGS	:=	-g -O2 -ffunction-sections -Wall -Werror $(ARCH) $(DEFINES)
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags`
 CFLAGS	+=	-DGLEAF_MAJOR=$(VER_MAJOR) -DGLEAF_MINOR=$(VER_MINOR) -DGLEAF_MICRO=$(VER_MICRO) -DGLEAF_VERSION=\"$(APP_VERSION)\"
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++23
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

@@ -28,6 +28,16 @@ extern bool g_UpdatedNeedsRename;
 
 namespace ui {
 
+    namespace json {
+
+        struct GitHubRelease {
+            std::string tag_name;
+        };
+        
+        using GitHubReleases = std::vector<GitHubRelease>;
+
+    }
+
     UpdateLayout::UpdateLayout() {
         this->info_text = pu::ui::elm::TextBlock::New(150, 350, "...");
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
@@ -56,12 +66,13 @@ namespace ui {
             g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             return;
         }
-        const auto json = JSON::parse(json_data);
-        if(json.size() <= 0) {
+        json::GitHubReleases releases;
+        const auto err = glz::read<PartialJsonOptions{}>(releases, json_data);
+        if(err || releases.empty()) {
             g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             return;
         }
-        const auto last_id = json[0].value("tag_name", "");
+        const auto last_id = releases.front().tag_name;
         if(last_id.empty()) {
             g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             return;

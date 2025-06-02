@@ -221,6 +221,8 @@ namespace cnt {
             g_LoadApplicationsThreadDone = false;
             GLEAF_RC_ASSERT(threadCreate(&g_LoadApplicationsThread, LoadApplicationsMain, nullptr, nullptr, 512_KB, 0x1F, -2));
             GLEAF_RC_ASSERT(threadStart(&g_LoadApplicationsThread));
+
+            svcSleepThread(10'000'000ul);
         }
 
         Result RemoveApplicationContentMeta(const cnt::Application &app, const cnt::ApplicationContent &cnt) {
@@ -376,9 +378,17 @@ namespace cnt {
         NotifyContentsChanged(content.storage_id);
         */
 
-        nsextDeleteApplicationRecord(app_id);
-        nsDeleteApplicationCompletely(app_id);
+        auto rc = nsDeleteApplicationCompletely(app_id);
+        if(R_FAILED(rc)) {
+            GLEAF_LOG_FMT("Failed to delete application completely: 0x%X", rc);
+        }
+        rc = nsextDeleteApplicationRecord(app_id);
+        if(R_FAILED(rc)) {
+            GLEAF_LOG_FMT("Failed to delete application record: 0x%X", rc);
+        }
+
         NotifyApplicationsChanged();
+        g_MainApplication->GetApplicationListLayout()->NotifyApplicationsChanged();
     }
 
     void RemoveApplicationContentById(const cnt::Application &app, const u32 cnt_idx) {

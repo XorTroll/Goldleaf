@@ -36,7 +36,7 @@ namespace fs {
     NANDExplorer *GetNANDUserExplorer();
     NANDExplorer *GetNANDSystemExplorer();
     RemotePCExplorer *GetRemotePCExplorer(const std::string &mount_name);
-    DriveExplorer *GetDriveExplorer(UsbHsFsDevice &drive);
+    DriveExplorer *GetDriveExplorer(const UsbHsFsDevice &drive);
     Explorer *GetExplorerForMountName(const std::string &mount_name);
     Explorer *GetExplorerForPath(const std::string &path);
 
@@ -52,5 +52,6 @@ namespace fs {
     void Finalize();
 
     void RegisterMountedExplorer(Explorer *exp);
+    void UnregisterMountedExplorer(Explorer *exp);
 
 }

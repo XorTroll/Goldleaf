@@ -110,7 +110,7 @@ namespace ui {
 
             const auto key_gen = nsp_installer.GetKeyGeneration();
             info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " ";
-            info += "(" + cnt::GetKeyGenerationRange(key_gen) + ")";
+            info += "(" + hos::GetKeyGenerationRange(key_gen) + ")";
 
             if(nsp_installer.HasTicket()) {
                 const auto &ticket = nsp_installer.GetTicketFile();
@@ -275,6 +275,9 @@ namespace ui {
     void InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(77), CommonIconKind::Storage, cfg::Strings.GetString(145) + " " + pres_path);
         ScopeGuard on_exit([&]() {
+            // Just in case
+            cnt::NotifyApplicationsChanged();
+            g_MainApplication->GetApplicationListLayout()->NotifyApplicationsChanged();
             g_MainApplication->ReturnToParentLayout();
         });
 
@@ -452,7 +455,7 @@ namespace ui {
         else if(do_install) {
             g_MainApplication->ShowNotification(cfg::Strings.GetString(150));
 
-            if(g_Settings.show_deletion_prompt_after_install) {
+            if(g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value()) {
                 g_MainApplication->GetBrowserLayout()->PromptDeleteFile(path);
             }
         }

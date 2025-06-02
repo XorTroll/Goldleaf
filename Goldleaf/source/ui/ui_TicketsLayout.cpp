@@ -51,8 +51,8 @@ namespace ui {
     }
 
     TicketsLayout::TicketsLayout() : pu::ui::Layout() {
-        this->tiks_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->tiks_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->tiks_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->tiks_menu);
         this->no_unused_tiks_text = pu::ui::elm::TextBlock::New(0, 0, cfg::Strings.GetString(199));
         this->no_unused_tiks_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
         this->no_unused_tiks_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
@@ -64,7 +64,7 @@ namespace ui {
     }
 
     void TicketsLayout::UpdateElements() {
-        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(4), CommonIconKind::Ticket, cfg::Strings.GetString(279));
+        
         this->tiks_menu->ClearItems();
         this->no_unused_tiks_text->SetVisible(true);
         this->tiks_menu->SetVisible(false);
@@ -98,6 +98,11 @@ namespace ui {
         }
     }
 
+    void TicketsLayout::Reload() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(4), CommonIconKind::Ticket, cfg::Strings.GetString(279));
+        this->UpdateElements();
+    }
+
     void TicketsLayout::tickets_DefaultKey(const cnt::Ticket tik) {
         const auto tik_app_id = esGetRightsIdApplicationId(&tik.rights_id);
         const auto used_title = tik.IsUsed();
@@ -111,7 +116,7 @@ namespace ui {
         }
 
         const auto key_gen = esGetRightsIdKeyGeneration(&tik.rights_id);
-        info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " (" + cnt::GetKeyGenerationRange(key_gen) + ")";
+        info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " (" + hos::GetKeyGenerationRange(key_gen) + ")";
         info += "\n" + cfg::Strings.GetString(447) + " " + FormatTicketType(tik.type);
         info += "\n\n";
         info += tik_used ? cfg::Strings.GetString(202) : cfg::Strings.GetString(203);

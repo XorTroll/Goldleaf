@@ -28,6 +28,7 @@
 #include <net/net_Network.hpp>
 #include <nsp/nsp_Installer.hpp>
 #include <nsp/nsp_Builder.hpp>
+#include <cfg/cfg_Settings.hpp>
 #include <cfg/cfg_Strings.hpp>
 #include <util/util_String.hpp>
 #include <ui/ui_Utils.hpp>

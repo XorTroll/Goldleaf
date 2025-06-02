@@ -33,7 +33,8 @@ namespace hos {
     void UnlockExit();
     bool IsExitLocked();
 
-    u8 ReadSystemKeyGeneration();
+    u8 GetSystemKeyGeneration();
+    std::string GetKeyGenerationRange(const u8 key_gen);
 
     Result PerformShutdown(const bool do_reboot);
 

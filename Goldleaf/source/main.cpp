@@ -43,8 +43,9 @@ int main() {
     auto renderer = pu::ui::render::Renderer::New(renderer_opts);
     g_MainApplication = ui::MainApplication::New(renderer);
 
-    // Initialize and load config
-    g_Settings = cfg::ProcessSettings();
+    // Initialize and load settings
+    g_Settings = {};
+    g_Settings.Load();
 
     // Load language strings, now that romfs is initialized
     cfg::LoadStrings();

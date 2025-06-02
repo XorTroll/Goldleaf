@@ -26,44 +26,45 @@ namespace ui {
 
     class ExploreMenuLayout : public pu::ui::Layout {
         private:
+            struct PcSpecialPath {
+                std::string name;
+                std::string path;
+            };
+
             pu::ui::elm::Menu::Ref mounts_menu;
             pu::ui::elm::MenuItem::Ref sd_card_menu_item;
-            pu::ui::elm::MenuItem::Ref remote_pc_menu_item;
-            pu::ui::elm::MenuItem::Ref usb_drive_menu_item;
-            pu::ui::elm::MenuItem::Ref nand_prodinfof_menu_item;
-            pu::ui::elm::MenuItem::Ref nand_safe_menu_item;
+            std::vector<pu::ui::elm::MenuItem::Ref> usb_drive_menu_items;
+            std::vector<PcSpecialPath> remote_pc_special_paths;
+            std::vector<pu::ui::elm::MenuItem::Ref> remote_pc_special_menu_items;
+            pu::ui::elm::MenuItem::Ref remote_pc_select_file_menu_item;
+            std::unordered_map<fs::Explorer*, pu::ui::elm::MenuItem::Ref> mounted_explorer_items;
             pu::ui::elm::MenuItem::Ref nand_user_menu_item;
             pu::ui::elm::MenuItem::Ref nand_system_menu_item;
-            std::vector<fs::Explorer*> mounted_explorers;
-            std::vector<pu::ui::elm::MenuItem::Ref> mounted_explorer_items;
+            pu::ui::elm::MenuItem::Ref nand_prodinfof_menu_item;
+            pu::ui::elm::MenuItem::Ref nand_safe_menu_item;
+
+            void ReloadMenu();
 
             void OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos);
+            void OnSdCardSelected();
+            void OnUsbDriveSelected(const UsbHsFsDevice drive);
+            void OnUsbDriveSelectedX(const UsbHsFsDevice drive);
+            void OnRemotePcSpecialPathSelected(const PcSpecialPath &path);
+            void OnRemotePcSelectFileSelected();
+            void OnNandPartitionSelected(const fs::Partition partition);
+            void OnMountedExplorerSelected(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon);
+            void OnMountedExplorerSelectedX(fs::Explorer *exp);
+
         public:
             ExploreMenuLayout();
             PU_SMART_CTOR(ExploreMenuLayout)
 
-            void UpdateMenu();
-            void mountsMenu_SelectionChanged();
-            void sdCard_DefaultKey();
-            void pcDrive_DefaultKey();
-            void usbDrive_DefaultKey();
-            void nandProdInfoF_DefaultKey();
-            void nandSafe_DefaultKey();
-            void nandUser_DefaultKey();
-            void nandSystem_DefaultKey();
-            void otherMount_DefaultKey();
-            void specialMount_X();
-            void otherMount_X();
-            void explorer_DefaultKey(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon);
-            void explorer_X(fs::Explorer *exp);
+            void Reload();
+
             void AddMountedExplorer(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon);
 
             inline void AddMountedExplorerWithCommonIcon(fs::Explorer *exp, const std::string &name, const CommonIconKind kind) {
                 this->AddMountedExplorer(exp, name, GetCommonIcon(kind));
-            }
-
-            inline std::vector<fs::Explorer*> &GetMountedExplorers() {
-                return this->mounted_explorers;
             }
     };
 

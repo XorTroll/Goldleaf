@@ -20,15 +20,28 @@
 */
 
 #pragma once
-#include <cfg/cfg_Settings.hpp>
+#include <base.hpp>
 
 namespace cfg {
 
+    namespace json {
+
+        using Strings = std::vector<std::string>;
+
+    }
+
     struct StringHolder {
         Language language;
-        JSON json;
+        json::Strings strings;
 
-        std::string GetString(const u32 idx);
+        inline std::string &GetString(const u32 idx) {
+            if(idx < this->strings.size()) {
+                return this->strings[idx];
+            }
+            else {
+                GLEAF_ASSERT_FAIL("String index out of bounds");
+            }
+        }
     };
 
     extern StringHolder Strings;

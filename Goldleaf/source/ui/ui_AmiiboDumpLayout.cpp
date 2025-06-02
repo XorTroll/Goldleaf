@@ -56,17 +56,13 @@ namespace ui {
             }
             rc = nfp::Open();
             if(R_SUCCEEDED(rc)) {
-                const auto tag = nfp::GetTagInfo();
-                const auto model = nfp::GetModelInfo();
-                const auto common = nfp::GetCommonInfo();
-                const auto reg = nfp::GetRegisterInfo();
-                const auto data = nfp::GetAll();
-
-                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + reg.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+                nfp::AmiiboData data;
+                GLEAF_RC_ASSERT(nfp::GetAmiiboData(data));
+                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + data.register_info.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
                 if(option == 0) {
-                    this->info_text->SetText(cfg::Strings.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::Strings.GetString(297));
-                    const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(tag, reg, common, model, data);
-                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
+                    this->info_text->SetText(cfg::Strings.GetString(296) + " '" + data.register_info.amiibo_name + "' " + cfg::Strings.GetString(297));
+                    const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(data);
+                    g_MainApplication->ShowNotification("'" + std::string(data.register_info.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
                 }
                 nfp::Close();
             }

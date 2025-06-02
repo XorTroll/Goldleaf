@@ -49,6 +49,12 @@ namespace ui {
         g_MainApplication->GetFileContentLayout()->LoadFile(GLEAF_PATH_LOG_FILE, sd_exp->FullPresentablePathFor(GLEAF_PATH_LOG_FILE), sd_exp, false);
     }
 
+    void OwnSettingsLayout::clear_logs_DefaultKey() {
+        auto sd_exp = fs::GetSdCardExplorer();
+        sd_exp->DeleteFile(GLEAF_PATH_LOG_FILE);
+        g_MainApplication->ShowNotification(cfg::Strings.GetString(515));
+    }
+
     void OwnSettingsLayout::custom_lang_DefaultKey() {
         std::vector<std::string> lang_opts = { GetLanguageCode(Language::Auto) };
         for(u32 i = 0; i < static_cast<u32>(Language::Count); i++) {
@@ -69,27 +75,27 @@ namespace ui {
     }
 
     void OwnSettingsLayout::use_12h_time_DefaultKey() {
-        g_Settings.use_12h_time = !g_Settings.use_12h_time;
+        g_Settings.json_settings.general.value().use_12h_time.value() = !g_Settings.json_settings.general.value().use_12h_time.value();
         SaveChanges(false);
     }
 
     void OwnSettingsLayout::ignore_hidden_files_DefaultKey() {
-        g_Settings.ignore_hidden_files = !g_Settings.ignore_hidden_files;
+        g_Settings.json_settings.fs.value().ignore_hidden_files.value() = !g_Settings.json_settings.fs.value().ignore_hidden_files.value();
         SaveChanges(false);
     }
 
     void OwnSettingsLayout::compute_directory_sizes_DefaultKey() {
-        g_Settings.compute_directory_sizes = !g_Settings.compute_directory_sizes;
+        g_Settings.json_settings.fs.value().compute_directory_sizes.value() = !g_Settings.json_settings.fs.value().compute_directory_sizes.value();
         SaveChanges(false);
     }
 
     void OwnSettingsLayout::ignore_required_fw_version_DefaultKey() {
-        g_Settings.ignore_required_fw_ver = !g_Settings.ignore_required_fw_ver;
+        g_Settings.json_settings.installs.value().ignore_required_fw_version.value() = !g_Settings.json_settings.installs.value().ignore_required_fw_version.value();
         SaveChanges(false);
     }
 
     void OwnSettingsLayout::show_deletion_prompt_after_install_DefaultKey() {
-        g_Settings.show_deletion_prompt_after_install = !g_Settings.show_deletion_prompt_after_install;
+        g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value() = !g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value();
         SaveChanges(false);
     }
 
@@ -100,8 +106,8 @@ namespace ui {
     }
 
     OwnSettingsLayout::OwnSettingsLayout() : pu::ui::Layout() {
-        this->settings_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.menu_item_size, ComputeDefaultMenuItemCount(g_Settings.menu_item_size));
-        this->settings_menu->SetScrollbarColor(g_Settings.GetColorScheme().scroll_bar);
+        this->settings_menu = pu::ui::elm::Menu::New(0, 280, pu::ui::render::ScreenWidth, g_Settings.GetColorScheme().menu_base, g_Settings.GetColorScheme().menu_base_focus, g_Settings.json_settings.ui.value().menu_item_size.value(), ComputeDefaultMenuItemCount(g_Settings.json_settings.ui.value().menu_item_size.value()));
+        g_Settings.ApplyToMenu(this->settings_menu);
         this->UpdateSettings(true);
         this->Add(this->settings_menu);
 
@@ -118,7 +124,14 @@ namespace ui {
         this->view_logs_item->SetColor(g_Settings.GetColorScheme().text);
         this->view_logs_item->AddOnKey(std::bind(&OwnSettingsLayout::view_logs_DefaultKey, this));
 
+        const auto clear_logs_item_name = cfg::Strings.GetString(514);
+        this->clear_logs_item = pu::ui::elm::MenuItem::New(clear_logs_item_name);
+        this->clear_logs_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
+        this->clear_logs_item->SetColor(g_Settings.GetColorScheme().text);
+        this->clear_logs_item->AddOnKey(std::bind(&OwnSettingsLayout::clear_logs_DefaultKey, this));
+
         this->settings_menu->AddItem(this->view_logs_item);
+        this->settings_menu->AddItem(this->clear_logs_item);
 
         const auto custom_lang_item_name = cfg::Strings.GetString(441) + ": " + GetLanguageCode(g_Settings.lang);
         this->custom_lang_item = pu::ui::elm::MenuItem::New(custom_lang_item_name);
@@ -126,13 +139,13 @@ namespace ui {
         this->custom_lang_item->SetColor(g_Settings.GetColorScheme().text);
         this->custom_lang_item->AddOnKey(std::bind(&OwnSettingsLayout::custom_lang_DefaultKey, this));
 
-        const auto use_12h_time_name = cfg::Strings.GetString(452) + ": " + (g_Settings.use_12h_time ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        const auto use_12h_time_name = cfg::Strings.GetString(452) + ": " + (g_Settings.json_settings.general.value().use_12h_time.value() ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->use_12h_time_item = pu::ui::elm::MenuItem::New(use_12h_time_name);
         this->use_12h_time_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
         this->use_12h_time_item->SetColor(g_Settings.GetColorScheme().text);
         this->use_12h_time_item->AddOnKey(std::bind(&OwnSettingsLayout::use_12h_time_DefaultKey, this));
 
-        const auto ignore_hidden_files_name = cfg::Strings.GetString(474) + ": " + (g_Settings.ignore_hidden_files ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        const auto ignore_hidden_files_name = cfg::Strings.GetString(474) + ": " + (g_Settings.json_settings.fs.value().ignore_hidden_files.value() ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->ignore_hidden_files_item = pu::ui::elm::MenuItem::New(ignore_hidden_files_name);
         this->ignore_hidden_files_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
         this->ignore_hidden_files_item->SetColor(g_Settings.GetColorScheme().text);
@@ -142,7 +155,7 @@ namespace ui {
         this->settings_menu->AddItem(this->use_12h_time_item);
         this->settings_menu->AddItem(this->ignore_hidden_files_item);
 
-        const auto compute_directory_sizes_name = cfg::Strings.GetString(510) + ": " + (g_Settings.compute_directory_sizes ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        const auto compute_directory_sizes_name = cfg::Strings.GetString(510) + ": " + (g_Settings.json_settings.fs.value().compute_directory_sizes.value() ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->compute_directory_sizes_item = pu::ui::elm::MenuItem::New(compute_directory_sizes_name);
         this->compute_directory_sizes_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
         this->compute_directory_sizes_item->SetColor(g_Settings.GetColorScheme().text);
@@ -150,13 +163,13 @@ namespace ui {
 
         this->settings_menu->AddItem(this->compute_directory_sizes_item);
 
-        const auto ignore_required_fw_version_item_name = cfg::Strings.GetString(444) + ": " + (g_Settings.ignore_required_fw_ver ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        const auto ignore_required_fw_version_item_name = cfg::Strings.GetString(444) + ": " + (g_Settings.json_settings.installs.value().ignore_required_fw_version.value() ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->ignore_required_fw_version_item = pu::ui::elm::MenuItem::New(ignore_required_fw_version_item_name);
         this->ignore_required_fw_version_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
         this->ignore_required_fw_version_item->SetColor(g_Settings.GetColorScheme().text);
         this->ignore_required_fw_version_item->AddOnKey(std::bind(&OwnSettingsLayout::ignore_required_fw_version_DefaultKey, this));
 
-        const auto show_deletion_prompt_after_install_name = cfg::Strings.GetString(475) + ": " + (g_Settings.show_deletion_prompt_after_install ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
+        const auto show_deletion_prompt_after_install_name = cfg::Strings.GetString(475) + ": " + (g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value() ? cfg::Strings.GetString(111) : cfg::Strings.GetString(112));
         this->show_deletion_prompt_after_install_item = pu::ui::elm::MenuItem::New(show_deletion_prompt_after_install_name);
         this->show_deletion_prompt_after_install_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
         this->show_deletion_prompt_after_install_item->SetColor(g_Settings.GetColorScheme().text);

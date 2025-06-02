@@ -21,6 +21,7 @@
 
 #include <hos/hos_Common.hpp>
 #include <fs/fs_FileSystem.hpp>
+#include <upd/upd_Update.hpp>
 
 namespace hos {
 
@@ -30,6 +31,94 @@ namespace hos {
         bool g_SystemKeyGenerationRead = false;
 
         bool g_ExitLocked = false;
+
+        // https://github.com/Atmosphere-NX/Atmosphere/blob/master/libraries/libexosphere/include/exosphere/pkg1/pkg1_key_generation.hpp#L21
+
+        enum KeyGeneration : u8 {
+            KeyGeneration_1_0_0  = 0x00,
+            KeyGeneration_3_0_0  = 0x01,
+            KeyGeneration_3_0_1  = 0x02,
+            KeyGeneration_4_0_0  = 0x03,
+            KeyGeneration_5_0_0  = 0x04,
+            KeyGeneration_6_0_0  = 0x05,
+            KeyGeneration_6_2_0  = 0x06,
+            KeyGeneration_7_0_0  = 0x07,
+            KeyGeneration_8_1_0  = 0x08,
+            KeyGeneration_9_0_0  = 0x09,
+            KeyGeneration_9_1_0  = 0x0A,
+            KeyGeneration_12_1_0 = 0x0B,
+            KeyGeneration_13_0_0 = 0x0C,
+            KeyGeneration_14_0_0 = 0x0D,
+            KeyGeneration_15_0_0 = 0x0E,
+            KeyGeneration_16_0_0 = 0x0F,
+            KeyGeneration_17_0_0 = 0x10,
+            KeyGeneration_18_0_0 = 0x11,
+            KeyGeneration_19_0_0 = 0x12,
+            KeyGeneration_20_0_0 = 0x13
+        };
+
+        inline u8 GetKeyGeneration() {
+            if(hosversionAtLeast(20,0,0)) {
+                return KeyGeneration_20_0_0;
+            }
+            else if(hosversionAtLeast(19,0,0)) {
+                return KeyGeneration_19_0_0;
+            }
+            else if(hosversionAtLeast(18,0,0)) {
+                return KeyGeneration_18_0_0;
+            }
+            else if(hosversionAtLeast(17,0,0)) {
+                return KeyGeneration_17_0_0;
+            }
+            else if(hosversionAtLeast(16,0,0)) {
+                return KeyGeneration_16_0_0;
+            }
+            else if(hosversionAtLeast(15,0,0)) {
+                return KeyGeneration_15_0_0;
+            }
+            else if(hosversionAtLeast(14,0,0)) {
+                return KeyGeneration_14_0_0;
+            }
+            else if(hosversionAtLeast(13,0,0)) {
+                return KeyGeneration_13_0_0;
+            }
+            else if(hosversionAtLeast(12,1,0)) {
+                return KeyGeneration_12_1_0;
+            }
+            else if(hosversionAtLeast(9,1,0)) {
+                return KeyGeneration_9_1_0;
+            }
+            else if(hosversionAtLeast(9,0,0)) {
+                return KeyGeneration_9_1_0;
+            }
+            else if(hosversionAtLeast(8,1,0)) {
+                return KeyGeneration_8_1_0;
+            }
+            else if(hosversionAtLeast(7,0,0)) {
+                return KeyGeneration_7_0_0;
+            }
+            else if(hosversionAtLeast(6,2,0)) {
+                return KeyGeneration_6_2_0;
+            }
+            else if(hosversionAtLeast(6,0,0)) {
+                return KeyGeneration_6_0_0;
+            }
+            else if(hosversionAtLeast(5,0,0)) {
+                return KeyGeneration_5_0_0;
+            }
+            else if(hosversionAtLeast(4,0,0)) {
+                return KeyGeneration_4_0_0;
+            }
+            else if(hosversionAtLeast(3,0,1)) {
+                return KeyGeneration_3_0_1;
+            }
+            else if(hosversionAtLeast(3,0,0)) {
+                return KeyGeneration_3_0_0;
+            }
+            else {
+                return KeyGeneration_1_0_0;
+            }
+        }
 
     }
 
@@ -172,19 +261,81 @@ namespace hos {
         return g_ExitLocked;
     }
 
-    u8 ReadSystemKeyGeneration() {
+    u8 GetSystemKeyGeneration() {
         if(!g_SystemKeyGenerationRead) {
-            FsStorage boot0;
-            if(R_SUCCEEDED(fsOpenBisStorage(&boot0, FsBisPartitionId_BootPartition1Root))) {
-                u32 keygen_ver = 0;
-                fsStorageRead(&boot0, 0x2330, &keygen_ver, sizeof(u32));
-                fsStorageClose(&boot0);
-                g_SystemKeyGeneration = static_cast<u8>(keygen_ver);
-                g_SystemKeyGenerationRead = true;
-            }
+            g_SystemKeyGeneration = GetKeyGeneration();
+            g_SystemKeyGenerationRead = true;
         }
 
         return g_SystemKeyGeneration;
+    }
+
+    std::string GetKeyGenerationRange(const u8 key_gen) {
+        switch(key_gen) {
+            case KeyGeneration_1_0_0: {
+                return "1.0.0 - 2.3.0";
+            }
+            case KeyGeneration_3_0_0: {
+                return "3.0.0";
+            }
+            case KeyGeneration_3_0_1: {
+                return "3.0.1 - 3.0.2";
+            }
+            case KeyGeneration_4_0_0: {
+                return "4.0.0 - 4.1.0";
+            }
+            case KeyGeneration_5_0_0: {
+                return "5.0.0 - 5.1.0";
+            }
+            case KeyGeneration_6_0_0: {
+                return "6.0.0 - 6.1.0";
+            }
+            case KeyGeneration_6_2_0: {
+                return "6.2.0";
+            }
+            case KeyGeneration_7_0_0: {
+                return "7.0.0 - 8.0.1";
+            }
+            case KeyGeneration_8_1_0: {
+                return "8.1.0 - 8.1.1";
+            }
+            case KeyGeneration_9_0_0: {
+                return "9.0.0 - 9.0.1";
+            }
+            case KeyGeneration_9_1_0: {
+                return "9.1.0 - 12.0.3";
+            }
+            case KeyGeneration_12_1_0: {
+                return "12.1.0";
+            }
+            case KeyGeneration_13_0_0: {
+                return "13.0.0 - 13.2.1";
+            }
+            case KeyGeneration_14_0_0: {
+                return "14.0.0 - 14.1.2";
+            }
+            case KeyGeneration_15_0_0: {
+                return "15.0.0 - 15.0.1";
+            }
+            case KeyGeneration_16_0_0: {
+                return "16.0.0 - 16.0.3";
+            }
+            case KeyGeneration_17_0_0: {
+                return "17.0.0 - 17.0.1";
+            }
+            case KeyGeneration_18_0_0: {
+                return "18.0.0 - 18.1.0";
+            }
+            case KeyGeneration_19_0_0: {
+                return "19.0.0 - 19.0.1";
+            }
+            case KeyGeneration_20_0_0: {
+                return "20.0.0 -";
+            }
+            default: {
+                return "<unknown>";
+            }
+        }
     }
 
     Result PerformShutdown(const bool do_reboot) {
