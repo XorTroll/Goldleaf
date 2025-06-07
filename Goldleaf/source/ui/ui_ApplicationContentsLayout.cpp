@@ -289,8 +289,8 @@ namespace ui {
         else if(option == 5) {
             const auto option_2 = g_MainApplication->DisplayDialog(cfg::Strings.GetString(243), cfg::Strings.GetString(186), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option_2 == 0) {
+                // TODO: also delete all tickets?
                 cnt::RemoveApplicationById(app.record.id);
-                GLEAF_LOG_FMT("Deleted! Reload requested");
                 g_MainApplication->GetApplicationListLayout()->ReloadApplications();
                 g_MainApplication->ReturnToParentLayout();
             }

@@ -54,10 +54,8 @@ namespace ui {
 
     void ApplicationListLayout::ReloadApplications() {
         if(!this->needs_menu_reload) {
-            GLEAF_LOG_FMT("ApplicationListLayout::ReloadApplications: No need to reload menu.");
             return;
         }
-        GLEAF_LOG_FMT("ApplicationListLayout::ReloadApplications: Reloading applications menu.");
         this->needs_menu_reload = false;
 
         this->apps_menu->ClearItems();
