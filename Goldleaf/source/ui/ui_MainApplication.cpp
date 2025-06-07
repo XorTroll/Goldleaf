@@ -155,6 +155,7 @@ namespace ui {
         this->amiibo_dump_lyt = AmiiboDumpLayout::New();
         this->settings_lyt = SettingsLayout::New();
         this->own_settings_lyt = OwnSettingsLayout::New();
+        this->remote_pc_explore_lyt = RemotePcExploreLayout::New();
         this->memory_lyt = MemoryLayout::New();
         this->update_lyt = UpdateLayout::New();
         this->update_install_lyt = UpdateInstallLayout::New();
@@ -174,6 +175,7 @@ namespace ui {
         _UI_MAINAPP_MENU_SET_BASE(this->amiibo_dump_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->settings_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->own_settings_lyt);
+        _UI_MAINAPP_MENU_SET_BASE(this->remote_pc_explore_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->memory_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->update_lyt);
         _UI_MAINAPP_MENU_SET_BASE(this->update_install_lyt);

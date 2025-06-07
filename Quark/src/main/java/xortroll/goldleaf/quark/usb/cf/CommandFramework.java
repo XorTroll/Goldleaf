@@ -101,7 +101,7 @@ public class CommandFramework {
 
     public static Command GetDriveInfo = new Command(2, new CommandHandler() {
         public void handle(CommandBlock block) {
-            if(drives != null) {
+            if(drives == null) {
                 drives = FileSystem.listDrives();
             }
 
@@ -415,6 +415,7 @@ public class CommandFramework {
                 block.responseEnd();
             }
             else {
+                Logging.log("[cf] GetSpecialPath(idx: " + special_path_idx + ") -> invalid index");
                 block.respondFailure(ResultInvalidIndex);
             }
         }

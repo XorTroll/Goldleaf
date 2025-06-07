@@ -670,7 +670,7 @@ namespace ui {
         this->ChangePartitionExplorer(exp, update_contents);
     }
     
-    void BrowserLayout::ChangePartitionPCDrive(const std::string &mount_name, const bool update_contents) {
+    void BrowserLayout::ChangePartitionRemotePcDrive(const std::string &mount_name, const bool update_contents) {
         this->ChangePartitionExplorer(fs::GetRemotePCExplorer(mount_name), update_contents);
     }
 
@@ -727,7 +727,7 @@ namespace ui {
     void BrowserLayout::HandleFileDirectly(const std::string &path) {
         const auto dir = fs::GetBaseDirectory(path);
         const auto file_name = fs::GetBaseName(path);
-        this->ChangePartitionPCDrive(dir);
+        this->ChangePartitionRemotePcDrive(dir);
 
         auto &items = this->browse_menu->GetItems();
         const auto it = std::find_if(items.begin(), items.end(), [&](pu::ui::elm::MenuItem::Ref &item) -> bool {

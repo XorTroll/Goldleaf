@@ -40,6 +40,7 @@ namespace drive {
             if((devices != nullptr) && (device_count > 0)) {
                 g_Drives.insert(g_Drives.end(), devices, devices + device_count);
             }
+            GLEAF_LOG_FMT("usbHsFsSetPopulateCallback: %u devices found", device_count);
             g_DrivesChanged = true;
         }, nullptr);
 

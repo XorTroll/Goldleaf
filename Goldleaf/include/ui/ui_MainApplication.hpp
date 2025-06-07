@@ -34,6 +34,7 @@
 #include <ui/ui_MainMenuLayout.hpp>
 #include <ui/ui_MemoryLayout.hpp>
 #include <ui/ui_OwnSettingsLayout.hpp>
+#include <ui/ui_RemotePcExploreLayout.hpp>
 #include <ui/ui_BrowserLayout.hpp>
 #include <ui/ui_SettingsLayout.hpp>
 #include <ui/ui_TicketsLayout.hpp>
@@ -72,6 +73,7 @@ namespace ui {
             AmiiboDumpLayout::Ref amiibo_dump_lyt;
             SettingsLayout::Ref settings_lyt;
             OwnSettingsLayout::Ref own_settings_lyt;
+            RemotePcExploreLayout::Ref remote_pc_explore_lyt;
             MemoryLayout::Ref memory_lyt;
             UpdateLayout::Ref update_lyt;
             UpdateInstallLayout::Ref update_install_lyt;
@@ -187,6 +189,10 @@ namespace ui {
 
             inline OwnSettingsLayout::Ref &GetOwnSettingsLayout() {
                 return this->own_settings_lyt;
+            }
+
+            inline RemotePcExploreLayout::Ref &GetRemotePcExploreLayout() {
+                return this->remote_pc_explore_lyt;
             }
 
             inline MemoryLayout::Ref &GetMemoryLayout() {

@@ -86,9 +86,9 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
     - *Console memory (SAVE, SYSTEM, USER and PRODINFOF partitions)*
 
-    - *Remote systems (via remote tools like Quark)*
+    - *Remote PC (via tools like Quark)*
 
-    - *USB drives (thanks to libusbhsfs)*
+    - *USB drives (thanks to **libusbhsfs**)*
 
     - *Game savedata (read-only, check below how to mount it)*
 
@@ -190,9 +190,13 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - **(Plus / +)** Exit the application in order to return to hbmenu.
 
-- Content explorer:
+- Explore menu:
 
   - **(X)** Unmount the selected location (only when a manually-mounted location is selected)
+
+  - **(Y)** Refresh mounted contents
+
+- File browser:
 
   - **(Y)** Select folder (might take a bit of time with folders with many sub-items)
 

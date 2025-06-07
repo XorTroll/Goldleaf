@@ -213,12 +213,19 @@ class ScopeGuard {
 
     private:
         Fn exit_fn;
+        bool call;
 
     public:
-        ScopeGuard(Fn fn) : exit_fn(fn) {}
+        ScopeGuard(Fn fn) : exit_fn(fn), call(true) {}
 
         ~ScopeGuard() {
-            this->exit_fn();
+            if(this->call) {
+                this->exit_fn();
+            }
+        }
+        
+        inline void Cancel() {
+            this->call = false;
         }
 };
 

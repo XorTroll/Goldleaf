@@ -224,8 +224,6 @@ namespace usb {
             }
         }
 
-        constexpr u64 Timeout = 5'000'000'000;
-
         Result TransferImpl(void *buf, const size_t size, UsbDsEndpoint *ep) {
             auto state = UsbState_Detached;
             usbDsGetState(&state);
@@ -236,14 +234,8 @@ namespace usb {
             u32 urb_id = 0;
             auto rc = usbDsEndpoint_PostBufferAsync(ep, buf, size, &urb_id);
             if(R_SUCCEEDED(rc)) {
-                rc = eventWait(&ep->CompletionEvent, Timeout);
+                rc = eventWait(&ep->CompletionEvent, UINT64_MAX);
                 eventClear(&ep->CompletionEvent);
-
-                if(R_FAILED(rc)) {
-                    usbDsEndpoint_Cancel(ep);
-                    rc = eventWait(&ep->CompletionEvent, Timeout);
-                    eventClear(&ep->CompletionEvent);
-                }
 
                 if(R_SUCCEEDED(rc)) {
                     UsbDsReportData report_data;

@@ -514,5 +514,10 @@
     "Esta versión es más reciente que el último lanzamiento... seguro que no es una versión de desarrollo, verdad?",
     "Fragmento delta",
     "Limpiar logs",
-    "Los logs de Goldleaf fueron limpiados con éxito."
+    "Los logs de Goldleaf fueron limpiados con éxito.",
+    "Browse PC drives and files via USB",
+    "Filesystem type:",
+    "Unmount drive",
+    "The selected drive was successfully unmounted. You can now safely remove it.",
+    "An error ocurred attempting to unmount the drive."
 ]

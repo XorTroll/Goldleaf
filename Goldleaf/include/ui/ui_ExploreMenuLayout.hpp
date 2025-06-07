@@ -34,9 +34,7 @@ namespace ui {
             pu::ui::elm::Menu::Ref mounts_menu;
             pu::ui::elm::MenuItem::Ref sd_card_menu_item;
             std::vector<pu::ui::elm::MenuItem::Ref> usb_drive_menu_items;
-            std::vector<PcSpecialPath> remote_pc_special_paths;
-            std::vector<pu::ui::elm::MenuItem::Ref> remote_pc_special_menu_items;
-            pu::ui::elm::MenuItem::Ref remote_pc_select_file_menu_item;
+            pu::ui::elm::MenuItem::Ref remote_pc_explore_menu_item;
             std::unordered_map<fs::Explorer*, pu::ui::elm::MenuItem::Ref> mounted_explorer_items;
             pu::ui::elm::MenuItem::Ref nand_user_menu_item;
             pu::ui::elm::MenuItem::Ref nand_system_menu_item;
@@ -49,8 +47,7 @@ namespace ui {
             void OnSdCardSelected();
             void OnUsbDriveSelected(const UsbHsFsDevice drive);
             void OnUsbDriveSelectedX(const UsbHsFsDevice drive);
-            void OnRemotePcSpecialPathSelected(const PcSpecialPath &path);
-            void OnRemotePcSelectFileSelected();
+            void OnRemotePcExploreSelected();
             void OnNandPartitionSelected(const fs::Partition partition);
             void OnMountedExplorerSelected(fs::Explorer *exp, const std::string &name, pu::sdl2::TextureHandle::Ref icon);
             void OnMountedExplorerSelectedX(fs::Explorer *exp);

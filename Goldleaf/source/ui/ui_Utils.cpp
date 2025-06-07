@@ -138,6 +138,7 @@ namespace ui {
         g_CommonIcons[static_cast<u32>(CommonIconKind::Update)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Update.png")));
         g_CommonIcons[static_cast<u32>(CommonIconKind::USB)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/USB.png")));
         g_CommonIcons[static_cast<u32>(CommonIconKind::User)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/User.png")));
+        g_CommonIcons[static_cast<u32>(CommonIconKind::Pc)] = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(g_Settings.PathForResource("/Common/Pc.png")));
     }
 
     void DisposeCommonIcons() {
@@ -197,6 +198,18 @@ namespace ui {
             return it->second;
         }
         return nullptr;
+    }
+
+    void SleepWhileRender(const u64 ns) {
+        const u64 start = armGetSystemTick();
+        while(true) {
+            g_MainApplication->CallForRender();
+
+            const u64 now = armGetSystemTick();
+            if(armTicksToNs(now - start) >= ns) {
+                break;
+            }
+        }
     }
 
 }

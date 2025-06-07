@@ -514,5 +514,10 @@
     "이 버전은 이전 릴리스보다 최신 버전입니다... 이건 분명 디버그 빌드겠죠?",
     "델타 조각",
     "Clear logs",
-    "Goldleaf logs were successfully cleared."
+    "Goldleaf logs were successfully cleared.",
+    "Browse PC drives and files via USB",
+    "Filesystem type:",
+    "Unmount drive",
+    "The selected drive was successfully unmounted. You can now safely remove it.",
+    "An error ocurred attempting to unmount the drive."
 ]

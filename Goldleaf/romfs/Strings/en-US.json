@@ -514,5 +514,10 @@
     "This version is more recent than the last release... this surely is a debug build, right?",
     "Delta fragment",
     "Clear logs",
-    "Goldleaf logs were successfully cleared."
+    "Goldleaf logs were successfully cleared.",
+    "Browse PC drives and files via USB",
+    "Filesystem type:",
+    "Unmount drive",
+    "The selected drive was successfully unmounted. You can now safely remove it.",
+    "An error ocurred attempting to unmount the drive."
 ]

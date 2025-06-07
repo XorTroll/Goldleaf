@@ -72,76 +72,10 @@ namespace ui {
             }
         });
 
-        this->remote_pc_special_menu_items.clear();
-        this->remote_pc_special_paths.clear();
-        auto usb_ok = usb::IsStateOk();
-
-        u32 drive_count;
-        u32 path_count;
-        if(usb_ok) {
-            const auto rc = usb::cf::GetDriveCount(drive_count);
-            if(R_SUCCEEDED(rc)) {
-                for(u32 i = 0; i < drive_count; i++) {
-                    std::string label;
-                    std::string path;
-                    size_t tmp_total_size;
-                    size_t tmp_free_size;
-                    // TODO (low priority): make use of drive sizes?
-                    if(R_SUCCEEDED(usb::cf::GetDriveInfo(i, label, path, tmp_total_size, tmp_free_size))) {
-                        this->remote_pc_special_paths.push_back({ label, path });
-                    }
-                }
-            }
-            else {
-                usb_ok = false;
-                this->remote_pc_special_menu_items.clear();
-                this->remote_pc_special_paths.clear();
-                HandleResult(rc, "USB error");
-            }
-        }
-
-        if(usb_ok) {
-            const auto rc = usb::cf::GetSpecialPathCount(path_count);
-            if(R_SUCCEEDED(rc)) {
-                for(u32 i = 0; i < path_count; i++) {
-                    std::string name;
-                    std::string path;
-                    if(R_SUCCEEDED(usb::cf::GetSpecialPath(i, name, path))) {
-                        this->remote_pc_special_paths.push_back({ name, path });   
-                    }
-                }
-            }
-            else {
-                usb_ok = false;
-                this->remote_pc_special_menu_items.clear();
-                this->remote_pc_special_paths.clear();
-                HandleResult(rc, "USB error");
-            }
-        }
-
-        if(usb_ok) {
-            u32 i = 0;
-            for(const auto &path: this->remote_pc_special_paths) {
-                pu::ui::elm::MenuItem::Ref item;
-                if(i < drive_count) {
-                    item = pu::ui::elm::MenuItem::New("PC drive: " + path.name);
-                    item->SetIcon(GetCommonIcon(CommonIconKind::Drive));
-                }
-                else {
-                    item = pu::ui::elm::MenuItem::New("PC path: " + path.name);
-                    item->SetIcon(GetCommonIcon(CommonIconKind::Directory));
-                }
-                item->SetColor(g_Settings.GetColorScheme().text);
-                item->AddOnKey(std::bind(&ExploreMenuLayout::OnRemotePcSpecialPathSelected, this, path));
-                this->remote_pc_special_menu_items.push_back(item);
-                i++;
-            }
-
-            this->remote_pc_select_file_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(407));
-            this->remote_pc_select_file_menu_item->SetIcon(GetCommonIcon(CommonIconKind::Directory));
-            this->remote_pc_select_file_menu_item->SetColor(g_Settings.GetColorScheme().text);
-            this->remote_pc_select_file_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::OnRemotePcSelectFileSelected, this));
-        }
+        this->remote_pc_explore_menu_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(299));
+        this->remote_pc_explore_menu_item->SetIcon(GetCommonIcon(CommonIconKind::Pc));
+        this->remote_pc_explore_menu_item->SetColor(g_Settings.GetColorScheme().text);
+        this->remote_pc_explore_menu_item->AddOnKey(std::bind(&ExploreMenuLayout::OnRemotePcExploreSelected, this));
 
         // Mounted explorer items are created elsewhere
 
@@ -169,15 +103,7 @@ namespace ui {
         for(auto &drive_item: this->usb_drive_menu_items) {
             this->mounts_menu->AddItem(drive_item);
         }
-        if(usb_ok) {
-            for(auto &remote_pc_item: this->remote_pc_special_menu_items) {
-                this->mounts_menu->AddItem(remote_pc_item);
-            }
-            this->mounts_menu->AddItem(this->remote_pc_select_file_menu_item);
-        }
-        for(auto &[exp, exp_item]: this->mounted_explorer_items) {
-            this->mounts_menu->AddItem(exp_item);
-        }
+        this->mounts_menu->AddItem(this->remote_pc_explore_menu_item);
         this->mounts_menu->AddItem(this->nand_prodinfof_menu_item);
         this->mounts_menu->AddItem(this->nand_safe_menu_item);
         this->mounts_menu->AddItem(this->nand_user_menu_item);
@@ -199,33 +125,28 @@ namespace ui {
 
     void ExploreMenuLayout::OnUsbDriveSelectedX(const UsbHsFsDevice drv) {
         std::string info;
-        info += std::string("Filesystem type: ") + drive::FormatDriveFileSystemType(drv) + "\n";
+        info += cfg::Strings.GetString(517) + " " + drive::FormatDriveFileSystemType(drv);
 
-        const auto option = g_MainApplication->DisplayDialog(drive::FormatDriveName(drv), info, { cfg::Strings.GetString(234), "Unmount" }, false);
+        const auto option = g_MainApplication->DisplayDialog(drive::FormatDriveName(drv), info, { cfg::Strings.GetString(234), cfg::Strings.GetString(518) }, false);
         if(option == 1) {
             if(drive::UnmountDrive(drv)) {
                 this->ReloadMenu();
-                g_MainApplication->ShowNotification("Drive unmounted! You can unplug it safely.");
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(519));
             }
             else {
-                g_MainApplication->ShowNotification("Some error occurred while unmounting the drive...");
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(520));
             }
         }
     }
 
-    void ExploreMenuLayout::OnRemotePcSpecialPathSelected(const PcSpecialPath &path) {
-        g_MainApplication->LoadCommonIconMenuData(true, "PC explorer", CommonIconKind::Directory, "");
-        g_MainApplication->GetBrowserLayout()->ChangePartitionPCDrive(path.path);
-        g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());
-    }
-
-    void ExploreMenuLayout::OnRemotePcSelectFileSelected() {
-        std::string selected_file;
-        if(R_SUCCEEDED(usb::cf::SelectFile(selected_file))) {
-            g_MainApplication->GetBrowserLayout()->HandleFileDirectly(selected_file);
+    void ExploreMenuLayout::OnRemotePcExploreSelected() {
+        if(usb::IsStateOk()) {
+            if(R_SUCCEEDED(g_MainApplication->GetRemotePcExploreLayout()->Reload())) {
+                g_MainApplication->ShowLayout(g_MainApplication->GetRemotePcExploreLayout());
+            }
         }
         else {
-            this->ReloadMenu();
+            g_MainApplication->ShowNotification(cfg::Strings.GetString(300));
         }
     }
 

@@ -31,16 +31,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileSystem {
-    public static final String HomeDrive = "Home";
-
-    private static String os = System.getProperty("os.name").toLowerCase();
+    private static final String HomePath = System.getProperty("user.home");
+    private static final String OS = System.getProperty("os.name").toLowerCase();
    
     public static boolean isWindows() {
-        return os.indexOf("windows") >= 0;
+        return OS.indexOf("windows") >= 0;
     }
 
     public static List<String> listDrives() {
         List<String> drives = new ArrayList<String>();
+        drives.add(HomePath);
+
         if(isWindows()) {
             java.nio.file.FileSystem fs = FileSystems.getDefault();
             for(Path root: fs.getRootDirectories()) {
@@ -52,13 +53,23 @@ public class FileSystem {
             }
         }
         else {
-            // TODO: another way of finding non-Windows drives?
-            drives.add(HomeDrive);
+            for(FileStore store : FileSystems.getDefault().getFileStores()) {
+                System.out.println("Found file store: " + store);
+                String path = store.toString().split(" ")[0];
+                String name = store.name();
+                if(name.startsWith("/dev/")) {
+                    drives.add(path);
+                }
+            }
         }
         return drives;
     }
 
     public static String getDriveLabel(String drive) {
+        if(drive.equals(HomePath)) {
+            return "Home directory";
+        }
+
         if(isWindows()) {
             Path root = Paths.get(drive + ":\\");
             try {
@@ -67,10 +78,22 @@ public class FileSystem {
                 return name;
             }
             catch(Exception e) {
-                return "Drive " + drive;
+                return "Drive (" + drive + ")";
             }
         }
-        return "Home root";
+        else {
+            try {
+                if(drive.equals("/")) {
+                    return "Root directory";
+                }
+                Path path = Paths.get(drive);
+                String drive_name = path.getFileName().toString();
+                return drive_name;
+            }
+            catch(Exception e) {
+                return "Drive (" + drive + ")";
+            }
+        }
     }
 
     public static List<String> getFilesIn(String path) {
@@ -97,25 +120,24 @@ public class FileSystem {
 
     public static String normalizePath(String path) {
         String normalized = path.replace('\\', '/').replace("//", "/");
+
         if(!isWindows()) {
-            if(normalized.startsWith("/")) {
-                return HomeDrive + ":" + normalized;
-            }
+            return path.replace('\\', '/').replace("//", "/");
         }
-        return normalized;
+        else {
+            return normalized.replace("//", ":");
+        }
     }
 
     public static String denormalizePath(String path) {
         String denormalized = path;
+
         if(isWindows()) {
             return denormalized.replace('/', '\\');
         }
         else {
-            if(denormalized.startsWith(HomeDrive + ":")) {
-                return denormalized.replace(HomeDrive + ":", "");
-            }
+            return denormalized.replace(':', '/');
         }
-        return denormalized;
     }
 
     public static void deletePath(File file) {

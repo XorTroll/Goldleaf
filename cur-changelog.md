@@ -6,9 +6,7 @@
 
 - Reverted default config changes to use `8MB` for copy and install buffers (the previous `16MB` default config would make USB freeze)
 
-- The explore-content menu was slightly redesigned by merging everything together: new (removed) inserted USB drives will automatically (dis)appear, and PC USB connection options will also be loaded when entering-exiting-refreshing with Y
-
-- USB connections now have a timeout of around 5 seconds to avoid permanent freezes
+- The explore-content menu was slightly redesigned by merging USB drives in the main explorer menu: new (removed) inserted USB drives will automatically (dis)appear
 
 - Animations were made slightly faster
 
@@ -27,6 +25,14 @@
 - Updated Korean and Spanish translations
 
 - Added an option to clear Goldleaf logs from the app itself (mostly for debugging/testing things, maybe someone else other than me will find this useful)
+
+## Quark
+
+- Improved support for Home directory in Linux, and also added it for any supported operating systems
+
+- Improved support for drives in Linux
+
+- Fixed minor bug where the drives would be re-scanned multiple times
 
 # `v1.1.0`
 

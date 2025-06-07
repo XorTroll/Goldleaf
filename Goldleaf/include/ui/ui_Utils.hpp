@@ -66,6 +66,7 @@ namespace ui {
         Update,
         USB,
         User,
+        Pc,
 
         Count
     };
@@ -79,5 +80,7 @@ namespace ui {
     void ClearApplicationIcons();
     void SetApplicationIcon(const u64 app_id, pu::sdl2::TextureHandle::Ref icon);
     pu::sdl2::TextureHandle::Ref GetApplicationIcon(const u64 app_id);
+
+    void SleepWhileRender(const u64 ns);
 
 }
