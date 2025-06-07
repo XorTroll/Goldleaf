@@ -24,6 +24,8 @@
 
 - Fixed a major bug where (sometimes?) some contents would not be deleted properly (I specially apologize for this one, further testing of the last version would have shown this behavior quickly)
 
+- Updated Korean and Spanish translations
+
 - Added an option to clear Goldleaf logs from the app itself (mostly for debugging/testing things, maybe someone else other than me will find this useful)
 
 # `v1.1.0`
