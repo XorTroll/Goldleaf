@@ -50,6 +50,23 @@ namespace cnt {
         constexpr size_t ApplicationContentMetaStatusBufferCount = 100;
         NsApplicationContentMetaStatus g_ApplicationContentMetaStatusBuffer[ApplicationContentMetaStatusBufferCount];
 
+        NsApplicationControlData g_TemporaryApplicationControlData;
+
+        SetLanguage g_SystemLanguage;
+
+        inline Result GetApplicationControlData(const u64 app_id, NsApplicationControlData &out_data) {
+            size_t got_size;
+            Result rc;
+            if(hosversionAtLeast(20,0,0)) {
+                rc = ncmextReadApplicationControlDataManual(g_SystemLanguage, app_id, std::addressof(out_data), sizeof(out_data), &got_size);
+            }
+            else {
+                rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, app_id, std::addressof(out_data), sizeof(out_data), &got_size);
+            }
+            GLEAF_ASSERT_TRUE(got_size <= sizeof(out_data));
+            return rc;
+        }
+
         void ScanApplicationRecords() {
             s32 cur_offset = 0;
             while(true) {
@@ -136,10 +153,22 @@ namespace cnt {
                     }
                 }
 
-                u64 dummy_size;
-                if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, app.record.id, &app.control_data, sizeof(app.control_data), &dummy_size))) {
-                    app.cache.display_name = FindApplicationNacpName(app.control_data.nacp);
-                    app.cache.display_author = FindApplicationNacpAuthor(app.control_data.nacp);
+                if(R_SUCCEEDED(GetApplicationControlData(app.record.id, g_TemporaryApplicationControlData))) {
+                    memcpy(app.misc_data.display_version, g_TemporaryApplicationControlData.nacp.display_version, sizeof(g_TemporaryApplicationControlData.nacp.display_version));
+                    app.misc_data.device_save_data_size = g_TemporaryApplicationControlData.nacp.device_save_data_size;
+                    app.misc_data.user_account_save_data_size = g_TemporaryApplicationControlData.nacp.user_account_save_data_size;
+
+                    if(!nxtcCheckIfEntryExists(app.record.id)) {
+                        nxtcAddEntry(app.record.id, &g_TemporaryApplicationControlData.nacp, sizeof(g_TemporaryApplicationControlData.icon), g_TemporaryApplicationControlData.icon, true);
+                        nxtcFlushCacheFile();
+                    }
+                }
+
+                auto metadata = nxtcGetApplicationMetadataEntryById(app.record.id);
+                if(metadata != nullptr) {
+                    app.metadata = *metadata;
+                    app.cache.display_name = metadata->name;
+                    app.cache.display_author = metadata->publisher;
                 }
                 else {
                     app.cache.display_name = util::FormatApplicationId(app.record.id);
@@ -259,23 +288,6 @@ namespace cnt {
 
     }
 
-    bool Application::DumpControlData() {
-        if(!IsApplicationNacpEmpty(this->control_data.nacp)) {
-            auto sd_exp = fs::GetSdCardExplorer();
-            const auto &nacp_file = GetExportedApplicationNacpPath(this->record.id);
-            sd_exp->DeleteFile(nacp_file);
-            sd_exp->WriteFile(nacp_file, &this->control_data.nacp, sizeof(this->control_data.nacp));
-
-            this->cache.icon_path = GetExportedApplicationIconPath(this->record.id);
-            sd_exp->DeleteFile(this->cache.icon_path);
-            sd_exp->WriteFile(this->cache.icon_path, this->control_data.icon, sizeof(this->control_data.icon));
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
     ApplicationPlayStats Application::GetGlobalPlayStats() const {
         PdmPlayStatistics pdm_stats = {};
         pdmqryQueryPlayStatisticsByApplicationId(this->record.id, true, &pdm_stats);
@@ -289,11 +301,19 @@ namespace cnt {
     }
 
     void InitializeApplications() {
+        GLEAF_ASSERT_TRUE(nxtcInitialize());
+
+        u64 tmp_lang_code;
+        GLEAF_RC_ASSERT(setGetSystemLanguage(&tmp_lang_code));
+        GLEAF_RC_ASSERT(setMakeLanguage(tmp_lang_code, &g_SystemLanguage));
+
         NotifyApplicationsChanged();
     }
 
     void FinalizeApplications() {
         threadClose(&g_LoadApplicationsThread);
+
+        nxtcExit();
     }
 
     void NotifyApplicationsChanged() {

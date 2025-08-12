@@ -110,7 +110,7 @@ namespace expt {
 
         std::stringstream rights_id_strm;
         for(u32 i = 0; i < sizeof(tik_file.data.rights_id.id); i++) {
-            rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<u32>(tik_file.data.rights_id.id.c[i]);
+            rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<u32>(tik_file.data.rights_id.fs_id.c[i]);
         }
         const auto fmt_rights_id = rights_id_strm.str();
 

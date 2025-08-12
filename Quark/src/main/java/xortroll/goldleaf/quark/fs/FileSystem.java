@@ -54,7 +54,6 @@ public class FileSystem {
         }
         else {
             for(FileStore store : FileSystems.getDefault().getFileStores()) {
-                System.out.println("Found file store: " + store);
                 String path = store.toString().split(" ")[0];
                 String name = store.name();
                 if(name.startsWith("/dev/")) {

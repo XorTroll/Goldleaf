@@ -225,7 +225,7 @@ namespace ui {
         }
 
         auto out_nsp = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/");
-        if(!cnt::IsApplicationNacpEmpty(app.control_data.nacp)) {
+        if(app.HasMetadata()) {
             u32 max_version = 0;
             for(const auto &status: app.meta_status_list) {
                 if(status.version > max_version) {
@@ -233,7 +233,7 @@ namespace ui {
                 }
             }
 
-            out_nsp += SanitizeExportName(cnt::FindApplicationNacpName(app.control_data.nacp)) + " [" + format_app_id + "] [v" + std::to_string(max_version) + "].nsp";
+            out_nsp += SanitizeExportName(app.cache.display_name) + " [" + format_app_id + "] [v" + std::to_string(max_version) + "].nsp";
         }
         else {
             out_nsp += format_app_id + ".nsp";

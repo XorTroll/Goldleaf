@@ -13,3 +13,6 @@
 [submodule "glaze"]
 	path = glaze
 	url = https://github.com/stephenberry/glaze
+[submodule "libnxtc"]
+	path = libnxtc
+	url = https://github.com/DarkMatterCore/libnxtc

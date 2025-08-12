@@ -25,6 +25,12 @@
 
 namespace cnt {
 
+    struct NacpMisc {
+        char display_version[sizeof(NacpStruct::display_version)];
+        u64 device_save_data_size;
+        u64 user_account_save_data_size;
+    };
+
     NX_CONSTEXPR u64 GetBaseApplicationId(const u64 app_id, const NcmContentMetaType type) {
         switch(type) {
             case NcmContentMetaType_Patch: {
@@ -88,7 +94,8 @@ namespace cnt {
     struct Application {
         NsExtApplicationRecord record;
         NsExtApplicationView view;
-        NsApplicationControlData control_data;
+        NxTitleCacheApplicationMetadata metadata;
+        NacpMisc misc_data;
         std::vector<NsApplicationContentMetaStatus> meta_status_list;
         std::vector<ApplicationContent> contents;
         NsExtApplicationOccupiedSize occupied_size;
@@ -104,7 +111,13 @@ namespace cnt {
         Application(Application&&) = default;
         Application& operator=(Application&&) = default;
 
-        bool DumpControlData();
+        inline bool HasMetadata() const {
+            return (this->metadata.name != nullptr) && (this->metadata.publisher != nullptr);
+        }
+
+        inline bool HasIcon() const {
+            return (this->metadata.icon_size > 0) && (this->metadata.icon_data != nullptr);
+        }
 
         ApplicationPlayStats GetGlobalPlayStats() const;
         ApplicationPlayStats GetUserPlayStats(const AccountUid user_id) const;

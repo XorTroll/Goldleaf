@@ -245,11 +245,11 @@ namespace ui {
         else if(option == 3) {
             Result rc;
             FsFileSystem save_data_fs;
-            if(app.control_data.nacp.device_save_data_size > 0) {
+            if(app.misc_data.device_save_data_size > 0) {
                 // Game uses device save data
                 rc = fs::MountDeviceSaveData(app.record.id, save_data_fs);
             }
-            else if(app.control_data.nacp.user_account_save_data_size > 0) {
+            else if(app.misc_data.user_account_save_data_size > 0) {
                 if(!acc::HasSelectedUser()) {
                     g_MainApplication->DisplayDialog(cfg::Strings.GetString(408), cfg::Strings.GetString(411), { cfg::Strings.GetString(234) }, true);
                     g_MainApplication->PickUser();
@@ -331,7 +331,7 @@ namespace ui {
             cnt_i++;
         }
 
-        g_MainApplication->LoadMenuData(true, app.cache.display_name, GetApplicationIcon(app.record.id), app.cache.display_author + ", v" + app.control_data.nacp.display_version);
+        g_MainApplication->LoadMenuData(true, app.cache.display_name, GetApplicationIcon(app.record.id), app.cache.display_author + ", v" + app.misc_data.display_version);
     }
 
 }

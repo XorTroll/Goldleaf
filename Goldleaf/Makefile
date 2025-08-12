@@ -45,8 +45,8 @@ DATA		:=	data
 ROMFS		:=	romfs
 
 VER_MAJOR	:= 1
-VER_MINOR	:= 1
-VER_MICRO	:= 1
+VER_MINOR	:= 2
+VER_MICRO	:= 0
 
 APP_TITLE   := Goldleaf
 APP_AUTHOR  := XorTroll
@@ -68,13 +68,13 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++23
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnx-ipcext -lnx -lusbhsfs -lntfs-3g -llwext4 -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBS	:= -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lnxtc -lnx-ipcext -lnx -lusbhsfs -lntfs-3g -llwext4 -lpu -lfreetype -lSDL2_mixer -lopusfile -lopus -lmodplug -lmpg123 -lvorbisidec -lc -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lwebp -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium $(CURDIR)/../libusbhsfs $(CURDIR)/../libnx-ext/libnx-ext $(CURDIR)/../libnx-ext/libnx-ipcext
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/../Plutonium/Plutonium $(CURDIR)/../libusbhsfs $(CURDIR)/../libnxtc $(CURDIR)/../libnx-ext/libnx-ext $(CURDIR)/../libnx-ext/libnx-ipcext
 
 
 #---------------------------------------------------------------------------------

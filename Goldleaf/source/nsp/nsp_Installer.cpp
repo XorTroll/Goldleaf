@@ -272,7 +272,7 @@ namespace nsp {
 
                 auto &program = this->inst_contents.emplace_back();
                 program.meta_key = {
-                    .id = this->packaged_cnt_meta.header.app_id + program_idx,
+                    .id = this->packaged_cnt_meta.header.id + program_idx,
                     .version = this->packaged_cnt_meta.header.version,
                     .type = this->packaged_cnt_meta.header.type,
                     .install_type = NcmContentInstallType_Full
@@ -282,14 +282,14 @@ namespace nsp {
         if(this->inst_contents.empty()) {
             auto &main_program = this->inst_contents.emplace_back();
             main_program.meta_key = {
-                .id = this->packaged_cnt_meta.header.app_id,
+                .id = this->packaged_cnt_meta.header.id,
                 .version = this->packaged_cnt_meta.header.version,
                 .type = this->packaged_cnt_meta.header.type,
                 .install_type = NcmContentInstallType_Full
             };
         }
 
-        GLEAF_RC_UNLESS(!cnt::ExistsApplicationContent(this->packaged_cnt_meta.header.app_id, static_cast<NcmContentMetaType>(this->packaged_cnt_meta.header.type)).has_value(), rc::goldleaf::ResultContentAlreadyInstalled);
+        GLEAF_RC_UNLESS(!cnt::ExistsApplicationContent(this->packaged_cnt_meta.header.id, static_cast<NcmContentMetaType>(this->packaged_cnt_meta.header.type)).has_value(), rc::goldleaf::ResultContentAlreadyInstalled);
         
         bool has_cnmt_installed = false;
         GLEAF_RC_TRY(ncmContentStorageHas(&this->cnt_storage, &has_cnmt_installed, &this->meta_cnt_info.content_id));

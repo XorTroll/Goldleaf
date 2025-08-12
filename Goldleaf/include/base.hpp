@@ -36,6 +36,7 @@
 #include <cerrno>
 #include <switch.h>
 #include <switch-ipcext.h>
+#include <nxtc.h>
 #include <glaze/glaze.hpp>
 #include <usbhsfs.h>
 #include <curl/curl.h>

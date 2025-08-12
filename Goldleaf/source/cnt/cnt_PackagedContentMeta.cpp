@@ -25,7 +25,7 @@ namespace cnt {
 
     void PackagedContentMeta::CreateContentMetaForInstall(const NcmContentInfo self_cnt_info, u8 *&out_data, size_t &out_data_size, const bool ignore_required_fw_ver) {
         const auto content_count_with_self = this->contents.size() + 1;
-        auto size = sizeof(NcmContentMetaHeader) + this->header.header.extended_header_size + content_count_with_self * sizeof(NcmContentInfo);
+        auto size = sizeof(NcmContentMetaHeader) + this->header.extended_header_size + content_count_with_self * sizeof(NcmContentInfo);
         const auto cnt_type = static_cast<NcmContentMetaType>(this->header.type);
         switch(cnt_type) {
             case NcmContentMetaType_SystemUpdate: {
@@ -47,9 +47,12 @@ namespace cnt {
 
         auto meta_data = new u8[size]();
 
-        auto cnt_meta_header = this->header.header;
-        cnt_meta_header.content_count = static_cast<u16>(content_count_with_self);
-        *reinterpret_cast<NcmContentMetaHeader*>(meta_data) = cnt_meta_header;
+        auto meta_header = reinterpret_cast<NcmContentMetaHeader*>(meta_data);
+        meta_header->extended_header_size = this->header.extended_header_size;
+        meta_header->content_count = static_cast<u16>(content_count_with_self);
+        meta_header->content_meta_count = this->header.content_meta_count;
+        meta_header->attributes = this->header.attributes; // TODO: proper values?
+        meta_header->storage_id = this->header.storage_id;
 
         auto meta_data_extended_header = meta_data + sizeof(NcmContentMetaHeader);
         switch(cnt_type) {
@@ -87,7 +90,7 @@ namespace cnt {
             }
         }
 
-        auto meta_data_cnt_info = reinterpret_cast<NcmContentInfo*>(meta_data_extended_header + this->header.header.extended_header_size);
+        auto meta_data_cnt_info = reinterpret_cast<NcmContentInfo*>(meta_data_extended_header + this->header.extended_header_size);
 
         *meta_data_cnt_info = self_cnt_info;
         meta_data_cnt_info++;
@@ -109,31 +112,31 @@ namespace cnt {
         auto extended_header = cnmt_buf + sizeof(NcmExtPackagedContentMetaHeader);
         switch(cnt_type) {
             case NcmContentMetaType_SystemUpdate: {
-                if(header.header.extended_header_size != sizeof(NcmSystemUpdateMetaExtendedHeader)) {
+                if(header.extended_header_size != sizeof(NcmSystemUpdateMetaExtendedHeader)) {
                     return false;
                 }
                 out_cnmt.extended_header.system_update = *reinterpret_cast<const NcmSystemUpdateMetaExtendedHeader*>(extended_header);
                 break;
             }
             case NcmContentMetaType_Application: {
-                if(header.header.extended_header_size != sizeof(NcmApplicationMetaExtendedHeader)) {
+                if(header.extended_header_size != sizeof(NcmApplicationMetaExtendedHeader)) {
                     return false;
                 }
                 out_cnmt.extended_header.application = *reinterpret_cast<const NcmApplicationMetaExtendedHeader*>(extended_header);
                 break;
             }
             case NcmContentMetaType_Patch: {
-                if(header.header.extended_header_size != sizeof(NcmPatchMetaExtendedHeader)) {
+                if(header.extended_header_size != sizeof(NcmPatchMetaExtendedHeader)) {
                     return false;
                 }
                 out_cnmt.extended_header.patch = *reinterpret_cast<const NcmPatchMetaExtendedHeader*>(extended_header);
                 break;
             }
             case NcmContentMetaType_AddOnContent: {
-                if(header.header.extended_header_size == sizeof(NcmLegacyAddOnContentMetaExtendedHeader)) {
+                if(header.extended_header_size == sizeof(NcmLegacyAddOnContentMetaExtendedHeader)) {
                     out_cnmt.extended_header.aoc_old = *reinterpret_cast<const NcmLegacyAddOnContentMetaExtendedHeader*>(extended_header);
                 }
-                else if(header.header.extended_header_size == sizeof(NcmAddOnContentMetaExtendedHeader)) {
+                else if(header.extended_header_size == sizeof(NcmAddOnContentMetaExtendedHeader)) {
                     out_cnmt.extended_header.aoc_new = *reinterpret_cast<const NcmAddOnContentMetaExtendedHeader*>(extended_header);
                 }
                 else {
@@ -142,7 +145,7 @@ namespace cnt {
                 break;
             }
             case NcmContentMetaType_Delta: {
-                if(header.header.extended_header_size != sizeof(NcmExtDeltaMetaExtendedHeader)) {
+                if(header.extended_header_size != sizeof(NcmExtDeltaMetaExtendedHeader)) {
                     return false;
                 }
                 out_cnmt.extended_header.delta = *reinterpret_cast<const NcmExtDeltaMetaExtendedHeader*>(extended_header);
@@ -154,8 +157,8 @@ namespace cnt {
         }
 
         out_cnmt.contents.clear();
-        for(u32 i = 0; i < header.header.content_count; i++) {
-            const auto content_info_offset = sizeof(NcmExtPackagedContentMetaHeader) + header.header.extended_header_size + i * sizeof(NcmPackagedContentInfo);
+        for(u32 i = 0; i < header.content_count; i++) {
+            const auto content_info_offset = sizeof(NcmExtPackagedContentMetaHeader) + header.extended_header_size + i * sizeof(NcmPackagedContentInfo);
             const auto content_info = *reinterpret_cast<const NcmPackagedContentInfo*>(cnmt_buf + content_info_offset);
 
             // Delta fragments are not like the other installable content
