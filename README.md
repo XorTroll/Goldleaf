@@ -40,6 +40,8 @@
 
 <img src="screenshots/dark1.jpg" alt="drawing" width="auto"/>
 
+> ### If the last Goldleaf release is currently broken, please hop in [my Discord server](https://discord.gg/3KpFyaH), where I periodically share dev builds of changes being tested, prior to commits or releases!
+
 <h3>
 Table of contents
 </h3>
