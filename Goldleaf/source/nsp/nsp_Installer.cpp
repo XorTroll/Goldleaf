@@ -233,6 +233,7 @@ namespace nsp {
         FsRightsId tmp_rid;
         GLEAF_RC_TRY(fsGetRightsIdAndKeyGenerationByPath(cnmt_nca_content_path, FsContentAttributes_All, &this->keygen, &tmp_rid));
         const auto system_keygen = hos::GetSystemKeyGeneration();
+        GLEAF_LOG_FMT("Installation: system_keygen=%d, content_keygen=%d", system_keygen, this->keygen);
         GLEAF_RC_UNLESS(system_keygen >= this->keygen, rc::goldleaf::ResultKeyGenerationMismatch);
 
         FsFileSystem cnmt_nca_fs;

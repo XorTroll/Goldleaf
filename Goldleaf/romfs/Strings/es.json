@@ -519,5 +519,6 @@
     "Sistema de archivos:",
     "Desmontar dispositivo",
     "El dispositivo seleccionado fue desmontado con éxito. Puede retirarlo de forma segura.",
-    "Se ha producido un error al intentar desmontar el dispositivo."
+    "Se ha producido un error al intentar desmontar el dispositivo.",
+    "Predeterminado"
 ]

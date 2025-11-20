@@ -207,7 +207,8 @@ namespace cfg {
         };
 
         auto romfs_exp = fs::GetRomFsExplorer();
-        GLEAF_ASSERT_TRUE(!glz::read_file_json<PartialJsonOptions{}>(str_holder.strings, romfs_exp->MakeAbsolute("/Strings/" + GetLanguageCode(lang) + ".json"), std::string{}));
+        const auto strings_path = romfs_exp->MakeAbsolute("/Strings/" + GetLanguageCode(lang) + ".json");
+        GLEAF_ASSERT_TRUE(!glz::read_file_json<PartialJsonOptions{}>(str_holder.strings, strings_path, std::string{}));
 
         return str_holder;
     }

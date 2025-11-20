@@ -67,7 +67,7 @@ namespace ui {
             auto itm = pu::ui::elm::MenuItem::New(app.cache.display_name);
             itm->SetColor(g_Settings.GetColorScheme().text);
             if(app.HasIcon()) {
-                auto app_icon = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromBuffer(app.metadata.icon_data, app.metadata.icon_size));
+                auto app_icon = pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromBuffer(app.metadata->icon_data, app.metadata->icon_size));
                 SetApplicationIcon(app.record.id, app_icon);
                 itm->SetIcon(app_icon);
             }

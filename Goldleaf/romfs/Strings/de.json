@@ -519,5 +519,6 @@
     "Filesystem type:",
     "Unmount drive",
     "The selected drive was successfully unmounted. You can now safely remove it.",
-    "An error ocurred attempting to unmount the drive."
+    "An error ocurred attempting to unmount the drive.",
+    "Default"
 ]

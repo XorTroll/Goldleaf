@@ -190,6 +190,26 @@ enum class Language {
     Auto
 };
 
+constexpr const char *LanguageNameList[] = {
+    "English",
+    "Español",
+    "Deutsch",
+    "Français",
+    "Italiano",
+    "Nederlands",
+    "日本語",
+    "Português",
+    "中文",
+    "简体中文",
+    "繁體中文",
+    "台灣中文",
+    "Русский",
+    "한국어"
+};
+constexpr size_t LanguageNameCount = std::size(LanguageNameList);
+
+static_assert(LanguageNameCount == static_cast<size_t>(Language::Count));
+
 class Lock {
     private:
         Mutex mutex;

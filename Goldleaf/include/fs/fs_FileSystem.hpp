@@ -42,11 +42,7 @@ namespace fs {
 
     inline void Initialize() {
         GetSdCardExplorer();
-        GetRomFsExplorer(); 
-        GetPRODINFOFExplorer();
-        GetNANDSafeExplorer();
-        GetNANDUserExplorer();
-        GetNANDSystemExplorer();
+        GetRomFsExplorer();
     }
 
     void Finalize();

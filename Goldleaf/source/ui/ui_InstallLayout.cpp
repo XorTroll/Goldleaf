@@ -355,11 +355,13 @@ namespace ui {
         }
         
         if(do_install) {
+            /*
             rc = nsp_installer.StartInstallation();
             if(R_FAILED(rc)) {
                 HandleInstallationFailure(rc, nsp_installer);
                 return;
             }
+            */
 
             hos::LockExit();
 
@@ -445,6 +447,13 @@ namespace ui {
 
                 g_MainApplication->CallForRender();
             });
+
+            rc = nsp_installer.StartInstallation();
+            if(R_FAILED(rc)) {
+                HandleInstallationFailure(rc, nsp_installer);
+                return;
+            }
+
             hos::UnlockExit();
         }
 

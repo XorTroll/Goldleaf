@@ -63,7 +63,9 @@ namespace cnt {
             else {
                 rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, app_id, std::addressof(out_data), sizeof(out_data), &got_size);
             }
-            GLEAF_ASSERT_TRUE(got_size <= sizeof(out_data));
+            if(R_SUCCEEDED(rc)) {
+                GLEAF_ASSERT_TRUE(got_size <= sizeof(out_data));
+            }
             return rc;
         }
 
@@ -92,6 +94,7 @@ namespace cnt {
                     }
                     else {
                         auto &app = g_Applications.emplace_back();
+                        app.metadata = nullptr;
                         app.record = app_record;
                         app_ref = std::addressof(app);
                     }
@@ -138,6 +141,12 @@ namespace cnt {
 
         void ScanApplications() {
             ScopedLock lk(g_ApplicationsLock);
+            for(auto &app: g_Applications) {
+                if(app.metadata != nullptr) {
+                    nxtcFreeApplicationMetadata(&app.metadata);
+                    app.metadata = nullptr;
+                }
+            }
             g_Applications.clear();
 
             // Scan application records and meta status
@@ -158,32 +167,36 @@ namespace cnt {
                     app.misc_data.device_save_data_size = g_TemporaryApplicationControlData.nacp.device_save_data_size;
                     app.misc_data.user_account_save_data_size = g_TemporaryApplicationControlData.nacp.user_account_save_data_size;
 
-                    if(!nxtcCheckIfEntryExists(app.record.id)) {
-                        nxtcAddEntry(app.record.id, &g_TemporaryApplicationControlData.nacp, sizeof(g_TemporaryApplicationControlData.icon), g_TemporaryApplicationControlData.icon, true);
+                    if(nxtcAddEntry(app.record.id, &g_TemporaryApplicationControlData.nacp, sizeof(g_TemporaryApplicationControlData.icon), g_TemporaryApplicationControlData.icon, false)) {
                         nxtcFlushCacheFile();
                     }
+                }
+                else {
+                    strcpy(app.misc_data.display_version, "<unknown>");
+                    app.misc_data.device_save_data_size = 0;
+                    app.misc_data.user_account_save_data_size = 0;
                 }
 
                 auto metadata = nxtcGetApplicationMetadataEntryById(app.record.id);
                 if(metadata != nullptr) {
-                    app.metadata = *metadata;
+                    app.metadata = metadata;
                     app.cache.display_name = metadata->name;
                     app.cache.display_author = metadata->publisher;
                 }
                 else {
+                    app.metadata = nullptr;
                     app.cache.display_name = util::FormatApplicationId(app.record.id);
                     app.cache.display_author = "";
                 }
 
                 nsCalculateApplicationOccupiedSize(app.record.id, reinterpret_cast<NsApplicationOccupiedSize*>(&app.occupied_size));
 
-                /*
                 GLEAF_LOG_FMT("Application %016lX:", app.record.id);
 
-                if(!IsApplicationNacpEmpty(app.control_data.nacp)) {
-                    GLEAF_LOG_FMT("  - NACP title: %s", FindApplicationNacpName(app.control_data.nacp).c_str());
-                    GLEAF_LOG_FMT("  - NACP author: %s", FindApplicationNacpAuthor(app.control_data.nacp).c_str());
-                    GLEAF_LOG_FMT("  - NACP version: %s", app.control_data.nacp.display_version);
+                if(!app.HasMetadata()) {
+                    GLEAF_LOG_FMT("  - NACP title: %s", app.cache.display_name.c_str());
+                    GLEAF_LOG_FMT("  - NACP author: %s", app.cache.display_author.c_str());
+                    GLEAF_LOG_FMT("  - NACP version: %s", app.misc_data.display_version);
                 }
                 else {
                     GLEAF_LOG_FMT("  ! <no NACP>");
@@ -225,7 +238,6 @@ namespace cnt {
                 else {
                     GLEAF_LOG_FMT("  ! <no meta status>");
                 }
-                */
             }
 
             std::sort(g_Applications.begin(), g_Applications.end(), SortApplicationsImpl);

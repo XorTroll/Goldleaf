@@ -127,7 +127,7 @@ namespace ui {
     }
 
     void RemotePcExploreLayout::OnPathSelected() {
-        const auto idx = this->paths_menu->GetSelectedIndex();
+        const auto idx = this->paths_menu->GetSelectedIndex() - 1; // Account for "Select File" item
         g_MainApplication->LoadMenuData(true, cfg::Strings.GetString(299), GetCommonIcon(CommonIconKind::Drive), cfg::Strings.GetString(401));
         g_MainApplication->GetBrowserLayout()->ChangePartitionRemotePcDrive(this->paths[idx]);
         g_MainApplication->ShowLayout(g_MainApplication->GetBrowserLayout());

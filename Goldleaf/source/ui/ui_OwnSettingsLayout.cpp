@@ -56,9 +56,9 @@ namespace ui {
     }
 
     void OwnSettingsLayout::custom_lang_DefaultKey() {
-        std::vector<std::string> lang_opts = { GetLanguageCode(Language::Auto) };
+        std::vector<std::string> lang_opts = { cfg::Strings.GetString(521) };
         for(u32 i = 0; i < static_cast<u32>(Language::Count); i++) {
-            lang_opts.push_back(GetLanguageCode(static_cast<Language>(i)));
+            lang_opts.push_back(LanguageNameList[i]);
         }
         lang_opts.push_back(cfg::Strings.GetString(18));
 
@@ -133,7 +133,13 @@ namespace ui {
         this->settings_menu->AddItem(this->view_logs_item);
         this->settings_menu->AddItem(this->clear_logs_item);
 
-        const auto custom_lang_item_name = cfg::Strings.GetString(441) + ": " + GetLanguageCode(g_Settings.lang);
+        auto custom_lang_item_name = cfg::Strings.GetString(441) + ": ";
+        if(g_Settings.lang == Language::Auto) {
+            custom_lang_item_name += cfg::Strings.GetString(521);
+        }
+        else {
+            custom_lang_item_name += LanguageNameList[static_cast<u32>(g_Settings.lang)];
+        }
         this->custom_lang_item = pu::ui::elm::MenuItem::New(custom_lang_item_name);
         this->custom_lang_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
         this->custom_lang_item->SetColor(g_Settings.GetColorScheme().text);

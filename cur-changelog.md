@@ -1,8 +1,20 @@
 # `v1.2.0`
 
+- Updated with latest libnx, supporting firmware 21.0.0
+
 - Relied on [libnxtc](https://github.com/DarkMatterCore/libnxtc) and manual control data parsing, which makes loading installed contents considerably faster
 
 - Fixed an issue where Goldleaf would crash after selecting (or having the system in) Russian and Taiwanese languages
+
+- Fixed an issue where Goldleaf would inmediately crash if the user SAFE partition was not mountable (now such partitions are not mounted right on startup)
+
+- Installation procedure was internally changed, so that contents are written before any records are modified (so that, if any problems happens, only already-written contents need to be removed and no records got to change)
+
+- Fixed minor mistake in key generation detection code
+
+- The "custom language" dialog now shows actual language names, not just language codes (which were less readable)
+
+- Fixed an issue where Goldleaf would incorrectly access PC paths (accessing the one listed below instead of the actual selected one)
 
 # `v1.1.1`
 
