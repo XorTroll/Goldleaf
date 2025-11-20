@@ -173,7 +173,7 @@ namespace nsp {
     }
 
     Installer::~Installer() {
-        FinalizeInstallation();
+        this->FinalizeInstallation();
     }
 
     Result Installer::PrepareInstallation() {
@@ -347,7 +347,49 @@ namespace nsp {
         GLEAF_RC_SUCCEED;
     }
 
-    Result Installer::StartInstallation() {
+    Result Installer::InstallTicketCertificate() {
+        if(this->tik_file_size > 0) {
+            auto tik_buf = fs::AllocateWorkBuffer(this->tik_file_size);
+            ScopeGuard on_exit([&]() {
+                fs::DeleteWorkBuffer(tik_buf);
+            });
+
+            const auto tik_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + this->tik_file_name;
+            auto nand_sys_explorer = fs::GetNANDSystemExplorer();
+            nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
+
+            auto tik_signature = *reinterpret_cast<cnt::TicketSignature*>(tik_buf);
+            auto tik_data = reinterpret_cast<cnt::TicketData*>(tik_buf + cnt::GetTicketSignatureSize(tik_signature));
+
+            // Make temporary tickets permanent
+            if(static_cast<bool>(tik_data->flags & cnt::TicketFlags::Temporary)) {
+                tik_data->flags = tik_data->flags & ~cnt::TicketFlags::Temporary;
+            }
+
+            const auto cert_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + fs::GetFileName(this->tik_file_name) + ".cert";
+            if(nand_sys_explorer->IsFile(cert_path)) {
+                const auto cert_file_size = nand_sys_explorer->GetFileSize(cert_path);
+                auto cert_buf = fs::AllocateWorkBuffer(cert_file_size);
+                ScopeGuard on_exit([&]() {
+                    fs::DeleteWorkBuffer(cert_buf);
+                });
+                nand_sys_explorer->ReadFile(cert_path, 0, cert_file_size, cert_buf);
+
+                GLEAF_LOG_FMT("Importing ticket with cert!");
+                GLEAF_RC_TRY(esImportTicket(tik_buf, this->tik_file_size, cert_buf, cert_file_size));
+            }
+            else {
+                GLEAF_LOG_FMT("Importing ticket!");
+                GLEAF_RC_TRY(esImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
+            }
+
+            // We installed a ticket, so we need to refresh the ticket list for future uses
+            cnt::NotifyTicketsChanged();
+        }
+        GLEAF_RC_SUCCEED;
+    }
+
+    Result Installer::UpdateRecordAndContentMetas() {
         const auto &main_program = this->inst_contents.front();
         const auto base_app_id = cnt::GetBaseApplicationId(main_program.meta_key.id, static_cast<NcmContentMetaType>(main_program.meta_key.type));
 
@@ -388,44 +430,6 @@ namespace nsp {
         nsextDeleteApplicationRecord(base_app_id);
         GLEAF_RC_TRY(nsextPushApplicationRecord(base_app_id, NsExtApplicationEvent_Present, content_storage_meta_keys.data(), content_storage_meta_keys.size()));
 
-        if(this->tik_file_size > 0) {
-            auto tik_buf = fs::AllocateWorkBuffer(this->tik_file_size);
-            ScopeGuard on_exit([&]() {
-                fs::DeleteWorkBuffer(tik_buf);
-            });
-
-            const auto tik_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + this->tik_file_name;
-            auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-            nand_sys_explorer->ReadFile(tik_path, 0, this->tik_file.GetFullSize(), tik_buf);
-
-            auto tik_signature = *reinterpret_cast<cnt::TicketSignature*>(tik_buf);
-            auto tik_data = reinterpret_cast<cnt::TicketData*>(tik_buf + cnt::GetTicketSignatureSize(tik_signature));
-
-            // Make temporary tickets permanent
-            if(static_cast<bool>(tik_data->flags & cnt::TicketFlags::Temporary)) {
-                tik_data->flags = tik_data->flags & ~cnt::TicketFlags::Temporary;
-            }
-
-            const auto cert_path = GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + fs::GetFileName(this->tik_file_name) + ".cert";
-            if(nand_sys_explorer->IsFile(cert_path)) {
-                const auto cert_file_size = nand_sys_explorer->GetFileSize(cert_path);
-                auto cert_buf = fs::AllocateWorkBuffer(cert_file_size);
-                ScopeGuard on_exit([&]() {
-                    fs::DeleteWorkBuffer(cert_buf);
-                });
-                nand_sys_explorer->ReadFile(cert_path, 0, cert_file_size, cert_buf);
-
-                GLEAF_LOG_FMT("Importing ticket with cert!");
-                GLEAF_RC_TRY(esImportTicket(tik_buf, this->tik_file_size, cert_buf, cert_file_size));
-            }
-            else {
-                GLEAF_LOG_FMT("Importing ticket!");
-                GLEAF_RC_TRY(esImportTicket(tik_buf, this->tik_file_size, es::CommonCertificateData, es::CommonCertificateSize));
-            }
-
-            // We installed a ticket, so we need to refresh the ticket list for future uses
-            cnt::NotifyTicketsChanged();
-        }
         GLEAF_RC_SUCCEED;
     }
 

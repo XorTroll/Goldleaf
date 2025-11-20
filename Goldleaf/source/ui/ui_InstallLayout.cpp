@@ -355,13 +355,11 @@ namespace ui {
         }
         
         if(do_install) {
-            /*
-            rc = nsp_installer.StartInstallation();
+            rc = nsp_installer.InstallTicketCertificate();
             if(R_FAILED(rc)) {
-                HandleInstallationFailure(rc, nsp_installer);
+                // Nothing has been installed yet, so no need to rollback
                 return;
             }
-            */
 
             hos::LockExit();
 
@@ -448,7 +446,7 @@ namespace ui {
                 g_MainApplication->CallForRender();
             });
 
-            rc = nsp_installer.StartInstallation();
+            rc = nsp_installer.UpdateRecordAndContentMetas();
             if(R_FAILED(rc)) {
                 HandleInstallationFailure(rc, nsp_installer);
                 return;

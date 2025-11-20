@@ -73,14 +73,13 @@ namespace nsp {
             std::vector<NcmContentInfo> contents;
             std::vector<InstallableContent> inst_contents;
 
-            Result StartProgramInstallation(const InstallableContent &program);
-
         public:
             Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id), contents(), inst_contents() {}
             ~Installer();
     
             Result PrepareInstallation();
-            Result StartInstallation();
+            Result InstallTicketCertificate();
+            Result UpdateRecordAndContentMetas();
 
             inline constexpr bool HasTicket() {
                 return this->tik_file_size > 0;
