@@ -316,7 +316,7 @@ namespace ui {
                     return;
                 }
             }
-            else  {
+            else {
                 HandleResult(rc, cfg::Strings.GetString(251));
                 return;
             }
@@ -357,6 +357,7 @@ namespace ui {
         if(do_install) {
             rc = nsp_installer.InstallTicketCertificate();
             if(R_FAILED(rc)) {
+                HandleResult(rc, cfg::Strings.GetString(251));
                 // Nothing has been installed yet, so no need to rollback
                 return;
             }
