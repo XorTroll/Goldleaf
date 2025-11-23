@@ -146,7 +146,7 @@ namespace cfg {
 
         inline void ApplyToMenu(pu::ui::elm::Menu::Ref menu) {
             menu->SetScrollbarColor(this->GetColorScheme().scroll_bar);
-            menu->SetMoveWaitTimeMs(50);
+            menu->SetMoveWaitTimeMs(100);
             menu->SetItemAlphaIncrementSteps(5);
         }
 
