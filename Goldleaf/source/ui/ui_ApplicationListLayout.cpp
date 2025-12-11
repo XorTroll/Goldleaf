@@ -82,6 +82,7 @@ namespace ui {
     }
 
     void ApplicationListLayout::Reload() {
+        g_Settings.ApplyToMenu(this->apps_menu);
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(488), CommonIconKind::Game, cfg::Strings.GetString(489));
         this->apps_menu->SetSelectedIndex(0);
 

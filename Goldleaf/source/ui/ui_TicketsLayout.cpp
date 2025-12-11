@@ -64,7 +64,7 @@ namespace ui {
     }
 
     void TicketsLayout::UpdateElements() {
-        
+        g_Settings.ApplyToMenu(this->tiks_menu);
         this->tiks_menu->ClearItems();
         this->no_unused_tiks_text->SetVisible(true);
         this->tiks_menu->SetVisible(false);

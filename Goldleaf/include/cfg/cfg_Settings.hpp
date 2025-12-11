@@ -24,6 +24,26 @@
 
 namespace cfg {
 
+    enum class MenuStickMoveSpeed : u32 {
+        VerySlow,
+        Slow,
+        Medium,
+        Fast,
+        VeryFast,
+
+        Count
+    };
+
+    inline u32 GetMenuStickMoveSpeedDelayMs(const MenuStickMoveSpeed speed) {
+        switch(speed) {
+            case MenuStickMoveSpeed::VerySlow:  return 300;
+            case MenuStickMoveSpeed::Slow:     return 200;
+            case MenuStickMoveSpeed::Fast:     return 50;
+            case MenuStickMoveSpeed::VeryFast:  return 25;
+            case MenuStickMoveSpeed::Medium: default: return 100;
+        }
+    }
+
     namespace json {
 
         struct GeneralSettings {
@@ -59,12 +79,14 @@ namespace cfg {
             std::optional<UiColorScheme> light_color_scheme;
             std::optional<UiColorScheme> dark_color_scheme;
             std::optional<u32> menu_item_size;
+            std::optional<u32> menu_stick_move_speed;
 
             static inline UiSettings MakeDefault() {
                 return {
                     .light_color_scheme = std::nullopt,
                     .dark_color_scheme = std::nullopt,
-                    .menu_item_size = 100
+                    .menu_item_size = 100,
+                    .menu_stick_move_speed = static_cast<u32>(MenuStickMoveSpeed::Medium)
                 };
             }
         };
@@ -146,7 +168,8 @@ namespace cfg {
 
         inline void ApplyToMenu(pu::ui::elm::Menu::Ref menu) {
             menu->SetScrollbarColor(this->GetColorScheme().scroll_bar);
-            menu->SetMoveWaitTimeMs(100);
+            const auto speed = this->json_settings.ui.value().menu_stick_move_speed.value_or(static_cast<u32>(MenuStickMoveSpeed::Medium));
+            menu->SetMoveWaitTimeMs(GetMenuStickMoveSpeedDelayMs(static_cast<MenuStickMoveSpeed>(speed)));
             menu->SetItemAlphaIncrementSteps(5);
         }
 

@@ -149,6 +149,7 @@ namespace ui {
     }
 
     void AccountLayout::Load() {
+        g_Settings.ApplyToMenu(this->options_menu);
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(41), CommonIconKind::Accounts, cfg::Strings.GetString(42));
         const auto rc = acc::ReadSelectedUser(&this->cur_prof_base, nullptr);
         if(R_FAILED(rc)) {

@@ -16,6 +16,12 @@
 
 - Fixed an issue where Goldleaf would incorrectly access PC paths (accessing the one listed below instead of the actual selected one)
 
+- Added a config option to change the speed of navigating menus with the joysticks
+
+- Fixed a dump replace-all bug where Korean strings would say "g_Clipboard" instead of "clipboard"
+
+- Added an option to automatically skip already installed NSPs from bulk NSP installations
+
 # `v1.1.1`
 
 - Changed the JSON libraries used internally (should slightly improve performance)

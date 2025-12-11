@@ -520,5 +520,14 @@
     "Desmontar dispositivo",
     "El dispositivo seleccionado fue desmontado con éxito. Puede retirarlo de forma segura.",
     "Se ha producido un error al intentar desmontar el dispositivo.",
-    "Predeterminado"
+    "Predeterminado",
+    "Menu stick move speed",
+    "Very slow",
+    "Slow",
+    "Normal",
+    "Fast",
+    "Very fast",
+    "Please select a menu stick move speed:",
+    "Would you like to automatically skip already installed NSPs?",
+    "No new NSPs were installed."
 ]

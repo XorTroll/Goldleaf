@@ -520,5 +520,14 @@
     "Unmount drive",
     "The selected drive was successfully unmounted. You can now safely remove it.",
     "An error ocurred attempting to unmount the drive.",
-    "Default"
+    "Default",
+    "Menu stick move speed",
+    "Very slow",
+    "Slow",
+    "Normal",
+    "Fast",
+    "Very fast",
+    "Please select a menu stick move speed:",
+    "Would you like to automatically skip already installed NSPs?",
+    "No new NSPs were installed."
 ]

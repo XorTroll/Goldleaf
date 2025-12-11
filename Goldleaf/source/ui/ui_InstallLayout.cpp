@@ -272,7 +272,7 @@ namespace ui {
         this->speed_info_text->SetColor(g_Settings.GetColorScheme().text);
     }
 
-    void InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
+    bool InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation, const bool skip_if_already_installed) {
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(77), CommonIconKind::Storage, cfg::Strings.GetString(145) + " " + pres_path);
         ScopeGuard on_exit([&]() {
             // Just in case
@@ -286,6 +286,10 @@ namespace ui {
         auto rc = nsp_installer.PrepareInstallation();
         if(R_FAILED(rc)) {
             if(rc == rc::goldleaf::ResultContentAlreadyInstalled) {
+                if(skip_if_already_installed) {
+                    return false;
+                }
+
                 const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), cfg::Strings.GetString(272) + "\n" + cfg::Strings.GetString(273) + "\n" + cfg::Strings.GetString(274), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 if(option == 0) {
                     for(const auto &program: nsp_installer.GetInstallablePrograms()) {
@@ -309,16 +313,16 @@ namespace ui {
                     rc = nsp_installer.PrepareInstallation();
                     if(R_FAILED(rc)) {
                         HandleResult(rc, cfg::Strings.GetString(251));
-                        return;
+                        return false;
                     }
                 }
                 else {
-                    return;
+                    return false;
                 }
             }
             else {
                 HandleResult(rc, cfg::Strings.GetString(251));
-                return;
+                return false;
             }
         }
 
@@ -359,7 +363,7 @@ namespace ui {
             if(R_FAILED(rc)) {
                 HandleResult(rc, cfg::Strings.GetString(251));
                 // Nothing has been installed yet, so no need to rollback
-                return;
+                return false;
             }
 
             hos::LockExit();
@@ -450,7 +454,7 @@ namespace ui {
             rc = nsp_installer.UpdateRecordAndContentMetas();
             if(R_FAILED(rc)) {
                 HandleInstallationFailure(rc, nsp_installer);
-                return;
+                return false;
             }
 
             hos::UnlockExit();
@@ -458,7 +462,7 @@ namespace ui {
 
         if(R_FAILED(rc)) {
             HandleInstallationFailure(rc, nsp_installer);
-            return;
+            return false;
         }
         else if(do_install) {
             g_MainApplication->ShowNotification(cfg::Strings.GetString(150));
@@ -467,6 +471,8 @@ namespace ui {
                 g_MainApplication->GetBrowserLayout()->PromptDeleteFile(path);
             }
         }
+
+        return true;
     }
 
 }

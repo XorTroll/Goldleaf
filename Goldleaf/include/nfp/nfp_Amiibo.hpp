@@ -103,7 +103,7 @@ namespace nfp {
     Result Initialize();
     bool IsReady();
     Result Open();
-    Result GetAmiiboData(AmiiboData &out_data);
+    Result GetAmiiboData(AmiiboData &out_data, bool &out_has_register_info);
     std::string ExportAsVirtualAmiibo(const AmiiboData &data);
     void Close();
     void Exit();

@@ -27,6 +27,7 @@ namespace hos {
     u32 GetBatteryLevel();
     bool IsCharging();
 
+    NfpDate GetCurrentDate();
     std::string GetCurrentTime(const bool use_12h_time);
 
     void LockExit();

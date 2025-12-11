@@ -43,6 +43,7 @@ namespace ui {
     }
 
     Result RemotePcExploreLayout::Reload() {
+        g_Settings.ApplyToMenu(this->paths_menu);
         g_MainApplication->LoadMenuData(true, cfg::Strings.GetString(299), GetCommonIcon(CommonIconKind::Pc), cfg::Strings.GetString(152));
         ScopeGuard cancel_guard([this]() {
             g_MainApplication->PopMenuData();

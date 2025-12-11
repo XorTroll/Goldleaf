@@ -597,6 +597,20 @@ namespace ui {
                             return;
                         }
                         const auto dst = (option_3 == 0) ? NcmStorageId_SdCard : NcmStorageId_BuiltInUser;
+
+                        const auto option_skip = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), cfg::Strings.GetString(529), { cfg::Strings.GetString(111), cfg::Strings.GetString(112), cfg::Strings.GetString(18) }, true);
+                        if(option_skip < 0) {
+                            return;
+                        }
+                        const bool skip_if_installed = (option_skip == 0);
+
+                        // const auto scan_subdirs = g_MainApplication->DisplayDialog("Install", "Scan subdirectories for NSP files?", { "Yes", "No", "Cancel" }, true);
+                        // if(scan_subdirs < 0) {
+                        //     return;
+                        // }
+                        // const bool scan_subdirectories = (scan_subdirs == 0);
+
+                        bool any_installed = false;
                         for(const auto &nsp_name: nsps) {
                             const auto nsp_path = full_item + "/" + nsp_name;
                             const auto pres_nsp_path = pres_full_item + "/" + nsp_name;
@@ -608,8 +622,16 @@ namespace ui {
                                 return;
                             }
                             g_MainApplication->ShowLayout(g_MainApplication->GetInstallLayout());
-                            g_MainApplication->GetInstallLayout()->StartInstall(nsp_path, pres_nsp_path, this->cur_exp, dst, true);
+                            const auto installed = g_MainApplication->GetInstallLayout()->StartInstall(nsp_path, pres_nsp_path, this->cur_exp, dst, true, skip_if_installed);
+                            if(installed) {
+                                any_installed = true;
+                            }
                         }
+
+                        if(!any_installed) {
+                            g_MainApplication->ShowNotification(cfg::Strings.GetString(530));
+                        }
+
                         this->ResetMenuHead();
                         break;
                     }
@@ -679,6 +701,7 @@ namespace ui {
     }
 
     void BrowserLayout::UpdateElements(const int idx) {
+        g_Settings.ApplyToMenu(this->browse_menu);
         const auto contents = this->cur_exp->GetContents();
         this->browse_menu->ClearItems();
         this->ResetMenuHead();

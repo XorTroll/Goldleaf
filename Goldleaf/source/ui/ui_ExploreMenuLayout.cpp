@@ -47,6 +47,7 @@ namespace ui {
     }
 
     void ExploreMenuLayout::Reload() {
+        g_Settings.ApplyToMenu(this->mounts_menu);
         this->ReloadMenu();
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(277), CommonIconKind::Storage, cfg::Strings.GetString(278));
     }

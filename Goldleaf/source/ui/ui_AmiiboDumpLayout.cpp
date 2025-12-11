@@ -30,6 +30,8 @@ namespace ui {
 
     void AmiiboDumpLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
         if(keys_down & HidNpadButton_B) {
+            nfp::Close();
+            nfp::Exit();
             g_MainApplication->ReturnToParentLayout();
         }
     }
@@ -51,18 +53,56 @@ namespace ui {
         auto rc = nfp::Initialize();
         if(R_SUCCEEDED(rc)) {
             this->info_text->SetText(cfg::Strings.GetString(295));
+            // TODO: improve this logic somehow, currently causes a blocking wait if Goldleaf is exited after pressing back here
             while(!nfp::IsReady()) {
                 g_MainApplication->CallForRender();
             }
             rc = nfp::Open();
             if(R_SUCCEEDED(rc)) {
                 nfp::AmiiboData data;
-                GLEAF_RC_ASSERT(nfp::GetAmiiboData(data));
-                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + data.register_info.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
-                if(option == 0) {
-                    this->info_text->SetText(cfg::Strings.GetString(296) + " '" + data.register_info.amiibo_name + "' " + cfg::Strings.GetString(297));
-                    const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(data);
-                    g_MainApplication->ShowNotification("'" + std::string(data.register_info.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
+                bool has_register_info;
+                rc = nfp::GetAmiiboData(data, has_register_info);
+                if(R_SUCCEEDED(rc)) {
+                    if(!has_register_info) {
+                        const auto option = g_MainApplication->DisplayDialog("New amiibo", "Need to create custom settings", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+                        if(option == 0) {
+                            data.register_info.first_write_date = hos::GetCurrentDate();
+                            data.register_info.font_region = 0; // Default to NTSC-U
+                            const auto amiibo_name = ShowKeyboard("Enter amiibo name", "", 10, 100);
+                            if(amiibo_name.empty()) {
+                                g_MainApplication->ShowNotification("Amiibo name cannot be empty");
+                                nfp::Close();
+                                nfp::Exit();
+                                g_MainApplication->ReturnToParentLayout();
+                                return;
+                            }
+                            strncpy(data.register_info.amiibo_name, amiibo_name.c_str(), sizeof(data.register_info.amiibo_name) - 1);
+
+                            if(GetLaunchMode() != LaunchMode::Application) {
+                                g_MainApplication->ShowNotification("Cannot create Mii outside of application mode, not enough memory for mii applet...");
+                                nfp::Close();
+                                nfp::Exit();
+                                g_MainApplication->ReturnToParentLayout();
+                                return;
+                            }
+
+                            rc = miiLaCreateMii(MiiSpecialKeyCode_Normal, &data.register_info.mii);
+                            if(R_FAILED(rc)) {
+                                HandleResult(rc, "Failed to create Mii for amiibo");
+                                nfp::Close();
+                                nfp::Exit();
+                                g_MainApplication->ReturnToParentLayout();
+                                return;
+                            }
+                        }
+                    }
+
+                    const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + data.register_info.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+                    if(option == 0) {
+                        this->info_text->SetText(cfg::Strings.GetString(296) + " '" + data.register_info.amiibo_name + "' " + cfg::Strings.GetString(297));
+                        const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(data);
+                        g_MainApplication->ShowNotification("'" + std::string(data.register_info.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
+                    }
                 }
                 nfp::Close();
             }

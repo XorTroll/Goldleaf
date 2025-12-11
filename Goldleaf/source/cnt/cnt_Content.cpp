@@ -345,7 +345,7 @@ namespace cnt {
         const auto app_it = std::find_if(g_Applications.begin(), g_Applications.end(), [&](const Application &app) -> bool {
             if(app.record.id == app_id) {
                 const auto cnt_it = std::find_if(app.meta_status_list.begin(), app.meta_status_list.end(), [&](const NsApplicationContentMetaStatus &cnt_status) -> bool {
-                    return cnt_status.application_id == program_id;
+                    return (cnt_status.application_id == program_id) && (cnt_status.storageID != NcmStorageId_GameCard);
                 });
 
                 if(cnt_it != app.meta_status_list.end()) {

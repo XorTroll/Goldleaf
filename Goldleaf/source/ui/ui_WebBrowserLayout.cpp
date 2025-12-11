@@ -57,6 +57,7 @@ namespace ui {
     }
 
     void WebBrowserLayout::Refresh() {
+        g_Settings.ApplyToMenu(this->opts_menu);
         this->opts_menu->ClearItems();
     
         auto input_itm = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(378));

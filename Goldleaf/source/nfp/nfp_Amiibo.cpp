@@ -35,7 +35,7 @@ namespace nfp {
     Result Initialize() {
         if(!g_Initialized) {
             // Note: using debug service (for genuine amiibos) since this isn't intercepted by emuiibo
-            GLEAF_RC_TRY(nfpInitialize(NfpServiceType_Debug));
+            GLEAF_RC_TRY(nfpInitialize(NfpServiceType_System));
             GLEAF_RC_TRY(nfpListDevices(nullptr, &g_DeviceHandle, 1));
             GLEAF_RC_TRY(nfpStartDetection(&g_DeviceHandle));
             g_Initialized = true;
@@ -57,13 +57,24 @@ namespace nfp {
         return nfpMount(&g_DeviceHandle, NfpDeviceType_Amiibo, NfpMountTarget_All);
     }
 
-    Result GetAmiiboData(AmiiboData &out_data) {
-        GLEAF_RC_ASSERT(nfpGetTagInfo(&g_DeviceHandle, &out_data.tag_info));
-        GLEAF_RC_ASSERT(nfpGetRegisterInfo(&g_DeviceHandle, &out_data.register_info));
-        GLEAF_RC_ASSERT(nfpGetCommonInfo(&g_DeviceHandle, &out_data.common_info));
-        GLEAF_RC_ASSERT(nfpGetModelInfo(&g_DeviceHandle, &out_data.model_info));
-        GLEAF_RC_ASSERT(nfpGetAdminInfo(&g_DeviceHandle, &out_data.admin_info));
-        GLEAF_RC_ASSERT(nfpGetAll(&g_DeviceHandle, &out_data.data));
+    Result GetAmiiboData(AmiiboData &out_data, bool &out_has_register_info) {
+        GLEAF_RC_TRY(nfpGetTagInfo(&g_DeviceHandle, &out_data.tag_info));
+        GLEAF_RC_TRY(nfpGetCommonInfo(&g_DeviceHandle, &out_data.common_info));
+        GLEAF_RC_TRY(nfpGetModelInfo(&g_DeviceHandle, &out_data.model_info));
+        GLEAF_RC_TRY(nfpGetAdminInfo(&g_DeviceHandle, &out_data.admin_info));
+        GLEAF_RC_TRY(nfpGetAll(&g_DeviceHandle, &out_data.data));
+
+        const auto rc = nfpGetRegisterInfo(&g_DeviceHandle, &out_data.register_info);
+        if(rc == rc::nfp::ResultInvalidAmiiboSettings) {
+            // Amiibo has no valid settings, but we can still proceed.
+            out_has_register_info = false;
+            GLEAF_RC_SUCCEED;
+        }
+        else {
+            return rc;
+        }
+
+        out_has_register_info = true;
         GLEAF_RC_SUCCEED;
     }
 

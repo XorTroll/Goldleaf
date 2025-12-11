@@ -55,6 +55,11 @@ namespace ui {
             void ignore_required_fw_version_DefaultKey();
             void show_deletion_prompt_after_install_DefaultKey();
 
+            // UI
+            pu::ui::elm::MenuItem::Ref menu_stick_move_speed_item;
+
+            void menu_stick_move_speed_DefaultKey();
+
             void OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos);
         public:
             OwnSettingsLayout();

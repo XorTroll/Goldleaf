@@ -34,7 +34,7 @@ namespace ui {
             InstallLayout();
             PU_SMART_CTOR(InstallLayout)
 
-            void StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation = false);
+            bool StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation = false, const bool skip_if_already_installed = false);
     };
 
 }

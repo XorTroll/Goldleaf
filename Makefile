@@ -10,7 +10,7 @@ build:
 	@$(MAKE) -C libnxtc/
 	@$(MAKE) -C Goldleaf/
 arc:
-	@python arc/arc.py gen_db default+./Goldleaf/include/res/res_Account.rc.hpp+./Goldleaf/include/res/res_ETicket.rc.hpp+./Goldleaf/include/res/res_NS.rc.hpp+./Goldleaf/include/res/res_Goldleaf.rc.hpp
+	@python arc/arc.py gen_db default+./Goldleaf/include/res/res_Account.rc.hpp+./Goldleaf/include/res/res_ETicket.rc.hpp+./Goldleaf/include/res/res_NS.rc.hpp+./Goldleaf/include/res/res_NFP.rc.hpp+./Goldleaf/include/res/res_Goldleaf.rc.hpp
 	@python arc/arc.py gen_cpp rc GLEAF ./Goldleaf/include/res/res_Generated.gen.hpp
 
 setup:

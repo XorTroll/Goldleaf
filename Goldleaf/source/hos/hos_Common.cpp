@@ -147,6 +147,17 @@ namespace hos {
         return charger != PsmChargerType_Unconnected;
     }
 
+    NfpDate GetCurrentDate() {
+        const auto posix_time = time(nullptr);
+        const auto local_time = localtime(&posix_time);
+
+        NfpDate out_date = {};
+        out_date.year = static_cast<u16>(local_time->tm_year + 1900);
+        out_date.month = static_cast<u8>(local_time->tm_mon + 1);
+        out_date.day = static_cast<u8>(local_time->tm_mday);
+        return out_date;
+    }
+    
     std::string GetCurrentTime(const bool use_12h_time) {
         const auto posix_time = time(nullptr);
         const auto local_time = localtime(&posix_time);

@@ -172,6 +172,7 @@ namespace ui {
     }
 
     void ApplicationContentsLayout::DisplayApplicationInfo() {
+        g_Settings.ApplyToMenu(this->cnts_menu);
         std::string info;
 
         const auto &app = cnt::GetApplications().at(this->app_idx);

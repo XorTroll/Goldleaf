@@ -41,7 +41,7 @@ jobs:
 
     - name: Build Goldleaf
       run: |
-        python3 arc/arc.py gen_db default+Goldleaf/include/res/res_Account.rc.hpp+Goldleaf/include/res/res_ETicket.rc.hpp+Goldleaf/include/res/res_NS.rc.hpp+Goldleaf/include/res/res_Goldleaf.rc.hpp
+        python3 arc/arc.py gen_db default+Goldleaf/include/res/res_Account.rc.hpp+Goldleaf/include/res/res_ETicket.rc.hpp+Goldleaf/include/res/res_NS.rc.hpp+Goldleaf/include/res/res_NFP.rc.hpp+Goldleaf/include/res/res_Goldleaf.rc.hpp
         python3 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/res/res_Generated.gen.hpp
         make build -j$(nproc)
 

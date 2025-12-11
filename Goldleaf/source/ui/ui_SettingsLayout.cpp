@@ -165,6 +165,7 @@ namespace ui {
     }
 
     void SettingsLayout::Load() {
+        g_Settings.ApplyToMenu(this->options_menu);
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(375), CommonIconKind::Settings, cfg::Strings.GetString(376));
         this->options_menu->SetSelectedIndex(0);
     }

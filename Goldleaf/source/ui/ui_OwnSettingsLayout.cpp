@@ -29,6 +29,28 @@ namespace ui {
 
     namespace {
 
+        inline bool FormatMenuStickMoveSpeed(const cfg::MenuStickMoveSpeed speed, std::string &out_str) {
+            switch(speed) {
+                case cfg::MenuStickMoveSpeed::VerySlow:
+                    out_str = cfg::Strings.GetString(523);
+                    return true;
+                case cfg::MenuStickMoveSpeed::Slow:
+                    out_str = cfg::Strings.GetString(524);
+                    return true;
+                case cfg::MenuStickMoveSpeed::Medium:
+                    out_str = cfg::Strings.GetString(525);
+                    return true;
+                case cfg::MenuStickMoveSpeed::Fast:
+                    out_str = cfg::Strings.GetString(526);
+                    return true;
+                case cfg::MenuStickMoveSpeed::VeryFast:
+                    out_str = cfg::Strings.GetString(527);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         inline void SaveChanges(const bool requires_reboot) {
             g_Settings.Save();
 
@@ -99,6 +121,21 @@ namespace ui {
         SaveChanges(false);
     }
 
+    void OwnSettingsLayout::menu_stick_move_speed_DefaultKey() {
+        std::vector<std::string> speed_opts;
+        for(u32 i = 0; i < static_cast<u32>(cfg::MenuStickMoveSpeed::Count); i++) {
+            std::string speed_str;
+            GLEAF_ASSERT_TRUE(FormatMenuStickMoveSpeed(static_cast<cfg::MenuStickMoveSpeed>(i), speed_str));
+            speed_opts.push_back(speed_str);
+        }
+        speed_opts.push_back(cfg::Strings.GetString(18));
+        const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(522), cfg::Strings.GetString(528), speed_opts, false);
+        if(option >= 0) {
+            g_Settings.json_settings.ui.value().menu_stick_move_speed.value() = static_cast<u32>(option);
+            SaveChanges(false);
+        }
+    }
+
     void OwnSettingsLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
         if(keys_down & HidNpadButton_B) {
             g_MainApplication->ReturnToParentLayout();
@@ -115,6 +152,7 @@ namespace ui {
     }
 
     void OwnSettingsLayout::UpdateSettings(const bool reset_selected_idx) {
+        g_Settings.ApplyToMenu(this->settings_menu);
         const auto old_idx = this->settings_menu->GetSelectedIndex();
         this->settings_menu->ClearItems();
 
@@ -183,6 +221,16 @@ namespace ui {
 
         this->settings_menu->AddItem(this->ignore_required_fw_version_item);
         this->settings_menu->AddItem(this->show_deletion_prompt_after_install_item);
+
+        std::string speed_fmt;
+        GLEAF_ASSERT_TRUE(FormatMenuStickMoveSpeed(static_cast<cfg::MenuStickMoveSpeed>(g_Settings.json_settings.ui.value().menu_stick_move_speed.value()), speed_fmt));
+        const auto menu_stick_move_speed_name = cfg::Strings.GetString(522) + ": " + speed_fmt;
+        this->menu_stick_move_speed_item = pu::ui::elm::MenuItem::New(menu_stick_move_speed_name);
+        this->menu_stick_move_speed_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
+        this->menu_stick_move_speed_item->SetColor(g_Settings.GetColorScheme().text);
+        this->menu_stick_move_speed_item->AddOnKey(std::bind(&OwnSettingsLayout::menu_stick_move_speed_DefaultKey, this));
+
+        this->settings_menu->AddItem(this->menu_stick_move_speed_item);
 
         if(!reset_selected_idx) {
             this->settings_menu->SetSelectedIndex(old_idx);
