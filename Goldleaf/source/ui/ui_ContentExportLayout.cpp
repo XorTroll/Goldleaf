@@ -225,19 +225,13 @@ namespace ui {
         }
 
         auto out_nsp = sd_exp->MakeAbsolute(GLEAF_PATH_EXPORT_TITLE_DIR "/");
-        if(app.HasMetadata()) {
-            u32 max_version = 0;
-            for(const auto &status: app.meta_status_list) {
-                if(status.version > max_version) {
-                    max_version = status.version;
-                }
+        u32 max_version = 0;
+        for(const auto &status: app.meta_status_list) {
+            if(status.version > max_version) {
+                max_version = status.version;
             }
-
-            out_nsp += SanitizeExportName(app.cache.display_name) + " [" + format_app_id + "] [v" + std::to_string(max_version) + "].nsp";
         }
-        else {
-            out_nsp += format_app_id + ".nsp";
-        }
+        out_nsp += SanitizeExportName(app.cache.display_name) + " [" + format_app_id + "] [v" + std::to_string(max_version) + "].nsp";
 
         fs::CreateConcatenationFile(out_nsp);
         const auto nsp_i = export_cnts.size();

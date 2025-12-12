@@ -2,8 +2,6 @@
 
 - Updated with latest libnx, supporting firmware 21.0.0
 
-- Relied on [libnxtc](https://github.com/DarkMatterCore/libnxtc) and manual control data parsing, which makes loading installed contents considerably faster
-
 - Fixed an issue where Goldleaf would crash after selecting (or having the system in) Russian and Taiwanese languages
 
 - Fixed an issue where Goldleaf would inmediately crash if the user SAFE partition was not mountable (now such partitions are not mounted right on startup)

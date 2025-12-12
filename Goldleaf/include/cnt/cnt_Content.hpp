@@ -94,7 +94,6 @@ namespace cnt {
     struct Application {
         NsExtApplicationRecord record;
         NsExtApplicationView view;
-        NxTitleCacheApplicationMetadata *metadata;
         NacpMisc misc_data;
         std::vector<NsApplicationContentMetaStatus> meta_status_list;
         std::vector<ApplicationContent> contents;
@@ -111,13 +110,7 @@ namespace cnt {
         Application(Application&&) = default;
         Application& operator=(Application&&) = default;
 
-        inline bool HasMetadata() const {
-            return (this->metadata != nullptr) && (this->metadata->name != nullptr) && (this->metadata->publisher != nullptr);
-        }
-
-        inline bool HasIcon() const {
-            return (this->metadata != nullptr) && (this->metadata->icon_size > 0) && (this->metadata->icon_data != nullptr);
-        }
+        bool GetIcon(u8 *&out_icon_data, size_t &out_icon_size) const;
 
         ApplicationPlayStats GetGlobalPlayStats() const;
         ApplicationPlayStats GetUserPlayStats(const AccountUid user_id) const;

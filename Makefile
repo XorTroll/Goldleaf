@@ -7,7 +7,6 @@ all: arc build
 build:
 	@$(MAKE) -C Plutonium/
 	@$(MAKE) -C libnx-ext/libnx-ipcext/
-	@$(MAKE) -C libnxtc/
 	@$(MAKE) -C Goldleaf/
 arc:
 	@python arc/arc.py gen_db default+./Goldleaf/include/res/res_Account.rc.hpp+./Goldleaf/include/res/res_ETicket.rc.hpp+./Goldleaf/include/res/res_NS.rc.hpp+./Goldleaf/include/res/res_NFP.rc.hpp+./Goldleaf/include/res/res_Goldleaf.rc.hpp
@@ -21,7 +20,6 @@ allclean: libclean clean
 libclean:
 	@$(MAKE) -C Plutonium/ clean
 	@$(MAKE) -C libnx-ext/libnx-ipcext/ clean
-	@$(MAKE) -C libnxtc/ clean
 	@$(MAKE) -C libusbhsfs/ clean
 
 clean:

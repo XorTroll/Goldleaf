@@ -52,19 +52,18 @@ namespace cnt {
 
         NsApplicationControlData g_TemporaryApplicationControlData;
 
-        SetLanguage g_SystemLanguage;
-
-        inline Result GetApplicationControlData(const u64 app_id, NsApplicationControlData &out_data) {
+        inline Result GetApplicationControlData(const u64 app_id, NsApplicationControlData &out_data, size_t &out_icon_size) {
             size_t got_size;
             Result rc;
             if(hosversionAtLeast(20,0,0)) {
-                rc = ncmextReadApplicationControlDataManual(g_SystemLanguage, app_id, std::addressof(out_data), sizeof(out_data), &got_size);
+                rc = nsGetApplicationControlData2(NsApplicationControlSource_Storage, app_id, std::addressof(out_data), sizeof(out_data), 0xFF, 0, &got_size, nullptr);
             }
             else {
                 rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, app_id, std::addressof(out_data), sizeof(out_data), &got_size);
             }
             if(R_SUCCEEDED(rc)) {
                 GLEAF_ASSERT_TRUE(got_size <= sizeof(out_data));
+                out_icon_size = got_size - sizeof(NacpStruct);
             }
             return rc;
         }
@@ -94,7 +93,6 @@ namespace cnt {
                     }
                     else {
                         auto &app = g_Applications.emplace_back();
-                        app.metadata = nullptr;
                         app.record = app_record;
                         app_ref = std::addressof(app);
                     }
@@ -141,12 +139,6 @@ namespace cnt {
 
         void ScanApplications() {
             ScopedLock lk(g_ApplicationsLock);
-            for(auto &app: g_Applications) {
-                if(app.metadata != nullptr) {
-                    nxtcFreeApplicationMetadata(&app.metadata);
-                    app.metadata = nullptr;
-                }
-            }
             g_Applications.clear();
 
             // Scan application records and meta status
@@ -162,13 +154,22 @@ namespace cnt {
                     }
                 }
 
-                if(R_SUCCEEDED(GetApplicationControlData(app.record.id, g_TemporaryApplicationControlData))) {
+                app.cache.display_name = util::FormatApplicationId(app.record.id);
+                app.cache.display_author = "";
+                size_t dummy;
+                if(R_SUCCEEDED(GetApplicationControlData(app.record.id, g_TemporaryApplicationControlData, dummy))) {
                     memcpy(app.misc_data.display_version, g_TemporaryApplicationControlData.nacp.display_version, sizeof(g_TemporaryApplicationControlData.nacp.display_version));
                     app.misc_data.device_save_data_size = g_TemporaryApplicationControlData.nacp.device_save_data_size;
                     app.misc_data.user_account_save_data_size = g_TemporaryApplicationControlData.nacp.user_account_save_data_size;
 
-                    if(nxtcAddEntry(app.record.id, &g_TemporaryApplicationControlData.nacp, sizeof(g_TemporaryApplicationControlData.icon), g_TemporaryApplicationControlData.icon, false)) {
-                        nxtcFlushCacheFile();
+                    NacpLanguageEntry *lang_entry = nullptr;
+                    if(R_SUCCEEDED(nacpGetLanguageEntry(&g_TemporaryApplicationControlData.nacp, &lang_entry)) && lang_entry != nullptr) {
+                        if(lang_entry->name[0] != '\0') {
+                            app.cache.display_name = std::string(lang_entry->name);
+                        }
+                        if(lang_entry->author[0] != '\0') {
+                            app.cache.display_author = std::string(lang_entry->author);
+                        }
                     }
                 }
                 else {
@@ -177,30 +178,13 @@ namespace cnt {
                     app.misc_data.user_account_save_data_size = 0;
                 }
 
-                auto metadata = nxtcGetApplicationMetadataEntryById(app.record.id);
-                if(metadata != nullptr) {
-                    app.metadata = metadata;
-                    app.cache.display_name = metadata->name;
-                    app.cache.display_author = metadata->publisher;
-                }
-                else {
-                    app.metadata = nullptr;
-                    app.cache.display_name = util::FormatApplicationId(app.record.id);
-                    app.cache.display_author = "";
-                }
-
                 nsCalculateApplicationOccupiedSize(app.record.id, reinterpret_cast<NsApplicationOccupiedSize*>(&app.occupied_size));
 
                 GLEAF_LOG_FMT("Application %016lX:", app.record.id);
 
-                if(!app.HasMetadata()) {
-                    GLEAF_LOG_FMT("  - NACP title: %s", app.cache.display_name.c_str());
-                    GLEAF_LOG_FMT("  - NACP author: %s", app.cache.display_author.c_str());
-                    GLEAF_LOG_FMT("  - NACP version: %s", app.misc_data.display_version);
-                }
-                else {
-                    GLEAF_LOG_FMT("  ! <no NACP>");
-                }
+                GLEAF_LOG_FMT("  - NACP title: %s", app.cache.display_name.c_str());
+                GLEAF_LOG_FMT("  - NACP author: %s", app.cache.display_author.c_str());
+                GLEAF_LOG_FMT("  - NACP version: %s", app.misc_data.display_version);
 
                 if(app.record.id != 0) {
                     GLEAF_LOG_FMT("  - Record last event: %s", app.cache.record_last_event.c_str());
@@ -300,6 +284,19 @@ namespace cnt {
 
     }
 
+    bool Application::GetIcon(u8 *&out_icon_data, size_t &out_icon_size) const {
+        out_icon_data = nullptr;
+        out_icon_size = 0;
+
+        if(R_SUCCEEDED(GetApplicationControlData(this->record.id, g_TemporaryApplicationControlData, out_icon_size))) {
+            out_icon_data = new u8[out_icon_size];
+            memcpy(out_icon_data, reinterpret_cast<u8*>(g_TemporaryApplicationControlData.icon), out_icon_size);
+            return true;
+        }
+
+        return false;
+    }
+
     ApplicationPlayStats Application::GetGlobalPlayStats() const {
         PdmPlayStatistics pdm_stats = {};
         pdmqryQueryPlayStatisticsByApplicationId(this->record.id, true, &pdm_stats);
@@ -313,19 +310,11 @@ namespace cnt {
     }
 
     void InitializeApplications() {
-        GLEAF_ASSERT_TRUE(nxtcInitialize());
-
-        u64 tmp_lang_code;
-        GLEAF_RC_ASSERT(setGetSystemLanguage(&tmp_lang_code));
-        GLEAF_RC_ASSERT(setMakeLanguage(tmp_lang_code, &g_SystemLanguage));
-
         NotifyApplicationsChanged();
     }
 
     void FinalizeApplications() {
         threadClose(&g_LoadApplicationsThread);
-
-        nxtcExit();
     }
 
     void NotifyApplicationsChanged() {
