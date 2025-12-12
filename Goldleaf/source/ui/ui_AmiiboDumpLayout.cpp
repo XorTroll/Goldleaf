@@ -64,13 +64,13 @@ namespace ui {
                 rc = nfp::GetAmiiboData(data, has_register_info);
                 if(R_SUCCEEDED(rc)) {
                     if(!has_register_info) {
-                        const auto option = g_MainApplication->DisplayDialog("New amiibo", "Need to create custom settings", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+                        const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(531), { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
                         if(option == 0) {
                             data.register_info.first_write_date = hos::GetCurrentDate();
                             data.register_info.font_region = 0; // Default to NTSC-U
-                            const auto amiibo_name = ShowKeyboard("Enter amiibo name", "", 10, 100);
+                            const auto amiibo_name = ShowKeyboard(cfg::Strings.GetString(532), "", 10, 100);
                             if(amiibo_name.empty()) {
-                                g_MainApplication->ShowNotification("Amiibo name cannot be empty");
+                                g_MainApplication->ShowNotification(cfg::Strings.GetString(533));
                                 nfp::Close();
                                 nfp::Exit();
                                 g_MainApplication->ReturnToParentLayout();
@@ -79,7 +79,7 @@ namespace ui {
                             strncpy(data.register_info.amiibo_name, amiibo_name.c_str(), sizeof(data.register_info.amiibo_name) - 1);
 
                             if(GetLaunchMode() != LaunchMode::Application) {
-                                g_MainApplication->ShowNotification("Cannot create Mii outside of application mode, not enough memory for mii applet...");
+                                g_MainApplication->ShowNotification(cfg::Strings.GetString(534));
                                 nfp::Close();
                                 nfp::Exit();
                                 g_MainApplication->ReturnToParentLayout();
@@ -88,7 +88,7 @@ namespace ui {
 
                             rc = miiLaCreateMii(MiiSpecialKeyCode_Normal, &data.register_info.mii);
                             if(R_FAILED(rc)) {
-                                HandleResult(rc, "Failed to create Mii for amiibo");
+                                HandleResult(rc, cfg::Strings.GetString(535));
                                 nfp::Close();
                                 nfp::Exit();
                                 g_MainApplication->ReturnToParentLayout();

@@ -529,5 +529,10 @@
     "Very fast",
     "Please select a menu stick move speed:",
     "Would you like to automatically skip already installed NSPs?",
-    "No new NSPs were installed."
+    "No new NSPs were installed.",
+    "The scanned amiibo is not initialized yet. You need to provide a name and Mii to create a virtual amiibo.",
+    "Enter amiibo name",
+    "You submitted an empty amiibo name",
+    "Unable to launch Mii applet because Goldleaf is running as an applet. Try launching Goldleaf as an application.",
+    "An error ocurred attempting to create a Mii:"
 ]

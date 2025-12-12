@@ -35,7 +35,7 @@ namespace nfp {
     Result Initialize() {
         if(!g_Initialized) {
             // Note: using debug service (for genuine amiibos) since this isn't intercepted by emuiibo
-            GLEAF_RC_TRY(nfpInitialize(NfpServiceType_System));
+            GLEAF_RC_TRY(nfpInitialize(NfpServiceType_Debug));
             GLEAF_RC_TRY(nfpListDevices(nullptr, &g_DeviceHandle, 1));
             GLEAF_RC_TRY(nfpStartDetection(&g_DeviceHandle));
             g_Initialized = true;
