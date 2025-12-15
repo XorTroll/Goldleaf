@@ -172,6 +172,7 @@ enum class LaunchMode {
 enum class Language {
     English,
     Spanish,
+    SpanishLA,
     German,
     French,
     Italian,
