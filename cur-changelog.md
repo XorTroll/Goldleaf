@@ -1,6 +1,6 @@
 # `v1.2.0`
 
-- Updated with latest libnx, supporting firmware 21.0.0
+- Updated with latest libnx, supporting (at least) up to firmware 21.1.0
 
 - Fixed an issue where Goldleaf would crash after selecting (or having the system in) Russian and Taiwanese languages
 
@@ -19,6 +19,10 @@
 - Fixed a dump replace-all bug where Korean strings would say "g_Clipboard" instead of "clipboard"
 
 - Added an option to automatically skip already installed NSPs from bulk NSP installations
+  
+- Added the option to dump amiibos even if they haven't been initialized yet (user provides the amiibo name and Mii)
+
+- Added support for Latin American Spanish language
 
 # `v1.1.1`
 

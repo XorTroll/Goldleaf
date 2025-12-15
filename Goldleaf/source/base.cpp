@@ -35,8 +35,8 @@ namespace {
 
     std::map<Language, std::vector<std::string>> g_LanguageNamesMap = {
         { Language::English, { "AmericanEnglish", "BritishEnglish" } },
-        { Language::Spanish, { "Spanish", "Spanish" } },
-        { Language::SpanishLA, { "Spanish LA", "LatinAmericanSpanish" } },
+        { Language::Spanish, { "Spanish" } },
+        { Language::LatinAmericanSpanish, { "LatinAmericanSpanish" } },
         { Language::German, { "German" } },
         { Language::French, { "French", "CanadianFrench" } },
         { Language::Italian, { "Italian" } },
@@ -50,8 +50,8 @@ namespace {
 
     std::map<Language, std::vector<std::string>> g_LanguageCodesMap = {
         { Language::English, { "en-US", "en-GB" } },
-        { Language::Spanish, { "es", "es" } },
-        { Language::SpanishLA, { "es-419", "es-419" } },
+        { Language::Spanish, { "es" } },
+        { Language::LatinAmericanSpanish, { "es-419" } },
         { Language::German, { "de" } },
         { Language::French, { "fr", "fr-CA" } },
         { Language::Italian, { "it" } },
@@ -70,8 +70,8 @@ namespace {
 
     std::map<Language, std::vector<SetLanguage>> g_SystemLanguagesMap = {
         { Language::English, { SetLanguage_ENUS, SetLanguage_ENGB } },
-        { Language::Spanish, { SetLanguage_ES, SetLanguage_ES } },
-        { Language::SpanishLA, { SetLanguage_ES419, SetLanguage_ES419 } },
+        { Language::Spanish, { SetLanguage_ES } },
+        { Language::LatinAmericanSpanish, { SetLanguage_ES419 } },
         { Language::German, { SetLanguage_DE } },
         { Language::French, { SetLanguage_FR, SetLanguage_FRCA } },
         { Language::Italian, { SetLanguage_IT } },
