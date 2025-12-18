@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -132,12 +132,6 @@ namespace fs {
 
             bool IsFileBinary(const std::string &path);
             std::vector<u8> ReadFile(const std::string &path);
-            JSON ReadJSON(const std::string &path);
-
-            inline void WriteJSON(const std::string &path, const JSON &json) {
-                const auto json_str = json.dump(4);
-                this->WriteFile(path, json_str.c_str(), json_str.length());
-            }
 
             std::vector<std::string> ReadFileLines(const std::string &path, const u32 line_offset, const u32 line_count);
             std::vector<std::string> ReadFileFormatHex(const std::string &path, const u32 line_offset, const u32 line_count);
@@ -161,6 +155,7 @@ namespace fs {
 
             virtual std::vector<std::string> GetDirectories(const std::string &path) = 0;
             virtual std::vector<std::string> GetFiles(const std::string &path) = 0;
+            virtual bool IsDirectoryEmpty(const std::string &dir_path) = 0;
             virtual bool Exists(const std::string &path) = 0;
             virtual bool IsFile(const std::string &path) = 0;
             virtual bool IsDirectory(const std::string &path) = 0;

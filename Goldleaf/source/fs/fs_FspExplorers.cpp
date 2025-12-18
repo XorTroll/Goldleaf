@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 */
 
 #include <fs/fs_FspExplorers.hpp>
-#include <hos/hos_Common.hpp>
-#include <hos/hos_Titles.hpp>
+#include <util/util_String.hpp>
 #include <acc/acc_UserSelection.hpp>
 
 namespace fs {
@@ -34,7 +33,7 @@ namespace fs {
 
         std::string AllocateMountName() {
             const auto id = randomGet64();
-            const auto &name = MountNamePrefix + hos::FormatHex(id);
+            const auto &name = MountNamePrefix + util::FormatHex(id);
             for(const auto &mount_name: g_MountNameTable) {
                 if(name == mount_name) {
                     // Continue trying random numbers until we find an unused one

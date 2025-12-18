@@ -3,8 +3,8 @@
 </p
 
 <p align="center">
-  <b>💜 thanks for 2M downloads 💜</b>
-</p
+  <b>💙 thanks for 2M downloads 💙</b>
+</p>
 
 <p align="center">
   <a title="Discord" href="https://discord.gg/3KpFyaH">
@@ -36,11 +36,11 @@
   </a>
 </p>
 
-<img src="Screenshots/Goldleaf.1.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light1.jpg" alt="drawing" width="auto"/>
 
-<img src="Screenshots/Goldleaf.2.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.3.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.4.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.5.jpg" alt="drawing" width="250"/> <img src="Screenshots/Goldleaf.6.jpg" alt="drawing" width="250"/>
+<img src="screenshots/dark1.jpg" alt="drawing" width="auto"/>
 
-<img src="Screenshots/Quark.1.png" alt="drawing" width="250"/> <img src="Screenshots/Quark.2.png" alt="drawing" width="250"/>
+> ### If the last Goldleaf release is currently broken, please hop in [my Discord server](https://discord.gg/3KpFyaH), where I periodically share dev builds of changes being tested, prior to commits or releases!
 
 <h3>
 Table of contents
@@ -49,28 +49,38 @@ Table of contents
 - [Features](#features)
   - [Controls](#controls)
 - [Frequently asked questions](#frequently-asked-questions)
-  - [NSP installs](#nsp-installs)
-- [Disclaimer](#disclaimer)
   - [NSP installing](#nsp-installing)
+- [Disclaimer](#disclaimer)
+  - [NSP installing](#nsp-installing-1)
   - [Tickets](#tickets)
 - [Quark and remote browsing](#quark-and-remote-browsing)
   - [Windows](#windows)
   - [Linux](#linux)
   - [Mac](#mac)
-- [Settings](#settings)
-  - [Sample](#sample)
-  - [Notes](#notes)
 - [Known bugs](#known-bugs)
 - [Building](#building)
 - [Contributing](#contributing)
   - [Translations](#translations)
 - [Credits](#credits)
+- [Quark and remote browsing](#quark-and-remote-browsing-1)
+  - [Windows](#windows-1)
+  - [Linux](#linux-1)
+  - [Mac](#mac-1)
+- [Settings \& themeing](#settings--themeing)
+  - [Sample](#sample)
+  - [Notes](#notes)
+- [Screenshots](#screenshots)
+- [Known bugs](#known-bugs-1)
+- [Building](#building-1)
+- [Contributing](#contributing-1)
+  - [Translations](#translations-1)
+- [Credits](#credits-1)
 
 ## Features
 
 Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s, a well-known Nintendo 3DS homebrew tool.
 
-- **Content explorer**: An easy-to-use but fully featured filesystem browser.
+- **Explorer**: An easy-to-use but fully featured filesystem browser.
 
   - Supported locations/devices:
 
@@ -78,51 +88,57 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
     - *Console memory (SAVE, SYSTEM, USER and PRODINFOF partitions)*
 
-    - *Remote systems (via remote tools like Quark)*
+    - *Remote PC (via tools like Quark)*
 
-    - *USB drives (thanks to libusbhsfs)*
+    - *USB drives (thanks to **libusbhsfs**)*
 
     - *Game savedata (read-only, check below how to mount it)*
 
     - *NRO homebrew RomFs (read-only)*
 
-    > Note: all will be automatically unmounted when Goldleaf is exited
+    > Note: all of them are automatically unmounted when Goldleaf is exited
 
   - Features:
 
-    - Basic file operations: create, delete, copy, rename, view as hexadecimal/text, get size, etc.
+    - File operations: create, delete, copy, rename, view as hex/text, get size, etc.
 
-    - Basic directory operations: create, delete, copy, rename, (un)set archive bit, get full size, etc.
+    - Directory operations: create, delete, copy, rename, (un)set archive bit, get full size, install all NSPs inside, etc.
 
-    - Install NSP packages of applications/games, updates, add-on-content/DLC, etc. (**Note: use this carefully, and make sure you know what you're doing!**)
+    - Install NSPs of games, updates, DLC, etc. (**use this carefully, and make sure you know what you're doing!**)
 
-    - Launch other NRO homebrews and mount their RomFs (option mentioned above)
+    - Launch other NRO homebrews and mount their RomFs (as mentioned above)
 
     - Execute .bin files as RCM payloads (reboot with them)
 
-    - Set JPG/JPEG files as user icons (**Note: use this carefully, and make sure you know what you're doing!**)
+    - Set JPG/JPEG files as user icons (**use this very carefully, and make sure you know what you're doing!**)
 
-    - // TODO: more
+    - Preview of NACP files (the ones automatically exported by Goldleaf, and so on)
 
-- **Content manager**: an easy-to-use but fully featured content manager:
+    - 
 
-  - Basic content (program, update, DLC, etc.) operations:
+- **Game/update/DLC browser**: an easy-to-use but fully featured content manager:
 
-    - View content information (ID, size, version, play stats...)
+  - Per title:
 
-    - Uninstall/completely remove the content (won't remove savedata)
-
-    - Export existing contents to a NSP package
+    - View general information (occupied size, play stats, launch flags and so on)
 
     - Mount savedata to navigate it (check the **Content explorer** above)
 
-    - Remove ticket if present (**Note: use this carefully, and make sure you know what you're doing!**)
+  - Content operations (for each title content: base game, update or DLCs):
+
+    - View information (ID, contents, version, ticket...)
+
+    - Uninstall/completely remove the content (won't remove savedata)
+
+    - Export content to NSP
+
+    - Remove ticket, if present (**use this carefully, and make sure you know what you're doing!**)
 
     - Reset launch version (useful to be able to play a base game after an update has been removed)
 
-    > Note: some of this operations are not available with system or gamecard contents.
+    > Note: some of these are only (obviously) available for games with contents
 
-  - Check unused tickets, and remove them (**Note: use this carefully, and make sure you know what you're doing!**)
+- **Ticket browser** Check tickets, and optionally remove unused ones (**use this carefully, and make sure you know what you're doing!**)
 
 - **Web browser**: makes use of the console's web applet:
 
@@ -130,9 +146,9 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Create and save bookmarks
 
-  > Note: the web browser is only guaranteed to work properly when launched as application.
+  > Note: the web browser is only usable when launched as application (due to system memory limitations).
 
-- **Account manager**: select a user (or just use the pre-selected one if present) and manage it:
+- **Account manager**: select a user (or just use the pre-selected one if present), and:
 
   - Change nickname
 
@@ -140,7 +156,7 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Delete user (of course, only if there is more than one in the system!)
 
-  > Note: to change the user's icon, check the **Content explorer** above.
+  > Note: to change the user's icon, select the desired JPG/JPEG icon file by browsing in the **Content explorer**.
 
 - **Amiibo dump**: create a virtual amiibo (for emuiibo) from a real amiibo figurine.
 
@@ -158,47 +174,43 @@ Goldleaf's concept is very similar to [FBI](https://github.com/Steveice10/FBI)'s
 
   - Goldleaf settings: check settings present in `settings.json`
 
-- **Updates**: check for latest Goldleaf updates, and (if desired) update to a new release if it exists
-
-- **About**: check Goldleaf's version and how it was launched (as an applet or an application)
+- **About**: check Goldleaf's version and how it was launched (as an applet or an application), and check for latest Goldleaf updates + update to a new release if it exists
 
 - Goldleaf has been translated to **11** different languages so far: **English**, **Spanish**, **German**, **French**, **Italian**, **Dutch**, **Japanese**, **Portuguese**, **Korean**, **traditional Chinese** and **simplified Chinese**.
 
-> *Thanks to all the various contributors to the different translations! 💜*
+> *Thanks to all the various contributors to the different translations! 💛*
 
 ### Controls
 
 - Common:
 
-  - **(LR-stick / R-stick / D-pad)**: Move through the current menu
+  - **(LR-stick / R-stick / D-pad)** Move through the current menu
 
-  - **(ZL / ZR)**: Show a dialog to shut down or reboot the console.
+  - **(ZL / ZR)** Show a dialog to shut down or reboot the console. To avoid unwanted shut-downs/reboots, Goldleaf will ask for confirmation.
 
-  - **(Minus / -)**: Show a dialog with this control information.
+  - **(Minus / -)** Show a dialog with this control information.
 
-  - **(Plus / +)**: Exit the application in order to return to hbmenu.
+  - **(Plus / +)** Exit the application in order to return to hbmenu.
 
-- Content explorer:
+- Explore menu:
 
-  - **(X)**: Unmount the selected location (only when a manually-mounted location is selected)
+  - **(X)** Unmount the selected location (only when a manually-mounted location is selected)
 
-  - **(Y)**: Select folder (might take a bit of time with folders with many sub-items)
+  - **(Y)** Refresh mounted contents
+
+- File browser:
+
+  - **(Y)** Select folder (might take a bit of time with folders with many sub-items)
 
 ## Frequently asked questions
 
 Make sure you check these before making an issue!
 
-### NSP installs
+### NSP installing
 
-- **I keep getting 'invalid NCA'/'missing sigpatches' or weird FS/ETicket errors...**
+- **I keep getting 'invalid NCA'/'missing patches' or weird FS/ETicket errors...**
 
-  Check the following:
-
-  - The NSP is converted from XCI (using tools like 4NXCI)? Then you need extra patches.
-  
-  - Do you have all the required patches?
-
-    If you have just updated to a new console version and this error happens, try to redownload them.
+  - Do you actually have all the required patches?
 
 - **Goldleaf freezes and Quark doesn't respond/complains when I launch it...**
 
@@ -218,16 +230,131 @@ Make sure you check these before making an issue!
 
 ### NSP installing
 
-Always keep in mind that installing NSP packages can be a very easy way to get banned. If you use airplane mode and special DNSs like 90DNS, there is a smaller chance to get banned.
+Always keep in mind that installing NSPs can be a very easy way to get banned.
 
-**NEVER** install untrusted NSPs. Goldleaf won't do any special verification, so please be very careful about installing untrusted packages.
+**NEVER** install untrusted NSPs. Goldleaf doesn't do any special verification, so please be very careful about installing untrusted packages.
 
 ### Tickets
 
-Tickets represent a game purchase - technically speaking, you can't launch a title if the ticket isn't present and the title requires it (official titles require them). NSP packages which don't have/require a ticket are standard-crypto.
+Tickets represent a game purchase - technically speaking, you can't launch a title if the ticket isn't present and the title requires it (official titles require them). NSPs which don't have/require a ticket are standard-crypto.
 
-Goldleaf will display whether a ticket is present or not, and if so, it's titlekey. Titlekeys are required to decrypt and access a title's content. Otherwise, they are undecryptable, hence unlaunchable by the system.
+Goldleaf will display whether a ticket is present or not, and if so, it's title-key. Title-keys are required to decrypt and access a title's content. Otherwise, they are undecryptable, hence unlaunchable by the system.
 
+## Quark and remote browsing
+
+Quark Goldleaf's desktop Java tool, working as the desktop client for the remote PC option. It supports Windows, Linux and Mac.
+
+Quark needs Java 9 or greater to run. See below the recommended installation for each supported system.
+
+You also need to install libusbK drivers for USB to work fine.
+
+### Windows
+
+The best way to install Java 9 in Windows (or a very simple one) is to install [AdoptOpenJDK 11 or higher](https://adoptopenjdk.net).
+
+> Note: make sure that the JDK/JRE you choose contains JavaFX! You can always install it manually otherwise
+
+After installing it, double-clicking the JAR should be enough to start it.
+
+Otherwise, run ```java -jar Quark.jar``` in the command prompt.
+
+For the USB to get recognized, follow the following steps:
+
+- Download [Zadig](https://zadig.akeo.ie)
+
+- Boot your console with CFW, connect it to the PC via USB
+
+- Open Goldleaf
+
+- With Zadig, select the device named "Goldleaf" (if it doesn't appear, ensure Goldleaf has a USB icon on the top of the screen, and select "List all devices" under "Options" in Zadig)
+
+- Install **libusbK** to that device (any other driver won't work fine)
+
+### Linux
+
+Install OpenJDK 11 (or higher) in the terminal:
+
+- Run ```sudo add-apt-repository ppa:openjdk-r/ppa```
+
+- Run ```sudo apt-get update```
+
+- Finally, run ```sudo apt-get install openjdk-11-jdk``` (if you just want the JRE, install `openjdk-11-jre` instead)
+
+- Create the file ```/etc/udev/rules.d/99-switch.rules``` with the following contents: ```SUBSYSTEM=="usb", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="3000", GROUP="plugdev, MODE="0666""```
+
+- Reload udev rules with: ```sudo udevadm control --reload-rules && sudo udevadm trigger```
+
+Now you can run Quark using ```java -jar Quark.jar```.
+
+### Mac
+
+Install OpenJDK 11 (or higher) in the terminal:
+
+- Install brew ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
+
+- Run ```brew tap AdoptOpenJDK/openjdk```
+
+- Run ```brew install adoptopenjdk11 --cask```
+
+- Finally, run ```java -version``` to check the JDK version
+
+Now you can run Quark using ```java -jar Quark.jar```.
+
+Having done all this, the USB connection should work fine.
+
+## Known bugs
+
+- Exiting Goldleaf via HOME menu (as a NRO) seems to crash the system on 7.x firmwares due to a weird USB bug present on those specific versions. Any non-7.x firmware doesn't seem to have this issue.
+
+## Building
+
+In order to build Goldleaf, you will need the following:
+
+- [devkitA64](https://devkitpro.org)
+
+- JDK 9 or higher (needed for Quark)
+
+- Maven (needed for Quark)
+
+You will also need to install the following packages with devkitPro's pacman:
+
+- `switch-sdl2 switch-freetype switch-glad switch-libdrm_nouveau switch-sdl2_gfx switch-sdl2_image switch-sdl2_ttf switch-sdl2_mixer`
+
+Remember to clone this repository recursively (`git clone <this-repo-url> --recurse-submodules`) since Goldleaf makes use of submodules.
+
+In order to build Goldleaf, run `make setup` (only for the first time), then just run `make` and wait for it to finish building.
+
+In order to build Quark, just execute the `build.sh` script in its directory.
+
+## Contributing
+
+If you would like to contribute with new features, you are free to fork Goldleaf and open pull requests showcasing your additions.
+
+If you just would like to suggest new ideas, but without actual code implementations, you're free to open an issue. Please try not to duplicate those, if the idea or problem is already reported in another issue.
+
+You can always contact me on my Discord server (invite link below) as an easier way to suggest ideas or directly report issues.
+
+### Translations
+
+Goldleaf's aim is to, mainly, support languages supported by the console itself, so those not yet supported by Goldleaf and which aren't supported by consoles should have less priority and won't be probably accepted.
+
+Note that some languages may contain untranslated (English) content. I prioritize dropping relevant releases/updates over waiting for correct and fully up-to-date translations, thus releases may not contain complete translations.
+
+Anyone with enough knowledge of a certain language is absolutely welcome to make a PR with translation suggestions and/or fixes, and will be credited for such a contribution.
+
+## Credits
+
+The main concepts of Goldleaf are and have been developed by me (XorTroll), but without the effort and support of many others, this project wouldn't have been a thing:
+
+- Adubbz and all the (old) [Tinfoil](https://github.com/Adubbz/Tinfoil) contributors, for their huge work with title installing.
+
+- C4Phoenix, for his awesome work doing this project's logo, and the GIF displayed when launching the installed forwarder.
+
+- All the graphics except Goldleaf's logo (see credit above) were grabbed from [Icons8](https://icons8.com).
+
+- 2767mr, for all the support given in Goldtree (former Quark tool).
+
+- developer.su for [NS-USBloader](https://github.com/developersu/ns-usbloader), which helped a lot on the development of Quark, mainly on the usage of usb4java and the base of a multi-platform JavaFX Java project.
 ## Quark and remote browsing
 
 Quark Goldleaf's desktop Java tool, working as the desktop client for the remote PC option. It supports Windows, Linux and Mac.
@@ -290,7 +417,7 @@ Now you can run Quark using ```java -jar Quark.jar```.
 
 Having done all this, the USB connection should work fine.
 
-## Settings
+## Settings & themeing
 
 Goldleaf supports the customization of colors, assets and other options via a JSON file located at Goldleaf's folder: `sd:/switch/Goldleaf/settings.json`.
 
@@ -301,23 +428,52 @@ This is an example JSON for Goldleaf settings:
 ```json
 {
     "general": {
-        "customLanguage": "es",
-        "externalRomFs": "/switch/Goldleaf/theme/rom",
-        "use12hTime": true
+        "language": "es",
+        "external_romfs_path": "sdmc:/switch/Goldleaf/custom-romfs",
+        "use_12h_time": true,
+        "ignore_hidden_files": true,
     },
     "ui": {
-        "background": "#aabbccdd",
-        "base": "#aabbccdd",
-        "baseFocus": "#aabbccdd",
-        "text": "#aabbccdd",
-        "menuItemSize": 80
+        "light_color_scheme": {
+          "bg": "#aabbccdd",
+          "menu_base": "#aabbccdd",
+          "menu_base_focus": "#aabbccdd",
+          "text": "#aabbccdd",
+          "version_text": "#aabbccdd",
+          "scroll_bar": "#aabbccdd",
+          "progress_bar": "#aabbccdd",
+          "progress_bar_bg": "#aabbccdd",
+          "dialog_title": "#aabbccdd",
+          "dialog_opt": "#aabbccdd",
+          "dialog": "#aabbccdd",
+          "dialog_over": "#aabbccdd"
+        },
+        "dark_color_scheme": {
+          "bg": "#aabbccdd",
+          "menu_base": "#aabbccdd",
+          "menu_base_focus": "#aabbccdd",
+          "text": "#aabbccdd",
+          "version_text": "#aabbccdd",
+          "scroll_bar": "#aabbccdd",
+          "progress_bar": "#aabbccdd",
+          "progress_bar_bg": "#aabbccdd",
+          "dialog_title": "#aabbccdd",
+          "dialog_opt": "#aabbccdd",
+          "dialog": "#aabbccdd",
+          "dialog_over": "#aabbccdd"
+        },
+        "menu_item_size": 80
+    },
+    "fs": {
+        "compute_directory_sizes": false
     },
     "installs": {
-        "ignoreRequiredFwVersion": false,
-        "copyBufferMaxSize": 10485760
+        "ignore_required_fw_version": false,
+        "show_deletion_prompt_after_install": false,
+        "copy_buffer_max_size": 10485760
     },
-    "export": {
-        "decryptBufferMaxSize": 10485760
+    "exports": {
+        "decrypt_buffer_max_size": 10485760
     },
     "web": {
         "bookmarks": [
@@ -334,13 +490,29 @@ This is an example JSON for Goldleaf settings:
 }
 ```
 
-If a certain attribute isn't present Goldleaf will use default values. For colors, Goldleaf will initially load default light/dark themes according to the console's theme color, and later, colors present in the JSON will be used instead of default theme ones.
+If a certain attribute isn't present Goldleaf will use default values (none of these fields are mandatory).
+
+Colors follow `#RRGGBBAA` hex format. Not all color schemes/color scheme fields have to be implemented, otherwise default light/dark scheme ones will be used (for those not implemented).
+
+Possible language values: `auto` (uses the system language) and all language codes listed [here](https://switchbrew.org/wiki/Settings_services#LanguageCode).
 
 ### Notes
 
 Via RomFs replacement, when Goldleaf tries to locate, for instance, `romfs:/FileSystem/FileDataFont.ttf` resource font, if `romfsReplace` is true and `romfsReplacePath` is, for instance, `/switch/Goldleaf/testromfs`, Goldleaf will look if `sd:/switch/Goldleaf/testromfs/FileSystem/FileDataFont.ttf` exists and use it if so, otherwise will use RomFs's one.
 
 So, via this configurations, UI's images, resources, element sizes and even translations (using custom JSON translations) can be used, plus some more assets that might be added in future updates.
+
+## Screenshots
+
+<img src="screenshots/light1.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light2.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light3.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/light4.jpg" alt="drawing" width="auto"/>
+
+<img src="screenshots/dark1.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/dark2.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/dark3.jpg" alt="drawing" width="auto"/>
+<img src="screenshots/dark4.jpg" alt="drawing" width="auto"/>
 
 ## Known bugs
 
@@ -388,9 +560,9 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - Adubbz and all the (old) [Tinfoil](https://github.com/Adubbz/Tinfoil) contributors, for their huge work with title installing.
 
-- C4Phoenix, for his awesome work doing this project's logo, and the GIF displayed when launching the installed forwarder.
+- C4Phoenix, for his awesome work doing this project's logo.
 
-- All the graphics except Goldleaf's logo (see credit above) were grabbed from [Icons8](https://icons8.com).
+- All the graphics except Goldleaf's logo (see credit above) were grabbed from [freepik](https://www.freepik.com/) and [flaticon](https://www.flaticon.com/).
 
 - 2767mr, for all the support given in Goldtree (former Quark tool).
 
@@ -398,10 +570,10 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 
 - Simon for his libusbK implementation for C#, which made the former Goldtree client possible.
 
-- shchmue for the system to get tickets from system save data without breaking anything, found in [Lockpick](https://github.com/shchmue/Lockpick).
+- shchmue for the system to get tickets from system save data without breaking anything, which was part of Lockpick.
 
 - WerWolv for the help with custom exception handling, avoiding those frustrating fatals.
 
 - Translators: [unbranched](https://github.com/unbranched) and [exelix](https://github.com/exelix11) for Italian, [tiliarou](https://github.com/tiliarou), [FuryBaguette](https://github.com/FuryBaguette) and GOffrier#9688 for French, and [LoOkYe](https://github.com/lookye) and C4Phoenix for German.
 
-- All the testers, for reporting bugs and helping a lot with the project's development <3
+- All the testers, for reporting bugs and helping a lot with the project's development 💙

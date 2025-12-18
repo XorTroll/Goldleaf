@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,11 +55,11 @@ namespace ui {
             }
         }
 
-        std::string FormatTicketFlags(const hos::TicketFlags flags) {
+        std::string FormatTicketFlags(const cnt::TicketFlags flags) {
             std::string fmt = "";
 
             #define _GLEAF_TICKET_FMT_HANDLE_FLAG(flag) \
-            if(static_cast<bool>(flags & hos::TicketFlags::flag)) { \
+            if(static_cast<bool>(flags & cnt::TicketFlags::flag)) { \
                 if(!fmt.empty()) { \
                     fmt += ", ";    \
                 } \
@@ -86,28 +86,11 @@ namespace ui {
         };
 
         InstallDialogResult ShowInstallDialogPage(nsp::Installer &nsp_installer, const size_t program_idx) {
-            const size_t program_count = nsp_installer.GetPrograms().size();
-            const auto &program = nsp_installer.GetPrograms().at(program_idx);
+            const size_t program_count = nsp_installer.GetInstallablePrograms().size();
+            const auto &program = nsp_installer.GetInstallablePrograms().at(program_idx);
 
             auto info = cfg::Strings.GetString(82) + "\n\n";
 
-            const auto app_id_mask = hos::GetApplicationIdMask(program.meta_key.id);
-            switch(app_id_mask) {
-                case hos::ApplicationIdMask::Official: {
-                    info += cfg::Strings.GetString(87);
-                    break;
-                }
-                case hos::ApplicationIdMask::Homebrew: {
-                    info += cfg::Strings.GetString(88);
-                    break;
-                }
-                case hos::ApplicationIdMask::Invalid: {
-                    info += cfg::Strings.GetString(89);
-                    break;
-                }
-            }
-
-            info += "\n\n";
             const auto &cnts = nsp_installer.GetContents();
             info += cfg::Strings.GetString(93) + " ";
             u32 cnt_count = 0;
@@ -125,89 +108,9 @@ namespace ui {
             info.pop_back();
             info.pop_back();
 
-            const auto keygen = nsp_installer.GetKeyGeneration();
-            const auto m_key = keygen - 1;
-            info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(keygen) + " ";
-
-            // https://switchbrew.org/wiki/NCA
-            switch(m_key) {
-                case 0x00: {
-                    info += "(1.0.0 - 2.3.0)";
-                    break;
-                }
-                case 0x01: {
-                    info += "(3.0.0)";
-                    break;
-                }
-                case 0x02: {
-                    info += "(3.0.1 - 3.0.2)";
-                    break;
-                }
-                case 0x03: {
-                    info += "(4.0.0 - 4.1.0)";
-                    break;
-                }
-                case 0x04: {
-                    info += "(5.0.0 - 5.1.0)";
-                    break;
-                }
-                case 0x05: {
-                    info += "(6.0.0 - 6.1.0)";
-                    break;
-                }
-                case 0x06: {
-                    info += "(6.2.0)";
-                    break;
-                }
-                case 0x07: {
-                    info += "(7.0.0 - 8.0.1)";
-                    break;
-                }
-                case 0x08: {
-                    info += "(8.1.0 - 8.1.1)";
-                    break;
-                }
-                case 0x09: {
-                    info += "(9.0.0 - 9.0.1)";
-                    break;
-                }
-                case 0x0A: {
-                    info += "(9.1.0 - 12.0.3)";
-                    break;
-                }
-                case 0x0B: {
-                    info += "(12.1.0)";
-                    break;
-                }
-                case 0x0C: {
-                    info += "(13.0.0 - 13.2.1)";
-                    break;
-                }
-                case 0x0D: {
-                    info += "(14.0.0 - 14.1.2)";
-                    break;
-                }
-                case 0x0E: {
-                    info += "(15.0.0 - 15.0.1)";
-                    break;
-                }
-                case 0x0F: {
-                    info += "(16.0.0 - 17.0.0)";
-                    break;
-                }
-                case 0x10: {
-                    info += "(17.0.0 - 18.0.0)";
-                    break;
-                }
-                case 0x11: {
-                    info += "(18.0.0 -)";
-                    break;
-                }
-                default: {
-                    info += cfg::Strings.GetString(96);
-                    break;
-                }
-            }
+            const auto key_gen = nsp_installer.GetKeyGeneration();
+            info += "\n" + cfg::Strings.GetString(95) + " " + std::to_string(key_gen) + " ";
+            info += "(" + hos::GetKeyGenerationRange(key_gen) + ")";
 
             if(nsp_installer.HasTicket()) {
                 const auto &ticket = nsp_installer.GetTicketFile();
@@ -216,31 +119,31 @@ namespace ui {
                 info += "\n - " + cfg::Strings.GetString(235) + " " + ticket.data.GetTitleKey();
                 info += "\n - " + cfg::Strings.GetString(236) + " ";
                 switch(ticket.signature) {
-                    case hos::TicketSignature::RSA_4096_SHA1: {
+                    case cnt::TicketSignature::RSA_4096_SHA1: {
                         info += "RSA-4096 PKCS#1 v1.5 (SHA1)";
                         break;
                     }
-                    case hos::TicketSignature::RSA_2048_SHA1: {
+                    case cnt::TicketSignature::RSA_2048_SHA1: {
                         info += "RSA-2048 PKCS#1 v1.5 (SHA1)";
                         break;
                     }
-                    case hos::TicketSignature::ECDSA_SHA1: {
+                    case cnt::TicketSignature::ECDSA_SHA1: {
                         info += "ECDSA (SHA256)";
                         break;
                     }
-                    case hos::TicketSignature::RSA_4096_SHA256: {
+                    case cnt::TicketSignature::RSA_4096_SHA256: {
                         info += "RSA-4096 PKCS#1 v1.5 (SHA256)";
                         break;
                     }
-                    case hos::TicketSignature::RSA_2048_SHA256: {
+                    case cnt::TicketSignature::RSA_2048_SHA256: {
                         info += "RSA-2048 PKCS#1 v1.5 (SHA256)";
                         break;
                     }
-                    case hos::TicketSignature::ECDSA_SHA256: {
+                    case cnt::TicketSignature::ECDSA_SHA256: {
                         info += "ECDSA (SHA256)";
                         break;
                     }
-                    case hos::TicketSignature::HMAC_SHA1_160: {
+                    case cnt::TicketSignature::HMAC_SHA1_160: {
                         info += "HMAC-SHA1-160";
                         break;
                     }
@@ -280,20 +183,20 @@ namespace ui {
                 }
             }
             info += "\n";
-            if(!hos::IsNacpEmpty(program.nacp_data)) {
+            if(!cnt::IsApplicationNacpEmpty(program.nacp_data)) {
                 info += " - " + cfg::Strings.GetString(90) + " ";
-                info += hos::FormatApplicationId(program.meta_key.id);
+                info += util::FormatApplicationId(program.meta_key.id);
                 info += "\n - " + cfg::Strings.GetString(91) + " ";
-                info += hos::FindNacpName(program.nacp_data);
+                info += cnt::FindApplicationNacpName(program.nacp_data);
                 info += "\n - " + cfg::Strings.GetString(92) + " ";
-                info += hos::FindNacpAuthor(program.nacp_data);
+                info += cnt::FindApplicationNacpAuthor(program.nacp_data);
                 info += "\n - " + cfg::Strings.GetString(109) + " ";
                 info += program.nacp_data.display_version;
             }
 
             if(program_idx == 0) {
                 if(program_count > 1) {
-                    const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(465), cfg::Strings.GetString(18) }, true, program.icon_path);
+                    const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(465), cfg::Strings.GetString(18) }, true, pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(program.icon_path)));
                     switch(option) {
                         case 0:
                             return InstallDialogResult::Install;
@@ -304,7 +207,7 @@ namespace ui {
                     }
                 }
                 else {
-                    const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(18) }, true, program.icon_path);
+                    const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(18) }, true, pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(program.icon_path)));
                     switch(option) {
                         case 0:
                             return InstallDialogResult::Install;
@@ -314,66 +217,112 @@ namespace ui {
                 }
             }
             else if(program_idx == (program_count - 1)) {
-                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(464), cfg::Strings.GetString(18) }, true, program.icon_path);
-                    switch(option) {
-                        case 0:
-                            return InstallDialogResult::Install;
-                        case 1:
-                            return InstallDialogResult::Prev;
-                        default:
-                            return InstallDialogResult::Cancel;
-                    }
+                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(464), cfg::Strings.GetString(18) }, true, pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(program.icon_path)));
+                switch(option) {
+                    case 0:
+                        return InstallDialogResult::Install;
+                    case 1:
+                        return InstallDialogResult::Prev;
+                    default:
+                        return InstallDialogResult::Cancel;
+                }
             }
             else {
-                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(464), cfg::Strings.GetString(465), cfg::Strings.GetString(18) }, true, program.icon_path);
-                    switch(option) {
-                        case 0:
-                            return InstallDialogResult::Install;
-                        case 1:
-                            return InstallDialogResult::Prev;
-                        case 2:
-                            return InstallDialogResult::Next;
-                        default:
-                            return InstallDialogResult::Cancel;
-                    }
+                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), info, { cfg::Strings.GetString(65), cfg::Strings.GetString(464), cfg::Strings.GetString(465), cfg::Strings.GetString(18) }, true, pu::sdl2::TextureHandle::New(pu::ui::render::LoadImageFromFile(program.icon_path)));
+                switch(option) {
+                    case 0:
+                        return InstallDialogResult::Install;
+                    case 1:
+                        return InstallDialogResult::Prev;
+                    case 2:
+                        return InstallDialogResult::Next;
+                    default:
+                        return InstallDialogResult::Cancel;
+                }
             }
+        }
+
+        void HandleInstallationFailure(const Result rc, nsp::Installer &nsp_installer) {
+            for(const auto &program: nsp_installer.GetInstallablePrograms()) {
+                const auto program_id = program.meta_key.id;
+                auto program_app = cnt::ExistsApplicationContent(program_id, static_cast<NcmContentMetaType>(program.meta_key.type));
+                if(program_app.has_value()) {
+                    GLEAF_LOG_FMT("Removing program %016lX failed installation leftovers...", program_id);
+
+                    const auto &cnt_status = program_app.value().get().meta_status_list;
+                    const auto cnt_it = std::find_if(cnt_status.begin(), cnt_status.end(), [&](const NsApplicationContentMetaStatus &cnt_status) -> bool {
+                        return cnt_status.application_id == program_id;
+                    });
+                    if(cnt_it != cnt_status.end()) {
+                        GLEAF_LOG_FMT("Removing program %016lX...", program_id);
+                        const auto cnt_idx = std::distance(cnt_status.begin(), cnt_it);
+                        cnt::RemoveApplicationContentById(program_app.value().get(), cnt_idx);
+                    }
+                }
+            }
+
+            HandleResult(rc, cfg::Strings.GetString(251));
         }
 
     }
 
     InstallLayout::InstallLayout() : pu::ui::Layout() {
-        this->speed_info_text = pu::ui::elm::TextBlock::New(0, 180, "A");
+        this->speed_info_text = pu::ui::elm::TextBlock::New(0, 320, "...");
         this->speed_info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->speed_info_text->SetColor(g_Settings.custom_scheme.text);
+        this->speed_info_text->SetColor(g_Settings.GetColorScheme().text);
     }
 
-    void InstallLayout::StartInstall(const std::string &path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
+    bool InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation, const bool skip_if_already_installed) {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(77), CommonIconKind::Storage, cfg::Strings.GetString(145) + " " + pres_path);
+        ScopeGuard on_exit([&]() {
+            // Just in case
+            cnt::NotifyApplicationsChanged();
+            g_MainApplication->GetApplicationListLayout()->NotifyApplicationsChanged();
+            g_MainApplication->ReturnToParentLayout();
+        });
+
         nsp::Installer nsp_installer(path, exp, storage_id);
 
         auto rc = nsp_installer.PrepareInstallation();
         if(R_FAILED(rc)) {
-            if(rc == rc::goldleaf::ResultTitleAlreadyInstalled) {
-                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(77), cfg::Strings.GetString(272) + "\n" + cfg::Strings.GetString(273) + "\n" + cfg::Strings.GetString(274), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+            if(rc == rc::goldleaf::ResultContentAlreadyInstalled) {
+                if(skip_if_already_installed) {
+                    return false;
+                }
+
+                const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(77), cfg::Strings.GetString(272) + "\n" + cfg::Strings.GetString(273) + "\n" + cfg::Strings.GetString(274), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
                 if(option == 0) {
-                    const auto main_app_id = nsp_installer.GetPrograms().front().meta_key.id;
-                    auto title = hos::Locate(main_app_id);
-                    if(title.app_id == main_app_id) {
-                        hos::RemoveTitle(title);
-                        nsp_installer.FinalizeInstallation();
-                        rc = nsp_installer.PrepareInstallation();
-                        if(R_FAILED(rc)) {
-                            HandleResult(rc, cfg::Strings.GetString(251));
-                            return;
+                    for(const auto &program: nsp_installer.GetInstallablePrograms()) {
+                        const auto program_id = program.meta_key.id;
+                        GLEAF_WARN_FMT("Checking program %016lX...", program_id);
+                        const auto program_app = cnt::ExistsApplicationContent(program_id, static_cast<NcmContentMetaType>(program.meta_key.type));
+                        if(program_app.has_value()) {
+                            GLEAF_WARN_FMT("Removing program %016lX...", program_id);
+                            const auto &cnt_status = program_app.value().get().meta_status_list;
+                            const auto cnt_it = std::find_if(cnt_status.begin(), cnt_status.end(), [&](const NsApplicationContentMetaStatus &cnt_status) -> bool {
+                                return cnt_status.application_id == program_id;
+                            });
+                            if(cnt_it != cnt_status.end()) {
+                                GLEAF_WARN_FMT("Removing program %016lX actually...", program_id);
+                                const auto cnt_idx = std::distance(cnt_status.begin(), cnt_it);
+                                cnt::RemoveApplicationContentById(program_app.value().get(), cnt_idx);
+                            }
                         }
+                    }
+                    nsp_installer.FinalizeInstallation();
+                    rc = nsp_installer.PrepareInstallation();
+                    if(R_FAILED(rc)) {
+                        HandleResult(rc, cfg::Strings.GetString(251));
+                        return false;
                     }
                 }
                 else {
-                    return;
+                    return false;
                 }
             }
-            else  {
+            else {
                 HandleResult(rc, cfg::Strings.GetString(251));
-                return;
+                return false;
             }
         }
 
@@ -382,7 +331,7 @@ namespace ui {
             do_install = true;
         }
         else {
-            const auto program_count = nsp_installer.GetPrograms().size();
+            const auto program_count = nsp_installer.GetInstallablePrograms().size();
             size_t program_i = 0;
             while(program_i < program_count) {
                 const auto dialog_res = ShowInstallDialogPage(nsp_installer, program_i);
@@ -410,10 +359,11 @@ namespace ui {
         }
         
         if(do_install) {
-            rc = nsp_installer.StartInstallation();
+            rc = nsp_installer.InstallTicketCertificate();
             if(R_FAILED(rc)) {
                 HandleResult(rc, cfg::Strings.GetString(251));
-                return;
+                // Nothing has been installed yet, so no need to rollback
+                return false;
             }
 
             hos::LockExit();
@@ -421,14 +371,14 @@ namespace ui {
             g_MainApplication->ClearLayout(g_MainApplication->GetInstallLayout());
             this->content_info_texts.clear();
             this->content_p_bars.clear();
-            u32 cur_y = 180;
+            u32 cur_y = this->speed_info_text->GetY();
             this->Add(this->speed_info_text);
             cur_y += this->speed_info_text->GetHeight() + 25;
 
             constexpr auto cnts_per_column = 4;
             const auto &cnts = nsp_installer.GetContents();
             const auto column_count = (cnts.size() + 3) / 4;
-            constexpr auto margin = 25;
+            constexpr auto margin = 75;
             const auto p_bar_width = (pu::ui::render::ScreenWidth - (column_count + 1) * margin) / column_count;
 
             const auto base_column_y = cur_y;
@@ -436,12 +386,13 @@ namespace ui {
             u32 j = 0;
             for(u32 i = 0; i < cnts.size(); i++) {
                 auto info_text = pu::ui::elm::TextBlock::New(cur_x, cur_y, "A");
-                info_text->SetColor(g_Settings.custom_scheme.text);
-                cur_y += info_text->GetHeight() + 10;
+                info_text->SetColor(g_Settings.GetColorScheme().text);
+                cur_y += info_text->GetHeight() + 15;
                 info_text->SetVisible(false);
-                auto p_bar = pu::ui::elm::ProgressBar::New(cur_x, cur_y, p_bar_width, 30, 0.0f);
-                g_Settings.ApplyProgressBarColor(p_bar);
-                cur_y += p_bar->GetHeight() + 15;
+                auto p_bar = pu::ui::elm::ProgressBar::New(cur_x, cur_y, p_bar_width, 40, 0.0f);
+                p_bar->SetProgressColor(g_Settings.GetColorScheme().progress_bar);
+                p_bar->SetBackgroundColor(g_Settings.GetColorScheme().progress_bar_bg);
+                cur_y += p_bar->GetHeight() + 25;
                 p_bar->SetVisible(false);
 
                 this->content_info_texts.push_back(info_text);
@@ -461,7 +412,7 @@ namespace ui {
 
             rc = nsp_installer.WriteContents([&](const nsp::ContentWriteProgress &write_start) {
                 u32 i = 0;
-                u32 cnt_counts[ncm::ContentTypeCount] = {};
+                u32 cnt_counts[cnt::MaxContentCount] = {};
                 for(const auto &entry : write_start.entries) {
                     const u32 cnt_id = static_cast<u32>(entry.type);
                     const auto text = FormatContentType(entry.type) + ((cnt_counts[cnt_id] > 0) ? (" " + std::to_string(cnt_counts[cnt_id])) : "") + " (" + fs::FormatSize(entry.size) + ")";
@@ -494,25 +445,34 @@ namespace ui {
                     i++;
                 }
 
-                const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + hos::FormatTime((u64)((1.0f / speed_bps) * (double)(total_size - cur_size)));
+                const auto speed_text =  cfg::Strings.GetString(458) + ": " + fs::FormatSize(speed_bps) + "/s, " + cfg::Strings.GetString(459) + ": " + util::FormatTime((u64)((1.0f / speed_bps) * (double)(total_size - cur_size)));
                 this->speed_info_text->SetText(speed_text);
 
                 g_MainApplication->CallForRender();
             });
+
+            rc = nsp_installer.UpdateRecordAndContentMetas();
+            if(R_FAILED(rc)) {
+                HandleInstallationFailure(rc, nsp_installer);
+                return false;
+            }
+
             hos::UnlockExit();
         }
 
         if(R_FAILED(rc)) {
-            HandleResult(rc, cfg::Strings.GetString(251));
+            HandleInstallationFailure(rc, nsp_installer);
+            return false;
         }
         else if(do_install) {
-            hos::NotifyTitlesChanged(storage_id);
             g_MainApplication->ShowNotification(cfg::Strings.GetString(150));
 
-            if(g_Settings.show_deletion_prompt_after_install) {
+            if(g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value()) {
                 g_MainApplication->GetBrowserLayout()->PromptDeleteFile(path);
             }
         }
+
+        return true;
     }
 
 }

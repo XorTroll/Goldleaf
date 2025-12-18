@@ -28,35 +28,81 @@ extern cfg::Settings g_Settings;
 
 namespace ui {
 
+    void AmiiboDumpLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
+        if(keys_down & HidNpadButton_B) {
+            nfp::Close();
+            nfp::Exit();
+            g_MainApplication->ReturnToParentLayout();
+        }
+    }
+
     AmiiboDumpLayout::AmiiboDumpLayout() : pu::ui::Layout() {
-        this->info_txt = pu::ui::elm::TextBlock::New(0, 0, "-");
-        this->info_txt->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->info_txt->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
-        this->info_txt->SetColor(g_Settings.custom_scheme.text);
-        this->Add(this->info_txt);
+        this->info_text = pu::ui::elm::TextBlock::New(0, 0, "-");
+        this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->info_text->SetVerticalAlign(pu::ui::elm::VerticalAlign::Center);
+        this->info_text->SetColor(g_Settings.GetColorScheme().text);
+        this->Add(this->info_text);
+
+        this->SetOnInput(std::bind(&AmiiboDumpLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     }
 
     void AmiiboDumpLayout::StartDump() {
-        this->info_txt->SetText(cfg::Strings.GetString(294));
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(283), CommonIconKind::Amiibo, cfg::Strings.GetString(301));
+
+        this->info_text->SetText(cfg::Strings.GetString(294));
         auto rc = nfp::Initialize();
         if(R_SUCCEEDED(rc)) {
-            this->info_txt->SetText(cfg::Strings.GetString(295));
+            this->info_text->SetText(cfg::Strings.GetString(295));
+            // TODO: improve this logic somehow, currently causes a blocking wait if Goldleaf is exited after pressing back here
             while(!nfp::IsReady()) {
                 g_MainApplication->CallForRender();
             }
             rc = nfp::Open();
             if(R_SUCCEEDED(rc)) {
-                const auto tag = nfp::GetTagInfo();
-                const auto model = nfp::GetModelInfo();
-                const auto common = nfp::GetCommonInfo();
-                const auto reg = nfp::GetRegisterInfo();
-                const auto data = nfp::GetAll();
+                nfp::AmiiboData data;
+                bool has_register_info;
+                rc = nfp::GetAmiiboData(data, has_register_info);
+                if(R_SUCCEEDED(rc)) {
+                    if(!has_register_info) {
+                        const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(531), { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+                        if(option == 0) {
+                            data.register_info.first_write_date = hos::GetCurrentDate();
+                            data.register_info.font_region = 0; // Default to NTSC-U
+                            const auto amiibo_name = ShowKeyboard(cfg::Strings.GetString(532), "", 10, 100);
+                            if(amiibo_name.empty()) {
+                                g_MainApplication->ShowNotification(cfg::Strings.GetString(533));
+                                nfp::Close();
+                                nfp::Exit();
+                                g_MainApplication->ReturnToParentLayout();
+                                return;
+                            }
+                            strncpy(data.register_info.amiibo_name, amiibo_name.c_str(), sizeof(data.register_info.amiibo_name) - 1);
 
-                const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + reg.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
-                if(option == 0) {
-                    this->info_txt->SetText(cfg::Strings.GetString(296) + " '" + reg.amiibo_name + "' " + cfg::Strings.GetString(297));
-                    const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(tag, reg, common, model, data);
-                    g_MainApplication->ShowNotification("'" + std::string(reg.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
+                            if(GetLaunchMode() != LaunchMode::Application) {
+                                g_MainApplication->ShowNotification(cfg::Strings.GetString(534));
+                                nfp::Close();
+                                nfp::Exit();
+                                g_MainApplication->ReturnToParentLayout();
+                                return;
+                            }
+
+                            rc = miiLaCreateMii(MiiSpecialKeyCode_Normal, &data.register_info.mii);
+                            if(R_FAILED(rc)) {
+                                HandleResult(rc, cfg::Strings.GetString(535));
+                                nfp::Close();
+                                nfp::Exit();
+                                g_MainApplication->ReturnToParentLayout();
+                                return;
+                            }
+                        }
+                    }
+
+                    const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(283), cfg::Strings.GetString(317) + " '" + data.register_info.amiibo_name + "'?", { cfg::Strings.GetString(111), cfg::Strings.GetString(112) }, true);
+                    if(option == 0) {
+                        this->info_text->SetText(cfg::Strings.GetString(296) + " '" + data.register_info.amiibo_name + "' " + cfg::Strings.GetString(297));
+                        const auto virtual_amiibo_folder = nfp::ExportAsVirtualAmiibo(data);
+                        g_MainApplication->ShowNotification("'" + std::string(data.register_info.amiibo_name) + "' " + cfg::Strings.GetString(298) + " (" + virtual_amiibo_folder + ")");
+                    }
                 }
                 nfp::Close();
             }
@@ -66,6 +112,8 @@ namespace ui {
         if(R_FAILED(rc)) {
             HandleResult(rc, cfg::Strings.GetString(456));
         }
+
+        g_MainApplication->ReturnToParentLayout();
     }
 
 }

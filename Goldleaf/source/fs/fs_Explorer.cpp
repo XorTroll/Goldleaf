@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,13 @@ namespace fs {
             std::transform(b_copy.begin(), b_copy.end(), b_copy.begin(), ::tolower);
             return a_copy < b_copy;
         }
+        
+        NX_CONSTEXPR bool IsCharacterText(const char ch) {
+            return isascii(ch) && (isprint(ch) || (ch == '\n') || (ch == '\r') || (ch == '\t'));
+        }
+
+        constexpr size_t BinaryCheckWorkBufferSize = 0x200; // Same size as GodMode9
+        alignas(WorkBufferAlignment) u8 g_BinaryCheckWorkBuffer[BinaryCheckWorkBufferSize] = {};
 
     }
 
@@ -190,16 +197,16 @@ namespace fs {
         if(file_size == 0) {
             return true;
         }
-        u8 work_buf[0x200]; // Same size as GodMode9
-        const auto to_read_size = std::min(file_size, sizeof(work_buf));
-        const auto read_size = this->ReadFile(full_path, 0, to_read_size, work_buf);
+
+        const auto to_read_size = std::min(file_size, BinaryCheckWorkBufferSize);
+        const auto read_size = this->ReadFile(full_path, 0, to_read_size, g_BinaryCheckWorkBuffer);
         if(read_size == 0) {
             return true;
         }
         else {
             for(u32 i = 0; i < read_size; i++) {
-                const auto cur_ch = static_cast<char>(work_buf[i]);
-                if(!::isascii(cur_ch) || (::iscntrl(cur_ch) && !::isspace(cur_ch))) {
+                const auto cur_ch = static_cast<char>(g_BinaryCheckWorkBuffer[i]);
+                if(!IsCharacterText(cur_ch)) {
                     return true;
                 }
             }
@@ -217,25 +224,6 @@ namespace fs {
             this->ReadFile(full_path, 0, file_size, data.data());
         }
         return data;
-    }
-
-    JSON Explorer::ReadJSON(const std::string &path) {
-        const auto full_path = this->MakeFull(path);
-        const auto file_size = this->GetFileSize(full_path);
-
-        auto work_buf = AllocateWorkBuffer(file_size);
-        if(file_size > 0) {
-            this->ReadFile(full_path, 0, file_size, work_buf);
-        }
-
-        auto json = JSON::object();
-        try {
-            json = JSON::parse(std::string(reinterpret_cast<const char*>(work_buf), file_size));
-        }
-        catch(std::exception&) {}
-
-        DeleteWorkBuffer(work_buf);
-        return json;
     }
 
     std::vector<std::string> Explorer::ReadFileLines(const std::string &path, const u32 line_offset, const u32 line_count) {

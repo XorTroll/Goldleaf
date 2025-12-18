@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,46 +39,34 @@ namespace ui {
 
     }
 
+    void MemoryLayout::OnInput(const u64 keys_down, const u64 keys_up, const u64 keys_held, const pu::ui::TouchPoint touch_pos) {
+        if(keys_down & HidNpadButton_B) {
+            g_MainApplication->ReturnToParentLayout();
+        }
+    }
+
     MemoryLayout::MemoryLayout() : pu::ui::Layout() {
-        this->sd_text = pu::ui::elm::TextBlock::New(125, 300, cfg::Strings.GetString(19));
-        this->sd_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Large));
-        this->sd_text->SetColor(g_Settings.custom_scheme.text);
-        this->sd_space_bar = pu::ui::elm::ProgressBar::New(120, 345, 450, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->sd_space_bar);
-        this->sd_free_text = pu::ui::elm::TextBlock::New(125, 385, "...");
-        this->sd_free_text->SetColor(g_Settings.custom_scheme.text);
-    
-        this->nand_text = pu::ui::elm::TextBlock::New(620, 300, cfg::Strings.GetString(79));
-        this->nand_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Large));
-        this->nand_text->SetColor(g_Settings.custom_scheme.text);
-        this->nand_space_bar = pu::ui::elm::ProgressBar::New(620, 345, 450, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->nand_space_bar);
-        this->nand_free_text = pu::ui::elm::TextBlock::New(620, 385, "...");
-        this->nand_free_text->SetColor(g_Settings.custom_scheme.text);
-    
-        this->nand_safe_text = pu::ui::elm::TextBlock::New(105, 480, cfg::Strings.GetString(27));
-        this->nand_safe_text->SetColor(g_Settings.custom_scheme.text);
-        this->nand_safe_space_bar = pu::ui::elm::ProgressBar::New(100, 515, 300, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->nand_safe_space_bar);
-        this->nand_safe_free_text = pu::ui::elm::TextBlock::New(105, 555, "...");
-        this->nand_safe_free_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
-        this->nand_safe_free_text->SetColor(g_Settings.custom_scheme.text);
-        
-        this->nand_user_text = pu::ui::elm::TextBlock::New(455, 480, cfg::Strings.GetString(28));
-        this->nand_user_text->SetColor(g_Settings.custom_scheme.text);
-        this->nand_user_space_bar = pu::ui::elm::ProgressBar::New(450, 515, 300, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->nand_user_space_bar);
-        this->nand_user_free_text = pu::ui::elm::TextBlock::New(455, 555, "...");
-        this->nand_user_free_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
-        this->nand_user_free_text->SetColor(g_Settings.custom_scheme.text);
-        
-        this->nand_system_text = pu::ui::elm::TextBlock::New(805, 480, cfg::Strings.GetString(29));
-        this->nand_system_text->SetColor(g_Settings.custom_scheme.text);
-        this->nand_system_space_bar = pu::ui::elm::ProgressBar::New(800, 515, 300, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->nand_system_space_bar);
-        this->nand_system_free_text = pu::ui::elm::TextBlock::New(805, 555, "...");
-        this->nand_system_free_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium));
-        this->nand_system_free_text->SetColor(g_Settings.custom_scheme.text);
+        s32 cur_entry_y = 300;
+        const s32 entry_x = 120;
+
+        #define _CREATE_MEMORY_ENTRY(obj_text, text_string, obj_space_bar, obj_free_text) { \
+            obj_text = pu::ui::elm::TextBlock::New(entry_x + 10, cur_entry_y, cfg::Strings.GetString(text_string)); \
+            obj_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::MediumLarge)); \
+            obj_text->SetColor(g_Settings.GetColorScheme().text); \
+            obj_space_bar = pu::ui::elm::ProgressBar::New(entry_x, cur_entry_y + 45, pu::ui::render::ScreenWidth - (2 * entry_x), 30, 100.0f); \
+            obj_space_bar->SetProgressColor(g_Settings.GetColorScheme().progress_bar); \
+            obj_space_bar->SetBackgroundColor(g_Settings.GetColorScheme().progress_bar_bg); \
+            obj_free_text = pu::ui::elm::TextBlock::New(entry_x + 10, cur_entry_y + 90, "..."); \
+            obj_free_text->SetColor(g_Settings.GetColorScheme().text); \
+            obj_free_text->SetFont(pu::ui::GetDefaultFont(pu::ui::DefaultFontSize::Medium)); \
+            cur_entry_y += 150; \
+        }
+
+        _CREATE_MEMORY_ENTRY(this->sd_text, 19, this->sd_space_bar, this->sd_free_text);
+        _CREATE_MEMORY_ENTRY(this->nand_text, 79, this->nand_space_bar, this->nand_free_text);
+        _CREATE_MEMORY_ENTRY(this->nand_safe_text, 27, this->nand_safe_space_bar, this->nand_safe_free_text);
+        _CREATE_MEMORY_ENTRY(this->nand_user_text, 28, this->nand_user_space_bar, this->nand_user_free_text);
+        _CREATE_MEMORY_ENTRY(this->nand_system_text, 29, this->nand_system_space_bar, this->nand_system_free_text);
         
         this->Add(this->sd_text);
         this->Add(this->sd_space_bar);
@@ -99,6 +87,8 @@ namespace ui {
         this->Add(this->nand_system_text);
         this->Add(this->nand_system_space_bar);
         this->Add(this->nand_system_free_text);
+
+        this->SetOnInput(std::bind(&MemoryLayout::OnInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     }
 
     void MemoryLayout::UpdateElements() {

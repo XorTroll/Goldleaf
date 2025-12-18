@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include <base_Common.hpp>
+#include <base.hpp>
 
 namespace acc {
 
@@ -29,7 +29,7 @@ namespace acc {
         u64 nintendo_account_id;
     };
 
-    inline constexpr bool EqualUids(const AccountUid *user_id_a, const AccountUid *user_id_b) {
+    NX_CONSTEXPR bool EqualUids(const AccountUid *user_id_a, const AccountUid *user_id_b) {
         return memcmp(user_id_a->uid, user_id_b->uid, sizeof(AccountUid)) == 0;
     }
 
@@ -43,8 +43,8 @@ namespace acc {
     Result ReadSelectedUser(AccountProfileBase *out_prof_base, AccountUserData *out_user_data);
     Result EditUser(std::function<void(AccountProfileBase*, AccountUserData*)> cb);
     Result EditUserIcon(const u8 *jpg, const size_t size);
-    void CacheSelectedUserIcon();
-    std::string GetCachedUserIcon();
+    void ExportSelectedUserIcon();
+    std::string GetExportedUserIcon();
     bool IsLinked();
     Result UnlinkLocally();
     LinkedAccountInfo GetUserLinkedInfo();

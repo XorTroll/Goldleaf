@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,9 +20,50 @@
 */
 
 #pragma once
-#include <base_Common.hpp>
+#include <base.hpp>
 
 namespace nfp {
+
+    namespace json {
+
+        struct Date {
+            int d;
+            int m;
+            int y;
+        };
+
+        struct AmiiboId {
+            int character_variant;
+            int game_character_id;
+            int series;
+            int model_number;
+            int figure_type;
+        };
+
+        using Uuid = std::vector<int>;
+
+        struct Amiibo {
+            Date first_write_date;
+            Date last_write_date;
+            std::string name;
+            int version;
+            int write_counter;
+            AmiiboId id;
+            Uuid uuid;
+            std::string mii_charinfo_file;
+        };
+
+        struct AreaInfoEntry {
+            u64 program_id;
+            u32 access_id;
+        };
+
+        struct AreaInfo {
+            u32 current_area_access_id;
+            std::vector<AreaInfoEntry> areas;
+        };
+
+    }
 
     struct CharacterId {
         u16 game_character_id;
@@ -30,71 +71,40 @@ namespace nfp {
     } NX_PACKED;
     static_assert(sizeof(CharacterId) == 3);
 
-    struct AmiiboId {
+    struct InternalAmiiboId {
         CharacterId character_id;
         u8 series;
         u16 model_number;
         u8 figure_type;
-    } NX_PACKED;
-    static_assert(sizeof(AmiiboId) == 7);
-
-    struct AdminInfo {
-        u64 program_id;
-        u32 access_id;
-        u16 crc32_counter;
-        u8 flags;
-        u8 unk_0x2;
-        u8 console_kind;
-        u8 pad[7];
-        u8 reserved[0x28];
+        u8 tag_type;
     };
-    static_assert(sizeof(AdminInfo) == 0x40);
+    static_assert(sizeof(InternalAmiiboId) == 8);
 
-    struct Date {
-        u16 year;
-        u8 month;
-        u8 day;
-    };
-    static_assert(sizeof(Date) == 0x4);
+    NX_CONSTEXPR InternalAmiiboId GetInternalAmiiboIdFromModelInfo(const NfpModelInfo &model_info) {
+        InternalAmiiboId amiibo_id = {};
+        amiibo_id.character_id.game_character_id = model_info.game_character_id;
+        amiibo_id.character_id.character_variant = model_info.character_variant;
+        amiibo_id.series = model_info.series_id;
+        amiibo_id.model_number = model_info.numbering_id;
+        amiibo_id.figure_type = model_info.nfp_type;
+        amiibo_id.tag_type = 2;
+        return amiibo_id;
+    }
 
-    struct NfpData {
-        u8 unk_0xA5;
-        u8 unk_pad;
-        u16 unk_u16;
-        u32 unk_u32;
-        u8 unk_pad_5[56];
-        Date last_write_date;
-        u16 unk_u16_2;
-        u8 unk_u8_1;
-        u8 unk_pad_2;
-        u32 app_area_size;
-        u8 unk_pad_3[4];
-        u8 unk_data_pad[0x30];
-        u8 legacy_mii[0x60];
-        u8 unk_data[0x8];
-        Date first_write_date;
-        u16 name_utf16[11];
-        u8 unk_u8_2;
-        u8 unk_u8_3;
-        u32 unk_u32_2;
-        u64 unk_u64;
-        u64 unk_u64_2;
-        u32 unk_u32_3;
-        u8 unk_pad_4[100];
-        AdminInfo admin_info;
-        u8 app_area[0xD8];
+    struct AmiiboData {
+        NfpTagInfo tag_info;
+        NfpRegisterInfo register_info;
+        NfpCommonInfo common_info;
+        NfpModelInfo model_info;
+        NfpAdminInfo admin_info;
+        NfpData data;
     };
-    static_assert(sizeof(NfpData) == 0x298);
 
     Result Initialize();
     bool IsReady();
     Result Open();
-    NfpTagInfo GetTagInfo();
-    NfpRegisterInfo GetRegisterInfo();
-    NfpCommonInfo GetCommonInfo();
-    NfpModelInfo GetModelInfo();
-    NfpData GetAll(); // No need for GetAdminInfo since NfpData includes it
-    std::string ExportAsVirtualAmiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model, const NfpData &all);
+    Result GetAmiiboData(AmiiboData &out_data, bool &out_has_register_info);
+    std::string ExportAsVirtualAmiibo(const AmiiboData &data);
     void Close();
     void Exit();
 

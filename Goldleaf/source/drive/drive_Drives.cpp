@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,33 +23,45 @@
 
 namespace drive {
 
-    Result Initialize() {
-        return usbHsFsInitialize(0);
+    namespace {
+
+        std::atomic_bool g_DrivesChanged = false;
+        Lock g_DrivesLock;
+        std::vector<UsbHsFsDevice> g_Drives;
+
     }
 
-    void Exit() {
+    Result Initialize() {
+        GLEAF_RC_TRY(usbHsFsInitialize(0));
+        
+        usbHsFsSetPopulateCallback([](const UsbHsFsDevice *devices, u32 device_count, void *user_data) {
+            ScopedLock lk(g_DrivesLock);
+            g_Drives.clear();
+            if((devices != nullptr) && (device_count > 0)) {
+                g_Drives.insert(g_Drives.end(), devices, devices + device_count);
+            }
+            GLEAF_LOG_FMT("usbHsFsSetPopulateCallback: %u devices found", device_count);
+            g_DrivesChanged = true;
+        }, nullptr);
+
+        GLEAF_RC_SUCCEED;
+    }
+
+    void Finalize() {
         usbHsFsExit();
     }
 
-    std::vector<UsbHsFsDevice> ListDrives() {
-        std::vector<UsbHsFsDevice> drives;
-        
-        const auto drive_count = usbHsFsGetMountedDeviceCount();
-        if(drive_count > 0) {
-            auto drive_array = new UsbHsFsDevice[drive_count]();
-            const auto written = usbHsFsListMountedDevices(drive_array, drive_count);
-
-            for(u32 i = 0; i < written; i++) {
-                drives.push_back(drive_array[i]);
-            }
-            delete[] drive_array;
-        }
-
-        return drives;
+    bool GetConsumeDrivesChanged() {
+        return g_DrivesChanged.exchange(false);
+    }
+    
+    void DoWithDrives(const std::function<void(const std::vector<UsbHsFsDevice>&)> &cb) {
+        ScopedLock lk(g_DrivesLock);
+        cb(g_Drives);
     }
 
-    bool UnmountDrive(UsbHsFsDevice &drv) {
-        return usbHsFsUnmountDevice(&drv, false);
+    bool UnmountDrive(const UsbHsFsDevice &drv) {
+        return usbHsFsUnmountDevice(std::addressof(drv), true);
     }
 
 }

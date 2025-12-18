@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,9 +20,10 @@
 */
 
 #include <expt/expt_Export.hpp>
-#include <hos/hos_Titles.hpp>
+#include <es/es_CommonCertificate.hpp>
 #include <fatfs/fatfs.hpp>
-#include <es/es_Service.hpp>
+#include <util/util_String.hpp>
+#include <cnt/cnt_Ticket.hpp>
 #include <cfg/cfg_Settings.hpp>
 
 extern cfg::Settings g_Settings;
@@ -33,8 +34,8 @@ namespace expt {
 
     namespace {
 
-        hos::TicketFile ReadTicket(const u64 app_id) {
-            hos::TicketFile read_tik_file = {};
+        cnt::TicketFile ReadTicket(const u64 app_id) {
+            cnt::TicketFile read_tik_file;
 
             if(R_SUCCEEDED(fsOpenBisStorage(&g_FatFsDumpBisStorage, FsBisPartitionId_System))) {
                 FATFS fs;
@@ -53,14 +54,14 @@ namespace expt {
                         break;
                     }
 
-                    const auto tik_sig = *reinterpret_cast<hos::TicketSignature*>(tmp_tik_buf);
-                    if(hos::IsValidTicketSignature(tik_sig)) {
-                        hos::TicketFile tik_file = { .signature = tik_sig };
-                        const auto tik_sig_size = hos::GetTicketSignatureSize(tik_file.signature);
-                        memcpy(tik_file.signature_data, tmp_tik_buf + sizeof(tik_file.signature), hos::GetTicketSignatureDataSize(tik_file.signature));
+                    const auto tik_sig = *reinterpret_cast<cnt::TicketSignature*>(tmp_tik_buf);
+                    if(cnt::IsValidTicketSignature(tik_sig)) {
+                        cnt::TicketFile tik_file = { .signature = tik_sig };
+                        const auto tik_sig_size = cnt::GetTicketSignatureSize(tik_file.signature);
+                        memcpy(tik_file.signature_data, tmp_tik_buf + sizeof(tik_file.signature), cnt::GetTicketSignatureDataSize(tik_file.signature));
                         memcpy(&tik_file.data, tmp_tik_buf + tik_sig_size, sizeof(tik_file.data));
 
-                        if(app_id == tik_file.data.rights_id.GetApplicationId()) {
+                        if(app_id == esGetRightsIdApplicationId(&tik_file.data.rights_id)) {
                             read_tik_file = tik_file;
                             break;
                         }
@@ -77,14 +78,14 @@ namespace expt {
 
     }
 
-    Result DecryptCopyNAX0ToNCA(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptStartCallback dec_start_cb, DecryptProgressCallback dec_prog_cb) {
+    Result DecryptCopyNax0ToNca(NcmContentStorage *cnt_storage, const NcmContentId cnt_id, const std::string &path, DecryptStartCallback dec_start_cb, DecryptProgressCallback dec_prog_cb) {
         s64 cnt_size = 0;
         GLEAF_RC_TRY(ncmContentStorageGetSizeFromContentId(cnt_storage, &cnt_size, &cnt_id));
         auto rem_size = static_cast<u64>(cnt_size);
         auto exp = fs::GetExplorerForPath(path);
         dec_start_cb((double)cnt_size);
 
-        auto data_buf = new u8[g_Settings.decrypt_buffer_max_size]();
+        auto data_buf = new u8[g_Settings.json_settings.exports.value().decrypt_buffer_max_size.value()]();
         ScopeGuard on_exit([&]() {
             delete[] data_buf;
         });
@@ -92,7 +93,7 @@ namespace expt {
         s64 off = 0;
         exp->StartFile(path, fs::FileMode::Write);
         while(rem_size) {
-            const auto read_size = std::min(g_Settings.decrypt_buffer_max_size, rem_size);
+            const auto read_size = std::min(g_Settings.json_settings.exports.value().decrypt_buffer_max_size.value(), rem_size);
             GLEAF_RC_TRY(ncmContentStorageReadContentIdFile(cnt_storage, data_buf, read_size, &cnt_id, off));
             exp->WriteFile(path, data_buf, read_size);
             rem_size -= read_size;
@@ -109,18 +110,18 @@ namespace expt {
 
         std::stringstream rights_id_strm;
         for(u32 i = 0; i < sizeof(tik_file.data.rights_id.id); i++) {
-            rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<u32>(tik_file.data.rights_id.id[i]);
+            rights_id_strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<u32>(tik_file.data.rights_id.fs_id.c[i]);
         }
         const auto fmt_rights_id = rights_id_strm.str();
 
-        const auto fmt_app_id = hos::FormatApplicationId(tik_file.data.rights_id.GetApplicationId());
+        const auto fmt_app_id = util::FormatApplicationId(esGetRightsIdApplicationId(&tik_file.data.rights_id));
 
         auto exp = fs::GetSdCardExplorer();
-        const auto &out_dir = GLEAF_PATH_EXPORT_TITLE_DIR "/" + fmt_app_id;
+        const auto out_dir = GLEAF_PATH_EXPORT_TITLE_DIR "/" + fmt_app_id;
         exp->CreateDirectory(out_dir);
 
-        const auto &tik_path = out_dir + "/" + fmt_rights_id + ".tik";
-        hos::SaveTicket(exp, tik_path, tik_file);
+        const auto tik_path = out_dir + "/" + fmt_rights_id + ".tik";
+        cnt::SaveTicket(exp, tik_path, tik_file);
 
         if(export_cert) {
             const auto &cert_path = out_dir + "/" + fmt_rights_id + ".cert";

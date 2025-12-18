@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,15 +20,28 @@
 */
 
 #pragma once
-#include <cfg/cfg_Settings.hpp>
+#include <base.hpp>
 
 namespace cfg {
 
+    namespace json {
+
+        using Strings = std::vector<std::string>;
+
+    }
+
     struct StringHolder {
         Language language;
-        JSON json;
+        json::Strings strings;
 
-        std::string GetString(const u32 idx);
+        inline std::string &GetString(const u32 idx) {
+            if(idx < this->strings.size()) {
+                return this->strings[idx];
+            }
+            else {
+                GLEAF_ASSERT_FAIL("String index out of bounds");
+            }
+        }
     };
 
     extern StringHolder Strings;

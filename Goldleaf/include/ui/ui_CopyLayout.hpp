@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,11 @@ namespace ui {
             pu::ui::elm::TextBlock::Ref total_info_text;
             pu::ui::elm::ProgressBar::Ref copy_file_p_bar;
             pu::ui::elm::TextBlock::Ref file_info_text;
-            pu::ui::elm::TextBlock::Ref copy_info_text;
+
+            pu::ui::elm::TextBlock::Ref copy_file_src_info_text;
+            pu::ui::elm::TextBlock::Ref copy_file_arrow_info_text;
+            pu::ui::elm::TextBlock::Ref copy_file_dst_info_text;
+            pu::ui::elm::TextBlock::Ref copy_speed_eta_info_text;
 
         public:
             CopyLayout();

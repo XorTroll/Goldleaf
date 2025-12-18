@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,17 +20,34 @@
 */
 
 #pragma once
-#include <base_Common.hpp>
+#include <base.hpp>
 
 namespace fs {
 
     enum class Partition {
         PRODINFOF,
         NANDSafe,
-        NANDUser = 4,
-        NANDSystem = 3,
-        SdCard = 5,
+        NANDUser,
+        NANDSystem,
+        SdCard
     };
+
+    inline Partition GetPartitionFromStorageId(const NcmStorageId id) {
+        switch(id) {
+            case NcmStorageId_SdCard: {
+                return Partition::SdCard;
+            }
+            case NcmStorageId_BuiltInSystem: {
+                return Partition::NANDSystem;
+            }
+            case NcmStorageId_BuiltInUser: {
+                return Partition::NANDUser;
+            }
+            default: {
+                GLEAF_ASSERT_FAIL("Invalid StorageId for partition conversion");
+            }
+        }
+    }
 
     inline void CreateConcatenationFile(const std::string &path) {
         fsdevCreateFile(path.c_str(), 0, FsCreateOption_BigFile);
@@ -75,7 +92,16 @@ namespace fs {
     u64 GetFreeSpaceForPartition(const Partition partition);
     std::string FormatSize(const u64 bytes);
 
-    inline Result MountTitleSaveData(const u64 app_id, const AccountUid user_id, FsFileSystem &out_fs) {
+    inline Result MountDeviceSaveData(const u64 app_id, FsFileSystem &out_fs) {
+        const FsSaveDataAttribute attr = {
+            .application_id = app_id,
+            .save_data_type = FsSaveDataType_Device
+        };
+
+        return fsOpenSaveDataFileSystem(std::addressof(out_fs), FsSaveDataSpaceId_User, &attr);
+    }
+    
+    inline Result MountAccountSaveData(const u64 app_id, const AccountUid user_id, FsFileSystem &out_fs) {
         const FsSaveDataAttribute attr = {
             .application_id = app_id,
             .uid = user_id,
@@ -86,7 +112,8 @@ namespace fs {
     }
 
     constexpr size_t DefaultWorkBufferSize = 8_MB;
-    constexpr std::align_val_t WorkBufferAlign = std::align_val_t(0x1000);
+    constexpr size_t WorkBufferAlignment = 0x1000;
+    constexpr std::align_val_t WorkBufferAlign = std::align_val_t(WorkBufferAlignment);
 
     // Note: buffers used in FS operations must be allocated this way (for instance, USB requires them to be aligned)
 

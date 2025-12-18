@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <nfp/nfp_Amiibo.hpp>
 #include <fs/fs_FileSystem.hpp>
-#include <hos/hos_Common.hpp>
+#include <util/util_String.hpp>
 
 namespace nfp {
 
@@ -29,13 +29,6 @@ namespace nfp {
 
         NfcDeviceHandle g_DeviceHandle;
         bool g_Initialized = false;
-
-        inline Result GetAllImpl(NfpData *out_data) {
-            return serviceDispatchIn(nfpGetServiceSession_Interface(), 200, g_DeviceHandle,
-                .buffer_attrs = { SfBufferAttr_FixedSize | SfBufferAttr_HipcPointer | SfBufferAttr_Out },
-                .buffers = { { out_data, sizeof(NfpData) } },
-            );
-        }
 
     }
 
@@ -64,42 +57,28 @@ namespace nfp {
         return nfpMount(&g_DeviceHandle, NfpDeviceType_Amiibo, NfpMountTarget_All);
     }
 
-    NfpTagInfo GetTagInfo() {
-        NfpTagInfo tag_info = {};
-        GLEAF_RC_ASSERT(nfpGetTagInfo(&g_DeviceHandle, &tag_info));
-        return tag_info;
+    Result GetAmiiboData(AmiiboData &out_data, bool &out_has_register_info) {
+        GLEAF_RC_TRY(nfpGetTagInfo(&g_DeviceHandle, &out_data.tag_info));
+        GLEAF_RC_TRY(nfpGetCommonInfo(&g_DeviceHandle, &out_data.common_info));
+        GLEAF_RC_TRY(nfpGetModelInfo(&g_DeviceHandle, &out_data.model_info));
+        GLEAF_RC_TRY(nfpGetAdminInfo(&g_DeviceHandle, &out_data.admin_info));
+        GLEAF_RC_TRY(nfpGetAll(&g_DeviceHandle, &out_data.data));
+
+        const auto rc = nfpGetRegisterInfo(&g_DeviceHandle, &out_data.register_info);
+        if(rc == rc::nfp::ResultInvalidAmiiboSettings) {
+            // Amiibo has no valid settings, but we can still proceed.
+            out_has_register_info = false;
+            GLEAF_RC_SUCCEED;
+        }
+        else {
+            return rc;
+        }
+
+        out_has_register_info = true;
+        GLEAF_RC_SUCCEED;
     }
 
-    NfpRegisterInfo GetRegisterInfo() {
-        NfpRegisterInfo reg_info = {};
-        GLEAF_RC_ASSERT(nfpGetRegisterInfo(&g_DeviceHandle, &reg_info));
-        return reg_info;
-    }
-
-    NfpCommonInfo GetCommonInfo() {
-        NfpCommonInfo common_info = {};
-        GLEAF_RC_ASSERT(nfpGetCommonInfo(&g_DeviceHandle, &common_info));
-        return common_info;
-    }
-
-    NfpModelInfo GetModelInfo() {
-        NfpModelInfo model_info = {};
-        GLEAF_RC_ASSERT(nfpGetModelInfo(&g_DeviceHandle, &model_info));
-
-        // Convert nfp service's amiibo ID format to emuiibo one
-        model_info.amiibo_id[5] = model_info.amiibo_id[4];
-        model_info.amiibo_id[4] = 0;
-        model_info.amiibo_id[7] = 2;
-        return model_info;
-    }
-
-    NfpData GetAll() {
-        NfpData data = {};
-        GLEAF_RC_ASSERT(GetAllImpl(&data));
-        return data;
-    }
-
-    std::string ExportAsVirtualAmiibo(const NfpTagInfo &tag, const NfpRegisterInfo &reg, const NfpCommonInfo &common, const NfpModelInfo &model, const NfpData &all) {
+    std::string ExportAsVirtualAmiibo(const AmiiboData &data) {
         auto sd_exp = fs::GetSdCardExplorer();
 
         std::string emuiibo_path = "emuiibo";
@@ -107,66 +86,66 @@ namespace nfp {
         emuiibo_path += "/amiibo";
         sd_exp->CreateDirectory(emuiibo_path);
 
-        std::string amiibo_folder = reg.amiibo_name;
+        std::string amiibo_folder = data.register_info.amiibo_name;
         auto amiibo_path = emuiibo_path + "/" + amiibo_folder;
         auto i = 1;
         while(sd_exp->IsDirectory(amiibo_path)) {
-            amiibo_folder = std::string(reg.amiibo_name) + "_" + std::to_string(i);
+            amiibo_folder = std::string(data.register_info.amiibo_name) + "_" + std::to_string(i);
             amiibo_path = emuiibo_path + "/" + amiibo_folder;
             i++;
         }
         sd_exp->CreateDirectory(amiibo_path);
         sd_exp->CreateFile(amiibo_path + "/amiibo.flag");
 
-        auto amiibo = JSON::object();
-        amiibo["first_write_date"]["d"] = reg.first_write_day;
-        amiibo["first_write_date"]["m"] = reg.first_write_month;
-        amiibo["first_write_date"]["y"] = reg.first_write_year;
-
-        amiibo["last_write_date"]["d"] = common.last_write_day;
-        amiibo["last_write_date"]["m"] = common.last_write_month;
-        amiibo["last_write_date"]["y"] = common.last_write_year;
+        const auto id = GetInternalAmiiboIdFromModelInfo(data.model_info);
 
         const auto mii_charinfo = "mii-charinfo.bin";
-        amiibo["mii_charinfo_file"] = mii_charinfo;
-        sd_exp->WriteFile(amiibo_path + "/" + mii_charinfo, &reg.mii, sizeof(reg.mii));
+        sd_exp->WriteFile(amiibo_path + "/" + mii_charinfo, &data.register_info.mii, sizeof(data.register_info.mii));
 
         const auto legacy_mii = "legacy-mii.bin";
-        sd_exp->WriteFile(amiibo_path + "/" + legacy_mii, all.legacy_mii, sizeof(all.legacy_mii));
+        sd_exp->WriteFile(amiibo_path + "/" + legacy_mii, &data.data.mii_v3, sizeof(data.data.mii_v3));
 
-        for(u32 i = 0; i < sizeof(tag.uuid); i++) {
-            amiibo["uuid"][i] = tag.uuid[i];
+        json::Uuid uuid;
+        for(u32 i = 0; i < sizeof(data.tag_info.uid.uid); i++) {
+            uuid.push_back(data.tag_info.uid.uid[i]);
         }
 
-        amiibo["name"] = reg.amiibo_name;
-
-        amiibo["version"] = common.version;
-
-        amiibo["write_counter"] = common.write_counter;
-
-        const auto id_ref = reinterpret_cast<const AmiiboId*>(model.amiibo_id);
-        amiibo["id"]["character_variant"] = id_ref->character_id.character_variant;
-        amiibo["id"]["game_character_id"] = id_ref->character_id.game_character_id;
-        amiibo["id"]["series"] = id_ref->series;
-        amiibo["id"]["model_number"] = __builtin_bswap16(id_ref->model_number);
-        amiibo["id"]["figure_type"] = id_ref->figure_type;
-
-        sd_exp->WriteJSON(amiibo_path + "/amiibo.json", amiibo);
+        json::Amiibo amiibo  = {
+            .first_write_date = { data.register_info.first_write_date.day, data.register_info.first_write_date.month, data.register_info.first_write_date.year },
+            .last_write_date = { data.common_info.last_write_date.day, data.common_info.last_write_date.month, data.common_info.last_write_date.year },
+            .name = data.register_info.amiibo_name,
+            .version = data.common_info.version,
+            .write_counter = data.common_info.write_counter,
+            .id = {
+                .character_variant = id.character_id.character_variant,
+                .game_character_id = id.character_id.game_character_id,
+                .series = id.series,
+                .model_number = id.model_number,
+                .figure_type = id.figure_type,
+            },
+            .uuid = std::move(uuid),
+            .mii_charinfo_file = mii_charinfo,
+        };
+        GLEAF_ASSERT_TRUE(!glz::write_file_json<PartialJsonOptions{}>(amiibo, sd_exp->MakeAbsolute(amiibo_path + "/amiibo.json"), std::string{}));
 
         // If the amiibo has application area...
-        if(all.admin_info.flags & BIT(1)) {
-            auto area_info = JSON::object();
-            area_info["current_area_access_id"] = all.admin_info.access_id;
-            area_info["areas"][0]["program_id"] = all.admin_info.program_id;
-            area_info["areas"][0]["access_id"] = all.admin_info.access_id;
-
-            sd_exp->WriteJSON(amiibo_path + "/areas.json", area_info);
-
+        if(data.admin_info.flags & BIT(1)) {
             const auto areas_dir = amiibo_path + "/areas";
             sd_exp->CreateDirectory(areas_dir);
 
-            const auto area_path = areas_dir + "/" + hos::FormatHex(all.admin_info.access_id) + ".bin";
-            sd_exp->WriteFile(area_path, all.app_area, sizeof(all.app_area));
+            const auto area_path = areas_dir + "/" + util::FormatHex(data.admin_info.access_id) + ".bin";
+            sd_exp->WriteFile(area_path, data.data.application_area, sizeof(data.data.application_area));
+
+            json::AreaInfo area_info = {
+                .current_area_access_id = data.admin_info.access_id,
+                .areas = {
+                    {
+                        .program_id = data.admin_info.application_id,
+                        .access_id = data.admin_info.access_id
+                    }
+                },
+            };
+            GLEAF_ASSERT_TRUE(!glz::write_file_json<PartialJsonOptions{}>(area_info, sd_exp->MakeAbsolute(amiibo_path + "/areas.json"), std::string{}));
         }
 
         return amiibo_folder;

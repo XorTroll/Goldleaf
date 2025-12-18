@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,56 +49,149 @@ namespace cfg {
             GLEAF_ASSERT_TRUE(g_DefaultLanguageLoaded);
         }
 
+        // Light/dark blue schemes by default
+
+        constexpr ColorScheme DefaultLightScheme = {
+            .bg = pu::ui::Color(0xAA, 0xFF, 0xFF, 0xFF),
+            .menu_base = pu::ui::Color(0xCA, 0xFF, 0xFF, 0xFF),
+            .menu_base_focus = pu::ui::Color(0xEA, 0xFB, 0xC2, 0xFF),
+            .text = pu::ui::Color(0x00, 0x00, 0x00, 0xFF),
+            .version_text = pu::ui::Color(0xFF, 0xC0, 0x00, 0xFF),
+            .scroll_bar = pu::ui::Color(0xFF, 0xDA, 0x6C, 0xFF),
+            .progress_bar = pu::ui::Color(0xFF, 0xC0, 0x00, 0xFF),
+            .progress_bar_bg = pu::ui::Color(0xFF, 0xCF, 0x95, 0xFF),
+            .dialog_title = pu::ui::Color(0x00, 0x00, 0x00, 0xFF),
+            .dialog_opt = pu::ui::Color(0x2C, 0x2C, 0x2C, 0xFF),
+            .dialog = pu::ui::Color(0xCA, 0xFF, 0xFF, 0xFF),
+            .dialog_over = pu::ui::Color(0xEA, 0xFB, 0xC2, 0xFF)
+        };
+    
+        constexpr ColorScheme DefaultDarkScheme = {
+            .bg = pu::ui::Color(0x00, 0x2B, 0x87, 0xFF),
+            .menu_base = pu::ui::Color(0x00, 0x31, 0x9A, 0xFF),
+            .menu_base_focus = pu::ui::Color(0x8B, 0x66, 0x00, 0xFF),
+            .text = pu::ui::Color(0xFF, 0xFF, 0xFF, 0xFF),
+            .version_text = pu::ui::Color(0xB1, 0x82, 0x00, 0xFF),
+            .scroll_bar = pu::ui::Color(0xD9, 0x91, 0x00, 0xFF),
+            .progress_bar = pu::ui::Color(0xB1, 0x82, 0x00, 0xFF),
+            .progress_bar_bg = pu::ui::Color(0xFF, 0xC0, 0x00, 0xFF),
+            .dialog_title = pu::ui::Color(0xFF, 0xFF, 0xFF, 0xFF),
+            .dialog_opt = pu::ui::Color(0xF0, 0xF0, 0xF0, 0xFF),
+            .dialog = pu::ui::Color(0x00, 0x31, 0x9A, 0xFF),
+            .dialog_over = pu::ui::Color(0x8B, 0x66, 0x00, 0xFF)
+        };
+
+        #define _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, name) \
+            if(json_scheme.name.has_value()) { \
+                out_scheme.name = pu::ui::Color::FromHex(json_scheme.name.value()); \
+            } \
+            else { \
+                out_scheme.name = def_scheme.name; \
+            } \
+
+        void ParseColorScheme(const json::UiColorScheme &json_scheme, ColorScheme &out_scheme, const ColorScheme &def_scheme) {
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, bg);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, menu_base);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, menu_base_focus);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, text);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, version_text);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, scroll_bar);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, progress_bar);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, progress_bar_bg);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog_title);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog_opt);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog);
+            _CFG_PARSE_COLOR_SCHEME_COLOR(json_scheme, out_scheme, def_scheme, dialog_over);
+        }
+
+        #define _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, name) out_json_scheme.name = ColorToHex(scheme.name)
+
+        void GenerateColorScheme(const ColorScheme &scheme, json::UiColorScheme &out_json_scheme, const ColorScheme &def_scheme) {
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, bg);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, menu_base);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, menu_base_focus);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, text);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, version_text);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, scroll_bar);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, progress_bar);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, progress_bar_bg);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog_title);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog_opt);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog);
+            _CFG_GEN_COLOR_SCHEME_COLOR(scheme, out_json_scheme, def_scheme, dialog_over);
+        }
+
+    }
+
+    #define _CFG_ENSURE_SETTING(json_settings, setting, type) \
+        if(!json_settings.setting.has_value()) { \
+            json_settings.setting = json::type::MakeDefault(); \
+        }
+
+    void Settings::Load() {
+        _CFG_ENSURE_SETTING(this->json_settings, general, GeneralSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, ui, UiSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, fs, FsSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, installs, InstallsSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, exports, ExportsSettings);
+        _CFG_ENSURE_SETTING(this->json_settings, web, WebSettings);
+
+        const auto err = glz::read_file_json<PartialJsonOptions{}>(this->json_settings, "sdmc:/" GLEAF_PATH_SETTINGS_FILE, std::string{});
+        if(err) {
+            GLEAF_WARN_FMT("Failed to read settings JSON: %d (%s)", (u32)err.ec, err.custom_error_message.data());
+        }
+
+        if(this->json_settings.general.value().language.has_value()) {
+            this->lang = GetLanguageByCode(this->json_settings.general.value().language.value());
+        }
+        else {
+            this->lang = Language::Auto;
+        }
+
+        ColorSetId sys_color_set_id;
+        GLEAF_RC_ASSERT(setsysGetColorSetId(&sys_color_set_id));
+        this->is_light_mode = sys_color_set_id == ColorSetId_Light;
+
+        if(this->json_settings.ui.value().light_color_scheme.has_value()) {
+            ParseColorScheme(this->json_settings.ui.value().light_color_scheme.value(), this->light_color_scheme, DefaultLightScheme);
+        }
+        else {
+            this->light_color_scheme = DefaultLightScheme;
+        }
+
+        if(this->json_settings.ui.value().dark_color_scheme.has_value()) {
+            ParseColorScheme(this->json_settings.ui.value().dark_color_scheme.value(), this->dark_color_scheme, DefaultDarkScheme);
+        }
+        else {
+            this->dark_color_scheme = DefaultDarkScheme;
+        }
+
+        #define _CFG_CLAMP_FS_BUFFER_SIZE(mod, name) \
+            if(this->json_settings.mod.value().name.value() > 12_MB) { \
+                this->json_settings.mod.value().name.value() = 12_MB; \
+            } \
+
+        _CFG_CLAMP_FS_BUFFER_SIZE(installs, copy_buffer_max_size);
+        _CFG_CLAMP_FS_BUFFER_SIZE(exports, decrypt_buffer_max_size);
     }
 
     void Settings::Save() {
-        auto json = JSON::object();
+        this->json_settings.general.value().language = GetLanguageCode(this->lang);
 
-        if(this->has_custom_lang) {
-            json["general"]["customLanguage"] = GetLanguageCode(this->custom_lang);
-        }
-        if(this->has_external_romfs) {
-            json["general"]["externalRomFs"] = this->external_romfs;
-        }
-        json["general"]["use12hTime"] = this->use_12h_time;
-        json["general"]["ignoreHiddenFiles"] = this->ignore_hidden_files;
-        
-        if(this->has_custom_scheme) {
-            json["ui"]["background"] = ColorToHex(this->custom_scheme.bg);
-            json["ui"]["base"] = ColorToHex(this->custom_scheme.base);
-            json["ui"]["baseFocus"] = ColorToHex(this->custom_scheme.base_focus);
-            json["ui"]["text"] = ColorToHex(this->custom_scheme.text);
-        }
-        json["ui"]["menuItemSize"] = this->menu_item_size;
-        if(this->has_scrollbar_color) {
-            json["ui"]["scrollBar"] = ColorToHex(this->scrollbar_color);
-        }
-        if(this->has_progressbar_color) {
-            json["ui"]["progressBar"] = ColorToHex(this->progressbar_color);
-        }
+        this->json_settings.ui.value().light_color_scheme = json::UiColorScheme{};
+        GenerateColorScheme(this->light_color_scheme, this->json_settings.ui.value().light_color_scheme.value(), DefaultLightScheme);
 
-        json["installs"]["ignoreRequiredFwVersion"] = this->ignore_required_fw_ver;
-        json["installs"]["showDeletionPromptAfterInstall"] = this->show_deletion_prompt_after_install;
-        json["installs"]["copyBufferMaxSize"] = this->copy_buffer_max_size;
+        this->json_settings.ui.value().dark_color_scheme = json::UiColorScheme{};
+        GenerateColorScheme(this->dark_color_scheme, this->json_settings.ui.value().dark_color_scheme.value(), DefaultDarkScheme);
 
-        json["export"]["decryptBufferMaxSize"] = this->decrypt_buffer_max_size;
-        
-        for(u32 i = 0; i < this->bookmarks.size(); i++) {
-            const auto &bmk = this->bookmarks[i];
-            json["web"]["bookmarks"][i]["name"] = bmk.name;
-            json["web"]["bookmarks"][i]["url"] = bmk.url;
-        }
-
-        auto sd_exp = fs::GetSdCardExplorer();
-        sd_exp->DeleteFile(GLEAF_PATH_SETTINGS_FILE);
-        sd_exp->WriteJSON(GLEAF_PATH_SETTINGS_FILE, json);
+        GLEAF_ASSERT_TRUE(!glz::write_file_json<PartialJsonOptions{}>(this->json_settings, "sdmc:/" GLEAF_PATH_SETTINGS_FILE, std::string{}));
     }
 
     std::string Settings::PathForResource(const std::string &res_path) {
         auto romfs_exp = fs::GetRomFsExplorer();
         
-        if(this->has_external_romfs) {
-            const auto &ext_path = this->external_romfs + "/" + res_path;
+        if(this->json_settings.general.value().external_romfs_path.has_value()) {
+            const auto &ext_path = this->json_settings.general.value().external_romfs_path.value() + "/" + res_path;
             auto sd_exp = fs::GetSdCardExplorer();
             if(sd_exp->IsFile(ext_path)) {
                 return ext_path;
@@ -107,145 +200,26 @@ namespace cfg {
         return romfs_exp->MakeAbsolute(res_path);
     }
 
-    JSON Settings::ReadJSONResource(const std::string &res_path) {
-        auto sd_exp = fs::GetSdCardExplorer();
+    StringHolder Settings::ReadStrings(const Language lang) {
+        StringHolder str_holder = {
+            .language = lang,
+            .strings = {}
+        };
+
         auto romfs_exp = fs::GetRomFsExplorer();
+        const auto strings_path = romfs_exp->MakeAbsolute("/Strings/" + GetLanguageCode(lang) + ".json");
+        GLEAF_ASSERT_TRUE(!glz::read_file_json<PartialJsonOptions{}>(str_holder.strings, strings_path, std::string{}));
 
-        if(this->has_external_romfs) {
-            const auto &ext_path = this->external_romfs + "/" + res_path;
-            if(sd_exp->IsFile(ext_path)) {
-                return sd_exp->ReadJSON(ext_path);
-            }
-        }
-        return romfs_exp->ReadJSON(romfs_exp->MakeAbsolute(res_path));
-    }
-
-    void Settings::ApplyScrollBarColor(pu::ui::elm::Menu::Ref &menu) {
-        if(this->has_scrollbar_color) {
-            menu->SetScrollbarColor(this->scrollbar_color);
-        }
-    }
-
-    void Settings::ApplyProgressBarColor(pu::ui::elm::ProgressBar::Ref &p_bar) {
-        if(this->has_progressbar_color) {
-            p_bar->SetProgressColor(this->progressbar_color);
-        }
-    }
-
-    Settings ProcessSettings() {
-        Settings settings = {};
-
-        settings.has_custom_lang = false;
-        settings.has_external_romfs = false;
-        settings.use_12h_time = false;
-        settings.ignore_hidden_files = false;
-
-        settings.has_custom_scheme = false;
-        settings.menu_item_size = 80;
-        settings.has_scrollbar_color = false;
-        settings.has_progressbar_color = false;
-
-        settings.ignore_required_fw_ver = true;
-        settings.show_deletion_prompt_after_install = false;
-        settings.copy_buffer_max_size = 4_MB;
-
-        settings.decrypt_buffer_max_size = 16_MB;
-
-        settings.custom_scheme = ui::GenerateRandomScheme();
-
-        auto sd_exp = fs::GetSdCardExplorer();
-        const auto settings_json = sd_exp->ReadJSON(GLEAF_PATH_SETTINGS_FILE);
-        if(settings_json.count("general")) {
-            const auto &lang = settings_json["general"].value("customLanguage", "");
-            if(!lang.empty()) {
-                const auto custom_lang = GetLanguageByCode(lang);
-                settings.has_custom_lang = true;
-                settings.custom_lang = custom_lang;
-            }
-
-            const auto &ext_romfs = settings_json["general"].value("externalRomFs", "");
-            if(!ext_romfs.empty()) {
-                settings.has_external_romfs = true;
-                if(ext_romfs.substr(0, 6) == "sdmc:/") {
-                    settings.external_romfs = ext_romfs;
-                }
-                else {
-                    settings.external_romfs = "sdmc:";
-                    if(ext_romfs[0] != '/') {
-                        settings.external_romfs += "/";
-                    }
-                    settings.external_romfs += ext_romfs;
-                }
-            }
-
-            settings.use_12h_time = settings_json["general"].value("use12hTime", settings.use_12h_time);
-            settings.ignore_hidden_files = settings_json["general"].value("ignoreHiddenFiles", settings.ignore_hidden_files);
-        }
-
-        if(settings_json.count("ui")) {
-            const auto &background_clr = settings_json["ui"].value("background", "");
-            if(!background_clr.empty()) {
-                settings.has_custom_scheme = true;
-                settings.custom_scheme.bg = pu::ui::Color::FromHex(background_clr);
-            }
-            const auto &base_clr = settings_json["ui"].value("base", "");
-            if(!base_clr.empty()) {
-                settings.has_custom_scheme = true;
-                settings.custom_scheme.base = pu::ui::Color::FromHex(base_clr);
-            }
-            const auto &base_focus_clr = settings_json["ui"].value("baseFocus", "");
-            if(!base_focus_clr.empty()) {
-                settings.has_custom_scheme = true;
-                settings.custom_scheme.base_focus = pu::ui::Color::FromHex(base_focus_clr);
-            }
-            const auto &text_clr = settings_json["ui"].value("text", "");
-            if(!text_clr.empty()) {
-                settings.has_custom_scheme = true;
-                settings.custom_scheme.text = pu::ui::Color::FromHex(text_clr);
-            }
-            settings.menu_item_size = settings_json["ui"].value("menuItemSize", settings.menu_item_size);
-            const auto &scrollbar_clr = settings_json["ui"].value("scrollBar", "");
-            if(!scrollbar_clr.empty()) {
-                settings.has_scrollbar_color = true;
-                settings.scrollbar_color = pu::ui::Color::FromHex(scrollbar_clr);
-            }
-            const auto &pbar_clr = settings_json["ui"].value("progressBar", "");
-            if(!pbar_clr.empty()) {
-                settings.has_progressbar_color = true;
-                settings.progressbar_color = pu::ui::Color::FromHex(pbar_clr);
-            }
-        }
-        if(settings_json.count("installs")) {
-            settings.ignore_required_fw_ver = settings_json["installs"].value("ignoreRequiredFwVersion", settings.ignore_required_fw_ver);
-            settings.show_deletion_prompt_after_install = settings_json["installs"].value("showDeletionPromptAfterInstall", settings.show_deletion_prompt_after_install);
-            settings.copy_buffer_max_size = settings_json["installs"].value("copyBufferMaxSize", settings.copy_buffer_max_size);
-        }
-        if(settings_json.count("export")) {
-            settings.decrypt_buffer_max_size = settings_json["installs"].value("decryptBufferMaxSize", settings.decrypt_buffer_max_size);
-        }
-        if(settings_json.count("web")) {
-            if(settings_json["web"].count("bookmarks")) {
-                for(u32 i = 0; i < settings_json["web"]["bookmarks"].size(); i++) {
-                    const WebBookmark bmk = {
-                        .name = settings_json["web"]["bookmarks"][i].value("name", ""),
-                        .url = settings_json["web"]["bookmarks"][i].value("url", "")
-                    };
-                    if(!bmk.url.empty() && !bmk.name.empty()) {
-                        settings.bookmarks.push_back(bmk);
-                    }
-                }
-            }
-        }
-        return settings;
+        return str_holder;
     }
 
     Language Settings::GetLanguage() {
-        if(this->has_custom_lang) {
-            return this->custom_lang;
-        }
-        else {
+        if(this->lang == Language::Auto) {
             EnsureDefaultLanguage();
             return g_DefaultLanguage;
+        }
+        else {
+            return this->lang;
         }
     }
 

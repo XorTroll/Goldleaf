@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,13 +20,11 @@
 */
 
 #pragma once
-#include <ncm/ncm_PackagedContentMeta.hpp>
-#include <es/es_Service.hpp>
-#include <ns/ns_Service.hpp>
 #include <fs/fs_FileSystem.hpp>
 #include <fs/fs_PFS0.hpp>
-#include <hos/hos_Content.hpp>
-#include <hos/hos_Titles.hpp>
+#include <cnt/cnt_PackagedContentMeta.hpp>
+#include <cnt/cnt_Content.hpp>
+#include <cnt/cnt_Ticket.hpp>
 
 namespace nsp {
 
@@ -47,7 +45,7 @@ namespace nsp {
     using OnStartWriteFunction = std::function<void(const ContentWriteProgress&)>;
     using OnContentWriteFunction = std::function<void(const ContentWriteProgress&)>;
 
-    struct InstallableProgram {
+    struct InstallableContent {
         NcmContentMetaKey meta_key;
         NacpStruct nacp_data;
         std::string icon_path;
@@ -61,8 +59,8 @@ namespace nsp {
         private:
             fs::PFS0 pfs0_file;
             u8 keygen;
-            hos::TicketFile tik_file;
-            ncm::PackagedContentMeta packaged_cnt_meta;
+            cnt::TicketFile tik_file;
+            cnt::PackagedContentMeta packaged_cnt_meta;
             NcmStorageId storage_id;
             NcmContentStorage cnt_storage;
             NcmContentMetaDatabase cnt_meta_db;
@@ -73,22 +71,21 @@ namespace nsp {
             std::string cert_file_name;
             NcmContentInfo meta_cnt_info;
             std::vector<NcmContentInfo> contents;
-            std::vector<InstallableProgram> programs;
-
-            Result StartProgramInstallation(const InstallableProgram &program);
+            std::vector<InstallableContent> inst_contents;
 
         public:
-            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id), contents(), programs() {}
+            Installer(const std::string &path, fs::Explorer *exp, const NcmStorageId st_id) : pfs0_file(exp, path), storage_id(st_id), contents(), inst_contents() {}
             ~Installer();
     
             Result PrepareInstallation();
-            Result StartInstallation();
+            Result InstallTicketCertificate();
+            Result UpdateRecordAndContentMetas();
 
             inline constexpr bool HasTicket() {
                 return this->tik_file_size > 0;
             }
 
-            inline const hos::TicketFile &GetTicketFile() {
+            inline const cnt::TicketFile &GetTicketFile() {
                 return this->tik_file;
             }
 
@@ -96,8 +93,8 @@ namespace nsp {
                 return this->keygen;
             }
 
-            inline std::vector<InstallableProgram> &GetPrograms() {
-                return this->programs;
+            inline std::vector<InstallableContent> &GetInstallablePrograms() {
+                return this->inst_contents;
             }
 
             inline std::vector<NcmContentInfo> &GetContents() {

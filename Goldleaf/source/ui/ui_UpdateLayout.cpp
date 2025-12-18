@@ -2,7 +2,7 @@
 /*
 
     Goldleaf - Multipurpose homebrew tool for Nintendo Switch
-    Copyright (C) 2018-2023 XorTroll
+    Copyright © 2018-2025 XorTroll
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,49 +28,65 @@ extern bool g_UpdatedNeedsRename;
 
 namespace ui {
 
+    namespace json {
+
+        struct GitHubRelease {
+            std::string tag_name;
+        };
+        
+        using GitHubReleases = std::vector<GitHubRelease>;
+
+    }
+
     UpdateLayout::UpdateLayout() {
-        this->info_text = pu::ui::elm::TextBlock::New(150, 320, "...");
+        this->info_text = pu::ui::elm::TextBlock::New(150, 350, "...");
         this->info_text->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
-        this->info_text->SetColor(g_Settings.custom_scheme.text);
-        this->download_p_bar = pu::ui::elm::ProgressBar::New(340, 360, 600, 30, 100.0f);
-        g_Settings.ApplyProgressBarColor(this->download_p_bar);
+        this->info_text->SetColor(g_Settings.GetColorScheme().text);
+        this->download_p_bar = pu::ui::elm::ProgressBar::New(0, 420, 1750, 60, 100.0f);
+        this->download_p_bar->SetHorizontalAlign(pu::ui::elm::HorizontalAlign::Center);
+        this->download_p_bar->SetProgressColor(g_Settings.GetColorScheme().progress_bar);
+        this->download_p_bar->SetBackgroundColor(g_Settings.GetColorScheme().progress_bar_bg);
         this->Add(this->info_text);
         this->Add(this->download_p_bar);
     }
 
     void UpdateLayout::StartUpdateSearch() {
+        g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(284), CommonIconKind::Update, cfg::Strings.GetString(302));
+
+        ScopeGuard on_exit([&]() {
+            g_MainApplication->ReturnToParentLayout();
+        });
+
         this->download_p_bar->SetVisible(false);
         this->info_text->SetText(cfg::Strings.GetString(305));
         g_MainApplication->CallForRender();
 
         const auto json_data = net::RetrieveContent("https://api.github.com/repos/XorTroll/Goldleaf/releases", "application/json");
         if(json_data.empty()) {
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
-            g_MainApplication->ReturnToMainMenu();
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             return;
         }
-        const auto json = JSON::parse(json_data);
-        if(json.size() <= 0) {
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
-            g_MainApplication->ReturnToMainMenu();
+        json::GitHubReleases releases;
+        const auto err = glz::read<PartialJsonOptions{}>(releases, json_data);
+        if(err || releases.empty()) {
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             return;
         }
-        const auto last_id = json[0].value("tag_name", "");
+        const auto last_id = releases.front().tag_name;
         if(last_id.empty()) {
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
-            g_MainApplication->ReturnToMainMenu();
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
             return;
         }
         this->info_text->SetText(cfg::Strings.GetString(306));
         g_MainApplication->CallForRender();
 
         const auto last_ver = Version::FromString(last_id);
-        const auto cur_ver = Version::MakeVersion(GOLDLEAF_MAJOR, GOLDLEAF_MINOR, GOLDLEAF_MICRO);
+        const auto cur_ver = Version::MakeVersion(GLEAF_MAJOR, GLEAF_MINOR, GLEAF_MICRO);
         if(last_ver.IsEqual(cur_ver)) {
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(307), { cfg::Strings.GetString(234) }, true);
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(307), { cfg::Strings.GetString(234) }, true);
         }
         else if(last_ver.IsLower(cur_ver)) {
-            const auto option = g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(308), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
+            const auto option = g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(308), { cfg::Strings.GetString(111), cfg::Strings.GetString(18) }, true);
             if(option == 0) {
                 EnsureDirectories();
                 auto sd_exp = fs::GetSdCardExplorer();
@@ -100,9 +116,8 @@ namespace ui {
             }
         }
         else if(last_ver.IsHigher(cur_ver)) {
-            g_MainApplication->CreateShowDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(316), { cfg::Strings.GetString(234) }, true);
+            g_MainApplication->DisplayDialog(cfg::Strings.GetString(284), cfg::Strings.GetString(512), { cfg::Strings.GetString(234) }, true);
         }
-        g_MainApplication->ReturnToMainMenu();
     }
 
 }
