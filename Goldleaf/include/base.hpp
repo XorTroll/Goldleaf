@@ -193,6 +193,7 @@ enum class Language {
 constexpr const char *LanguageNameList[] = {
     "English",
     "Español",
+    "Español Latinoamericano",
     "Deutsch",
     "Français",
     "Italiano",
