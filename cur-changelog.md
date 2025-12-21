@@ -16,13 +16,15 @@
 
 - Added a config option to change the speed of navigating menus with the joysticks
 
-- Fixed a dump replace-all bug where Korean strings would say "g_Clipboard" instead of "clipboard"
+- Fixed an old dump replace-all bug where Korean strings would say "g_Clipboard" instead of "clipboard"
 
 - Added an option to automatically skip already installed NSPs from bulk NSP installations
   
-- Added the option to dump amiibos even if they haven't been initialized yet (user provides the amiibo name and Mii)
+- Added the option to dump amiibos even if they haven't been initialized yet (by the user providing an amiibo name and Mii)
 
 - Added support for Latin American Spanish language
+
+- Updated Korean and Spanish translations
 
 # `v1.1.1`
 
