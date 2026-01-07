@@ -53,6 +53,7 @@ Table of contents
 - [Disclaimer](#disclaimer)
   - [NSP installing](#nsp-installing-1)
   - [Tickets](#tickets)
+- [FAQ](#faq)
 - [Quark and remote browsing](#quark-and-remote-browsing)
   - [Windows](#windows)
   - [Linux](#linux)
@@ -239,6 +240,14 @@ Always keep in mind that installing NSPs can be a very easy way to get banned.
 Tickets represent a game purchase - technically speaking, you can't launch a title if the ticket isn't present and the title requires it (official titles require them). NSPs which don't have/require a ticket are standard-crypto.
 
 Goldleaf will display whether a ticket is present or not, and if so, it's title-key. Title-keys are required to decrypt and access a title's content. Otherwise, they are undecryptable, hence unlaunchable by the system.
+
+## FAQ
+
+> Goldleaf crashes, what can I do?
+
+Check Goldleaf logs (`sd:/switch/Goldleaf/goldleaf.log`) and any crash report mentioned by the Switch (typically it will mention title ID `010000000000100D`, so the latest crash report inside `sd:/atmosphere/crash_reports/` containing that ID will be the corresponding one).
+
+Submit an issue here with any of these files (better if the two are included) or ask for support in Discord with the files as well.
 
 ## Quark and remote browsing
 
