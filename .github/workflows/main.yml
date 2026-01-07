@@ -14,10 +14,9 @@ jobs:
 
     - name: Update packages
       run: |
-        sudo -n apt-get update
-        sudo -n apt-get upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd python3 python3-pip
-        python3 -m pip install requests
-        sudo -n dkp-pacman --noconfirm -U \
+        apt update
+        apt upgrade -y patch autoconf automake diffutils pkgconf fakeroot git file tar bzip2 zstd python3 python3-pip python3-requests
+        dkp-pacman --noconfirm -U \
           "https://wii.leseratte10.de/devkitPro/other-stuff/dkp-toolchain-vars-1.0.2-1-any.pkg.tar.xz"
 
     - name: Silence all git safe directory warnings
