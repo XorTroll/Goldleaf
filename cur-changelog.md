@@ -1,3 +1,7 @@
+# Master
+
+- Added option to show USB speed
+
 # `v1.2.0`
 
 - Updated with latest libnx, supporting (at least) up to firmware 21.1.0

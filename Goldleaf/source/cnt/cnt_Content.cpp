@@ -456,6 +456,7 @@ namespace cnt {
         GLEAF_RC_TRY(avmPushLaunchVersion(app.record.id, existing_max_version));
         GLEAF_RC_TRY(avmUpgradeLaunchRequiredVersion(app.record.id, existing_max_version));
         avmExit();
+        GLEAF_RC_TRY(nsextPushLaunchVersion(app.record.id, existing_max_version));
         GLEAF_RC_SUCCEED;
     }
 
