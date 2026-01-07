@@ -51,6 +51,28 @@ namespace ui {
             }
         }
 
+        inline bool FormatUsbSpeed(const UsbDeviceSpeed speed, std::string &out_str) {
+            switch(speed) {
+                case UsbDeviceSpeed_None:
+                    out_str = cfg::Strings.GetString(537);
+                    return true;
+                case UsbDeviceSpeed_Low:
+                    out_str = cfg::Strings.GetString(538);
+                    return true;
+                case UsbDeviceSpeed_Full:
+                    out_str = cfg::Strings.GetString(539);
+                    return true;
+                case UsbDeviceSpeed_High:
+                    out_str = cfg::Strings.GetString(540);
+                    return true;
+                case UsbDeviceSpeed_Super:
+                    out_str = cfg::Strings.GetString(541);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         inline void SaveChanges(const bool requires_reboot) {
             g_Settings.Save();
 
@@ -231,6 +253,18 @@ namespace ui {
         this->menu_stick_move_speed_item->AddOnKey(std::bind(&OwnSettingsLayout::menu_stick_move_speed_DefaultKey, this));
 
         this->settings_menu->AddItem(this->menu_stick_move_speed_item);
+
+        std::string usb_speed_fmt;
+        UsbDeviceSpeed usb_speed = UsbDeviceSpeed_None;
+        if(hosversionAtLeast(8,0,0)) {
+            usbDsGetSpeed(&usb_speed);
+            GLEAF_ASSERT_TRUE(FormatUsbSpeed(usb_speed, usb_speed_fmt));
+        }
+        auto usb_speed_item = pu::ui::elm::MenuItem::New(cfg::Strings.GetString(536) + " " + usb_speed_fmt);
+        usb_speed_item->SetIcon(GetCommonIcon(CommonIconKind::Settings));
+        usb_speed_item->SetColor(g_Settings.GetColorScheme().text);
+
+        this->settings_menu->AddItem(usb_speed_item);
 
         if(!reset_selected_idx) {
             this->settings_menu->SetSelectedIndex(old_idx);

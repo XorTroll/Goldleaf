@@ -534,5 +534,11 @@
     "Enter amiibo name",
     "You submitted an empty amiibo name",
     "Unable to launch Mii applet because Goldleaf is running as an applet. Try launching Goldleaf as an application.",
-    "An error ocurred attempting to create a Mii:"
+    "An error ocurred attempting to create a Mii:",
+    "USB speed:",
+    "None",
+    "USB 1.0 (Low)",
+    "USB 1.1 (Full)",
+    "USB 2.0 (High)",
+    "USB 3.0 (Super)"
 ]
