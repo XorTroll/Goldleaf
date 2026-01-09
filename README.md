@@ -63,10 +63,6 @@ Table of contents
 - [Contributing](#contributing)
   - [Translations](#translations)
 - [Credits](#credits)
-- [Quark and remote browsing](#quark-and-remote-browsing-1)
-  - [Windows](#windows-1)
-  - [Linux](#linux-1)
-  - [Mac](#mac-1)
 - [Settings \& themeing](#settings--themeing)
   - [Sample](#sample)
   - [Notes](#notes)
@@ -289,7 +285,7 @@ Install OpenJDK 11 (or higher) in the terminal:
 
 - Finally, run ```sudo apt-get install openjdk-11-jdk``` (if you just want the JRE, install `openjdk-11-jre` instead)
 
-- Create the file ```/etc/udev/rules.d/99-switch.rules``` with the following contents: ```SUBSYSTEM=="usb", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="3000", GROUP="plugdev, MODE="0666""```
+- Create the file ```/etc/udev/rules.d/99-switch.rules``` with the following contents: ```SUBSYSTEM=="usb", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="3000", GROUP="plugdev, MODE="0666"``` (check if your distro relies on `plugdev` or any alternatives to provide USB access)
 
 - Reload udev rules with: ```sudo udevadm control --reload-rules && sudo udevadm trigger```
 
@@ -327,7 +323,9 @@ In order to build Goldleaf, you will need the following:
 
 You will also need to install the following packages with devkitPro's pacman:
 
-- `switch-sdl2 switch-freetype switch-glad switch-libdrm_nouveau switch-sdl2_gfx switch-sdl2_image switch-sdl2_ttf switch-sdl2_mixer`
+- `switch-sdl2 switch-freetype switch-glad switch-libdrm_nouveau switch-sdl2_gfx switch-sdl2_image switch-sdl2_ttf switch-sdl2_mixer switch-lwext4 switch-ntfs-3g switch-curl switch-mbedtls`
+
+> Note that this project may require [master libnx](https://github.com/switchbrew/libnx) to compile if relevant changes were made there which have not yet been released!
 
 Remember to clone this repository recursively (`git clone <this-repo-url> --recurse-submodules`) since Goldleaf makes use of submodules.
 
@@ -364,67 +362,7 @@ The main concepts of Goldleaf are and have been developed by me (XorTroll), but 
 - 2767mr, for all the support given in Goldtree (former Quark tool).
 
 - developer.su for [NS-USBloader](https://github.com/developersu/ns-usbloader), which helped a lot on the development of Quark, mainly on the usage of usb4java and the base of a multi-platform JavaFX Java project.
-## Quark and remote browsing
 
-Quark Goldleaf's desktop Java tool, working as the desktop client for the remote PC option. It supports Windows, Linux and Mac.
-
-Quark needs Java 9 or greater to run. See below the recommended installation for each supported system.
-
-You also need to install libusbK drivers for USB to work fine.
-
-### Windows
-
-The best way to install Java 9 in Windows (or a very simple one) is to install [AdoptOpenJDK 11 or higher](https://adoptopenjdk.net).
-
-> Note: make sure that the JDK/JRE you choose contains JavaFX! You can always install it manually otherwise
-
-After installing it, double-clicking the JAR should be enough to start it.
-
-Otherwise, run ```java -jar Quark.jar``` in the command prompt.
-
-For the USB to get recognized, follow the following steps:
-
-- Download [Zadig](https://zadig.akeo.ie)
-
-- Boot your console with CFW, connect it to the PC via USB
-
-- Open Goldleaf
-
-- With Zadig, select the device named "Goldleaf" (if it doesn't appear, ensure Goldleaf has a USB icon on the top of the screen, and select "List all devices" under "Options" in Zadig)
-
-- Install **libusbK** to that device (any other driver won't work fine)
-
-### Linux
-
-Install OpenJDK 11 (or higher) in the terminal:
-
-- Run ```sudo add-apt-repository ppa:openjdk-r/ppa```
-
-- Run ```sudo apt-get update```
-
-- Finally, run ```sudo apt-get install openjdk-11-jdk``` (if you just want the JRE, install `openjdk-11-jre` instead)
-
-- Create the file ```/etc/udev/rules.d/99-switch.rules``` with the following contents: ```SUBSYSTEM=="usb", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="3000", GROUP="plugdev"```
-
-- Reload udev rules with: ```sudo udevadm control --reload-rules && sudo udevadm trigger```
-
-Now you can run Quark using ```java -jar Quark.jar```.
-
-### Mac
-
-Install OpenJDK 11 (or higher) in the terminal:
-
-- Install brew ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"```
-
-- Run ```brew tap AdoptOpenJDK/openjdk```
-
-- Run ```brew install adoptopenjdk11 --cask```
-
-- Finally, run ```java -version``` to check the JDK version
-
-Now you can run Quark using ```java -jar Quark.jar```.
-
-Having done all this, the USB connection should work fine.
 
 ## Settings & themeing
 
