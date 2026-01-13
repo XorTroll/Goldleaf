@@ -1,14 +1,12 @@
-name: Build Goldleaf
-
+name: Build & Deploy Goldleaf
 on: [push, pull_request]
-
 jobs:
-  Goldleaf:
+  build:
+    name: "Build Goldleaf"
     runs-on: ubuntu-latest
     container: devkitpro/devkita64:latest
-
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
 
@@ -32,20 +30,32 @@ jobs:
     - name: Build and install libnx
       run: |
         cd libnx
-        make install -j$(nproc)
+        make install -j$(nproc) -l$(nproc)
 
     - name: Build libusbhsfs dependencies
       run: |
-        make setup -j$(nproc)
+        make setup -j$(nproc) -l$(nproc)
 
     - name: Build Goldleaf
       run: |
         python3 arc/arc.py gen_db default+Goldleaf/include/res/res_Account.rc.hpp+Goldleaf/include/res/res_ETicket.rc.hpp+Goldleaf/include/res/res_NS.rc.hpp+Goldleaf/include/res/res_NFP.rc.hpp+Goldleaf/include/res/res_Goldleaf.rc.hpp
         python3 arc/arc.py gen_cpp rc GLEAF Goldleaf/include/res/res_Generated.gen.hpp
-        make build -j$(nproc)
+        make build -j$(nproc) -l$(nproc)
 
-    - uses: actions/upload-artifact@master
+    - uses: actions/upload-artifact@v6
       with:
-        name: Goldleaf
         path: Goldleaf/Goldleaf.nro
         if-no-files-found: error
+
+  release:
+    name: "Publish release"
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: ${{ github.event_name == 'push' }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+    - name: Remove old release and upload new release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: bash ci-scripts/make_release.sh "${{ github.repository }}" "${{ github.ref_name }}"
