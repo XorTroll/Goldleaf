@@ -137,6 +137,7 @@ namespace cnt {
     }
 
     void FinalizeTickets() {
+        threadWaitForExit(&g_LoadTicketsThread);
         threadClose(&g_LoadTicketsThread);
     }
 

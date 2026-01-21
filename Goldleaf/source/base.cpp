@@ -264,9 +264,11 @@ Result Initialize() {
     return 0;
 }
 
-void Exit() {
+void Finalize() {
     if(g_MainApplication) {
+        GLEAF_LOG_FMT("Closing application...");
         g_MainApplication->Close();
+        g_MainApplication = nullptr;
     }
 
     romfsExit();
@@ -278,30 +280,29 @@ void Exit() {
         sd_exp->RenameFile(GLEAF_PATH_TEMP_UPDATE_NRO, cur_nro_file);
     }
 
-    {
-        ScopedLock lk(g_LogLock);
-        for(auto &it : g_ThreadLogBufferList) {
-            delete[] it.second;
-        }
-    }
-
     cnt::FinalizeTickets();
     cnt::FinalizeApplications();
-    fs::Finalize();
     drive::Finalize();
     amssuExit();
+    pdmqryExit();
+    nifmExit();
     usb::Finalize();
     setsysExit();
     setExit();
     psmExit();
     esExit();
     nsExit();
-    accountExit();
     ncmExit();
-    nifmExit();
-    pdmqryExit();
+    accountExit();
 
-    exit(0);
+    fs::Finalize();
+
+    {
+        ScopedLock lk(g_LogLock);
+        for(auto &it : g_ThreadLogBufferList) {
+            delete[] it.second;
+        }
+    }
 }
 
 char *GetLogBuffer() {

@@ -21,8 +21,8 @@
 
 #include <ui/ui_MainApplication.hpp>
 
-ui::MainApplication::Ref g_MainApplication;
-cfg::Settings g_Settings;
+ui::MainApplication::Ref g_MainApplication = nullptr;
+cfg::Settings g_Settings = {};
 bool g_UpdatedNeedsRename = false;
 
 int main() {
@@ -61,5 +61,8 @@ int main() {
     // Start and loop the application
     g_MainApplication->ShowWithFadeIn();
 
-    Exit();
+    GLEAF_LOG_FMT("Exiting Goldleaf...");
+
+    Finalize();
+    return 0;
 }

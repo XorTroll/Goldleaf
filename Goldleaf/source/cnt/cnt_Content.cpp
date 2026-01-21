@@ -135,6 +135,7 @@ namespace cnt {
         }
 
         Thread g_LoadApplicationsThread;
+        std::atomic_bool g_LoadApplicationsThreadShouldExit = false;
         std::atomic_bool g_LoadApplicationsThreadDone = true;
 
         void ScanApplications() {
@@ -146,6 +147,11 @@ namespace cnt {
 
             // Try to get application views and control data
             for(auto &app: g_Applications) {
+                if(g_LoadApplicationsThreadShouldExit) {
+                    g_LoadApplicationsThreadShouldExit = false;
+                    return;
+                }
+
                 if(R_SUCCEEDED(nsGetApplicationView(reinterpret_cast<NsApplicationView*>(&app.view), &app.record.id, 1))) {
                     for(u32 i = 0; i < sizeof(app.view.flags) * CHAR_BIT; i++) {
                         if(app.view.flags & BIT(i)) {
@@ -314,6 +320,8 @@ namespace cnt {
     }
 
     void FinalizeApplications() {
+        g_LoadApplicationsThreadShouldExit = true;
+        threadWaitForExit(&g_LoadApplicationsThread);
         threadClose(&g_LoadApplicationsThread);
     }
 

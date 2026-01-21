@@ -306,7 +306,7 @@ struct Version {
 };
 
 Result Initialize();
-void Exit();
+void Finalize();
 
 inline ExecutableMode GetExecutableMode() {
     return envIsNso() ? ExecutableMode::NSO : ExecutableMode::NRO;
