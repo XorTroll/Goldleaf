@@ -57,10 +57,14 @@ namespace hos {
             Package1KeyGeneration_19_0_0 = 0x12,
             Package1KeyGeneration_20_0_0 = 0x13,
             Package1KeyGeneration_21_0_0 = 0x14,
+            Package1KeyGeneration_22_0_0 = 0x15,
         };
 
         u8 GetSystemPackage1KeyGeneration() {
-            if(hosversionAtLeast(21,0,0)) {
+            if(hosversionAtLeast(22,0,0)) {
+                return Package1KeyGeneration_22_0_0;
+            }
+            else if(hosversionAtLeast(21,0,0)) {
                 return Package1KeyGeneration_21_0_0;
             }
             else if(hosversionAtLeast(20,0,0)) {

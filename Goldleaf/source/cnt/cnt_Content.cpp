@@ -90,11 +90,11 @@ namespace cnt {
                     }
 
                     // Copt the first 16 entries just in case
-                    memcpy(out_data.base_data.nacp.lang, out_data.processed_lang_entries, sizeof(out_data.base_data.nacp));
+                    memcpy(out_data.base_data.nacp.lang_data.lang, out_data.processed_lang_entries, sizeof(out_data.base_data.nacp));
                 }
                 else {
                     // Just copy the plaintext lang entries
-                    memcpy(out_data.processed_lang_entries, out_data.base_data.nacp.lang, sizeof(out_data.base_data.nacp));
+                    memcpy(out_data.processed_lang_entries, out_data.base_data.nacp.lang_data.lang, sizeof(out_data.base_data.nacp));
                 }
             }
             return rc;
