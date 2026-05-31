@@ -31,10 +31,18 @@ namespace ui {
             pu::ui::elm::TextBlock::Ref speed_info_text;
 
         public:
+            struct BatchInstallOptions {
+                bool is_batch_install = false;
+                bool skip_if_installed = false;
+                bool should_prompt_delete = false;
+                bool should_delete_after_install = false;
+            };
+
             InstallLayout();
             PU_SMART_CTOR(InstallLayout)
 
-            bool StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation = false, const bool skip_if_already_installed = false);
+            bool StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation, const BatchInstallOptions &batch_install_options);
+            bool StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation = false);
     };
 
 }
