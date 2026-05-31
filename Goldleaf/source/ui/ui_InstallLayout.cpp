@@ -480,7 +480,6 @@ namespace ui {
             }
             else if(batch_install_options.should_delete_after_install) {
                 exp->DeleteFile(path);
-                g_MainApplication->ShowNotification(cfg::Strings.GetString(129));
             }
         }
 
