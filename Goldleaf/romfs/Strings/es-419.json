@@ -540,5 +540,7 @@
     "USB 1.0 (Low)",
     "USB 1.1 (Full)",
     "USB 2.0 (High)",
-    "USB 3.0 (Super)"
+    "USB 3.0 (Super)",
+    "¿Desea eliminar los archivos NSP después de instalarlos?",
+    "Preguntar por cada archivo"
 ]

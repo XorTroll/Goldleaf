@@ -272,7 +272,11 @@ namespace ui {
         this->speed_info_text->SetColor(g_Settings.GetColorScheme().text);
     }
 
-    bool InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation, const bool skip_if_already_installed) {
+    bool InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation) {
+        return StartInstall(path, pres_path, exp, storage_id, omit_confirmation, BatchInstallOptions{});
+    }
+
+    bool InstallLayout::StartInstall(const std::string &path, const std::string &pres_path, fs::Explorer *exp, const NcmStorageId storage_id, const bool omit_confirmation, const BatchInstallOptions &batch_install_options) {
         g_MainApplication->LoadCommonIconMenuData(true, cfg::Strings.GetString(77), CommonIconKind::Storage, cfg::Strings.GetString(145) + " " + pres_path);
         ScopeGuard on_exit([&]() {
             // Just in case
@@ -286,7 +290,7 @@ namespace ui {
         auto rc = nsp_installer.PrepareInstallation();
         if(R_FAILED(rc)) {
             if(rc == rc::goldleaf::ResultContentAlreadyInstalled) {
-                if(skip_if_already_installed) {
+                if(batch_install_options.skip_if_installed) {
                     return false;
                 }
 
@@ -467,8 +471,16 @@ namespace ui {
         else if(do_install) {
             g_MainApplication->ShowNotification(cfg::Strings.GetString(150));
 
-            if(g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value()) {
+            const bool is_prompt_delete_global_setting_enabled = g_Settings.json_settings.installs.value().show_deletion_prompt_after_install.value();
+            const bool should_prompt_delete = (is_prompt_delete_global_setting_enabled && !batch_install_options.is_batch_install) 
+                                                || (batch_install_options.is_batch_install && batch_install_options.should_prompt_delete);
+            
+            if(should_prompt_delete) {
                 g_MainApplication->GetBrowserLayout()->PromptDeleteFile(path);
+            }
+            else if(batch_install_options.should_delete_after_install) {
+                exp->DeleteFile(path);
+                g_MainApplication->ShowNotification(cfg::Strings.GetString(129));
             }
         }
 
