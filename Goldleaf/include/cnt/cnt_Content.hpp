@@ -143,5 +143,6 @@ namespace cnt {
 
     std::string FindApplicationNacpName(const NacpStruct &nacp);
     std::string FindApplicationNacpAuthor(const NacpStruct &nacp);
+    void FindApplicationNacpNameAndAuthor(const u8 *raw_nacp, size_t size, std::string &out_name, std::string &out_author);
 
 }
