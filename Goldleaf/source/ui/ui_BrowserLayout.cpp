@@ -269,30 +269,34 @@ namespace ui {
         else if(ext == "nacp")  {
             switch(option_1) {
                 case 0: {
-                    NacpStruct nacp_item = {};
                     const auto file_size = this->cur_exp->GetFileSize(full_item);
                     if(file_size < sizeof(NacpStruct)) {
                         g_MainApplication->ShowNotification(cfg::Strings.GetString(341));
                         return;
                     }
-                    this->cur_exp->ReadFile(full_item, 0, sizeof(nacp_item), &nacp_item);
 
-                    auto name = cnt::FindApplicationNacpName(nacp_item);
+                    std::vector<u8> raw_nacp(sizeof(NacpStruct), 0);
+                    this->cur_exp->ReadFile(full_item, 0, sizeof(NacpStruct), raw_nacp.data());
+
+                    std::string name, author;
+                    cnt::FindApplicationNacpNameAndAuthor(raw_nacp.data(), sizeof(NacpStruct), name, author);
                     if(name.empty()) {
                         name = cfg::Strings.GetString(106);
                     }
-                    auto author = cnt::FindApplicationNacpAuthor(nacp_item);
                     if(author.empty()) {
                         author = cfg::Strings.GetString(107);
                     }
 
+                    // Fields at 0x3000+ are format-independent (same layout for Format0 and Format1)
+                    const auto *nacp_ptr = reinterpret_cast<const NacpStruct*>(raw_nacp.data());
+
                     auto msg = cfg::Strings.GetString(108) + "\n\n";
                     msg += cfg::Strings.GetString(91) + " " + name;
                     msg += "\n" + cfg::Strings.GetString(92) + " " + author;
-                    msg += "\n" + cfg::Strings.GetString(109) + " " + nacp_item.display_version;
+                    msg += "\n" + cfg::Strings.GetString(109) + " " + nacp_ptr->display_version;
 
                     msg += "\n" + cfg::Strings.GetString(110) + " ";
-                    switch(nacp_item.startup_user_account) {
+                    switch(nacp_ptr->startup_user_account) {
                         case 0: {
                             msg += cfg::Strings.GetString(112);
                             break;
@@ -312,7 +316,7 @@ namespace ui {
                     }
 
                     msg += "\n" + cfg::Strings.GetString(115) + " ";
-                    switch(nacp_item.screenshot) {
+                    switch(nacp_ptr->screenshot) {
                         case 0: {
                             msg += cfg::Strings.GetString(111);
                             break;
@@ -328,7 +332,7 @@ namespace ui {
                     }
 
                     msg += "\n" + cfg::Strings.GetString(116) + " ";
-                    switch(nacp_item.video_capture) {
+                    switch(nacp_ptr->video_capture) {
                         case 0: {
                             msg += cfg::Strings.GetString(112);
                             break;
@@ -348,7 +352,7 @@ namespace ui {
                     }
 
                     msg += "\n" + cfg::Strings.GetString(118) + " ";
-                    switch(nacp_item.logo_type) {
+                    switch(nacp_ptr->logo_type) {
                         case 0: {
                             msg += cfg::Strings.GetString(119);
                             break;
