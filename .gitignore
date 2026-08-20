@@ -16,3 +16,6 @@ target/
 .project
 *.gen.hpp
 *.zip
+.clangd
+compile_flags.txt
+*.sh

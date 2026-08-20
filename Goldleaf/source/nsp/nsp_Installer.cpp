@@ -435,8 +435,6 @@ namespace nsp {
 
     Result Installer::WriteContents(OnStartWriteFunction on_start_write_fn, OnContentWriteFunction on_content_write_fn) {
         auto nand_sys_explorer = fs::GetNANDSystemExplorer();
-        u64 total_size = 0;
-        u64 total_written_size = 0;
         std::vector<u32> content_file_idxs;
         std::vector<NcmPlaceHolderId> content_placehld_ids;
         std::vector<u32> content_write_idxs;
@@ -444,7 +442,6 @@ namespace nsp {
             const auto content_file_name = util::FormatContentId(cnt.content_id) + ((cnt.content_type == NcmContentType_Meta) ? ".cnmt" : "") + ".nca";
             const auto content_file_idx = this->pfs0_file.GetFileIndexByName(content_file_name);
             GLEAF_RC_UNLESS(fs::PFS0::IsValidFileIndex(content_file_idx), rc::goldleaf::ResultInvalidNsp);
-            total_size += pfs0_file.GetFileSize(content_file_idx);
             content_file_idxs.push_back(content_file_idx);
         }
 
@@ -531,7 +528,6 @@ namespace nsp {
                     break;
                 }
             }
-            total_written_size += cur_written_size;
         }
 
         write_ctx.SignalDone();

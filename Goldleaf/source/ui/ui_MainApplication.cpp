@@ -205,6 +205,8 @@ namespace ui {
             dialog->SetOptionColor(g_Settings.GetColorScheme().dialog_opt);
             dialog->SetDialogColor(g_Settings.GetColorScheme().dialog);
             dialog->SetOverColor(g_Settings.GetColorScheme().dialog_over);
+            dialog->SetIconMaximumWidth(512);
+            dialog->SetIconMaximumHeight(512);
         });
     }
 
