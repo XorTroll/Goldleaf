@@ -604,6 +604,23 @@ namespace ui {
                         }
                         const bool skip_if_installed = (option_skip == 0);
 
+                        const auto option_delete_behavior = g_MainApplication->DisplayDialog(
+                            cfg::Strings.GetString(77), 
+                            cfg::Strings.GetString(542), 
+                            { 
+                                cfg::Strings.GetString(543), 
+                                cfg::Strings.GetString(111), 
+                                cfg::Strings.GetString(112),
+                                cfg::Strings.GetString(18)
+                            }, true);
+                        
+                        if(option_delete_behavior < 0) {
+                            return;
+                        }
+
+                        const bool should_prompt_delete = (option_delete_behavior == 0);
+                        const bool should_delete_after_install = (option_delete_behavior == 1);
+
                         // const auto scan_subdirs = g_MainApplication->DisplayDialog("Install", "Scan subdirectories for NSP files?", { "Yes", "No", "Cancel" }, true);
                         // if(scan_subdirs < 0) {
                         //     return;
@@ -622,7 +639,14 @@ namespace ui {
                                 return;
                             }
                             g_MainApplication->ShowLayout(g_MainApplication->GetInstallLayout());
-                            const auto installed = g_MainApplication->GetInstallLayout()->StartInstall(nsp_path, pres_nsp_path, this->cur_exp, dst, true, skip_if_installed);
+
+                            const InstallLayout::BatchInstallOptions batchInstallOptions = {
+                                .is_batch_install = true,
+                                .skip_if_installed = skip_if_installed,
+                                .should_prompt_delete = should_prompt_delete,
+                                .should_delete_after_install = should_delete_after_install
+                            };
+                            const auto installed = g_MainApplication->GetInstallLayout()->StartInstall(nsp_path, pres_nsp_path, this->cur_exp, dst, true, batchInstallOptions);
                             if(installed) {
                                 any_installed = true;
                             }
