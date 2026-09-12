@@ -30,6 +30,12 @@ extern ui::MainApplication::Ref g_MainApplication;
 
 namespace cnt {
 
+    constexpr size_t NacpTitlesDataFormatOffset = 0x3215;
+    constexpr size_t NacpDecompressedDataSize = 0x6000;
+    constexpr int NacpCompressedDataWbits = -15;
+    constexpr size_t LanguageEntryMaxCount = NacpDecompressedDataSize / sizeof(NacpLanguageEntry);
+    static_assert(LanguageEntryMaxCount * sizeof(NacpLanguageEntry) == NacpDecompressedDataSize);
+
     namespace {
 
         inline ApplicationPlayStats ConvertPlayStats(const PdmPlayStatistics play_stats) {
@@ -51,19 +57,55 @@ namespace cnt {
         constexpr size_t ApplicationContentMetaStatusBufferCount = 100;
         NsApplicationContentMetaStatus g_ApplicationContentMetaStatusBuffer[ApplicationContentMetaStatusBufferCount];
 
-        constexpr size_t NacpTitlesDataFormatOffset = 0x3215;
-        constexpr size_t NacpDecompressedDataSize = 0x6000;
-        constexpr int NacpCompressedDataWbits = -15;
-
-        constexpr size_t LanguageEntryMaxCount = NacpDecompressedDataSize / sizeof(NacpLanguageEntry);
-        static_assert(LanguageEntryMaxCount * sizeof(NacpLanguageEntry) == NacpDecompressedDataSize);
-
         struct ApplicationControlData {
             NsApplicationControlData base_data;
             NacpLanguageEntry processed_lang_entries[LanguageEntryMaxCount];
         };
 
         ApplicationControlData g_TemporaryApplicationControlData;
+
+        constexpr int GetNacpLanguageIndex(const SetLanguage lang) {
+            // SetLanguage_PL (18) and SetLanguage_TH (19) are macro-defined values not in the
+            // enum, so handle them before the switch to avoid -Werror=switch
+            if(lang == SetLanguage_PL) return 16;
+            if(lang == SetLanguage_TH) return 17;
+            switch(lang) {
+                case SetLanguage_ENUS:   return 0;
+                case SetLanguage_ENGB:   return 1;
+                case SetLanguage_JA:     return 2;
+                case SetLanguage_FR:     return 3;
+                case SetLanguage_DE:     return 4;
+                case SetLanguage_ES419:  return 5;
+                case SetLanguage_ES:     return 6;
+                case SetLanguage_IT:     return 7;
+                case SetLanguage_NL:     return 8;
+                case SetLanguage_FRCA:   return 9;
+                case SetLanguage_PT:     return 10;
+                case SetLanguage_RU:     return 11;
+                case SetLanguage_KO:     return 12;
+                case SetLanguage_ZHHANT: return 13;
+                case SetLanguage_ZHHANS: return 14;
+                case SetLanguage_PTBR:   return 15;
+                default:                 return 0;
+            }
+        }
+
+        const NacpLanguageEntry *FindBestNacpEntry(const NacpLanguageEntry *entries, const size_t count) {
+            u64 sys_lang_raw = SetLanguage_ENUS;
+            setGetSystemLanguage(&sys_lang_raw);
+            const auto sys_lang = static_cast<SetLanguage>(sys_lang_raw);
+
+            const auto idx = GetNacpLanguageIndex(sys_lang);
+            if((size_t)idx < count && entries[idx].name[0] != '\0') {
+                return &entries[idx];
+            }
+            if(count > 0 && entries[0].name[0] != '\0') return &entries[0];
+            if(count > 1 && entries[1].name[0] != '\0') return &entries[1];
+            for(size_t i = 2; i < count; i++) {
+                if(entries[i].name[0] != '\0') return &entries[i];
+            }
+            return nullptr;
+        }
 
         inline Result GetApplicationControlData(const u64 app_id, ApplicationControlData &out_data, size_t &out_icon_size) {
             size_t got_size;
@@ -89,12 +131,10 @@ namespace cnt {
                         return rc::goldleaf::ResultInvalidNacpFormat1Decompression;
                     }
 
-                    // Copt the first 16 entries just in case
-                    memcpy(out_data.base_data.nacp.lang_data.lang, out_data.processed_lang_entries, sizeof(out_data.base_data.nacp));
+                    memcpy(out_data.base_data.nacp.lang, out_data.processed_lang_entries, sizeof(out_data.base_data.nacp.lang));
                 }
                 else {
-                    // Just copy the plaintext lang entries
-                    memcpy(out_data.processed_lang_entries, out_data.base_data.nacp.lang_data.lang, sizeof(out_data.base_data.nacp));
+                    memcpy(out_data.processed_lang_entries, out_data.base_data.nacp.lang, sizeof(out_data.base_data.nacp.lang));
                 }
             }
             return rc;
@@ -204,13 +244,15 @@ namespace cnt {
                     app.misc_data.device_save_data_size = g_TemporaryApplicationControlData.base_data.nacp.device_save_data_size;
                     app.misc_data.user_account_save_data_size = g_TemporaryApplicationControlData.base_data.nacp.user_account_save_data_size;
 
-                    NacpLanguageEntry *lang_entry = nullptr;
-                    if(R_SUCCEEDED(nacpGetLanguageEntry(&g_TemporaryApplicationControlData.base_data.nacp, &lang_entry)) && lang_entry != nullptr) {
-                        if(lang_entry->name[0] != '\0') {
-                            app.cache.display_name = std::string(lang_entry->name);
+                    const auto *best_entry = FindBestNacpEntry(
+                        g_TemporaryApplicationControlData.processed_lang_entries,
+                        LanguageEntryMaxCount);
+                    if(best_entry != nullptr) {
+                        if(best_entry->name[0] != '\0') {
+                            app.cache.display_name = std::string(best_entry->name);
                         }
-                        if(lang_entry->author[0] != '\0') {
-                            app.cache.display_author = std::string(lang_entry->author);
+                        if(best_entry->author[0] != '\0') {
+                            app.cache.display_author = std::string(best_entry->author);
                         }
                     }
                 }
@@ -533,6 +575,37 @@ namespace cnt {
         }
         else {
             return "<invalid>";
+        }
+    }
+
+    void FindApplicationNacpNameAndAuthor(const u8 *raw_nacp, const size_t size, std::string &out_name, std::string &out_author) {
+        out_name = out_author = "";
+        if(size < sizeof(NacpStruct)) {
+            return;
+        }
+
+        const bool is_format1 = raw_nacp[NacpTitlesDataFormatOffset] == 1;
+
+        NacpLanguageEntry entries[LanguageEntryMaxCount] = {};
+        size_t entry_count;
+
+        if(is_format1) {
+            const auto compressed_size = *reinterpret_cast<const u16*>(raw_nacp);
+            const auto *compressed_data = raw_nacp + sizeof(u16);
+            if(!util::ZlibDecompress(entries, sizeof(entries), compressed_data, compressed_size, NacpCompressedDataWbits)) {
+                return;
+            }
+            entry_count = LanguageEntryMaxCount;
+        }
+        else {
+            memcpy(entries, raw_nacp, 16 * sizeof(NacpLanguageEntry));
+            entry_count = 16;
+        }
+
+        const auto *best = FindBestNacpEntry(entries, entry_count);
+        if(best != nullptr) {
+            out_name   = best->name;
+            out_author = best->author;
         }
     }
 

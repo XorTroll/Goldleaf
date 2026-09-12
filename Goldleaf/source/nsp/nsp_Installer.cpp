@@ -530,6 +530,9 @@ namespace nsp {
             }
         }
 
+        (void)total_size;
+        (void)total_written_size;
+
         write_ctx.SignalDone();
         GLEAF_RC_TRY(threadWaitForExit(&cnt_write_thread));
         GLEAF_RC_TRY(threadClose(&cnt_write_thread));
