@@ -76,6 +76,24 @@ public class MainApplication extends Application {
         System.exit(0);
     }
 
+    // Blocks (without burning CPU) until the dialog shown via Platform.runLater is closed
+    private void waitForDialogFinished() {
+        boolean interrupted = false;
+        synchronized(dialog_wait_lock) {
+            while(!is_dialog_finished) {
+                try {
+                    dialog_wait_lock.wait();
+                }
+                catch(InterruptedException e) {
+                    interrupted = true;
+                }
+            }
+        }
+        if(interrupted) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private void showOkDialogFromTask(String subtitle, String message, boolean terminate) {
         is_dialog_finished = false;
 
@@ -94,16 +112,11 @@ public class MainApplication extends Application {
             }
             synchronized(dialog_wait_lock) {
                 is_dialog_finished = true;
+                dialog_wait_lock.notifyAll();
             }
         });
 
-        while(true) {
-            synchronized(dialog_wait_lock) {
-                if(is_dialog_finished) {
-                    break;
-                }
-            }
-        }
+        this.waitForDialogFinished();
     }
 
     private USBInterface showUsbFailReconnectDialogFromTask(String message, boolean initial_start_silent) {
@@ -130,16 +143,11 @@ public class MainApplication extends Application {
 
                     synchronized(dialog_wait_lock) {
                         is_dialog_finished = true;
+                        dialog_wait_lock.notifyAll();
                     }
                 });
 
-                while(true) {
-                    synchronized(dialog_wait_lock) {
-                        if(is_dialog_finished) {
-                            break;
-                        }
-                    }
-                }
+                this.waitForDialogFinished();
             }
 
             skip_dialog = false;
@@ -274,25 +282,36 @@ public class MainApplication extends Application {
         }
 
         Platform.runLater(() -> {
+            // Don't hold the lock while the (modal) dialog is open
+            File tmp_file = new FileChooser().showOpenDialog(stage);
             synchronized(file_selected_lock) {
-                File tmp_file = new FileChooser().showOpenDialog(stage);
                 if(tmp_file != null) {
                     selected_file = tmp_file.toString();
                 }
 
                 file_selected = true;
+                file_selected_lock.notifyAll();
             }
         });
 
-        while(true) {
-            synchronized(file_selected_lock) {
-                if(file_selected) {
-                    break;
+        boolean interrupted = false;
+        String result;
+        synchronized(file_selected_lock) {
+            while(!file_selected) {
+                try {
+                    file_selected_lock.wait();
+                }
+                catch(InterruptedException e) {
+                    interrupted = true;
                 }
             }
+            result = selected_file;
+        }
+        if(interrupted) {
+            Thread.currentThread().interrupt();
         }
 
-        return selected_file;
+        return result;
     }
 
     public static void addSpecialPath(String name, String path) throws Exception {

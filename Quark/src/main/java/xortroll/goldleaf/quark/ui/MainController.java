@@ -21,13 +21,17 @@
 
 package xortroll.goldleaf.quark.ui;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -46,18 +50,77 @@ import javafx.stage.DirectoryChooser;
 public class MainController {
 
     public class UILogger extends OutputStream {
+        // Output is buffered and pushed to the UI in batches: queueing one UI task per
+        // written byte (and never trimming the text area) pins the CPU during transfers,
+        // since every command Goldleaf sends gets logged
+        private static final int FlushIntervalMs = 250;
+        private static final int MaxChars = 100000;
+        private static final int KeepChars = 50000;
+
         private TextArea area;
+        private ByteArrayOutputStream pending = new ByteArrayOutputStream();
+        private Object pending_lock = new Object();
+        private boolean ui_update_queued = false;
 
         public UILogger(TextArea area) {
             this.area = area;
+
+            ScheduledExecutorService flusher = Executors.newSingleThreadScheduledExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "Quark-UILogger-Flush");
+                thread.setDaemon(true);
+                return thread;
+            });
+            flusher.scheduleWithFixedDelay(this::requestFlush, FlushIntervalMs, FlushIntervalMs, TimeUnit.MILLISECONDS);
         }
 
         public void writeString(String data) {
-            Platform.runLater(() -> area.appendText(data));
+            byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
+            this.write(bytes, 0, bytes.length);
         }
 
-        public void write(int b) throws IOException {
-            this.writeString(String.valueOf((char)b));
+        @Override
+        public void write(int b) {
+            synchronized(this.pending_lock) {
+                this.pending.write(b);
+            }
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) {
+            synchronized(this.pending_lock) {
+                this.pending.write(b, off, len);
+            }
+        }
+
+        private void requestFlush() {
+            synchronized(this.pending_lock) {
+                if(this.pending.size() == 0 || this.ui_update_queued) {
+                    return;
+                }
+                this.ui_update_queued = true;
+            }
+
+            Platform.runLater(this::flushToUi);
+        }
+
+        private void flushToUi() {
+            String data;
+            synchronized(this.pending_lock) {
+                data = new String(this.pending.toByteArray(), StandardCharsets.UTF_8);
+                this.pending.reset();
+                this.ui_update_queued = false;
+            }
+            if(data.isEmpty()) {
+                return;
+            }
+
+            // Keep the text area bounded
+            int overflow = this.area.getLength() + data.length() - MaxChars;
+            if(overflow > 0) {
+                int cut = Math.min(this.area.getLength(), Math.max(overflow, this.area.getLength() - KeepChars));
+                this.area.deleteText(0, cut);
+            }
+            this.area.appendText(data);
         }
     }
 
