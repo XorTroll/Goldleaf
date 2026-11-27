@@ -269,11 +269,9 @@ namespace nsp {
         this->inst_contents.clear();
         for(const auto &cnt: this->packaged_cnt_meta.contents) {
             if(cnt.info.content_type == NcmContentType_Program) {
-                const auto program_idx = this->inst_contents.size();
-
                 auto &program = this->inst_contents.emplace_back();
                 program.meta_key = {
-                    .id = this->packaged_cnt_meta.header.id + program_idx,
+                    .id = this->packaged_cnt_meta.header.id + cnt.info.id_offset,
                     .version = this->packaged_cnt_meta.header.version,
                     .type = this->packaged_cnt_meta.header.type,
                     .install_type = NcmContentInstallType_Full
@@ -298,23 +296,35 @@ namespace nsp {
             this->contents.push_back(this->meta_cnt_info);
         }
 
-        // TODO: improve? this supposes that inst_contents are ordered according to their ids
-        u32 program_i = 0;
         for(const auto &cnt: this->packaged_cnt_meta.contents) {
             this->contents.push_back(cnt.info);
             if(cnt.info.content_type == NcmContentType_Control) {
-                auto &cur_program = this->inst_contents.at(program_i);
                 const auto control_nca_content_id = util::FormatContentId(cnt.info.content_id);
                 const auto control_nca_file_name = control_nca_content_id + ".nca";
                 const auto control_nca_file_idx = this->pfs0_file.GetFileIndexByName(control_nca_file_name);
                 if(fs::PFS0::IsValidFileIndex(control_nca_file_idx)) {
+                    // Every control content must be saved, since WriteContents() installs them from the temp dir
                     const auto control_nca_temp_path = nand_sys_explorer->MakeFull(GLEAF_PATH_NAND_INSTALL_TEMP_DIR "/" + control_nca_file_name);
                     this->pfs0_file.SaveFile(control_nca_file_idx, nand_sys_explorer, control_nca_temp_path);
+
+                    // Control contents belong to the program with the same id_offset; packages may carry more control contents than programs
+                    const auto program_id = this->packaged_cnt_meta.header.id + cnt.info.id_offset;
+                    InstallableContent *program_ptr = nullptr;
+                    for(auto &program: this->inst_contents) {
+                        if(program.meta_key.id == program_id) {
+                            program_ptr = &program;
+                            break;
+                        }
+                    }
 
                     char control_nca_content_path[FS_MAX_PATH] = {};
                     snprintf(control_nca_content_path, sizeof(control_nca_content_path), GLEAF_FS_PATH_NAND_INSTALL_TEMP_DIR "/%s", control_nca_file_name.c_str());
                     FsFileSystem control_nca_fs;
-                    if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, cur_program.meta_key.id, FsFileSystemType_ContentControl, control_nca_content_path, FsContentAttributes_All))) {
+                    if((program_ptr == nullptr) || !program_ptr->icon_path.empty()) {
+                        GLEAF_WARN_FMT("Not reading control data of content %s (id_offset=%u): no program left to attach it to", control_nca_content_id.c_str(), cnt.info.id_offset);
+                    }
+                    else if(R_SUCCEEDED(fsOpenFileSystemWithId(&control_nca_fs, program_id, FsFileSystemType_ContentControl, control_nca_content_path, FsContentAttributes_All))) {
+                        auto &cur_program = *program_ptr;
                         fs::FspExplorer control_nca_fs_obj(control_nca_fs, "nsp.ControlData");
                         
                         const auto cur_lang_name = GetLanguageName(g_Settings.GetLanguage());
@@ -341,7 +351,6 @@ namespace nsp {
                         control_nca_fs_obj.ReadFile("control.nacp", 0, sizeof(cur_program.nacp_data), &cur_program.nacp_data);
                     }
                 }
-                program_i++;
             }
         }
         GLEAF_RC_SUCCEED;
